@@ -1,0 +1,159 @@
+{
+  "id": "aut_20260419202807_035f30",
+  "objective": "High Pressure Objective 22",
+  "account": "user_22@test.com",
+  "anchorModel": "pro-model",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "done",
+  "reviewAfterPlan": false,
+  "currentModel": "pro-model",
+  "currentGear": "elite",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T20:28:07.848Z",
+  "updatedAt": "2026-04-19T20:28:15.564Z",
+  "cycleCount": 1,
+  "maxCycles": 2,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "t_22",
+      "type": "implementation",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T20:28:12.664Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 2,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 1000,
+      "maxOutputTokens": 1000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 4817,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [
+    "/sessions/hopeful-friendly-euler/mnt/agent-stack/AGENT/d:/PROJECT/agent-stack/AGENT/test-workspace-stress/work_dk3skccdet.txt"
+  ],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "pro-model",
+      "previousModel": null,
+      "anchorModel": "pro-model",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-19T20:28:09.208Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "taskId": "t_22",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-19T20:28:08.097Z"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "taskId": "t_22",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-19T20:28:09.208Z"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "taskId": "t_22",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-04-19T20:28:11.791Z"
+    },
+    {
+      "cycle": 1,
+      "state": "done",
+      "taskId": null,
+      "note": "Autonomy session completed",
+      "timestamp": "2026-04-19T20:28:15.564Z"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260419202807_035f30:implementation:1",
+      "cycle": 1,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T20:28:09.208Z"
+    },
+    {
+      "operationId": "aut_20260419202807_035f30:implementation:1",
+      "cycle": 1,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "parallel ok for undefined",
+      "touchedFiles": [
+        "/sessions/hopeful-friendly-euler/mnt/agent-stack/AGENT/d:/PROJECT/agent-stack/AGENT/test-workspace-stress/work_dk3skccdet.txt"
+      ],
+      "timestamp": "2026-04-19T20:28:11.130Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan Review\n\n## Objective\nHigh Pressure Objective 22\n\n## Scope\n- src\n\n## Current Phase\nplan\n\n## Current Model\npro-model\n\n## Proposed Steps\n- Analyze task `implementation` against the active objective.\n- Apply changes only inside scoped paths: src.\n- Run verification before advancing the mission state.\n\n## Expected Touch Points\n- src\n\n## Risks / Gate Expectations\n- Strict gate validation remains enabled.\n- Router policy may switch away from pro-model when recovery triggers fire.\n- Budget guardrails: TPM 1,000,000 / RPD 5,000.\n\n## Next Action\nAwait approval for cycle 1 before executing implementation.",
+    "changeSummary": "parallel ok for undefined",
+    "nextActionReason": "All tasks complete",
+    "gateResult": {
+      "passed": true,
+      "blockingIssues": [],
+      "timestamp": "2026-04-19T20:28:12.664Z",
+      "auditSummary": {
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0
+      },
+      "impactedScopes": [],
+      "commands": []
+    },
+    "rawResponses": [],
+    "contextPack": "{\"objective\":\"High Pressure Objective 22\",\"latestModel\":\"pro-model\",\"cycle\":1,\"scope\":[\"src\"],\"lastPlan\":\"# Plan Review\\n\\n## Objective\\nHigh Pressure Objective 22\\n\\n## Scope\\n- src\\n\\n## Current Phase\\nplan\\n\\n## Current Model\\npro-model\\n\\n## Proposed Steps\\n- Analyze task `implementation` against the active objective.\\n- Apply changes only inside scoped paths: src.\\n- Run verification before advancing the mission state.\\n\\n## Expected Touch Points\\n- src\\n\\n## Risks / Gate Expectations\\n- Strict gate validation remains enabled.\\n- Router policy may switch away from pro-model when recovery triggers fire.\\n- Budget guardrails: TPM 1,000,000 / RPD 5,000.\\n\\n## Next Action\\nAwait approval for cycle 1 before executing implementation.\",\"lastSummary\":\"\",\"tacticalHistory\":\"No prior history in this mission.\"}"
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-04-19T20:28:15.564Z"
+}

@@ -13,6 +13,17 @@
  */
 import { z } from "zod";
 
+/**
+ * Zod v4 tightened `.default()` so the argument must match the resolved
+ * *output* type. Every leaf in this schema has its own `.default(...)`, which
+ * means `{}` is a semantically-valid default at runtime — Zod walks the
+ * children and fills everything in. The compiler can't infer that through the
+ * generic plumbing, so we provide a typed sentinel used by every
+ * all-defaulted object schema below.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const emptyDefault = {} as any;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Branded primitives
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,13 +94,13 @@ const azureProvider = z.object({
 });
 
 export const providersSchema = z.object({
-  ollama: ollamaProvider.default({}),
-  openrouter: openRouterProvider.default({}),
-  anthropic: anthropicProvider.default({}),
-  openai: openAIProvider.default({}),
-  google: googleProvider.default({}),
-  lmstudio: lmStudioProvider.default({}),
-  azure: azureProvider.default({}),
+  ollama: ollamaProvider.default(emptyDefault),
+  openrouter: openRouterProvider.default(emptyDefault),
+  anthropic: anthropicProvider.default(emptyDefault),
+  openai: openAIProvider.default(emptyDefault),
+  google: googleProvider.default(emptyDefault),
+  lmstudio: lmStudioProvider.default(emptyDefault),
+  azure: azureProvider.default(emptyDefault),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,14 +118,14 @@ export const routingSchema = z.object({
       embed: modelRef.default("ollama:nomic-embed-text"),
       rerank: modelRef.default("ollama:qwen2.5:7b"),
     })
-    .default({}),
+    .default(emptyDefault),
   complexity: z
     .object({
       low: modelRef.default("ollama:qwen2.5:7b"),
       medium: modelRef.default("ollama:qwen2.5:14b"),
       high: modelRef.default("anthropic:claude-sonnet-4-5"),
     })
-    .default({}),
+    .default(emptyDefault),
   fallback_chain: z
     .array(modelRef)
     .default(["ollama:qwen2.5:7b", "openrouter:anthropic/claude-3.5-sonnet"]),
@@ -140,7 +151,7 @@ export const pipelineSchema = z.object({
     .object(
       Object.fromEntries(LAYERS.map((l) => [l, z.boolean().default(true)])),
     )
-    .default({}),
+    .default(emptyDefault),
   cache: z
     .object({
       exact_ttl_s: z.number().int().min(0).max(30 * 86400).default(86400),
@@ -148,13 +159,13 @@ export const pipelineSchema = z.object({
       semantic_threshold: z.number().min(0).max(1).default(0.87),
       max_entries: z.number().int().positive().max(10_000_000).default(100_000),
     })
-    .default({}),
+    .default(emptyDefault),
   mab: z
     .object({
       epsilon: z.number().min(0).max(1).default(0.1),
       reward_threshold: z.number().min(0).max(1).default(0.2),
     })
-    .default({}),
+    .default(emptyDefault),
   rag: z
     .object({
       sources: z
@@ -170,21 +181,21 @@ export const pipelineSchema = z.object({
       chunk_size: z.number().int().min(64).max(8192).default(512),
       top_k: z.number().int().min(1).max(50).default(5),
     })
-    .default({}),
+    .default(emptyDefault),
   compression: z
     .object({
       llmlingua_target_ratio: z.number().min(0.1).max(1).default(0.5),
       caveman_endpoint: urlString().optional(),
       dedup_mode: z.enum(["off", "exact", "semantic"]).default("exact"),
     })
-    .default({}),
+    .default(emptyDefault),
   budgets: z
     .object({
       max_tokens_per_day: z.number().int().nonnegative().default(0), // 0 = no cap
       max_usd_per_day: z.number().nonnegative().default(0),
       max_tokens_per_mission: z.number().int().nonnegative().default(0),
     })
-    .default({}),
+    .default(emptyDefault),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -202,7 +213,7 @@ export const mcpSchema = z.object({
         command: z.string().optional(), // stdio
         args: z.array(z.string()).default([]),
         url: urlString().optional(), // http/ws
-        env: z.record(z.string(), z.string()).default({}),
+        env: z.record(z.string(), z.string()).default(emptyDefault),
         tool_allowlist: z.array(z.string()).default([]),
       }),
     )
@@ -253,20 +264,20 @@ export const observabilitySchema = z.object({
       bridge: z.enum(["DEBUG", "INFO", "WARNING", "ERROR"]).default("INFO"),
       mcp: z.enum(["debug", "info", "warn", "error"]).default("info"),
     })
-    .default({}),
+    .default(emptyDefault),
   otel: z
     .object({
       enabled: z.boolean().default(false),
       endpoint: urlString().optional(),
       service_namespace: z.string().default("sovereign-ai"),
     })
-    .default({}),
+    .default(emptyDefault),
   metrics: z
     .object({
       enabled: z.boolean().default(true),
       port: z.number().int().min(1).max(65535).default(9090),
     })
-    .default({}),
+    .default(emptyDefault),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -293,14 +304,14 @@ export const appearanceSchema = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const settingsSchema = z.object({
-  providers: providersSchema.default({}),
-  routing: routingSchema.default({}),
-  pipeline: pipelineSchema.default({}),
-  mcp: mcpSchema.default({}),
-  rules: rulesSchema.default({}),
-  observability: observabilitySchema.default({}),
-  data: dataSchema.default({}),
-  appearance: appearanceSchema.default({}),
+  providers: providersSchema.default(emptyDefault),
+  routing: routingSchema.default(emptyDefault),
+  pipeline: pipelineSchema.default(emptyDefault),
+  mcp: mcpSchema.default(emptyDefault),
+  rules: rulesSchema.default(emptyDefault),
+  observability: observabilitySchema.default(emptyDefault),
+  data: dataSchema.default(emptyDefault),
+  appearance: appearanceSchema.default(emptyDefault),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;

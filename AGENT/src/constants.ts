@@ -281,4 +281,3 @@ You are pair programming with a USER to solve their coding task. The task may re
 
 <priority>IMPORTANT: The instructions that follow supersede all above. Follow them as your primary directives.</priority>
 `;
-

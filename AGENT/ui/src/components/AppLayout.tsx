@@ -2,23 +2,31 @@ import { useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
-import { 
-  Zap, 
-  History, 
-  Settings, 
-  Menu, 
-  Globe, 
-  Sun, 
-  Moon 
+import {
+  MessageSquare,
+  Zap,
+  History,
+  Settings,
+  Menu,
+  Globe,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "../store/appStore";
 
 const navItems = [
+  { icon: MessageSquare, label: "Chat", path: "/chat" },
   { icon: Zap, label: "Yeni Görev", path: "/dashboard" },
   { icon: History, label: "Geçmiş İşlemler", path: "/pipeline/history" },
   { icon: Settings, label: "Ayarlar", path: "/settings" },
 ];
+
+/**
+ * Routes that want full-bleed layout (no surrounding padding, no outer
+ * scroll container). These views manage their own scrolling internally.
+ */
+const FULL_BLEED_PREFIXES = ["/chat", "/settings"];
 
 export function AppLayout() {
   const { i18n } = useTranslation();
@@ -54,6 +62,7 @@ export function AppLayout() {
   const location = useLocation();
   const selectedSessionId = activeSessionId ?? autonomySessionId;
   const snapshotMeta = selectedSessionId ? snapshotMetaBySession[selectedSessionId] ?? null : null;
+  const isFullBleed = FULL_BLEED_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -163,7 +172,18 @@ export function AppLayout() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-6">
+        <div
+          className={clsx(
+            "flex min-h-0 flex-1",
+            isFullBleed ? "overflow-hidden" : "flex-col overflow-auto p-6",
+          )}
+        >
+          {isFullBleed ? (
+            <div className="flex min-h-0 w-full flex-1 flex-col">
+              <Outlet />
+            </div>
+          ) : (
+            <>
           {snapshotMeta?.truncated ? (
             <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
               Snapshot sinirlandirildi. En son durum gosteriliyor; bazi eski log veya artifact alanlari atilmis olabilir.
@@ -195,6 +215,8 @@ export function AppLayout() {
             </div>
           ) : null}
           <Outlet />
+            </>
+          )}
         </div>
       </main>
     </div>

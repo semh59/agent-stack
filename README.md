@@ -136,10 +136,37 @@ terraform apply
 
 See [terraform/README.md](terraform/README.md) for the full layout and the ARNs you need to pre-create in Secrets Manager.
 
+## The Sovereign Console
+
+The React console under `AGENT/ui/` is the primary interface for operators.
+It exposes every environment variable, provider, route, MCP server, and
+pipeline layer through a strongly-typed settings service — and ships with a
+first-class chat surface wired to the optimization bridge.
+
+- **Chat** (`/chat`) — conversation list, streaming messages, inline model
+  picker, session cost footer.
+- **Settings** (`/settings`) — Providers, Routing, Pipeline, MCP, Rules &
+  Prompts, Observability, Data, Appearance.
+
+Secrets (API keys, OAuth tokens, webhook secrets) are stored in SQLite using
+AES-256-GCM envelope encryption. The master key comes from
+`SOVEREIGN_MASTER_KEY` (32 bytes base64 or 64-char hex). In development, the
+gateway synthesizes an ephemeral key so the dev loop isn't blocked; staging
+and production refuse to start without one.
+
+See [docs/SETTINGS.md](docs/SETTINGS.md) for the settings service contract,
+[docs/UI_ARCHITECTURE.md](docs/UI_ARCHITECTURE.md) for the console's
+architectural map, and [docs/CONSOLE_UX.md](docs/CONSOLE_UX.md) for the UX
+playbook that keeps the console coherent.
+
 ## Further docs
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system architecture and data flow
 - [docs/API.md](docs/API.md) — HTTP contract for the bridge and gateway
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — deploy, rollback, incident response
+- [docs/SETTINGS.md](docs/SETTINGS.md) — settings service contract and PATCH semantics
+- [docs/UI_ARCHITECTURE.md](docs/UI_ARCHITECTURE.md) — console architecture map
+- [docs/CONSOLE_UX.md](docs/CONSOLE_UX.md) — UX playbook for the Sovereign console
+- [docs/PLATFORM_PLAN.md](docs/PLATFORM_PLAN.md) — CTO-level UX/architecture plan
 - [PRODUCTION_GAP_ANALYSIS.md](PRODUCTION_GAP_ANALYSIS.md) — initial gap audit
 - [PRODUCTION_TASK_PLAN.md](PRODUCTION_TASK_PLAN.md) — remediation plan driving this work

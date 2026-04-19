@@ -157,7 +157,10 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
   // ── GET /api/settings/schema — JSON Schema for form generation ─────────
   app.get("/api/settings/schema", async (request, reply) => {
     getRequestId(request, reply);
-    const jsonSchema = zodToJsonSchema(settingsSchema, {
+    // `zod-to-json-schema@3` types target Zod v3; we're on v4. Runtime works
+    // fine, but the compiler can't bridge the generics — hence the cast.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const jsonSchema = zodToJsonSchema(settingsSchema as unknown as any, {
       name: "Settings",
       $refStrategy: "none",
     });
