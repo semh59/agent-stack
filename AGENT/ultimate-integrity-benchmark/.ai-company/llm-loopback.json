@@ -1,0 +1,10 @@
+{
+  "default": "I am a sovereign agent. Proceeding with the requested architecture and implementation steps.",
+  "ceo": "CEO: Build a High-Performance Logging Service. Requirement: Zero-dependency, file-based.",
+  "pm": "PM: Ensuring milestone alignment for Logging Service.",
+  "architect": "Architect: Define a singleton structure for the logger. Use TypeScript.",
+  "ui_ux": "UI/UX: Define logging format and terminal branding indicators.",
+  "database": "Database: No DB required, will use native filesystem logging.",
+  "backend": "\n@file: package.json\n{\n  \"name\": \"sovereign-logger\",\n  \"version\": \"1.0.0\",\n  \"scripts\": { \"build\": \"tsc\" },\n  \"devDependencies\": { \"typescript\": \"^5.0.0\" }\n}\n\n@file: tsconfig.json\n{\n  \"compilerOptions\": { \"target\": \"ESNext\", \"module\": \"CommonJS\", \"outDir\": \"./dist\", \"rootDir\": \"./src\", \"strict\": true }\n}\n\n@file: src/logger.ts\nexport class Logger {\n  static log(msg: string) {\n    // INTENTIONAL SYNTAX ERROR: Broken variable assignment\n    const broken = \n    console.log(\"[Sovereign] \" + msg);\n  }\n}\n",
+  "unit_test": "\n@file: src/logger.test.ts\nimport { Logger } from './logger';\nLogger.log(\"Testing integrity...\");\n"
+}

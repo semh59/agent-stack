@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  /* LojiNext Elite Palette */
+  --color-loji-bg: #050505;
+  --color-loji-surface: #0f0f0f;
+  --color-loji-surface-hover: #161616;
+  --color-loji-border: rgba(255, 255, 255, 0.08);
+  --color-loji-border-bright: rgba(0, 240, 255, 0.2);
+  --color-loji-accent: #00f0ff;
+  --color-loji-accent-rgb: 0, 240, 255;
+  --color-loji-text: #f0f0f0;
+  --color-loji-text-sec: rgba(240, 240, 240, 0.6);
+  --color-loji-success: #00ff94;
+  --color-loji-warning: #ffb800;
+  --color-loji-error: #ff4d4d;
+  
+  --font-display: "DM Mono", "Bebas Neue", monospace;
+  --font-body: "JetBrains Mono", monospace;
+  --font-ui: "IBM Plex Sans Condensed", sans-serif;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+}
+
+@layer base {
+  :root {
+    /* Glassmorphism */
+    --glass-bg: rgba(15, 15, 15, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  }
+
+  [data-theme="light"] {
+    --color-loji-bg: #f8fafc;
+    --color-loji-surface: #ffffff;
+    --color-loji-border: #e2e8f0;
+    --color-loji-text: #0f172a;
+    --color-loji-text-sec: #64748b;
+  }
+
+  body {
+    background-color: var(--color-loji-bg);
+    color: var(--color-loji-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 500;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  .border-glass {
+    border: 1px solid var(--color-loji-border);
+    background: rgba(15, 17, 23, 0.7);
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}

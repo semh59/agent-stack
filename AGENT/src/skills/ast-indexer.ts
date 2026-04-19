@@ -1,0 +1,72 @@
+import ts from 'typescript';
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * AST Indexer: Proje kodlarını yapısal (AST) olarak analiz eder.
+ * Kod parçalarını sadece metin olarak değil, semantik anlamlarıyla (fonksiyon, sınıf, değişken) bulur.
+ */
+export class ASTIndexer {
+  private program: ts.Program;
+  private checker: ts.TypeChecker;
+
+  constructor(rootFiles: string[]) {
+    this.program = ts.createProgram(rootFiles, {
+      target: ts.ScriptTarget.ESNext,
+      module: ts.ModuleKind.ESNext,
+      allowJs: true,
+    });
+    this.checker = this.program.getTypeChecker();
+  }
+
+  /**
+   * Tüm dosyaları tarar ve semantik bir sembol listesi çıkarır.
+   */
+  public indexProject() {
+    const symbols: any[] = [];
+    for (const sourceFile of this.program.getSourceFiles()) {
+      if (!sourceFile.isDeclarationFile) {
+        ts.forEachChild(sourceFile, (node) => {
+          this.visitNode(node, sourceFile, symbols);
+        });
+      }
+    }
+    return symbols;
+  }
+
+  private visitNode(node: ts.Node, sourceFile: ts.SourceFile, symbols: any[]) {
+    if (ts.isFunctionDeclaration(node) && node.name) {
+      symbols.push(this.extractSymbolInfo(node, 'Function', sourceFile));
+    } else if (ts.isClassDeclaration(node) && node.name) {
+      symbols.push(this.extractSymbolInfo(node, 'Class', sourceFile));
+    } else if (ts.isInterfaceDeclaration(node) && node.name) {
+      symbols.push(this.extractSymbolInfo(node, 'Interface', sourceFile));
+    }
+
+    ts.forEachChild(node, (child) => this.visitNode(child, sourceFile, symbols));
+  }
+
+  private extractSymbolInfo(node: ts.NamedDeclaration, type: string, sourceFile: ts.SourceFile) {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+    return {
+      name: node.name?.getText(sourceFile),
+      type,
+      path: sourceFile.fileName,
+      line: line + 1,
+      character: character + 1,
+      snippet: node.getText(sourceFile).substring(0, 100) + '...',
+    };
+  }
+
+  /**
+   * Belirli bir sembolü (örneğin bir fonksiyon adı) tüm projede arar.
+   */
+  public searchSymbol(query: string) {
+    const allSymbols = this.indexProject();
+    return allSymbols.filter(s => s.name?.toLowerCase().includes(query.toLowerCase()));
+  }
+}
+
+// Örnek kullanım (Agent içinde tool olarak çağrılacak)
+// const indexer = new ASTIndexer(['src/index.ts']);
+// console.log(indexer.searchSymbol('authorize'));

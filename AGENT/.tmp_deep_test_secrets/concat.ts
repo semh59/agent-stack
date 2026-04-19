@@ -1,0 +1,1 @@
+const apiKey = "AIzaSy" + "B_something" + "C123";

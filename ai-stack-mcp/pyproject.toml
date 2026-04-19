@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "ai-stack-mcp"
+version = "1.0.0"
+description = "Token optimization MCP server for Claude Code"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.0.0",
+    "chromadb>=0.4.22",
+    "lancedb>=0.5.0",
+    "pyarrow>=14.0.0",
+    "llmlingua>=0.2.2",
+    "spacy>=3.7.0",
+    "httpx>=0.27.0",
+    "tenacity>=8.2.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "structlog>=23.2.0",
+    "prometheus-client>=0.17.0",
+    "scikit-learn>=1.3.2",
+    "numpy>=1.24.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "unit: fast unit tests",
+    "integration: integration tests (require Ollama)",
+    "slow: slow tests",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+select = ["E", "W", "F", "I", "C", "B", "UP"]
+ignore = ["E501"]

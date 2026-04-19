@@ -1,0 +1,1 @@
+const dummyAvatar = "bXlfc2VjcmV0X3Bhc3N3b3JkXzEyMzQ1Njc4kw==";

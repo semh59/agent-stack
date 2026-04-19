@@ -1,0 +1,1 @@
+Architect: Define a singleton structure for the logger. Use TypeScript.

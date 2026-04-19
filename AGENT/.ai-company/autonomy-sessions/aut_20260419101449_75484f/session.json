@@ -1,0 +1,223 @@
+{
+  "id": "aut_20260419101449_75484f",
+  "objective": "Recovery test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "verify",
+  "reviewAfterPlan": false,
+  "currentModel": "gpt-4o-2024-05-13",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T10:14:49.162Z",
+  "updatedAt": "2026-04-19T10:14:49.197Z",
+  "cycleCount": 2,
+  "maxCycles": 10,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-03dfad65",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 2,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:14:49.197Z",
+      "lastError": "Rate limit exceeded 429"
+    },
+    {
+      "id": "implementation-a7534ba1",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:14:49.162Z"
+    },
+    {
+      "id": "refactor-44453650",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:14:49.162Z"
+    },
+    {
+      "id": "test-fix-20b4bac8",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:14:49.162Z"
+    },
+    {
+      "id": "verification-e4849db9",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:14:49.162Z"
+    },
+    {
+      "id": "finalize-7dbf84cd",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:14:49.162Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 10,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 10
+    },
+    "usage": {
+      "cyclesUsed": 2,
+      "durationMsUsed": 33,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-19T10:14:49.182Z"
+    },
+    {
+      "selectedModel": "gpt-4o-2024-05-13",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "RATE_LIMIT",
+      "switched": true,
+      "timestamp": "2026-04-19T10:14:49.192Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "taskId": "analysis-03dfad65",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-19T10:14:49.180Z"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "taskId": "analysis-03dfad65",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-19T10:14:49.182Z"
+    },
+    {
+      "cycle": 1,
+      "state": "retry",
+      "taskId": "analysis-03dfad65",
+      "note": "Rate limit exceeded 429",
+      "timestamp": "2026-04-19T10:14:49.187Z"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "taskId": "analysis-03dfad65",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-19T10:14:49.190Z"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "taskId": "analysis-03dfad65",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-19T10:14:49.192Z"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "taskId": "analysis-03dfad65",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-19T10:14:49.197Z"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260419101449_75484f:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:14:49.182Z"
+    },
+    {
+      "operationId": "aut_20260419101449_75484f:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "failed",
+      "summary": "Rate limit exceeded 429",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:14:49.185Z"
+    },
+    {
+      "operationId": "aut_20260419101449_75484f:analysis:2",
+      "cycle": 2,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:14:49.192Z"
+    },
+    {
+      "operationId": "aut_20260419101449_75484f:analysis:2",
+      "cycle": 2,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "recovered",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:14:49.195Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan Review\n\n## Objective\nRecovery test\n\n## Scope\n- src\n\n## Current Phase\nplan\n\n## Current Model\ngpt-4o-2024-05-13\n\n## Proposed Steps\n- Analyze task `analysis` against the active objective.\n- Apply changes only inside scoped paths: src.\n- Run verification before advancing the mission state.\n\n## Expected Touch Points\n- src\n\n## Risks / Gate Expectations\n- Strict gate validation remains enabled.\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\n- Budget guardrails: TPM 1.000.000 / RPD 5.000.\n\n## Next Action\nAwait approval for cycle 2 before executing analysis.",
+    "changeSummary": "recovered",
+    "nextActionReason": "Execution failed, retrying with recovery model",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": "{\"objective\":\"Recovery test\",\"latestModel\":\"gpt-4o-2024-05-13\",\"cycle\":2,\"scope\":[\"src\"],\"lastPlan\":\"# Plan Review\\n\\n## Objective\\nRecovery test\\n\\n## Scope\\n- src\\n\\n## Current Phase\\nplan\\n\\n## Current Model\\ngpt-4o-2024-05-13\\n\\n## Proposed Steps\\n- Analyze task `analysis` against the active objective.\\n- Apply changes only inside scoped paths: src.\\n- Run verification before advancing the mission state.\\n\\n## Expected Touch Points\\n- src\\n\\n## Risks / Gate Expectations\\n- Strict gate validation remains enabled.\\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\\n- Budget guardrails: TPM 1.000.000 / RPD 5.000.\\n\\n## Next Action\\nAwait approval for cycle 2 before executing analysis.\",\"lastSummary\":\"Task execution failed: Rate limit exceeded 429\",\"tacticalHistory\":\"Mission History:\\n[Cycle 1] analysis: started - Executing analysis\\n[Cycle 1] analysis: failed - Rate limit exceeded 429\"}"
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-04-19T10:14:49.197Z"
+}

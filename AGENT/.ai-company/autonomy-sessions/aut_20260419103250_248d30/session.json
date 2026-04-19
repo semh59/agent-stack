@@ -1,0 +1,283 @@
+{
+  "id": "aut_20260419103250_248d30",
+  "objective": "Stop test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "stopped",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T10:32:50.829Z",
+  "updatedAt": "2026-04-19T10:32:51.184Z",
+  "cycleCount": 3,
+  "maxCycles": 10,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-be3534c6",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:32:50.957Z"
+    },
+    {
+      "id": "implementation-10f16a45",
+      "type": "implementation",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:32:51.066Z"
+    },
+    {
+      "id": "refactor-342d8836",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:32:50.829Z"
+    },
+    {
+      "id": "test-fix-c8cc5965",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:32:50.829Z"
+    },
+    {
+      "id": "verification-2d23b21f",
+      "type": "verification",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:32:51.184Z"
+    },
+    {
+      "id": "finalize-103fb629",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:32:50.829Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 10,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 10
+    },
+    "usage": {
+      "cyclesUsed": 3,
+      "durationMsUsed": 353,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-19T10:32:50.852Z"
+    },
+    {
+      "selectedModel": "gemini-3-flash",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-19T10:32:50.959Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-flash",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-19T10:32:51.068Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "taskId": "analysis-be3534c6",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-19T10:32:50.850Z"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "taskId": "analysis-be3534c6",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-19T10:32:50.852Z"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "taskId": "analysis-be3534c6",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-19T10:32:50.956Z"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "taskId": "implementation-10f16a45",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-19T10:32:50.957Z"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "taskId": "implementation-10f16a45",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-19T10:32:50.959Z"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "taskId": "implementation-10f16a45",
+      "note": "Bypassing quality gates for implementation (No files changed)",
+      "timestamp": "2026-04-19T10:32:51.064Z"
+    },
+    {
+      "cycle": 3,
+      "state": "plan",
+      "taskId": "verification-2d23b21f",
+      "note": "Planning verification task",
+      "timestamp": "2026-04-19T10:32:51.066Z"
+    },
+    {
+      "cycle": 3,
+      "state": "execute",
+      "taskId": "verification-2d23b21f",
+      "note": "Executing verification",
+      "timestamp": "2026-04-19T10:32:51.068Z"
+    },
+    {
+      "cycle": 3,
+      "state": "stopped",
+      "taskId": null,
+      "note": "User request",
+      "timestamp": "2026-04-19T10:32:51.184Z"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260419103250_248d30:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:32:50.852Z"
+    },
+    {
+      "operationId": "aut_20260419103250_248d30:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "delayed",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:32:50.954Z"
+    },
+    {
+      "operationId": "aut_20260419103250_248d30:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:32:50.959Z"
+    },
+    {
+      "operationId": "aut_20260419103250_248d30:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "delayed",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:32:51.062Z"
+    },
+    {
+      "operationId": "aut_20260419103250_248d30:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "started",
+      "summary": "Executing verification",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:32:51.068Z"
+    },
+    {
+      "operationId": "aut_20260419103250_248d30:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "completed",
+      "summary": "delayed",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:32:51.182Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan Review\n\n## Objective\nStop test\n\n## Scope\n- src\n\n## Current Phase\nplan\n\n## Current Model\ngemini-3-pro-high\n\n## Proposed Steps\n- Analyze task `verification` against the active objective.\n- Apply changes only inside scoped paths: src.\n- Run verification before advancing the mission state.\n\n## Expected Touch Points\n- src\n\n## Risks / Gate Expectations\n- Strict gate validation remains enabled.\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\n- Budget guardrails: TPM 1.000.000 / RPD 5.000.\n\n## Next Action\nAwait approval for cycle 3 before executing verification.",
+    "changeSummary": "delayed",
+    "nextActionReason": "Task implementation completed, proceed with verification",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [],
+      "commands": [],
+      "timestamp": "2026-04-19T10:32:51.066Z"
+    },
+    "rawResponses": [],
+    "contextPack": "{\"objective\":\"Stop test\",\"latestModel\":\"gemini-3-pro-high\",\"cycle\":3,\"scope\":[\"src\"],\"lastPlan\":\"# Plan Review\\n\\n## Objective\\nStop test\\n\\n## Scope\\n- src\\n\\n## Current Phase\\nplan\\n\\n## Current Model\\ngemini-3-pro-high\\n\\n## Proposed Steps\\n- Analyze task `verification` against the active objective.\\n- Apply changes only inside scoped paths: src.\\n- Run verification before advancing the mission state.\\n\\n## Expected Touch Points\\n- src\\n\\n## Risks / Gate Expectations\\n- Strict gate validation remains enabled.\\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\\n- Budget guardrails: TPM 1.000.000 / RPD 5.000.\\n\\n## Next Action\\nAwait approval for cycle 3 before executing verification.\",\"lastSummary\":\"delayed\",\"tacticalHistory\":\"Mission History:\\n[Cycle 1] analysis: started - Executing analysis\\n[Cycle 1] analysis: completed - delayed\\n[Cycle 2] implementation: started - Executing implementation\\n[Cycle 2] implementation: completed - delayed\"}"
+  },
+  "error": null,
+  "stopReason": "User request",
+  "lastProgressAt": "2026-04-19T10:32:51.184Z"
+}

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ai-stack": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "./ai-stack-mcp",
+      "env": {
+        "PYTHONPATH": "./ai-stack-mcp"
+      }
+    }
+  }
+}

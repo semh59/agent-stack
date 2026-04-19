@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  root-quality:
+    name: Root Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install root deps
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  security-quality:
+    name: Security Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install root deps
+        run: npm ci
+      - name: Secret scan
+        run: npm run security:scan
+      - name: Audit (high+ gate)
+        run: npm audit --audit-level=high
+
+  ui-quality:
+    name: UI Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Install UI deps
+        run: npm ci --prefix ui
+      - name: UI lint
+        run: npm run lint --prefix ui
+      - name: UI build
+        run: npm run build --prefix ui
+
+  extension-quality:
+    name: VSCode Extension Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+      - name: Install extension deps
+        run: npm ci --prefix vscode-extension
+      - name: Extension compile
+        run: npm run compile --prefix vscode-extension
+      - name: Extension lint
+        run: npm run lint --prefix vscode-extension
+      - name: Extension build
+        run: npm run build --prefix vscode-extension
+
+  release-gate:
+    name: Release Gate
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [root-quality, ui-quality, extension-quality, security-quality]
+    steps:
+      - name: Enforce parallel-stage results
+        run: |
+          if [ "${{ needs.root-quality.result }}" != "success" ] || \
+             [ "${{ needs.ui-quality.result }}" != "success" ] || \
+             [ "${{ needs.extension-quality.result }}" != "success" ] || \
+             [ "${{ needs.security-quality.result }}" != "success" ]; then
+            echo "At least one quality stage failed."
+            exit 1
+          fi
+          echo "All quality stages passed."

@@ -1,0 +1,133 @@
+{
+  "id": "aut_20260419101042_410aa8",
+  "objective": "fail_test",
+  "account": "test",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T10:10:42.817Z",
+  "updatedAt": "2026-04-19T10:10:42.941Z",
+  "cycleCount": 0,
+  "maxCycles": 5,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-be723994",
+      "type": "analysis",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:42.831Z"
+    },
+    {
+      "id": "implementation-ded6ed63",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:42.831Z"
+    },
+    {
+      "id": "refactor-470b5531",
+      "type": "refactor",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:42.832Z"
+    },
+    {
+      "id": "test-fix-982f876f",
+      "type": "test-fix",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:42.832Z"
+    },
+    {
+      "id": "verification-a247aab6",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:42.832Z"
+    },
+    {
+      "id": "finalize-95aabebd",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:42.832Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 10000,
+      "maxRPD": 100,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 0,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 3,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [],
+  "timeline": [
+    {
+      "cycle": 0,
+      "state": "failed",
+      "taskId": null,
+      "note": "Internal Logic Error: Illegal transition: verify -> retry",
+      "timestamp": "2026-04-19T10:10:42.941Z"
+    }
+  ],
+  "opLog": [],
+  "artifacts": {
+    "plan": "",
+    "changeSummary": "",
+    "nextActionReason": "Session initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": "Internal Logic Error: Illegal transition: verify -> retry",
+  "stopReason": null,
+  "lastProgressAt": "2026-04-19T10:10:42.941Z"
+}

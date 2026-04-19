@@ -1,0 +1,20 @@
+[
+  {
+    "operationId": "aut_20260419101605_8d790b:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:16:05.189Z"
+  },
+  {
+    "operationId": "aut_20260419101605_8d790b:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "Bypass test summary",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:16:05.192Z"
+  }
+]

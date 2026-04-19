@@ -1,0 +1,20 @@
+[
+  {
+    "operationId": "aut_20260419101449_769295:implementation:1",
+    "cycle": 1,
+    "taskType": "implementation",
+    "status": "started",
+    "summary": "Executing implementation",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:14:49.248Z"
+  },
+  {
+    "operationId": "aut_20260419101449_769295:implementation:1",
+    "cycle": 1,
+    "taskType": "implementation",
+    "status": "completed",
+    "summary": "Mock for implementation",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:14:49.250Z"
+  }
+]

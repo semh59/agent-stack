@@ -1,0 +1,92 @@
+[
+  {
+    "operationId": "aut_20260310212929_67e76a:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.113Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "failed",
+    "summary": "Rate limit exceeded 429",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.123Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:analysis:2",
+    "cycle": 2,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.135Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:analysis:2",
+    "cycle": 2,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "recovered",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.140Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:implementation:3",
+    "cycle": 3,
+    "taskType": "implementation",
+    "status": "started",
+    "summary": "Executing implementation",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.145Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:implementation:3",
+    "cycle": 3,
+    "taskType": "implementation",
+    "status": "completed",
+    "summary": "recovered",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.151Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:verification:4",
+    "cycle": 4,
+    "taskType": "verification",
+    "status": "started",
+    "summary": "Executing verification",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.159Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:verification:4",
+    "cycle": 4,
+    "taskType": "verification",
+    "status": "completed",
+    "summary": "recovered",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.164Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:finalize:5",
+    "cycle": 5,
+    "taskType": "finalize",
+    "status": "started",
+    "summary": "Executing finalize",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.168Z"
+  },
+  {
+    "operationId": "aut_20260310212929_67e76a:finalize:5",
+    "cycle": 5,
+    "taskType": "finalize",
+    "status": "completed",
+    "summary": "recovered",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T21:29:30.172Z"
+  }
+]

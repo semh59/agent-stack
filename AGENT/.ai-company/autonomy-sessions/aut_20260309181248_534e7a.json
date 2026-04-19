@@ -1,0 +1,38 @@
+[
+  {
+    "operationId": "aut_20260309181248_534e7a:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-09T18:12:48.952Z"
+  },
+  {
+    "operationId": "aut_20260309181248_534e7a:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "failed",
+    "summary": "forced failure before verify",
+    "touchedFiles": [],
+    "timestamp": "2026-03-09T18:12:48.953Z"
+  },
+  {
+    "operationId": "aut_20260309181248_534e7a:analysis:2",
+    "cycle": 2,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-09T18:12:48.955Z"
+  },
+  {
+    "operationId": "aut_20260309181248_534e7a:analysis:2",
+    "cycle": 2,
+    "taskType": "analysis",
+    "status": "failed",
+    "summary": "forced failure before verify",
+    "touchedFiles": [],
+    "timestamp": "2026-03-09T18:12:48.957Z"
+  }
+]

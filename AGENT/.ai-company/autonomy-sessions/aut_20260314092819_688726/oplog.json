@@ -1,0 +1,76 @@
+[
+  {
+    "operationId": "aut_20260314092819_688726:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:19.995Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "burst analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:19.997Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:implementation:2",
+    "cycle": 2,
+    "taskType": "implementation",
+    "status": "started",
+    "summary": "Executing implementation",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:19.999Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:implementation:2",
+    "cycle": 2,
+    "taskType": "implementation",
+    "status": "completed",
+    "summary": "burst implementation",
+    "touchedFiles": [
+      "src/burst.ts"
+    ],
+    "timestamp": "2026-03-14T09:28:20.003Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:verification:3",
+    "cycle": 3,
+    "taskType": "verification",
+    "status": "started",
+    "summary": "Executing verification",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:20.005Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:verification:3",
+    "cycle": 3,
+    "taskType": "verification",
+    "status": "completed",
+    "summary": "burst verification",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:20.009Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:finalize:4",
+    "cycle": 4,
+    "taskType": "finalize",
+    "status": "started",
+    "summary": "Executing finalize",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:20.011Z"
+  },
+  {
+    "operationId": "aut_20260314092819_688726:finalize:4",
+    "cycle": 4,
+    "taskType": "finalize",
+    "status": "completed",
+    "summary": "burst finalize",
+    "touchedFiles": [],
+    "timestamp": "2026-03-14T09:28:20.013Z"
+  }
+]

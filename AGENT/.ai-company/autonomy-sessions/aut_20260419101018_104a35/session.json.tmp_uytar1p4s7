@@ -1,0 +1,128 @@
+{
+  "id": "aut_20260419101018_104a35",
+  "objective": "test",
+  "account": "test@domain.com",
+  "anchorModel": "claude-3-5-sonnet-20241022",
+  "modelPolicy": "cost-optimized",
+  "gitMode": "isolate",
+  "startMode": "immediate",
+  "scope": "project",
+  "strictMode": true,
+  "state": "stopped",
+  "reviewAfterPlan": false,
+  "currentModel": "claude-3-5-sonnet-20241022",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T10:10:18.801Z",
+  "updatedAt": "2026-04-19T10:10:18.808Z",
+  "cycleCount": 0,
+  "maxCycles": 12,
+  "maxDurationMs": 2700000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-6f9165b2",
+      "type": "analysis",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:18.806Z"
+    },
+    {
+      "id": "implementation-ba8ff601",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:18.806Z"
+    },
+    {
+      "id": "refactor-83abcc63",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:18.806Z"
+    },
+    {
+      "id": "test-fix-2800f03e",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:18.806Z"
+    },
+    {
+      "id": "verification-b90696f9",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:18.806Z"
+    },
+    {
+      "id": "finalize-c3142779",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:10:18.806Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 12,
+      "maxDurationMs": 2700000,
+      "maxInputTokens": 2000000,
+      "maxOutputTokens": 400000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 0,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [],
+  "timeline": [
+    {
+      "cycle": 0,
+      "state": "stopped",
+      "taskId": null,
+      "note": "User requested STOP",
+      "timestamp": "2026-04-19T10:10:18.808Z"
+    }
+  ],
+  "opLog": [],
+  "artifacts": {
+    "plan": "",
+    "changeSummary": "",
+    "nextActionReason": "Session initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": "User requested STOP",
+  "lastProgressAt": "2026-04-19T10:10:18.808Z"
+}

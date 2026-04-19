@@ -1,0 +1,65 @@
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+.venv/
+env/
+venv/
+ENV/
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
+
+# Build/Dist
+**/dist/
+**/build/
+**/out/
+**/.next/
+**/.docusaurus/
+**/target/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs and Temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.tmp/
+temp/
+tmp/
+
+# Project Specific Ignored Files
+*.db
+*.db-journal
+*.sqlite
+shared_memory.bin
+test_output.txt
+test_result.txt
+test-results.txt
+tsc_errors.txt
+tsc_output.txt
+tsc_output_utf8.txt
+tsc_verify.txt
+*.logolder.env
+.tmp_stress_test_new/
+
+# OS files
+.DS_Store
+Thumbs.db

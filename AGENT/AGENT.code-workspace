@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "vitest.rootConfig": "vitest.config.ts",
+    "vitest.maximumConfigs": 1,
+    "vitest.ignoreWorkspace": true,
+    "vitest.disableWorkspaceWarning": true
+  }
+}

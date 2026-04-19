@@ -1,0 +1,25 @@
+{
+  "userTask": "",
+  "techStack": "",
+  "architecture": "",
+  "dbSchema": "",
+  "apiContracts": "",
+  "designSystem": "",
+  "authStrategy": "",
+  "filesCreated": [
+    "file_0.ts"
+  ],
+  "testsPassed": [],
+  "knownIssues": [
+    "issue_0"
+  ],
+  "deploymentConfig": "",
+  "pipelineStatus": "idle",
+  "currentAgent": null,
+  "completedAgents": [],
+  "startedAt": null,
+  "completedAt": null,
+  "verificationResults": {},
+  "backtrackHistory": [],
+  "agentMetrics": {}
+}

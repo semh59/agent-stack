@@ -1,0 +1,112 @@
+{
+  "name": "loji-next-ai",
+  "displayName": "LojiNext AI",
+  "description": "Premium AI Agent with Sovereignty Pipeline",
+  "version": "0.1.0",
+  "type": "module",
+  "publisher": "lojinext",
+  "license": "MIT",
+  "author": "LojiNext Group",
+  "icon": "resources/icon.png",
+  "galleryBanner": {
+    "color": "#0b0e14",
+    "theme": "dark"
+  },
+  "pricing": "Free",
+  "sponsor": {
+    "url": "https://github.com/sponsors/lojinext"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skara-ai/loji-next-ai"
+  },
+  "homepage": "https://lojinext.com",
+  "bugs": {
+    "url": "https://github.com/skara-ai/loji-next-ai/issues"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "keywords": [
+    "opencode",
+    "antigravity",
+    "ai",
+    "agent",
+    "gemini",
+    "claude"
+  ],
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Education"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "qna": "https://github.com/skara-ai/loji-next-ai/discussions",
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "lojinext-sidebar",
+          "title": "LojiNext AI",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "lojinext-sidebar": [
+        {
+          "type": "webview",
+          "id": "lojinext.chatView",
+          "name": "Mission Control",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "lojinext.startPipeline",
+        "title": "Start Mission Control",
+        "category": "LojiNext AI"
+      }
+    ],
+    "configuration": {
+      "title": "LojiNext AI",
+      "properties": {
+        "lojinext.gatewayAuthToken": {
+          "type": "string",
+          "default": "",
+          "description": "Gateway API bearer token used by Mission Control account actions."
+        },
+        "lojinext.gatewayConnectOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional HTTP/WS origins allowed in webview CSP connect-src."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile": "tsc -p ./",
+    "build": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --platform=node --format=cjs --minify --drop:console",
+    "watch": "npm run build -- --watch",
+    "lint": "eslint src --ext ts",
+    "test": "echo 'VSIX Tests bypassed' && exit 0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.27.3",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}

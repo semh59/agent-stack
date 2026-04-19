@@ -1,0 +1,337 @@
+{
+  "id": "aut_20260419105933_fe58a8",
+  "objective": "Interrupt test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "done",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T10:59:33.329Z",
+  "updatedAt": "2026-04-19T10:59:34.416Z",
+  "cycleCount": 4,
+  "maxCycles": 5,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-0a7b5b2d",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:59:33.705Z"
+    },
+    {
+      "id": "implementation-29011d75",
+      "type": "implementation",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:59:33.936Z"
+    },
+    {
+      "id": "refactor-a5f73b49",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:59:33.329Z"
+    },
+    {
+      "id": "test-fix-b199be3a",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:59:33.329Z"
+    },
+    {
+      "id": "verification-a6747375",
+      "type": "verification",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:59:34.168Z"
+    },
+    {
+      "id": "finalize-5766e258",
+      "type": "finalize",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:59:34.402Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 1000,
+      "maxOutputTokens": 1000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 4,
+      "durationMsUsed": 1073,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-19T10:59:33.493Z"
+    },
+    {
+      "selectedModel": "gemini-3-flash",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-19T10:59:33.725Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-flash",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-19T10:59:33.950Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": false,
+      "timestamp": "2026-04-19T10:59:34.190Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "taskId": "analysis-0a7b5b2d",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-19T10:59:33.479Z"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "taskId": "analysis-0a7b5b2d",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-19T10:59:33.493Z"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "taskId": "analysis-0a7b5b2d",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-19T10:59:33.686Z"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "taskId": "implementation-29011d75",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-19T10:59:33.705Z"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "taskId": "implementation-29011d75",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-19T10:59:33.725Z"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "taskId": "implementation-29011d75",
+      "note": "Bypassing quality gates for implementation (No files changed)",
+      "timestamp": "2026-04-19T10:59:33.922Z"
+    },
+    {
+      "cycle": 3,
+      "state": "plan",
+      "taskId": "verification-a6747375",
+      "note": "Planning verification task",
+      "timestamp": "2026-04-19T10:59:33.936Z"
+    },
+    {
+      "cycle": 3,
+      "state": "execute",
+      "taskId": "verification-a6747375",
+      "note": "Executing verification",
+      "timestamp": "2026-04-19T10:59:33.950Z"
+    },
+    {
+      "cycle": 3,
+      "state": "verify",
+      "taskId": "verification-a6747375",
+      "note": "Bypassing quality gates for verification (No files changed)",
+      "timestamp": "2026-04-19T10:59:34.147Z"
+    },
+    {
+      "cycle": 4,
+      "state": "plan",
+      "taskId": "finalize-5766e258",
+      "note": "Planning finalize task",
+      "timestamp": "2026-04-19T10:59:34.168Z"
+    },
+    {
+      "cycle": 4,
+      "state": "execute",
+      "taskId": "finalize-5766e258",
+      "note": "Executing finalize",
+      "timestamp": "2026-04-19T10:59:34.190Z"
+    },
+    {
+      "cycle": 4,
+      "state": "verify",
+      "taskId": "finalize-5766e258",
+      "note": "Bypassing quality gates for finalize (No files changed)",
+      "timestamp": "2026-04-19T10:59:34.382Z"
+    },
+    {
+      "cycle": 4,
+      "state": "done",
+      "taskId": null,
+      "note": "Autonomy session completed",
+      "timestamp": "2026-04-19T10:59:34.416Z"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260419105933_fe58a8:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:33.494Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "ok",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:33.668Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:33.726Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "ok",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:33.906Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "started",
+      "summary": "Executing verification",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:33.950Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "completed",
+      "summary": "ok",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:34.130Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:finalize:4",
+      "cycle": 4,
+      "taskType": "finalize",
+      "status": "started",
+      "summary": "Executing finalize",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:34.190Z"
+    },
+    {
+      "operationId": "aut_20260419105933_fe58a8:finalize:4",
+      "cycle": 4,
+      "taskType": "finalize",
+      "status": "completed",
+      "summary": "ok",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:59:34.366Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan Review\n\n## Objective\nInterrupt test\n\n## Scope\n- src\n\n## Current Phase\nplan\n\n## Current Model\ngemini-3-pro-high\n\n## Proposed Steps\n- Analyze task `finalize` against the active objective.\n- Apply changes only inside scoped paths: src.\n- Run verification before advancing the mission state.\n\n## Expected Touch Points\n- src\n\n## Risks / Gate Expectations\n- Strict gate validation remains enabled.\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\n- Budget guardrails: TPM 1,000,000 / RPD 5,000.\n\n## Next Action\nAwait approval for cycle 4 before executing finalize.",
+    "changeSummary": "ok",
+    "nextActionReason": "All tasks complete",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [],
+      "commands": [],
+      "timestamp": "2026-04-19T10:59:34.402Z"
+    },
+    "rawResponses": [],
+    "contextPack": "{\"objective\":\"Interrupt test\",\"latestModel\":\"gemini-3-pro-high\",\"cycle\":4,\"scope\":[\"src\"],\"lastPlan\":\"# Plan Review\\n\\n## Objective\\nInterrupt test\\n\\n## Scope\\n- src\\n\\n## Current Phase\\nplan\\n\\n## Current Model\\ngemini-3-pro-high\\n\\n## Proposed Steps\\n- Analyze task `finalize` against the active objective.\\n- Apply changes only inside scoped paths: src.\\n- Run verification before advancing the mission state.\\n\\n## Expected Touch Points\\n- src\\n\\n## Risks / Gate Expectations\\n- Strict gate validation remains enabled.\\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\\n- Budget guardrails: TPM 1,000,000 / RPD 5,000.\\n\\n## Next Action\\nAwait approval for cycle 4 before executing finalize.\",\"lastSummary\":\"ok\",\"tacticalHistory\":\"Mission History:\\nCycles 1-1: 0 completed, 0 failed\\n---\\n[Cycle 1] analysis: completed - ok\\n[Cycle 2] implementation: started - Executing implementation\\n[Cycle 2] implementation: completed - ok\\n[Cycle 3] verification: started - Executing verification\\n[Cycle 3] verification: completed - ok\"}"
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-04-19T10:59:34.416Z"
+}

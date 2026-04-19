@@ -1,0 +1,12 @@
+{
+  "pythonVersion": "3.14",
+  "pythonPlatform": "All",
+  "extraPaths": ["."],
+  "include": ["."],
+  "exclude": ["**/__pycache__", "**/*.pyc"],
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": true,
+  "reportMissingModuleAttribute": "none",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true
+}

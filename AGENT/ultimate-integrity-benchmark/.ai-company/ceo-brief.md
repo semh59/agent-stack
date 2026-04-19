@@ -1,0 +1,1 @@
+CEO: Build a High-Performance Logging Service. Requirement: Zero-dependency, file-based.

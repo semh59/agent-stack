@@ -1,0 +1,152 @@
+{
+  "id": "aut_20260418205913_6a0d62",
+  "objective": "Massive State Test",
+  "account": "tester@test.com",
+  "anchorModel": "gemini-3-flash",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src",
+      "ui",
+      "docs",
+      "vscode-extension"
+    ]
+  },
+  "strictMode": true,
+  "state": "paused",
+  "reviewAfterPlan": true,
+  "currentModel": "gemini-3-flash",
+  "currentGear": "fast",
+  "reviewStatus": "plan_pending",
+  "reviewUpdatedAt": "2026-04-18T20:59:13.613Z",
+  "createdAt": "2026-04-18T20:59:13.541Z",
+  "updatedAt": "2026-04-18T20:59:13.613Z",
+  "cycleCount": 1,
+  "maxCycles": 12,
+  "maxDurationMs": 2700000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-eee4fd16",
+      "type": "analysis",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-18T20:59:13.542Z"
+    },
+    {
+      "id": "implementation-6b65e03a",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-18T20:59:13.542Z"
+    },
+    {
+      "id": "refactor-9b325909",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-18T20:59:13.542Z"
+    },
+    {
+      "id": "test-fix-7d4dd2d5",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-18T20:59:13.542Z"
+    },
+    {
+      "id": "verification-739b73a1",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-18T20:59:13.542Z"
+    },
+    {
+      "id": "finalize-6544d700",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-18T20:59:13.542Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 12,
+      "maxDurationMs": 2700000,
+      "maxInputTokens": 2000000,
+      "maxOutputTokens": 400000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 25,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-flash",
+      "previousModel": null,
+      "anchorModel": "gemini-3-flash",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-18T20:59:13.586Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "taskId": "analysis-eee4fd16",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-18T20:59:13.567Z"
+    },
+    {
+      "cycle": 1,
+      "state": "paused",
+      "taskId": "analysis-eee4fd16",
+      "note": "Awaiting plan approval",
+      "timestamp": "2026-04-18T20:59:13.613Z"
+    }
+  ],
+  "opLog": [],
+  "artifacts": {
+    "plan": "# Plan Review\n\n## Objective\nMassive State Test\n\n## Scope\n- src\n- ui\n- docs\n- vscode-extension\n\n## Current Phase\nplan\n\n## Current Model\ngemini-3-flash\n\n## Proposed Steps\n- Analyze task `analysis` against the active objective.\n- Apply changes only inside scoped paths: src, ui, docs, vscode-extension.\n- Run verification before advancing the mission state.\n\n## Expected Touch Points\n- src\n- ui\n- docs\n- vscode-extension\n\n## Risks / Gate Expectations\n- Strict gate validation remains enabled.\n- Router policy may switch away from gemini-3-flash when recovery triggers fire.\n- Budget guardrails: TPM 1.000.000 / RPD 5.000.\n\n## Next Action\nAwait approval for cycle 1 before executing analysis.",
+    "changeSummary": "",
+    "nextActionReason": "Session initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": "{\"objective\":\"Massive State Test\",\"latestModel\":\"gemini-3-flash\",\"cycle\":1,\"scope\":[\"src\",\"ui\",\"docs\",\"vscode-extension\"],\"lastPlan\":\"# Plan Review\\n\\n## Objective\\nMassive State Test\\n\\n## Scope\\n- src\\n- ui\\n- docs\\n- vscode-extension\\n\\n## Current Phase\\nplan\\n\\n## Current Model\\ngemini-3-flash\\n\\n## Proposed Steps\\n- Analyze task `analysis` against the active objective.\\n- Apply changes only inside scoped paths: src, ui, docs, vscode-extension.\\n- Run verification before advancing the mission state.\\n\\n## Expected Touch Points\\n- src\\n- ui\\n- docs\\n- vscode-extension\\n\\n## Risks / Gate Expectations\\n- Strict gate validation remains enabled.\\n- Router policy may switch away from gemini-3-flash when recovery triggers fire.\\n- Budget guardrails: TPM 1.000.000 / RPD 5.000.\\n\\n## Next Action\\nAwait approval for cycle 1 before executing analysis.\",\"lastSummary\":\"\",\"tacticalHistory\":\"No prior history in this mission.\"}"
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-04-18T20:59:13.613Z"
+}

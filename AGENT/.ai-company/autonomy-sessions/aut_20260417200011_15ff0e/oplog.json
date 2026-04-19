@@ -1,0 +1,22 @@
+[
+  {
+    "operationId": "aut_20260417200011_15ff0e:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-04-17T20:00:11.223Z"
+  },
+  {
+    "operationId": "aut_20260417200011_15ff0e:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "ok",
+    "touchedFiles": [
+      "test.ts"
+    ],
+    "timestamp": "2026-04-17T20:00:11.227Z"
+  }
+]

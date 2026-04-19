@@ -1,0 +1,43 @@
+# Caveman Service — Flask prose compression API
+# Minimal image: only Flask + httpx + our compression module.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python deps for caveman service
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+        flask>=3.0.0 \
+        httpx>=0.27.0 \
+        pydantic>=2.0.0 \
+        pydantic-settings>=2.0.0 \
+        python-dotenv>=1.0.0
+
+# Non-root user
+RUN groupadd -r caveman && useradd -r -g caveman caveman
+
+# Copy only what the service needs
+COPY --chown=caveman:caveman config.py .
+COPY --chown=caveman:caveman compression/ compression/
+COPY --chown=caveman:caveman scripts/caveman_server.py scripts/
+
+USER caveman
+
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    SERVER_HOST=0.0.0.0 \
+    SERVER_PORT=5000
+
+EXPOSE 5000
+
+HEALTHCHECK --interval=20s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+CMD ["python", "scripts/caveman_server.py"]

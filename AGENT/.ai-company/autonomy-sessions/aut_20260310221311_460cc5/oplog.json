@@ -1,0 +1,20 @@
+[
+  {
+    "operationId": "aut_20260310221311_460cc5:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T22:13:11.888Z"
+  },
+  {
+    "operationId": "aut_20260310221311_460cc5:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "expensive step",
+    "touchedFiles": [],
+    "timestamp": "2026-03-10T22:13:11.905Z"
+  }
+]

@@ -1,0 +1,1 @@
+UI/UX: Define logging format and terminal branding indicators.

@@ -1,0 +1,165 @@
+{
+  "id": "aut_20260419102124_498f8a",
+  "objective": "Cumulative TPM after retry",
+  "account": "budget-retry@test.dev",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-19T10:21:24.672Z",
+  "updatedAt": "2026-04-19T10:21:24.702Z",
+  "cycleCount": 1,
+  "maxCycles": 8,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "impl-1",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-19T10:21:24.699Z",
+      "lastError": "Force retry once"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 8,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000,
+      "maxRPD": 20,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 25,
+      "inputTokensUsed": 600,
+      "outputTokensUsed": 0,
+      "currentTPM": 600,
+      "requestsUsed": 1,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 1,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [
+    "src/retry-budget.ts"
+  ],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-19T10:21:24.693Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "taskId": "impl-1",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-19T10:21:24.691Z"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "taskId": "impl-1",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-19T10:21:24.693Z"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "taskId": "impl-1",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-04-19T10:21:24.699Z"
+    },
+    {
+      "cycle": 1,
+      "state": "failed",
+      "taskId": null,
+      "note": "Illegal transition: verify -> retry",
+      "timestamp": "2026-04-19T10:21:24.702Z"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260419102124_498f8a:implementation:1",
+      "cycle": 1,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-19T10:21:24.694Z"
+    },
+    {
+      "operationId": "aut_20260419102124_498f8a:implementation:1",
+      "cycle": 1,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "step implementation",
+      "touchedFiles": [
+        "src/retry-budget.ts"
+      ],
+      "timestamp": "2026-04-19T10:21:24.697Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan Review\n\n## Objective\nCumulative TPM after retry\n\n## Scope\n- src\n\n## Current Phase\nplan\n\n## Current Model\ngemini-3-pro-high\n\n## Proposed Steps\n- Analyze task `implementation` against the active objective.\n- Apply changes only inside scoped paths: src.\n- Run verification before advancing the mission state.\n\n## Expected Touch Points\n- src\n\n## Risks / Gate Expectations\n- Strict gate validation remains enabled.\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\n- Budget guardrails: TPM 1.000 / RPD 20.\n\n## Next Action\nAwait approval for cycle 1 before executing implementation.",
+    "changeSummary": "step implementation",
+    "nextActionReason": "Session initialized",
+    "gateResult": {
+      "passed": false,
+      "strictMode": true,
+      "blockingIssues": [
+        "Force retry once"
+      ],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [
+        "root"
+      ],
+      "commands": [],
+      "timestamp": "2026-04-19T10:21:24.701Z"
+    },
+    "rawResponses": [],
+    "contextPack": "{\"objective\":\"Cumulative TPM after retry\",\"latestModel\":\"gemini-3-pro-high\",\"cycle\":1,\"scope\":[\"src\"],\"lastPlan\":\"# Plan Review\\n\\n## Objective\\nCumulative TPM after retry\\n\\n## Scope\\n- src\\n\\n## Current Phase\\nplan\\n\\n## Current Model\\ngemini-3-pro-high\\n\\n## Proposed Steps\\n- Analyze task `implementation` against the active objective.\\n- Apply changes only inside scoped paths: src.\\n- Run verification before advancing the mission state.\\n\\n## Expected Touch Points\\n- src\\n\\n## Risks / Gate Expectations\\n- Strict gate validation remains enabled.\\n- Router policy may switch away from gemini-3-pro-high when recovery triggers fire.\\n- Budget guardrails: TPM 1.000 / RPD 20.\\n\\n## Next Action\\nAwait approval for cycle 1 before executing implementation.\",\"lastSummary\":\"\",\"tacticalHistory\":\"No prior history in this mission.\"}"
+  },
+  "error": "Illegal transition: verify -> retry",
+  "stopReason": null,
+  "lastProgressAt": "2026-04-19T10:21:24.702Z"
+}

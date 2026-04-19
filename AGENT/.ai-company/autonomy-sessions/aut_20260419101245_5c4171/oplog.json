@@ -1,0 +1,38 @@
+[
+  {
+    "operationId": "aut_20260419101245_5c4171:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:12:46.013Z"
+  },
+  {
+    "operationId": "aut_20260419101245_5c4171:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "failed",
+    "summary": "Rate limit exceeded 429",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:12:46.015Z"
+  },
+  {
+    "operationId": "aut_20260419101245_5c4171:analysis:2",
+    "cycle": 2,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:12:46.027Z"
+  },
+  {
+    "operationId": "aut_20260419101245_5c4171:analysis:2",
+    "cycle": 2,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "recovered",
+    "touchedFiles": [],
+    "timestamp": "2026-04-19T10:12:46.030Z"
+  }
+]

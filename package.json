@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "name": "sovereign-ai-platform",
+  "version": "1.0.0",
+  "description": "Sovereign AI Platform — Unified VSIX + MCP Monorepo",
+  "workspaces": [
+    "AGENT",
+    "AGENT/vscode-extension"
+  ],
+  "scripts": {
+    "test": "npm run test:ts && npm run test:py",
+    "test:ts": "npm run test --workspace=AGENT",
+    "test:py": "cd ai-stack-mcp && python -m pytest tests/ --ignore=tests/integration -v",
+    "test:all": "npm run test:ts && npm run test:py && npm run test:integration",
+    "test:integration": "cd ai-stack-mcp && python -m pytest tests/integration -v",
+    "build": "npm run build --workspace=AGENT",
+    "build:vsix": "cd AGENT/vscode-extension && npm run build",
+    "typecheck": "npm run typecheck --workspace=AGENT",
+    "dev": "node scripts/dev-runner.js",
+    "bridge": "cd ai-stack-mcp && python bridge.py --port 9100",
+    "bridge:health": "curl -sf http://127.0.0.1:9100/health",
+    "gateway:start": "npm run gateway:start --workspace=AGENT",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
