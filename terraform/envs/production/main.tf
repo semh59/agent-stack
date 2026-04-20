@@ -212,14 +212,14 @@ module "gateway" {
   environment = {
     NODE_ENV              = "production"
     APP_ENV               = "production"
-    LOJINEXT_GATEWAY_PORT = "3000"
-    LOJINEXT_GATEWAY_HOST = "0.0.0.0"
+    SOVEREIGN_GATEWAY_PORT = "3000"
+    SOVEREIGN_GATEWAY_HOST = "0.0.0.0"
     AI_STACK_BRIDGE_HOST  = "optimization-bridge.prod.internal"
     AI_STACK_BRIDGE_PORT  = "9100"
   }
 
   secrets = {
-    LOJINEXT_GATEWAY_TOKEN  = var.gateway_auth_token_arn
+    SOVEREIGN_GATEWAY_TOKEN  = var.gateway_auth_token_arn
     AI_STACK_BRIDGE_SECRET  = var.bridge_secret_arn
     CLAUDE_API_KEY          = var.claude_api_key_arn
   }

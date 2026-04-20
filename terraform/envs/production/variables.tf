@@ -28,10 +28,7 @@ variable "bridge_image" {
   description = "ECR image URI for optimization bridge (including tag)."
 }
 
-variable "gateway_auth_token_arn" {
-  type        = string
-  description = "Secrets Manager ARN for GATEWAY_AUTH_TOKEN / LOJINEXT_GATEWAY_TOKEN."
-}
+  description = "Secrets Manager ARN for GATEWAY_AUTH_TOKEN / SOVEREIGN_GATEWAY_TOKEN."
 
 variable "bridge_secret_arn" {
   type        = string
