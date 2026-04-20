@@ -109,7 +109,8 @@ if (process.env.SKIP_GATEWAY !== "1") {
       SOVEREIGN_GATEWAY_HOST: "127.0.0.1",
       AI_STACK_BRIDGE_HOST: "127.0.0.1",
       AI_STACK_BRIDGE_PORT: BRIDGE_PORT,
-      LOJINEXT_GATEWAY_TOKEN: process.env.LOJINEXT_GATEWAY_TOKEN || "dev-local-token",
+      LOJINEXT_GATEWAY_TOKEN: process.env.SOVEREIGN_GATEWAY_TOKEN || process.env.LOJINEXT_GATEWAY_TOKEN || "dev-local-token",
+      SOVEREIGN_GATEWAY_TOKEN: process.env.SOVEREIGN_GATEWAY_TOKEN || process.env.LOJINEXT_GATEWAY_TOKEN || "dev-local-token",
       AI_STACK_BRIDGE_SECRET: process.env.AI_STACK_BRIDGE_SECRET || "dev-local-bridge-secret",
     },
   });
