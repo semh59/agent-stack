@@ -522,7 +522,10 @@ export const createSovereignPlugin = (providerId: string) => async (
             }
           };
 
-          while (true) {
+          // Bounded by MAX_TOTAL_RETRIES via checkRequestViability() which
+          // throws once the circuit-breaker trips. The explicit cap here
+          // keeps the loop header finite for ESLint and documents intent.
+          while (totalRetryCount <= MAX_TOTAL_RETRIES) {
             // Check for viability at the start of each iteration
             checkRequestViability();
             
@@ -1460,12 +1463,11 @@ export const createSovereignPlugin = (providerId: string) => async (
                   pushDebug(`endpoint-error: cooldown ${cooldownMs}ms after ${failures} failures`);
                 }
                 shouldSwitchAccount = true;
-                break;
               }
             }
-            } // end headerStyleLoop
+          }
             
-            if (shouldSwitchAccount) {
+          if (shouldSwitchAccount) {
               totalRetryCount++; // Increment circuit breaker
               // Avoid tight retry loops when there's only one account.
               if (accountCount <= 1) {
@@ -1512,12 +1514,12 @@ export const createSovereignPlugin = (providerId: string) => async (
 
             throw lastError || new Error("All Sovereign accounts failed");
           }
-        },
-      };
+        }
+      }
     },
     methods: [
-      {
-        label: "OAuth with Google (Sovereign)",
+        {
+          label: "OAuth with Google (Sovereign)",
         type: "oauth",
         authorize: async (inputs?: Record<string, string>) => {
           const isHeadless = !!(
@@ -1538,8 +1540,14 @@ export const createSovereignPlugin = (providerId: string) => async (
             let refreshAccountIndex: number | undefined;
             const existingStorage = await loadAccounts();
             if (existingStorage && existingStorage.accounts.length > 0) {
-              let menuResult;
-              while (true) {
+              let menuResult: any;
+              // Bounded at 500 iterations to catch runaway menu loops; a real
+              // interactive session exits via `break` on a terminal selection
+              // long before this cap. 500 is generous for users who page
+              // through the quota-check view multiple times.
+              let menuIterations = 0;
+              const MAX_MENU_ITERATIONS = 500;
+              while (menuIterations++ < MAX_MENU_ITERATIONS) {
                 const now = Date.now();
                 const existingAccounts = existingStorage.accounts.map((acc, idx) => {
                   let status: 'active' | 'rate-limited' | 'expired' | 'unknown' = 'unknown';
@@ -1753,22 +1761,22 @@ export const createSovereignPlugin = (providerId: string) => async (
                 }
               }
 
-              if (menuResult.refreshAccountIndex !== undefined) {
+              if (menuResult?.refreshAccountIndex !== undefined && typeof menuResult.refreshAccountIndex === 'number') {
                 refreshAccountIndex = menuResult.refreshAccountIndex;
-                const refreshEmail = existingStorage.accounts[refreshAccountIndex]?.email;
+                const refreshEmail = existingStorage.accounts[refreshAccountIndex as number]?.email;
                 console.log(`\nRe-authenticating ${refreshEmail || 'account'}...\n`);
                 startFresh = false;
               }
               
-              if (menuResult.deleteAll) {
+              if (menuResult?.deleteAll) {
                 await clearAccounts();
                 console.log("\nAll accounts deleted.\n");
                 startFresh = true;
               } else {
-                startFresh = menuResult.mode === "fresh";
+                startFresh = menuResult?.mode === "fresh";
               }
               
-              if (startFresh && !menuResult.deleteAll) {
+              if (startFresh && !menuResult?.deleteAll) {
                 console.log("\nStarting fresh - existing accounts will be replaced.\n");
               } else if (!startFresh) {
                 console.log("\nAdding to existing accounts.\n");
@@ -2131,8 +2139,8 @@ export const createSovereignPlugin = (providerId: string) => async (
                 }
 
                 // Show appropriate toast message
-                const newTotal = existingCount + 1;
-                const toastMessage = existingCount > 0
+                const newTotal = (existingStorage?.accounts.length ?? 0) + 1;
+                const toastMessage = (existingStorage?.accounts.length ?? 0) > 0
                   ? `Added account${result.email ? ` (${result.email})` : ""} - ${newTotal} total`
                   : `Authenticated${result.email ? ` (${result.email})` : ""}`;
 
@@ -2159,7 +2167,7 @@ export const createSovereignPlugin = (providerId: string) => async (
       },
     ],
   },
-  };
+};
 };
 
 export const SovereignCLIOAuthPlugin = createSovereignPlugin(GOOGLE_GEMINI_PROVIDER_ID);

@@ -1,4 +1,4 @@
-﻿import { formatRefreshParts, parseRefreshParts } from "./auth";
+import { formatRefreshParts, parseRefreshParts } from "./auth";
 import { loadAccounts, saveAccounts, type AccountStorageV3, type AccountMetadataV3, type RateLimitStateV3, type ModelFamily, type HeaderStyle, type CooldownReason } from "./storage";
 import type { OAuthAuthDetails, RefreshParts } from "./types";
 import type { AccountSelectionStrategy } from "./config/schema";
@@ -520,8 +520,11 @@ export class AccountManager {
   removeAccountByEmail(email: string): boolean {
     let removed = false;
 
-    // Route through removeAccount to keep cursor/family index updates in one place.
-    while (true) {
+    // Route through removeAccount to keep cursor/family index updates in one
+    // place. Bounded by the current account count so the loop can't outrun
+    // the underlying array.
+    const safety = this.accounts.length + 1;
+    for (let i = 0; i < safety; i++) {
       const account = this.accounts.find((acc) => acc.email === email);
       if (!account) {
         break;
@@ -610,11 +613,18 @@ export class AccountManager {
     // Different sessions (PIDs) will prefer different starting accounts
     if (pidOffsetEnabled && !this.sessionOffsetApplied[family] && this.accounts.length > 1) {
       const pidOffset = process.pid % this.accounts.length;
-      const baseIndex = this.currentAccountIndexByFamily[family] ?? 0;
+      // `-1` is a valid sentinel meaning "no sticky account" (set after removeAccount
+      // empties or invalidates the pointer). `??` only catches nullish, so treat -1
+      // as an explicit "unset" and normalize to 0 before applying the offset. Without
+      // this, `(-1 + pidOffset) % len` can remain negative when pidOffset is 0.
+      const rawBase = this.currentAccountIndexByFamily[family];
+      const baseIndex = rawBase !== undefined && rawBase >= 0 && rawBase < this.accounts.length
+        ? rawBase
+        : 0;
       const newIndex = (baseIndex + pidOffset) % this.accounts.length;
-      
+
       debugLogToFile(`[Account] Applying PID offset: pid=${process.pid} offset=${pidOffset} family=${family} index=${baseIndex}->${newIndex}`);
-      
+
       this.currentAccountIndexByFamily[family] = newIndex;
       this.sessionOffsetApplied[family] = true;
     }
@@ -1180,31 +1190,48 @@ export class AccountManager {
     const enabled = this.accounts.filter(a => a.enabled !== false);
     if (enabled.length === 0) return null;
     
-    // If any account is available (not over threshold), no wait needed
-    const available = enabled.filter(a => !isOverSoftQuotaThreshold(a, family, thresholdPercent, cacheTtlMs, model));
-    if (available.length > 0) return 0;
+    // If any account is available (not over threshold), no wait needed    const isAnyAvailable = enabled.some(a => !isOverSoftQuotaThreshold(a, family, thresholdPercent, cacheTtlMs, model));
+    if (isAnyAvailable) return 0;
     
-    // All accounts are over threshold - find earliest reset time
-    // For gemini family, we MUST have the model to distinguish pro vs flash quotas.
-    // Fail-open (return null = no wait info) if model is missing to avoid blocking on wrong quota.
-    if (!model && family !== "claude") return null;
-    const quotaGroup = resolveQuotaGroup(family, model);
-    const now = nowMs();
-    const waitTimes: number[] = [];
-    
-    for (const acc of enabled) {
-      const groupData = acc.cachedQuota?.[quotaGroup];
-      if (groupData?.resetTime) {
-        const resetTimestamp = Date.parse(groupData.resetTime);
-        if (Number.isFinite(resetTimestamp)) {
-          waitTimes.push(Math.max(0, resetTimestamp - now));
+    let minWaitMs: number | null = null;
+    for (const a of enabled) {
+      const waitMs = getTimeUntilSoftQuotaReset(a, family, thresholdPercent, cacheTtlMs, model);
+      if (waitMs !== null) {
+        if (minWaitMs === null || waitMs < minWaitMs) {
+          minWaitMs = waitMs;
         }
       }
     }
-    
-    if (waitTimes.length === 0) return null;
-    const minWait = Math.min(...waitTimes);
-    // Treat 0 as stale cache (resetTime in the past) â†’ fail-open to avoid spin loop
-    return minWait === 0 ? null : minWait;
+    return minWaitMs;
   }
+}
+
+function getTimeUntilSoftQuotaReset(account: ManagedAccount, family: ModelFamily, thresholdPercent: number, cacheTtlMs: number, model?: string | null): number | null {
+  if (!account.cachedQuota || account.cachedQuotaUpdatedAt == null) return null;
+  const age = nowMs() - account.cachedQuotaUpdatedAt;
+  if (age > cacheTtlMs) return null;
+  const quotaGroup = resolveQuotaGroup(family, model);
+  const groupData = account.cachedQuota[quotaGroup];
+  if (!groupData || !groupData.resetTime) return null;
+  const resetMs = parseIsoResetTime(groupData.resetTime);
+  if (resetMs === null) return null;
+  return Math.max(0, resetMs - nowMs());
+}
+
+function parseIsoResetTime(resetTime: string): number | null {
+  try {
+    const d = new Date(resetTime);
+    if (!isNaN(d.getTime())) return d.getTime();
+  } catch { }
+  return null;
+}
+
+function formatWaitTime(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  const sec = Math.ceil(ms / 1000);
+  if (sec < 60) return `${sec}s`;
+  const min = Math.ceil(sec / 60);
+  if (min < 60) return `${min}m`;
+  const hr = Math.ceil(min / 60);
+  return `${hr}h`;
 }

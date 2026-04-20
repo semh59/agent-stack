@@ -1,12 +1,12 @@
-﻿import { createInterface } from "node:readline/promises";
+import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import {
   showAuthMenu,
   showAccountDetails,
-  isTTY,
   type AccountInfo,
   type AccountStatus,
 } from "./ui/auth-menu";
+import { isTTY } from "./ui/ansi";
 import { updateOpencodeConfig } from "./config/updater";
 
 export async function promptProjectId(): Promise<string> {
@@ -60,7 +60,9 @@ async function promptLoginModeFallback(existingAccounts: ExistingAccountInfo[]):
     }
     console.log("");
 
-    while (true) {
+    // Bounded at 50 attempts; a user should converge to one of four
+    // responses in far fewer retries. Exceeding the cap returns cancel.
+    for (let attempt = 0; attempt < 50; attempt++) {
       const answer = await rl.question("(a)dd new, (f)resh start, (m)anage, (c)heck quotas? [a/f/m/c]: ");
       const normalized = answer.trim().toLowerCase();
 
@@ -79,6 +81,7 @@ async function promptLoginModeFallback(existingAccounts: ExistingAccountInfo[]):
 
       console.log("Please enter 'a', 'f', 'm', or 'c'.");
     }
+    return { mode: "cancel" as const };
   } finally {
     rl.close();
   }
@@ -101,7 +104,9 @@ export async function promptLoginMode(existingAccounts: ExistingAccountInfo[]): 
 
   console.log("");
 
-  while (true) {
+  // Bounded at 200 cycles. Real interactive sessions exit via `return` on
+  // a terminal selection in single-digit iterations.
+  for (let i = 0; i < 200; i++) {
     const action = await showAuthMenu(accounts);
 
     switch (action.type) {
@@ -134,18 +139,16 @@ export async function promptLoginMode(existingAccounts: ExistingAccountInfo[]): 
       case "configure-models": {
         const result = await updateOpencodeConfig();
         if (result.success) {
-          console.log(`\nâœ“ Models configured in ${result.configPath}\n`);
+          console.log(`\n✓ Models configured in ${result.configPath}\n`);
         } else {
-          console.log(`\nâœ— Failed to configure models: ${result.error}\n`);
+          console.log(`\n✗ Failed to configure models: ${result.error}\n`);
         }
         continue;
       }
 
       case "cancel":
-        return { mode: "cancel" };
+        return { mode: "cancel" as const };
     }
   }
+  return { mode: "cancel" as const };
 }
-
-export { isTTY } from "./ui/auth-menu";
-export type { AccountStatus } from "./ui/auth-menu";

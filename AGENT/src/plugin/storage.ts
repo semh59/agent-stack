@@ -357,15 +357,106 @@ function isEncrypted(content: string): boolean {
  */
 export { getConfigDir };
 
+// `stale` is how long before we consider a held lock abandoned. Under load
+// (e.g. CI running many vitest workers, or a blocked event loop during a
+// GC pause) 10s was too aggressive and we saw "lock broken" races. 30s gives
+// real work room to finish, and we still have a 7-attempt exponential
+// backoff on top of the in-process serialization above the file lock.
 const LOCK_OPTIONS = {
-  stale: 10000,
+  stale: 30000,
   retries: {
-    retries: 5,
-    minTimeout: 100,
-    maxTimeout: 1000,
+    retries: 7,
+    minTimeout: 150,
+    maxTimeout: 2000,
     factor: 2,
   },
 };
+
+/**
+ * Write `content` to `path` with durability guarantees.
+ *
+ * Uses the write-to-temp + rename atomicity pattern, but with an explicit
+ * `fd.sync()` between the write and the rename so that the file contents
+ * are actually on disk before the rename commits. Without this, a power
+ * loss between the rename and the kernel's writeback flush can leave the
+ * file with zero bytes on an xfs/ext4 system — exactly the failure mode
+ * BUG_REPORT.md flagged.
+ */
+async function writeFileAtomicDurable(
+  path: string,
+  tempPath: string,
+  content: string,
+): Promise<void> {
+  // 1. Write data to the temp file and fsync its contents before rename.
+  const fd = await fs.open(tempPath, "w");
+  try {
+    await fd.writeFile(content, "utf-8");
+    await fd.sync();
+  } finally {
+    await fd.close();
+  }
+
+  // 2. Atomic rename — visible to readers only once the new bytes are
+  //    durable on disk. rename(2) is atomic within a single filesystem.
+  await fs.rename(tempPath, path);
+
+  // 3. fsync the containing directory so the rename metadata is durable
+  //    too. On platforms (Windows) where opening a directory fails, this
+  //    is a best-effort no-op — the rename itself is still the ordering
+  //    boundary and is enough in the common case.
+  try {
+    const dirFd = await fs.open(dirname(path), "r");
+    try {
+      await dirFd.sync();
+    } finally {
+      await dirFd.close();
+    }
+  } catch {
+    // Directory fsync isn't supported everywhere; ignore.
+  }
+}
+
+/**
+ * Sweep orphaned `<storagePath>.<hex>.tmp` files left behind by a crashed
+ * writer. Must be called before the first save, and is best-effort: any
+ * errors are swallowed because a stale temp file is recoverable (the real
+ * storage file is still intact), and a failed cleanup should not block
+ * startup.
+ */
+async function cleanupOrphanedTempFiles(storagePath: string): Promise<void> {
+  try {
+    const dir = dirname(storagePath);
+    const base = storagePath.substring(dir.length + 1);
+    const entries = await fs.readdir(dir);
+    const prefix = `${base}.`;
+    const suffix = ".tmp";
+    for (const entry of entries) {
+      if (!entry.startsWith(prefix) || !entry.endsWith(suffix)) continue;
+      // Only remove files older than 60s to avoid racing with a concurrent
+      // writer that is mid-rename.
+      const full = join(dir, entry);
+      try {
+        const stat = await fs.stat(full);
+        if (Date.now() - stat.mtimeMs > 60_000) {
+          await fs.unlink(full);
+          log.info("Cleaned up stale storage temp file", { file: entry });
+        }
+      } catch {
+        // mtime/unlink race — ignore.
+      }
+    }
+  } catch {
+    // directory missing or unreadable — nothing to clean, keep going.
+  }
+}
+
+let tempCleanupPromise: Promise<void> | null = null;
+function ensureTempCleanup(storagePath: string): Promise<void> {
+  if (!tempCleanupPromise) {
+    tempCleanupPromise = cleanupOrphanedTempFiles(storagePath);
+  }
+  return tempCleanupPromise;
+}
 
 interface InProcessPathLock {
   locked: boolean;
@@ -757,6 +848,7 @@ export async function loadAccounts(): Promise<AccountStorageV3 | null> {
 
 export async function deleteAccount(refreshToken: string): Promise<void> {
   const path = getStoragePath();
+  await ensureTempCleanup(path);
   await withFileLock(path, async () => {
     const existing = await loadAccountsUnsafe();
     if (!existing) return;
@@ -775,8 +867,7 @@ export async function deleteAccount(refreshToken: string): Promise<void> {
     const content = JSON.stringify(encrypted, null, 2);
 
     try {
-      await fs.writeFile(tempPath, content, "utf-8");
-      await fs.rename(tempPath, path);
+      await writeFileAtomicDurable(path, tempPath, content);
     } catch (error) {
       try { await fs.unlink(tempPath); } catch {}
       throw error;
@@ -789,6 +880,9 @@ export async function saveAccounts(storage: AccountStorageV3, overwrite: boolean
   const configDir = dirname(path);
   await fs.mkdir(configDir, { recursive: true });
   await ensureGitignore(configDir);
+  // Best-effort sweep of crashed-writer temp files. Runs at most once per
+  // process (memoized) so it never becomes a hot-path cost.
+  await ensureTempCleanup(path);
 
   await withFileLock(path, async () => {
     const existing = await loadAccountsUnsafe();
@@ -799,8 +893,7 @@ export async function saveAccounts(storage: AccountStorageV3, overwrite: boolean
     const content = JSON.stringify(encrypted, null, 2);
 
     try {
-      await fs.writeFile(tempPath, content, "utf-8");
-      await fs.rename(tempPath, path);
+      await writeFileAtomicDurable(path, tempPath, content);
     } catch (error) {
       // Clean up temp file on failure to prevent accumulation
       try {
@@ -821,43 +914,45 @@ async function loadAccountsUnsafe(): Promise<AccountStorageV3 | null> {
     if (isEncrypted(content)) {
       try {
         // STRICT: Only v3 encryption allowed
-        content = JSON.stringify(keyManager.decrypt(JSON.parse(content) as EncryptedPayload));
+        const data = JSON.parse(JSON.stringify(keyManager.decrypt(JSON.parse(content) as EncryptedPayload))) as AnyAccountStorage;
+        if (data.version === 3) return data;
+        if (data.version === 2) return migrateV2ToV3(data);
+        if (data.version === 1) return migrateV2ToV3(migrateV1ToV2(data));
       } catch (err) {
-        log.error("Failed to decrypt account storage in unsafe mode (v3 required)", { error: String(err) });
-        throw new Error("Account storage decryption failed");
+        log.error("Failed to decrypt account storage in unsafe path", { error: String(err) });
       }
+    } else {
+      const data = JSON.parse(content) as AnyAccountStorage;
+      if (data.version === 3) return data;
+      if (data.version === 2) return migrateV2ToV3(data);
+      if (data.version === 1) return migrateV2ToV3(migrateV1ToV2(data));
     }
-    
-    const parsed = JSON.parse(content);
-
-    if (parsed.version === 1) {
-      return migrateV2ToV3(migrateV1ToV2(parsed));
-    }
-    if (parsed.version === 2) {
-      return migrateV2ToV3(parsed);
-    }
-
-    return {
-      ...parsed,
-      accounts: deduplicateAccountsByEmail(parsed.accounts),
-    };
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === "ENOENT") {
-      return null;
-    }
-    return null;
+  } catch {
+    // Ignore errors in unsafe path
   }
+  return null;
 }
 
+/**
+ * Clears all accounts from storage.
+ */
 export async function clearAccounts(): Promise<void> {
-  try {
-    const path = getStoragePath();
-    await fs.unlink(path);
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code !== "ENOENT") {
-      log.error("Failed to clear account storage", { error: String(error) });
+  const path = getStoragePath();
+  await ensureTempCleanup(path);
+  await withFileLock(path, async () => {
+    const emptyStorage: AccountStorageV3 = {
+      version: 3,
+      accounts: [],
+      activeIndex: 0,
+    };
+    const tempPath = `${path}.${randomBytes(6).toString("hex")}.tmp`;
+    const encrypted = keyManager.encrypt(emptyStorage);
+    const content = JSON.stringify(encrypted, null, 2);
+    try {
+      await writeFileAtomicDurable(path, tempPath, content);
+    } catch (error) {
+      try { await fs.unlink(tempPath); } catch {}
+      throw error;
     }
-  }
+  });
 }

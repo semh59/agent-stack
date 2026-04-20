@@ -72,8 +72,10 @@ export async function showAuthMenu(accounts: AccountInfo[]): Promise<AuthMenuAct
     { label: 'Delete all accounts', value: { type: 'delete-all' }, color: 'red' as const },
   ];
 
-  while (true) {
-    const result = await select(items, { 
+  // Bounded at 200 interactions; a real user reaches a terminal selection in
+  // single digits. The cap catches malformed responses from `select()`.
+  for (let i = 0; i < 200; i++) {
+    const result = await select(items, {
       message: 'Manage accounts',
       subtitle: 'Select account'
     });
@@ -87,6 +89,7 @@ export async function showAuthMenu(accounts: AccountInfo[]): Promise<AuthMenuAct
 
     return result;
   }
+  return { type: 'cancel' };
 }
 
 export async function showAccountDetails(account: AccountInfo): Promise<AccountAction> {
@@ -100,13 +103,15 @@ export async function showAccountDetails(account: AccountInfo): Promise<AccountA
   console.log(`${ANSI.dim}Last used: ${formatRelativeTime(account.lastUsed)}${ANSI.reset}`);
   console.log('');
 
-  while (true) {
+  // Bounded like the outer menu; a real session terminates via `return` in
+  // the switch below.
+  for (let i = 0; i < 200; i++) {
     const result = await select([
       { label: 'Back', value: 'back' as const },
       { label: account.enabled === false ? 'Enable account' : 'Disable account', value: 'toggle' as const, color: account.enabled === false ? 'green' : 'yellow' },
       { label: 'Refresh token', value: 'refresh' as const, color: 'cyan' },
       { label: 'Delete this account', value: 'delete' as const, color: 'red' },
-    ], { 
+    ], {
       message: 'Account options',
       subtitle: 'Select action'
     });
@@ -121,8 +126,16 @@ export async function showAccountDetails(account: AccountInfo): Promise<AccountA
       if (!confirmed) continue;
     }
 
-    return result ?? 'cancel';
-  }
-}
+    if (result === 'back') {
+      return 'back';
+    }
 
-export { isTTY } from './ansi';
+    if (result === 'toggle' || result === 'delete' || result === 'refresh') {
+      return result;
+    }
+
+    // Unknown result — treat as cancel and loop for safety.
+    return 'cancel';
+  }
+  return 'cancel';
+}

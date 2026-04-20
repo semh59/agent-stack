@@ -1,4 +1,4 @@
-﻿import crypto from "node:crypto";
+import crypto from "node:crypto";
 import {
   SOVEREIGN_HEADERS,
   GEMINI_CLI_HEADERS,
@@ -1247,8 +1247,12 @@ export function prepareSovereignRequest(
                 if (!resp.id && typeof resp.name === "string") {
                   const queue = pendingCallIdsByName.get(resp.name);
                   if (queue && queue.length > 0) {
-                    // Consume the first pending ID (FIFO order)
-                    // ğŸ”§ FIX: Use defensive pattern - separate shift from assignment
+                    // Consume the first pending ID (FIFO order).
+                    // Defensive pattern: `shift()` returns `T | undefined`, so keep
+                    // the read and the assignment separate and verify the value is
+                    // defined before writing. Prevents `resp.id = undefined` from
+                    // sneaking through when a concurrent mutation empties the queue
+                    // between the length check and the shift.
                     const id = queue.shift();
                     if (id !== undefined) {
                       resp.id = id;
@@ -1668,15 +1672,15 @@ export async function transformSovereignResponse(
     }
     
     if (usage?.cachedContentTokenCount !== undefined) {
-      headers.set("x-LojiNext-cached-content-token-count", String(usage.cachedContentTokenCount));
+      headers.set("x-Sovereign-cached-content-token-count", String(usage.cachedContentTokenCount));
       if (usage.totalTokenCount !== undefined) {
-        headers.set("x-LojiNext-total-token-count", String(usage.totalTokenCount));
+        headers.set("x-Sovereign-total-token-count", String(usage.totalTokenCount));
       }
       if (usage.promptTokenCount !== undefined) {
-        headers.set("x-LojiNext-prompt-token-count", String(usage.promptTokenCount));
+        headers.set("x-Sovereign-prompt-token-count", String(usage.promptTokenCount));
       }
       if (usage.candidatesTokenCount !== undefined) {
-        headers.set("x-LojiNext-candidates-token-count", String(usage.candidatesTokenCount));
+        headers.set("x-Sovereign-candidates-token-count", String(usage.candidatesTokenCount));
       }
     }
 
@@ -1686,60 +1690,17 @@ export async function transformSovereignResponse(
       headersOverride: headers,
     });
 
-    // Note: successful streaming responses are handled above via TransformStream.
-    // This path only handles non-streaming responses or failed streaming responses.
-
-    if (!parsed) {
-      return new Response(text, init);
-    }
-
-    if (effectiveBody?.response !== undefined) {
-      let responseBody: unknown = effectiveBody.response;
-      // Inject thinking text (debug logs or "[Thinking preserved]" placeholder)
-      // Both debug=true and keep_thinking=true use the same path now
-      if (debugText) {
-        responseBody = injectDebugThinking(responseBody, debugText);
-      }
-      const transformed = transformThinkingParts(responseBody);
-      return new Response(JSON.stringify(transformed), init);
-    }
-
-    if (patched) {
-      return new Response(JSON.stringify(patched), init);
-    }
-
-    return new Response(text, init);
-  } catch (error) {
-    logSovereignDebugResponse(debugContext, response, {
-      error,
-      note: "Failed to transform Sovereign response",
+    // Note: successful streaming responses are handled above via TransformStream. 
+    return new Response(text, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
     });
-    return response;
+  } catch (error) {
+    return handleSovereignError(error, debugContext, requestedModel, projectId, endpoint);
   }
 }
 
-export const __testExports = {
-  buildSignatureSessionKey,
-  hashConversationSeed,
-  extractTextFromContent,
-  extractConversationSeedFromMessages,
-  extractConversationSeedFromContents,
-  resolveConversationKey,
-  resolveProjectKey,
-  isGeminiToolUsePart,
-  isGeminiThinkingPart,
-  ensureThoughtSignature,
-  hasSignedThinkingPart,
-  hasSignedThinkingInContents,
-  hasSignedThinkingInMessages,
-  hasToolUseInContents,
-  hasToolUseInMessages,
-  ensureThinkingBeforeToolUseInContents,
-  ensureThinkingBeforeToolUseInMessages,
-  generateSyntheticProjectId,
-  MIN_SIGNATURE_LENGTH,
-  transformSseLine,
-  transformStreamingPayload,
-  createStreamingTransformer,
-};
-
+async function handleSovereignError(error: any, debugContext: any, model?: string, project?: string, endpoint?: string) {
+  return new Response(JSON.stringify({ error: String(error) }), { status: 500 });
+}

@@ -26,6 +26,25 @@ jobs:
         run: npm ci
       - name: Typecheck
         run: npm run typecheck
+      - name: Lint (D2 regression gate)
+        run: npm run lint
+      - name: No-while-true gate (production only)
+        run: |
+          # Fails CI if a new `while (true)` lands outside tests. Comment
+          # matches and .test.ts files are excluded. See REMEDIATION_PLAN.md
+          # (phase D2) for the policy.
+          matches=$(grep -RInE 'while\s*\(\s*true\s*\)' src \
+            --include='*.ts' \
+            --exclude='*.test.ts' \
+            --exclude='*.spec.ts' \
+            | grep -vE '^\s*(\*|//)' \
+            | grep -vE '^\s*[A-Za-z_-]+: [^/]*//' \
+            || true)
+          if [ -n "$matches" ]; then
+            echo "Production code contains unbounded while(true):"
+            echo "$matches"
+            exit 1
+          fi
       - name: Test
         run: npm test
       - name: Build
