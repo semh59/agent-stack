@@ -1,4 +1,4 @@
-﻿import fastify from "fastify";
+import fastify from "fastify";
 import cors from "@fastify/cors";
 import staticPlugin from "@fastify/static";
 import websocket from "@fastify/websocket";
@@ -289,7 +289,7 @@ export class GatewayServer {
     this.host = options.host ?? "127.0.0.1";
     const resolvedAuthToken = options.authToken.trim();
     if (!resolvedAuthToken) {
-      throw new Error("Gateway auth token is required. Set LOJINEXT_GATEWAY_TOKEN or pass authToken.");
+      throw new Error("Gateway auth token is required. Set SOVEREIGN_GATEWAY_TOKEN or pass authToken.");
     }
     this.authManager = new GatewayAuthManager(resolvedAuthToken);
     this.tokenStore = new TokenStore(

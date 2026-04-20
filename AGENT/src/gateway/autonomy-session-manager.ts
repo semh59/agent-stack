@@ -1,4 +1,4 @@
-﻿import { randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { SovereignGatewayClient } from "../orchestration/gateway-client";
 import {
@@ -700,10 +700,10 @@ function extractUsageHeaders(headers: Headers): UsageMetadata | null {
   };
 
   const usage: UsageMetadata = {
-    totalTokenCount: parseHeader("x-LojiNext-total-token-count"),
-    promptTokenCount: parseHeader("x-LojiNext-prompt-token-count"),
-    candidatesTokenCount: parseHeader("x-LojiNext-candidates-token-count"),
-    cachedContentTokenCount: parseHeader("x-LojiNext-cached-content-token-count"),
+    totalTokenCount: parseHeader("x-Sovereign-total-token-count"),
+    promptTokenCount: parseHeader("x-Sovereign-prompt-token-count"),
+    candidatesTokenCount: parseHeader("x-Sovereign-candidates-token-count"),
+    cachedContentTokenCount: parseHeader("x-Sovereign-cached-content-token-count"),
   };
 
   return Object.values(usage).some((value) => value !== undefined) ? usage : null;
