@@ -197,7 +197,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   constructor(private readonly _extensionUri: vscode.Uri, private readonly _globalStoragePath?: string) {
     this._costTracker = new UnifiedCostTracker(undefined, this._globalStoragePath);
     const config = vscode.workspace.getConfiguration("sovereign");
-    // LOJINEXT_GATEWAY_TOKEN retained as deprecated fallback for users migrating from pre-rebrand.
+    // SOVEREIGN_GATEWAY_TOKEN is now the primary, LOJINEXT_GATEWAY_TOKEN retained as deprecated fallback for users migrating from pre-rebrand.
     this._gatewayAuthToken = process.env.SOVEREIGN_GATEWAY_TOKEN
       ?? process.env.LOJINEXT_GATEWAY_TOKEN
       ?? config.get<string>("gatewayAuthToken")
@@ -607,7 +607,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     if (!this._gatewayAuthToken) {
       this._postMessage({
         type: "error",
-        value: "Gateway auth token missing. Set LOJINEXT_GATEWAY_TOKEN for add-account flow.",
+        value: "Gateway auth token missing. Set SOVEREIGN_GATEWAY_TOKEN for add-account flow.",
       });
       return;
     }
