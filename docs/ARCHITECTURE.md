@@ -32,7 +32,7 @@ client → [ALB:443] → gateway (ECS task, 2 tasks)
 - Auth: Google Sovereign AI OAuth, Claude OAuth, shared-secret bearer for the bridge
 
 Request path for `/api/optimize`:
-1. Fastify CORS + auth plugin checks `LOJINEXT_GATEWAY_TOKEN`.
+1. Fastify CORS + auth plugin checks `SOVEREIGN_GATEWAY_TOKEN`.
 2. Route handler (`src/gateway/routes/optimize.ts`) forwards the body to the bridge.
 3. Forwarded request includes `X-Bridge-Secret` and `X-Request-ID` (generated if absent).
 4. Response is relayed back with status translation:
@@ -112,7 +112,7 @@ All stores are keyed by `AI_STACK_DATA_DIR`. In containers that's `/data` (mount
 - Bridge auth uses `hmac.compare_digest` (constant-time).
 - CORS on the bridge is pinned to `BRIDGE_CORS_ORIGIN`.
 - Secrets are read from AWS Secrets Manager at task-start time (via `secrets = [...]` on the task definition); they are never in the image or in Terraform state.
-- Gateway rejects requests without `LOJINEXT_GATEWAY_TOKEN`.
+- Gateway rejects requests without `SOVEREIGN_GATEWAY_TOKEN`.
 - Both services run as non-root (UID 10001) inside the container.
 
 ## What this monorepo does NOT include

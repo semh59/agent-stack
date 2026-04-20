@@ -113,7 +113,7 @@ Environment variables are grouped by layer. Templates live in `env/`:
 
 | Name | Owner | Required in | Purpose |
 |------|-------|-------------|---------|
-| `LOJINEXT_GATEWAY_TOKEN` | gateway | always | Bearer token clients must present |
+| `SOVEREIGN_GATEWAY_TOKEN` | gateway | always | Bearer token clients must present |
 | `AI_STACK_BRIDGE_SECRET` | bridge + gateway | **staging/prod** | Shared secret for bridge auth |
 | `APP_ENV` | both | always | `development`/`staging`/`production` — gates dev-only fallbacks |
 | `BRIDGE_CORS_ORIGIN` | bridge | prod | Allowed origin for CORS |
