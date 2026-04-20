@@ -935,4 +935,78 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(assetsPath, res
+      vscode.Uri.joinPath(assetsPath, resolvedAssets.scriptFileName)
+    );
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(assetsPath, resolvedAssets.styleFileName)
+    );
+
+    const nonce = crypto.randomBytes(16).toString("base64");
+
+    return buildWebviewHtml({
+      webview,
+      scriptUri,
+      styleUri,
+      nonce,
+      cspSource: webview.cspSource,
+      extraConnectOrigins: this._cspConnectOrigins
+    });
+  }
+
+  private _injectSelectedScope(payload: any): any {
+    const scope = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (scope && isRecord(payload)) {
+      if (!isRecord(payload.scope)) {
+        payload.scope = { paths: [scope] };
+      }
+    }
+    return payload;
+  }
+
+  private async _connectAutonomySocket(sessionId: string): Promise<void> {
+    if (!this._gatewayAuthToken) return;
+    if (this._autonomySocket) {
+      this._autonomySocket.close();
+    }
+
+    try {
+      const ticketResponse = await fetch(`${this._resolveGatewayHttpBase()}/api/autonomy/sessions/${sessionId}/ws-ticket`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${this._gatewayAuthToken}` }
+      });
+
+      if (!ticketResponse.ok) return;
+      const { data } = await ticketResponse.json() as { data: { ticket: string } };
+
+      const wsUrl = `${this._resolveGatewayWsBase()}/ws/autonomy/${sessionId}?ticket=${data.ticket}`;
+      const ws = new WebSocket(wsUrl);
+      this._autonomySocket = ws;
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data.toString());
+          this._postMessage({
+            type: "autonomyEvent",
+            sessionId,
+            timestamp: new Date().toISOString(),
+            payload: data
+          });
+        } catch (e) { /* ignore */ }
+      };
+
+      ws.onclose = () => {
+        if (this._autonomySocket === ws) this._autonomySocket = null;
+      };
+    } catch (e) { /* ignore */ }
+  }
+
+  public dispose() {
+    this._disposables.forEach((d) => d.dispose());
+    this._disposables = [];
+    this._pipeline?.dispose();
+    if (this._autonomySocket) {
+      this._autonomySocket.close();
+      this._autonomySocket = null;
+    }
+  }
+}

@@ -11,7 +11,7 @@
 #   docker build -t sovereign-gateway ./AGENT
 # Run:
 #   docker run --rm -p 3000:3000 \
-#     -e LOJINEXT_GATEWAY_TOKEN=... \
+#     -e SOVEREIGN_GATEWAY_TOKEN=... \
 #     -e AI_STACK_BRIDGE_SECRET=... \
 #     sovereign-gateway
 # ─────────────────────────────────────────────────────────────────────────────
@@ -60,8 +60,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV NODE_ENV=production \
     NODE_OPTIONS=--enable-source-maps \
-    LOJINEXT_GATEWAY_PORT=3000 \
-    LOJINEXT_GATEWAY_HOST=0.0.0.0
+    SOVEREIGN_GATEWAY_PORT=3000 \
+    SOVEREIGN_GATEWAY_HOST=0.0.0.0
 
 COPY --from=deps    --chown=gateway:gateway /app/node_modules ./node_modules
 COPY                --chown=gateway:gateway package.json tsconfig.json tsconfig.build.json ./
