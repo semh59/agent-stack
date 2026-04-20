@@ -1,4 +1,4 @@
-﻿import { IntentClassifier, type TrainingExample } from './intent-classifier';
+import { IntentClassifier, type TrainingExample } from './intent-classifier';
 import { IntentTransformer } from './intent-transformer';
 import { join } from 'node:path';
 import { getConfigDir } from '../plugin/storage';
@@ -169,7 +169,7 @@ export class IntentEngine {
       }
     }
 
-    // Lojinext Rule: Confidence thresholds: < 0.60 (Yellow Warning), < 0.40 (Red/Manual Entry)
+    // Sovereign AI Rule: Confidence thresholds: < 0.60 (Yellow Warning), < 0.40 (Red/Manual Entry)
     // We trigger fallback or deep-dive if confidence is below 0.6
     let confidence = Math.max(mlResult.confidence, maxHits > 0 ? 0.9 : 0.5);
     let fallbackTriggered = confidence < 0.60;

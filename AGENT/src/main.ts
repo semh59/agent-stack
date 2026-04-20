@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Production entry point for the Sovereign AI Gateway.
  *
  * Differences from scripts/start-gateway.ts:
@@ -35,7 +35,7 @@ function optionalEnv(name: string, fallback: string): string {
 async function main(): Promise<void> {
   const port = Number(optionalEnv("SOVEREIGN_GATEWAY_PORT", "3000"));
   const host = optionalEnv("SOVEREIGN_GATEWAY_HOST", "0.0.0.0");
-  const authToken = requireEnv("LOJINEXT_GATEWAY_TOKEN");
+  const authToken = requireEnv("SOVEREIGN_GATEWAY_TOKEN");
 
   const server = new GatewayServer({
     port,

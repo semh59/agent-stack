@@ -1,4 +1,4 @@
-﻿import {
+import {
   extractModelFromUrl,
   extractRetryInfoFromBody,
   getModelFamilyFromUrl,
@@ -206,7 +206,7 @@ function createGracefulErrorResponse(message: string, status: number): Response 
     status,
     headers: {
       "Content-Type": "application/json",
-      "X-Lojinext-Graceful-Error": "true",
+      "X-Sovereign-Graceful-Error": "true",
     },
   });
 }
