@@ -43,9 +43,9 @@ pyvenv.cfg
 **/*.tsbuildinfo
 
 # Secrets / environment
-.env
-.env.*
-!.env.example
+/.env
+/.env.*
+!/.env.example
 !env/.env.development
 !env/.env.staging
 !env/.env.production
