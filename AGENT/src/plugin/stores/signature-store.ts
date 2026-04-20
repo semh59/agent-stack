@@ -1,4 +1,4 @@
-import type { SignatureStore, SignedThinking, ThoughtBuffer } from '../core/streaming/types';
+﻿import type { SignatureStore, SignedThinking, ThoughtBuffer } from '../core/streaming/types';
 
 export function createSignatureStore(): SignatureStore {
   const MAX_ENTRIES = 500;

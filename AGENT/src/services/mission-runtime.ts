@@ -1,4 +1,4 @@
-import type { AutonomySession, CreateAutonomySessionRequest } from "../orchestration/autonomy-types";
+﻿import type { AutonomySession, CreateAutonomySessionRequest } from "../orchestration/autonomy-types";
 import type { AutonomySessionManager } from "../gateway/autonomy-session-manager";
 
 export interface MissionRuntime {

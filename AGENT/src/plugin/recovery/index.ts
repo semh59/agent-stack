@@ -1,5 +1,5 @@
-/**
- * Session recovery module for lojinext-ai.
+﻿/**
+ * Session recovery module for sovereign-ai.
  * 
  * Provides recovery from:
  * - tool_result_missing: Interrupted tool executions

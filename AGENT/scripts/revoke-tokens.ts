@@ -9,12 +9,12 @@ import { clearAccounts, getStoragePath } from "../src/plugin/storage";
 import { existsSync } from "node:fs";
 
 async function main() {
-  console.log("\n🔐 Antigravity Token Temizleme (Tam)");
+  console.log("\n🔐 Sovereign AI Token Temizleme (Tam)");
   console.log("─".repeat(45));
 
   let cleared = 0;
 
-  // 1. Gateway Token Store (~/.config/agent/antigravity-tokens.json)
+  // 1. Gateway Token Store (~/.config/agent/sovereign-tokens.json)
   console.log("\n📁 Gateway Token Store:");
   try {
     const store = new TokenStore();
@@ -30,7 +30,7 @@ async function main() {
     console.error("   ❌ Hata:", err instanceof Error ? err.message : String(err));
   }
 
-  // 2. Plugin Account Store (~/.config/opencode/antigravity-accounts.json)
+  // 2. Plugin Account Store (~/.config/opencode/sovereign-accounts.json)
   console.log("\n📁 Plugin Account Store:");
   try {
     const pluginPath = getStoragePath();

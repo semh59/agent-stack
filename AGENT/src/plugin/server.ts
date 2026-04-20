@@ -1,7 +1,7 @@
-import { createServer } from "node:http";
+﻿import { createServer } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 
-import { ANTIGRAVITY_REDIRECT_URI } from "../constants";
+import { SOVEREIGN_REDIRECT_URI } from "../constants";
 
 interface OAuthListenerOptions {
   /**
@@ -21,7 +21,7 @@ export interface OAuthListener {
   close(): Promise<void>;
 }
 
-const redirectUri = new URL(ANTIGRAVITY_REDIRECT_URI);
+const redirectUri = new URL(SOVEREIGN_REDIRECT_URI);
 const callbackPath = redirectUri.pathname || "/";
 
 /**
@@ -107,14 +107,14 @@ function isRemoteEnvironment(): boolean {
  * Determine the best bind address for the OAuth callback server.
  * 
  * Priority:
- * 1. OPENCODE_ANTIGRAVITY_OAUTH_BIND environment variable (user override)
+ * 1. OPENCODE_SOVEREIGN_OAUTH_BIND environment variable (user override)
  * 2. OrbStack Docker with --network host: 127.0.0.1 (required for port forwarding)
  * 3. WSL/SSH/Remote: 0.0.0.0 (needed for cross-network access)
  * 4. Default: 127.0.0.1 (most secure for local development)
  */
 function getBindAddress(): string {
   // Allow user override via environment variable
-  const envBind = process.env.OPENCODE_ANTIGRAVITY_OAUTH_BIND;
+  const envBind = process.env.OPENCODE_SOVEREIGN_OAUTH_BIND;
   if (envBind) {
     return envBind;
   }
@@ -134,7 +134,7 @@ function getBindAddress(): string {
 }
 
 /**
- * Starts a lightweight HTTP server that listens for the Antigravity OAuth redirect
+ * Starts a lightweight HTTP server that listens for the Sovereign OAuth redirect
  * and resolves with the captured callback URL.
  */
 export async function startOAuthListener(
@@ -276,7 +276,7 @@ const successResponse = `<!DOCTYPE html>
         </svg>
       </div>
       <h1>All set!</h1>
-      <p>You've successfully authenticated with Antigravity. You can now return to Opencode.</p>
+      <p>You've successfully authenticated with Sovereign. You can now return to Opencode.</p>
       <button class="btn" onclick="closeWindow()">Close this tab</button>
       <div class="sub-text">Usage Tip: Most browsers block auto-closing. If the button doesn't work, please close the tab manually.</div>
     </div>

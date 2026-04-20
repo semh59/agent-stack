@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Signature cache for persisting thinking block signatures to disk.
  * 
  * Features (based on LLM-API-Key-Proxy's ProviderCache):
@@ -79,7 +79,7 @@ function getConfigDir(): string {
 }
 
 function getCacheFilePath(): string {
-  return join(getConfigDir(), "antigravity-signature-cache.json");
+  return join(getConfigDir(), "Sovereign-signature-cache.json");
 }
 
 // =============================================================================
@@ -407,7 +407,7 @@ export class SignatureCache {
       };
 
       // Step 5: Atomic write (temp file + rename)
-      const tmpPath = join(tmpdir(), `antigravity-cache-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`);
+      const tmpPath = join(tmpdir(), `Sovereign-cache-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`);
       writeFileSync(tmpPath, JSON.stringify(cacheData, null, 2), "utf-8");
 
       try {

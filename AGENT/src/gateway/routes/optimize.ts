@@ -1,5 +1,5 @@
-/**
- * Optimize Route — Gateway → Optimization Bridge
+﻿/**
+ * Optimize Route â€” Gateway â†’ Optimization Bridge
  *
  * Proxies optimization requests from the TypeScript Gateway
  * to the Python optimization engine via the HTTP bridge.
@@ -10,7 +10,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { apiResponse, apiError } from "../rest-response";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface OptimizeRequestBody {
   message: string;
@@ -37,7 +37,7 @@ interface BridgeConfig {
   secret: string;
 }
 
-// ─── Default Config ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Default Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const DEFAULT_BRIDGE_CONFIG: BridgeConfig = {
   host: process.env.AI_STACK_BRIDGE_HOST ?? "127.0.0.1",
@@ -45,7 +45,7 @@ const DEFAULT_BRIDGE_CONFIG: BridgeConfig = {
   secret: process.env.AI_STACK_BRIDGE_SECRET ?? "",
 };
 
-// ─── Bridge Client ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Bridge Client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class OptimizationBridge {
   private readonly baseUrl: string;
@@ -124,11 +124,11 @@ class OptimizationBridge {
   }
 }
 
-// ─── Singleton Bridge Instance ──────────────────────────────────────────────
+// â”€â”€â”€ Singleton Bridge Instance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const bridge = new OptimizationBridge();
 
-// ─── Route Registration ─────────────────────────────────────────────────────
+// â”€â”€â”€ Route Registration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Extract (or mint) a correlation ID for a request. Gateway echoes the same ID
@@ -145,7 +145,7 @@ function getRequestId(request: FastifyRequest, reply: FastifyReply): string {
 }
 
 export function registerOptimizeRoutes(app: FastifyInstance): void {
-  // ── POST /api/optimize ─────────────────────────────────────────────────
+  // â”€â”€ POST /api/optimize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.post<{ Body: OptimizeRequestBody }>(
     "/api/optimize",
     async (request, reply) => {
@@ -177,7 +177,7 @@ export function registerOptimizeRoutes(app: FastifyInstance): void {
     },
   );
 
-  // ── GET /api/optimize/status ───────────────────────────────────────────
+  // â”€â”€ GET /api/optimize/status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/optimize/status", async (request, reply) => {
     const rid = getRequestId(request as FastifyRequest, reply);
     const result = await bridge.call<Record<string, string>>(
@@ -199,7 +199,7 @@ export function registerOptimizeRoutes(app: FastifyInstance): void {
     });
   });
 
-  // ── GET /api/optimize/cache-stats ──────────────────────────────────────
+  // â”€â”€ GET /api/optimize/cache-stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/optimize/cache-stats", async (_request, reply) => {
     const result = await bridge.call<Record<string, unknown>>("GET", "/cache-stats");
 
@@ -212,7 +212,7 @@ export function registerOptimizeRoutes(app: FastifyInstance): void {
     return apiResponse(result.data);
   });
 
-  // ── POST /api/optimize/cache-clear ─────────────────────────────────────
+  // â”€â”€ POST /api/optimize/cache-clear â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.post<{ Body: { tier?: string } }>(
     "/api/optimize/cache-clear",
     async (request, reply) => {
@@ -232,7 +232,7 @@ export function registerOptimizeRoutes(app: FastifyInstance): void {
     },
   );
 
-  // ── GET /api/optimize/cost-report ──────────────────────────────────────
+  // â”€â”€ GET /api/optimize/cost-report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get<{ Querystring: { period?: string } }>(
     "/api/optimize/cost-report",
     async (request, reply) => {
@@ -252,7 +252,7 @@ export function registerOptimizeRoutes(app: FastifyInstance): void {
     },
   );
 
-  // ── GET /api/optimize/health — Bridge health check ─────────────────────
+  // â”€â”€ GET /api/optimize/health â€” Bridge health check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/optimize/health", async (_request, reply) => {
     const healthy = await bridge.isHealthy();
     const status = healthy ? 200 : 503;

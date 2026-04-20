@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VerificationEngine, type VerificationResult } from './verification-engine';
 import type { AgentDefinition } from './agents';
 import { AgentLayer, PreferredModel } from './agents';
@@ -25,7 +25,7 @@ function makeAgent(overrides: Partial<AgentDefinition> = {}): AgentDefinition {
     order: 7,
     role: 'backend',
     name: 'Backend Developer',
-    emoji: '⚙️',
+    emoji: 'âš™ï¸',
     layer: AgentLayer.DEVELOPMENT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: [],
@@ -203,7 +203,7 @@ stuff`;
       const log = engine.formatAsLog(result);
 
       expect(log).toContain('VERIFICATION: backend');
-      expect(log).toContain('✅ PASSED');
+      expect(log).toContain('âœ… PASSED');
       expect(log).toContain('npm run build');
       expect(log).toContain('Files Created');
     });

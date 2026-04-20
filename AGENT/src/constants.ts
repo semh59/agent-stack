@@ -1,18 +1,18 @@
-/**
- * Constants used for Antigravity OAuth flows and Cloud Code Assist API integration.
+﻿/**
+ * Constants used for Sovereign AI OAuth flows and Cloud Code Assist API integration.
  */
-export const ANTIGRAVITY_CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com";
+export const SOVEREIGN_CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com";
 
 /**
- * Client secret issued for the Antigravity OAuth application.
+ * Client secret issued for the Sovereign OAuth application.
  */
 // K5 FIX: Prefer env variable, fallback kept for installed-app OAuth compatibility
-export const ANTIGRAVITY_CLIENT_SECRET = process.env.AG_CLIENT_SECRET ?? "";
+export const SOVEREIGN_CLIENT_SECRET = process.env.AG_CLIENT_SECRET ?? "";
 
 /**
- * Scopes required for Antigravity integrations.
+ * Scopes required for Sovereign integrations.
  */
-export const ANTIGRAVITY_SCOPES: readonly string[] = [
+export const SOVEREIGN_SCOPES: readonly string[] = [
   "https://www.googleapis.com/auth/cloud-platform",
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/userinfo.profile",
@@ -23,77 +23,77 @@ export const ANTIGRAVITY_SCOPES: readonly string[] = [
 /**
  * OAuth redirect URI used by the local CLI callback server.
  */
-export const ANTIGRAVITY_REDIRECT_URI = "http://127.0.0.1:51121/oauth-callback";
+export const SOVEREIGN_REDIRECT_URI = "http://127.0.0.1:51121/oauth-callback";
 
 /**
- * Root endpoints for the Antigravity API (in fallback order).
+ * Root endpoints for the Sovereign API (in fallback order).
  * CLIProxy and Vibeproxy use the daily sandbox endpoint first,
  * then fallback to autopush and prod if needed.
  */
-export const ANTIGRAVITY_ENDPOINT_DAILY = "https://daily-cloudcode-pa.sandbox.googleapis.com";
-export const ANTIGRAVITY_ENDPOINT_AUTOPUSH = "https://autopush-cloudcode-pa.sandbox.googleapis.com";
-export const ANTIGRAVITY_ENDPOINT_PROD = "https://cloudcode-pa.googleapis.com";
+export const SOVEREIGN_ENDPOINT_DAILY = "https://daily-cloudcode-pa.sandbox.googleapis.com";
+export const SOVEREIGN_ENDPOINT_AUTOPUSH = "https://autopush-cloudcode-pa.sandbox.googleapis.com";
+export const SOVEREIGN_ENDPOINT_PROD = "https://cloudcode-pa.googleapis.com";
 
 /**
- * Endpoint fallback order (daily → autopush → prod).
+ * Endpoint fallback order (daily â†’ autopush â†’ prod).
  * Shared across request handling and project discovery to mirror CLIProxy behavior.
  */
-export const ANTIGRAVITY_ENDPOINT_FALLBACKS = [
-  ANTIGRAVITY_ENDPOINT_DAILY,
-  ANTIGRAVITY_ENDPOINT_AUTOPUSH,
-  ANTIGRAVITY_ENDPOINT_PROD,
+export const SOVEREIGN_ENDPOINT_FALLBACKS = [
+  SOVEREIGN_ENDPOINT_DAILY,
+  SOVEREIGN_ENDPOINT_AUTOPUSH,
+  SOVEREIGN_ENDPOINT_PROD,
 ] as const;
 
 /**
  * Preferred endpoint order for project discovery (prod first, then fallbacks).
  * loadCodeAssist appears to be best supported on prod for managed project resolution.
  */
-export const ANTIGRAVITY_LOAD_ENDPOINTS = [
-  ANTIGRAVITY_ENDPOINT_PROD,
-  ANTIGRAVITY_ENDPOINT_DAILY,
-  ANTIGRAVITY_ENDPOINT_AUTOPUSH,
+export const SOVEREIGN_LOAD_ENDPOINTS = [
+  SOVEREIGN_ENDPOINT_PROD,
+  SOVEREIGN_ENDPOINT_DAILY,
+  SOVEREIGN_ENDPOINT_AUTOPUSH,
 ] as const;
 
 /**
  * Primary endpoint to use (daily sandbox - same as CLIProxy/Vibeproxy).
  */
-export const ANTIGRAVITY_ENDPOINT = ANTIGRAVITY_ENDPOINT_DAILY;
+export const SOVEREIGN_ENDPOINT = SOVEREIGN_ENDPOINT_DAILY;
 
 /**
  * Gemini CLI endpoint (production).
- * Used for models without :antigravity suffix.
+ * Used for models without :Sovereign suffix.
  * Same as opencode-gemini-auth's GEMINI_CODE_ASSIST_ENDPOINT.
  */
-export const GEMINI_CLI_ENDPOINT = ANTIGRAVITY_ENDPOINT_PROD;
+export const GEMINI_CLI_ENDPOINT = SOVEREIGN_ENDPOINT_PROD;
 
 /**
- * Hardcoded project id used when Antigravity does not return one (e.g., business/workspace accounts).
+ * Hardcoded project id used when Sovereign does not return one (e.g., business/workspace accounts).
  */
-export const ANTIGRAVITY_DEFAULT_PROJECT_ID = "rising-fact-p41fc";
+export const SOVEREIGN_DEFAULT_PROJECT_ID = "rising-fact-p41fc";
 
 /**
- * Antigravity version string - SINGLE SOURCE OF TRUTH.
+ * Sovereign version string - SINGLE SOURCE OF TRUTH.
  * Update this value when a new version is needed.
- * Used by ANTIGRAVITY_HEADERS, fingerprint.ts, and all version-dependent code.
+ * Used by SOVEREIGN_HEADERS, fingerprint.ts, and all version-dependent code.
  * 
  * @remarks
- * This version MUST be kept in sync with Google's supported Antigravity versions.
- * Using an outdated version will cause "This version of Antigravity is no longer supported" errors.
+ * This version MUST be kept in sync with Google's supported Sovereign versions.
+ * Using an outdated version will cause "This version of Sovereign is no longer supported" errors.
  * 
- * @see https://github.com/NoeFabris/lojinext-ai/issues/324
+ * @see https://github.com/NoeFabris/sovereign-ai/issues/324
  */
-export const ANTIGRAVITY_VERSION = "1.15.8" as const;
+export const SOVEREIGN_VERSION = "1.15.8" as const;
 
 /**
- * Default headers for Antigravity API requests.
+ * Default headers for Sovereign API requests.
  * 
- * Uses ANTIGRAVITY_VERSION to ensure the User-Agent version stays in sync
+ * Uses SOVEREIGN_VERSION to ensure the User-Agent version stays in sync
  * with the single source of truth, preventing "version no longer supported" errors.
  * 
- * @see https://github.com/NoeFabris/lojinext-ai/issues/324
+ * @see https://github.com/NoeFabris/sovereign-ai/issues/324
  */
-export const ANTIGRAVITY_HEADERS = {
-  "User-Agent": `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/138.0.7204.235 Electron/37.3.1 Safari/537.36`,
+export const SOVEREIGN_HEADERS = {
+  "User-Agent": `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Sovereign/${SOVEREIGN_VERSION} Chrome/138.0.7204.235 Electron/37.3.1 Safari/537.36`,
   "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
   "Client-Metadata": '{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}',
 } as const;
@@ -104,12 +104,12 @@ export const GEMINI_CLI_HEADERS = {
   "Client-Metadata": "ideType=IDE_UNSPECIFIED,platform=PLATFORM_UNSPECIFIED,pluginType=GEMINI",
 } as const;
 
-const ANTIGRAVITY_PLATFORMS = ["windows/amd64", "darwin/arm64", "linux/amd64", "darwin/amd64", "linux/arm64"] as const;
+const SOVEREIGN_PLATFORMS = ["windows/amd64", "darwin/arm64", "linux/amd64", "darwin/amd64", "linux/arm64"] as const;
 
 // Derive user agents from version (keeps them in sync automatically)
-const ANTIGRAVITY_USER_AGENTS = ANTIGRAVITY_PLATFORMS.map(platform => `antigravity/${ANTIGRAVITY_VERSION} ${platform}`);
+const SOVEREIGN_USER_AGENTS = SOVEREIGN_PLATFORMS.map(platform => `Sovereign/${SOVEREIGN_VERSION} ${platform}`);
 
-const ANTIGRAVITY_API_CLIENTS = [
+const SOVEREIGN_API_CLIENTS = [
   "google-cloud-sdk vscode_cloudshelleditor/0.1",
   "google-cloud-sdk vscode/1.96.0",
   "google-cloud-sdk jetbrains/2024.3",
@@ -148,18 +148,18 @@ export function getRandomizedHeaders(style: HeaderStyle): HeaderSet {
     };
   }
   return {
-    "User-Agent": randomFrom(ANTIGRAVITY_USER_AGENTS),
-    "X-Goog-Api-Client": randomFrom(ANTIGRAVITY_API_CLIENTS),
-    "Client-Metadata": ANTIGRAVITY_HEADERS["Client-Metadata"],
+    "User-Agent": randomFrom(SOVEREIGN_USER_AGENTS),
+    "X-Goog-Api-Client": randomFrom(SOVEREIGN_API_CLIENTS),
+    "Client-Metadata": SOVEREIGN_HEADERS["Client-Metadata"],
   };
 }
 
-export type HeaderStyle = "antigravity" | "gemini-cli";
+export type HeaderStyle = "Sovereign" | "gemini-cli";
 
 /**
  * Provider identifier shared between the plugin loader and credential store.
  */
-export const ANTIGRAVITY_PROVIDER_ID = "google";
+export const GOOGLE_GEMINI_PROVIDER_ID = "google";
 
 // ============================================================================
 // TOOL HALLUCINATION PREVENTION (Ported from LLM-API-Key-Proxy)
@@ -189,7 +189,7 @@ If you are unsure about a tool's parameters, YOU MUST read the schema definition
  * Template for parameter signature injection into tool descriptions.
  * {params} will be replaced with the actual parameter list.
  */
-export const CLAUDE_DESCRIPTION_PROMPT = "\n\n⚠️ STRICT PARAMETERS: {params}.";
+export const CLAUDE_DESCRIPTION_PROMPT = "\n\nâš ï¸ STRICT PARAMETERS: {params}.";
 
 export const EMPTY_SCHEMA_PLACEHOLDER_NAME = "_placeholder";
 export const EMPTY_SCHEMA_PLACEHOLDER_DESCRIPTION = "Placeholder. Always pass true.";
@@ -224,13 +224,13 @@ export const RECOVERY_RESUME_TEXT = "[session recovered - continuing previous ta
 export const THINKING_RECOVERY_RESUME_TEXT = "[Continue]";
 
 // ============================================================================
-// ANTIGRAVITY SYSTEM INSTRUCTION (Ported from CLIProxyAPI v6.6.89)
+// SOVEREIGN SYSTEM INSTRUCTION (Ported from CLIProxyAPI v6.6.89)
 // ============================================================================
 
 /**
- * System instruction for Antigravity requests.
+ * System instruction for Sovereign requests.
  * This is injected into requests to match CLIProxyAPI v6.6.89 behavior.
- * The instruction provides identity and guidelines for the Antigravity agent.
+ * The instruction provides identity and guidelines for the Sovereign agent.
  */
 // ============================================================================
 // GOOGLE SEARCH TOOL CONSTANTS
@@ -274,7 +274,7 @@ Guidelines:
 - If information is uncertain or conflicting, acknowledge it
 - Focus on answering the user's question directly`;
 
-export const ANTIGRAVITY_SYSTEM_INSTRUCTION = `You are Antigravity, a powerful agentic AI coding assistant designed by the Google DeepMind team working on Advanced Agentic Coding.
+export const SOVEREIGN_SYSTEM_INSTRUCTION = `You are Sovereign AI, a powerful agentic AI coding assistant designed by the Google DeepMind team working on Advanced Agentic Coding.
 You are pair programming with a USER to solve their coding task. The task may require creating a new codebase, modifying or debugging an existing codebase, or simply answering a question.
 **Absolute paths only**
 **Proactiveness**

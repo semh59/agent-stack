@@ -1,4 +1,4 @@
-import { AntigravityClient } from "../src/orchestration/antigravity-client";
+import { SovereignGatewayClient } from "../src/orchestration/sovereign-client";
 import { AccountManager } from "../src/plugin/accounts";
 import { loadConfig } from "../src/plugin/config/loader";
 import * as fs from "node:fs/promises";
@@ -20,14 +20,14 @@ async function main() {
     return;
   }
 
-  const client = new AntigravityClient(
+  const client = new SovereignGatewayClient(
     accountManager,
     config,
-    "antigravity",
+    "sovereign",
     async () => accountManager.toAuthDetails(primaryAccount)
   );
 
-  console.log("[Discovery] Probing Antigravity proxy for models...");
+  console.log("[Discovery] Probing Sovereign AI proxy for models...");
   
   try {
     // Attempt standard OpenAI-style models list

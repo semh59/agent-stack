@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+﻿import { describe, expect, it, vi } from "vitest";
 import { InMemoryMissionRepository } from "../repositories/mission.repository";
 import type { AutonomyEvent, AutonomySession, GateResult } from "../orchestration/autonomy-types";
 import { MissionPersistenceSubscriber } from "./MissionPersistenceSubscriber";

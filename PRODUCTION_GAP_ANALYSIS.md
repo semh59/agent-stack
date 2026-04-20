@@ -35,7 +35,7 @@ This document is the output of step 2 (Gap Analysis) of the production readiness
 | C-02 | Node gateway reads env vars ad hoc across many files; no typed config module comparable to Python's `Settings`. Silent default drift between dev/prod. | P1 | `grep process.env` across `AGENT/src/`. |
 | C-03 | `AI_STACK_BRIDGE_SECRET` is optional. If unset, `bridge.py` generates an ephemeral token at `~/.ai-stack-mcp/.bridge_secret`. In containers with read-only rootfs or distinct gateway/bridge filesystems (which is the intended topology), the gateway cannot read that file — silent auth failure. | **P0** | `bridge.py` lines 74–85. |
 | C-04 | No secret-management story: compose wires secrets via plain env vars. No plan for AWS Secrets Manager / SOPS / Vault. | P1 | `docker-compose.unified.yml` `environment:` stanzas. |
-| C-05 | Multiple conflicting bridge ports (`.env.example` says 9100, compose uses 9100, `LOJINEXT_GATEWAY_PORT` default is 51122 in env but compose says 3000). Not inherently broken but guaranteed to confuse operators. | P2 | Cross-check `.env.example` vs compose. |
+| C-05 | Multiple conflicting bridge ports (`.env.example` says 9100, compose uses 9100, `SOVEREIGN_GATEWAY_PORT` default is 51122 in env but compose says 3000). Not inherently broken but guaranteed to confuse operators. | P2 | Cross-check `.env.example` vs compose. |
 
 ## 3. Authentication & authorization
 

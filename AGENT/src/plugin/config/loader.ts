@@ -1,5 +1,5 @@
-/**
- * Configuration loader for lojinext-ai plugin.
+﻿/**
+ * Configuration loader for sovereign-ai plugin.
  * 
  * Loads config from files with environment variable overrides.
  * Priority (lowest to highest):
@@ -12,7 +12,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { AccountSelectionStrategySchema, AntigravityConfigSchema, DEFAULT_CONFIG, type AntigravityConfig } from "./schema";
+import { AccountSelectionStrategySchema, SovereignGatewayConfigSchema, DEFAULT_CONFIG, type SovereignGatewayConfig } from "./schema";
 import { createLogger } from "../logger";
 
 const log = createLogger("config");
@@ -41,14 +41,14 @@ function getConfigDir(): string {
  * Get the user-level config file path.
  */
 export function getUserConfigPath(): string {
-  return join(getConfigDir(), "antigravity.json");
+  return join(getConfigDir(), "Sovereign.json");
 }
 
 /**
  * Get the project-level config file path.
  */
 export function getProjectConfigPath(directory: string): string {
-  return join(directory, ".opencode", "antigravity.json");
+  return join(directory, ".opencode", "Sovereign.json");
 }
 
 // =============================================================================
@@ -58,7 +58,7 @@ export function getProjectConfigPath(directory: string): string {
 /**
  * Load and parse a config file, returning null if not found or invalid.
  */
-function loadConfigFile(path: string): Partial<AntigravityConfig> | null {
+function loadConfigFile(path: string): Partial<SovereignGatewayConfig> | null {
   try {
     if (!existsSync(path)) {
       return null;
@@ -68,7 +68,7 @@ function loadConfigFile(path: string): Partial<AntigravityConfig> | null {
     const rawConfig = JSON.parse(content);
 
     // Validate with Zod (partial - we'll merge with defaults later)
-    const result = AntigravityConfigSchema.partial().safeParse(rawConfig);
+    const result = SovereignGatewayConfigSchema.partial().safeParse(rawConfig);
 
     if (!result.success) {
       log.warn("Config validation error", {
@@ -93,9 +93,9 @@ function loadConfigFile(path: string): Partial<AntigravityConfig> | null {
  * Deep merge two config objects, with override taking precedence.
  */
 function mergeConfigs(
-  base: AntigravityConfig,
-  override: Partial<AntigravityConfig>
-): AntigravityConfig {
+  base: SovereignGatewayConfig,
+  override: Partial<SovereignGatewayConfig>
+): SovereignGatewayConfig {
   return {
     ...base,
     ...override,
@@ -113,61 +113,61 @@ function mergeConfigs(
  * Apply environment variable overrides to config.
  * Env vars always take precedence over config file values.
  */
-function applyEnvOverrides(config: AntigravityConfig): AntigravityConfig {
+function applyEnvOverrides(config: SovereignGatewayConfig): SovereignGatewayConfig {
   const env = process.env;
 
   return {
     ...config,
 
-    // OPENCODE_ANTIGRAVITY_QUIET=1
-    quiet_mode: env.OPENCODE_ANTIGRAVITY_QUIET === "1" || env.OPENCODE_ANTIGRAVITY_QUIET === "true"
+    // OPENCODE_SOVEREIGN_QUIET=1
+    quiet_mode: env.OPENCODE_SOVEREIGN_QUIET === "1" || env.OPENCODE_SOVEREIGN_QUIET === "true"
       ? true
       : config.quiet_mode,
 
-    // OPENCODE_ANTIGRAVITY_DEBUG=1 or any truthy value
-    debug: env.OPENCODE_ANTIGRAVITY_DEBUG
-      ? env.OPENCODE_ANTIGRAVITY_DEBUG !== "0" && env.OPENCODE_ANTIGRAVITY_DEBUG !== "false"
+    // OPENCODE_SOVEREIGN_DEBUG=1 or any truthy value
+    debug: env.OPENCODE_SOVEREIGN_DEBUG
+      ? env.OPENCODE_SOVEREIGN_DEBUG !== "0" && env.OPENCODE_SOVEREIGN_DEBUG !== "false"
       : config.debug,
 
-    // OPENCODE_ANTIGRAVITY_LOG_DIR=/path/to/logs
-    log_dir: env.OPENCODE_ANTIGRAVITY_LOG_DIR || config.log_dir,
+    // OPENCODE_SOVEREIGN_LOG_DIR=/path/to/logs
+    log_dir: env.OPENCODE_SOVEREIGN_LOG_DIR || config.log_dir,
 
-    // OPENCODE_ANTIGRAVITY_SESSION_RECOVERY=0 to disable
+    // OPENCODE_SOVEREIGN_SESSION_RECOVERY=0 to disable
     session_recovery:
-      env.OPENCODE_ANTIGRAVITY_SESSION_RECOVERY === "0" ||
-      env.OPENCODE_ANTIGRAVITY_SESSION_RECOVERY === "false"
+      env.OPENCODE_SOVEREIGN_SESSION_RECOVERY === "0" ||
+      env.OPENCODE_SOVEREIGN_SESSION_RECOVERY === "false"
         ? false
         : config.session_recovery,
 
-    // OPENCODE_ANTIGRAVITY_AUTO_RESUME=0 to disable auto-continue after recovery
+    // OPENCODE_SOVEREIGN_AUTO_RESUME=0 to disable auto-continue after recovery
     auto_resume:
-      env.OPENCODE_ANTIGRAVITY_AUTO_RESUME === "0" ||
-      env.OPENCODE_ANTIGRAVITY_AUTO_RESUME === "false"
+      env.OPENCODE_SOVEREIGN_AUTO_RESUME === "0" ||
+      env.OPENCODE_SOVEREIGN_AUTO_RESUME === "false"
         ? false
-        : env.OPENCODE_ANTIGRAVITY_AUTO_RESUME === "1" ||
-          env.OPENCODE_ANTIGRAVITY_AUTO_RESUME === "true"
+        : env.OPENCODE_SOVEREIGN_AUTO_RESUME === "1" ||
+          env.OPENCODE_SOVEREIGN_AUTO_RESUME === "true"
           ? true
           : config.auto_resume,
 
-    // OPENCODE_ANTIGRAVITY_RESUME_TEXT to customize resume text
-    resume_text: env.OPENCODE_ANTIGRAVITY_RESUME_TEXT || config.resume_text,
+    // OPENCODE_SOVEREIGN_RESUME_TEXT to customize resume text
+    resume_text: env.OPENCODE_SOVEREIGN_RESUME_TEXT || config.resume_text,
 
-    // OPENCODE_ANTIGRAVITY_AUTO_UPDATE=0 to disable
+    // OPENCODE_SOVEREIGN_AUTO_UPDATE=0 to disable
     auto_update:
-      env.OPENCODE_ANTIGRAVITY_AUTO_UPDATE === "0" ||
-      env.OPENCODE_ANTIGRAVITY_AUTO_UPDATE === "false"
+      env.OPENCODE_SOVEREIGN_AUTO_UPDATE === "0" ||
+      env.OPENCODE_SOVEREIGN_AUTO_UPDATE === "false"
         ? false
         : config.auto_update,
 
-    // OPENCODE_ANTIGRAVITY_ACCOUNT_SELECTION_STRATEGY=sticky|round-robin|hybrid
-    account_selection_strategy: env.OPENCODE_ANTIGRAVITY_ACCOUNT_SELECTION_STRATEGY
-      ? AccountSelectionStrategySchema.catch('sticky').parse(env.OPENCODE_ANTIGRAVITY_ACCOUNT_SELECTION_STRATEGY)
+    // OPENCODE_SOVEREIGN_ACCOUNT_SELECTION_STRATEGY=sticky|round-robin|hybrid
+    account_selection_strategy: env.OPENCODE_SOVEREIGN_ACCOUNT_SELECTION_STRATEGY
+      ? AccountSelectionStrategySchema.catch('sticky').parse(env.OPENCODE_SOVEREIGN_ACCOUNT_SELECTION_STRATEGY)
       : config.account_selection_strategy,
 
-    // OPENCODE_ANTIGRAVITY_PID_OFFSET_ENABLED=1
+    // OPENCODE_SOVEREIGN_PID_OFFSET_ENABLED=1
     pid_offset_enabled:
-      env.OPENCODE_ANTIGRAVITY_PID_OFFSET_ENABLED === "1" ||
-      env.OPENCODE_ANTIGRAVITY_PID_OFFSET_ENABLED === "true"
+      env.OPENCODE_SOVEREIGN_PID_OFFSET_ENABLED === "1" ||
+      env.OPENCODE_SOVEREIGN_PID_OFFSET_ENABLED === "true"
         ? true
         : config.pid_offset_enabled,
 
@@ -184,9 +184,9 @@ function applyEnvOverrides(config: AntigravityConfig): AntigravityConfig {
  * @param directory - The project directory (for project-level config)
  * @returns Fully resolved configuration
  */
-export function loadConfig(directory: string): AntigravityConfig {
+export function loadConfig(directory: string): SovereignGatewayConfig {
   // Start with defaults
-  let config: AntigravityConfig = { ...DEFAULT_CONFIG };
+  let config: SovereignGatewayConfig = { ...DEFAULT_CONFIG };
 
   // Load user config file (if exists)
   const userConfigPath = getUserConfigPath();
@@ -219,12 +219,12 @@ export function configExists(path: string): boolean {
  * Get the default logs directory.
  */
 export function getDefaultLogsDir(): string {
-  return join(getConfigDir(), "antigravity-logs");
+  return join(getConfigDir(), "Sovereign-logs");
 }
 
-let runtimeConfig: AntigravityConfig | null = null;
+let runtimeConfig: SovereignGatewayConfig | null = null;
 
-export function initRuntimeConfig(config: AntigravityConfig): void {
+export function initRuntimeConfig(config: SovereignGatewayConfig): void {
   runtimeConfig = config;
 }
 

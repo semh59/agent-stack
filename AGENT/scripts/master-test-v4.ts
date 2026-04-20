@@ -66,7 +66,7 @@ async function runMasterTest() {
 
   // --- 3. PERSISTENCE & AUTO-MIGRATION ---
   console.log("\n💾 [3/3] Testing Storage Persistence & Migration");
-  const testStorePath = join(tmpdir(), `antigravity-test-${Date.now()}.json`);
+  const testStorePath = join(tmpdir(), `sovereign-test-${Date.now()}.json`);
   
   // v2 Legacy Mock (Raw Base64 AES-GCM)
   // We'll skip raw hex creation for now and trust verify-v4.ts results for migration,

@@ -1,4 +1,4 @@
-import * as net from "node:net";
+﻿import * as net from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 import { checkOAuthCallbackPortAvailability } from "./oauth-port";
 

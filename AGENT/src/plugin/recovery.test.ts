@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for session recovery module.
  * Covers: error detection, toast content, recoverable error classification.
  */
@@ -11,7 +11,7 @@ import {
   getRecoveryFailureToast,
 } from "./recovery";
 
-// ── detectErrorType ──────────────────────────────────────────────────
+// â”€â”€ detectErrorType â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("detectErrorType", () => {
   it("should detect tool_result_missing error", () => {
@@ -59,7 +59,7 @@ describe("detectErrorType", () => {
   });
 });
 
-// ── isRecoverableError ───────────────────────────────────────────────
+// â”€â”€ isRecoverableError â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("isRecoverableError", () => {
   it("should return true for tool_result_missing", () => {
@@ -79,7 +79,7 @@ describe("isRecoverableError", () => {
   });
 });
 
-// ── getRecoveryToastContent ──────────────────────────────────────────
+// â”€â”€ getRecoveryToastContent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getRecoveryToastContent", () => {
   it("should return toast for tool_result_missing", () => {
@@ -101,7 +101,7 @@ describe("getRecoveryToastContent", () => {
   });
 });
 
-// ── getRecoverySuccessToast ──────────────────────────────────────────
+// â”€â”€ getRecoverySuccessToast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getRecoverySuccessToast", () => {
   it("should return success toast with title and message", () => {
@@ -111,7 +111,7 @@ describe("getRecoverySuccessToast", () => {
   });
 });
 
-// ── getRecoveryFailureToast ──────────────────────────────────────────
+// â”€â”€ getRecoveryFailureToast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getRecoveryFailureToast", () => {
   it("should return failure toast with title and message", () => {

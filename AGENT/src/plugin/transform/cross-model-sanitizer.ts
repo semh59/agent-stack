@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Cross-Model Metadata Sanitization
  *
  * Fixes: "Invalid `signature` in `thinking` block" error when switching models mid-session.

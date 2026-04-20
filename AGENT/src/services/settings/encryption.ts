@@ -1,19 +1,19 @@
-/**
- * Sovereign secret encryption — AES-256-GCM envelope.
+﻿/**
+ * Sovereign secret encryption â€” AES-256-GCM envelope.
  *
  * Every value we persist in the `settings_secrets` table is encrypted with
  * AES-256-GCM using a master key that lives outside the database, in the
  * `SOVEREIGN_MASTER_KEY` environment variable.
  *
- *   master_key (32 bytes, base64)  ←  SOVEREIGN_MASTER_KEY env var
- *   iv         (12 bytes)           ←  fresh random per encrypt
- *   auth_tag   (16 bytes)           ←  GCM authenticator
- *   ciphertext (n bytes)            ←  AES-256-GCM(master_key, iv, plaintext)
+ *   master_key (32 bytes, base64)  â†  SOVEREIGN_MASTER_KEY env var
+ *   iv         (12 bytes)           â†  fresh random per encrypt
+ *   auth_tag   (16 bytes)           â†  GCM authenticator
+ *   ciphertext (n bytes)            â†  AES-256-GCM(master_key, iv, plaintext)
  *
  * We ship NO default key. Booting the gateway without `SOVEREIGN_MASTER_KEY`
  * in staging/production aborts with a helpful error; in development we
  * generate an ephemeral key and log a warning so secrets written during a
- * dev session don't survive a restart (this is intentional — developers
+ * dev session don't survive a restart (this is intentional â€” developers
  * should not be building workflows against "lasting" dev secrets).
  *
  * Rotation strategy: the envelope carries a `version` field so we can
@@ -22,7 +22,7 @@
  */
 import { randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
 
-const KEY_LEN = 32; // AES-256 → 256-bit key
+const KEY_LEN = 32; // AES-256 â†’ 256-bit key
 const IV_LEN = 12; // GCM standard nonce length
 const TAG_LEN = 16;
 const ALGO = "aes-256-gcm" as const;
@@ -66,7 +66,7 @@ export class MasterKeyMissingError extends Error {
 
 function decodeMasterKey(raw: string): Buffer {
   // Accept base64 (standard or url-safe). Some operators paste hex by habit,
-  // so we detect that and accept it too — we're optimizing for "don't lose a
+  // so we detect that and accept it too â€” we're optimizing for "don't lose a
   // dev to a key-format papercut".
   const trimmed = raw.trim();
 
@@ -96,7 +96,7 @@ function decodeMasterKey(raw: string): Buffer {
  * - Reads from `SOVEREIGN_MASTER_KEY`.
  * - In `APP_ENV=development` (default) with no key set, generates a
  *   per-process ephemeral key and logs a warning. Secrets written against
- *   the ephemeral key are unreadable after restart — this is intentional.
+ *   the ephemeral key are unreadable after restart â€” this is intentional.
  * - In `staging` or `production`, throws `MasterKeyMissingError`.
  */
 export function resolveMasterKey(env: NodeJS.ProcessEnv = process.env): Buffer {
@@ -110,7 +110,7 @@ export function resolveMasterKey(env: NodeJS.ProcessEnv = process.env): Buffer {
     throw new MasterKeyMissingError();
   }
 
-  // Development fallback — ephemeral key, process-local only.
+  // Development fallback â€” ephemeral key, process-local only.
   if (!ephemeralKeyWarned) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -129,7 +129,7 @@ export function resolveMasterKey(env: NodeJS.ProcessEnv = process.env): Buffer {
 let cachedEphemeralKey: Buffer | null = null;
 let ephemeralKeyWarned = false;
 
-/** For tests only — resets the process-local ephemeral-key cache. */
+/** For tests only â€” resets the process-local ephemeral-key cache. */
 export function __resetEphemeralKeyForTests(): void {
   cachedEphemeralKey = null;
   ephemeralKeyWarned = false;
@@ -170,7 +170,7 @@ export function encryptSecret(
 
 /**
  * Decrypt a secret envelope. Any tampering (ciphertext, iv, or auth tag)
- * raises `SecretEncryptionError` — the GCM auth tag guarantees integrity.
+ * raises `SecretEncryptionError` â€” the GCM auth tag guarantees integrity.
  */
 export function decryptSecret(
   envelope: SecretEnvelope,
@@ -203,7 +203,7 @@ export function decryptSecret(
     ]);
     return plaintext.toString("utf8");
   } catch (err) {
-    // Hide the underlying OpenSSL error — it leaks implementation detail.
+    // Hide the underlying OpenSSL error â€” it leaks implementation detail.
     throw new SecretEncryptionError(
       "failed to decrypt secret (wrong master key or corrupted envelope)",
       err,
@@ -212,7 +212,7 @@ export function decryptSecret(
 }
 
 /**
- * Cheap, allocation-free preview for logs / UIs — never returns the value.
+ * Cheap, allocation-free preview for logs / UIs â€” never returns the value.
  * Returns `{ set: true }` when a secret is present, `{ set: false }` when not.
  */
 export function maskSecret(present: boolean): { set: boolean } {

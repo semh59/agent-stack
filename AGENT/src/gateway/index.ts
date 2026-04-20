@@ -1,7 +1,7 @@
-/**
- * Gateway Module — Barrel Export
+﻿/**
+ * Gateway Module â€” Barrel Export
  *
- * Tüm gateway bileşenlerini tek noktadan export eder.
+ * TÃ¼m gateway bileÅŸenlerini tek noktadan export eder.
  */
 
 export { startGateway, type GatewayOptions } from "./gateway";

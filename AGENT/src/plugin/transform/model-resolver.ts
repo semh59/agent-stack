@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Model Resolution with Thinking Tier Support
  * 
  * Resolves model names with tier suffixes (e.g., gemini-3-pro-high, claude-sonnet-4-5-thinking-low)
@@ -62,9 +62,9 @@ export const MODEL_ALIASES: Record<string, string> = {
   "claude-sonnet-4-6-thinking": "claude-sonnet-4-6-thinking",
   "claude-opus-4-6-thinking": "claude-opus-4-6-thinking",
   "gpt-oss-120b-medium": "gpt-oss-120b-medium",
-  // Image generation models - only gemini-3-pro-image is available via Antigravity API
-  // Note: gemini-2.5-flash-image (Nano Banana) is NOT supported by Antigravity - only Google AI API
-  // Reference: Antigravity-Manager/src-tauri/src/proxy/common/model_mapping.rs
+  // Image generation models - only gemini-3-pro-image is available via Sovereign API
+  // Note: gemini-2.5-flash-image (Nano Banana) is NOT supported by Sovereign - only Google AI API
+  // Reference: Sovereign-Manager/src-tauri/src/proxy/common/model_mapping.rs
 };
 
 /**
@@ -76,17 +76,17 @@ export const MODEL_FALLBACKS: Record<string, string> = {
 };
 
 const TIER_REGEX = /-(minimal|low|medium|high)$/;
-const QUOTA_PREFIX_REGEX = /^antigravity-/i;
+const QUOTA_PREFIX_REGEX = /^Sovereign-/i;
 
-// ANTIGRAVITY_ONLY_MODELS removed - all models now default to antigravity
+// SOVEREIGN_ONLY_MODELS removed - all models now default to Sovereign
 
 /**
- * Image generation models - always route to Antigravity.
+ * Image generation models - always route to Sovereign.
  * These models don't support thinking and require imageConfig.
  */
 const IMAGE_GENERATION_MODELS = /image|imagen/i;
 
-// Legacy LEGACY_ANTIGRAVITY_GEMINI3 regex removed - all Gemini models now default to antigravity
+// Legacy LEGACY_SOVEREIGN_GEMINI3 regex removed - all Gemini models now default to Sovereign
 
 /**
  * Models that support thinking tier suffixes.
@@ -149,23 +149,23 @@ function isThinkingCapableModel(model: string): boolean {
  * and corresponding thinking configuration.
  *
  * Quota routing:
- * - Default to Antigravity quota unless cli_first is enabled for Gemini models
- * - Fallback to Gemini CLI happens at account rotation level when Antigravity is exhausted
- * - "antigravity-" prefix marks explicit quota (no fallback allowed)
- * - Claude and image models always use Antigravity
+ * - Default to Sovereign quota unless cli_first is enabled for Gemini models
+ * - Fallback to Gemini CLI happens at account rotation level when Sovereign is exhausted
+ * - "Sovereign-" prefix marks explicit quota (no fallback allowed)
+ * - Claude and image models always use Sovereign
  *
  * Examples:
- * - "gemini-2.5-flash" → { quotaPreference: "antigravity" }
- * - "gemini-3-pro-preview" → { quotaPreference: "antigravity" }
- * - "antigravity-gemini-3-pro-high" → { quotaPreference: "antigravity", explicitQuota: true }
- * - "claude-sonnet-4-5-thinking-medium" → { quotaPreference: "antigravity" }
+ * - "gemini-2.5-flash" â†’ { quotaPreference: "Sovereign" }
+ * - "gemini-3-pro-preview" â†’ { quotaPreference: "Sovereign" }
+ * - "Sovereign-gemini-3-pro-high" â†’ { quotaPreference: "Sovereign", explicitQuota: true }
+ * - "claude-sonnet-4-5-thinking-medium" â†’ { quotaPreference: "Sovereign" }
  *
  * @param requestedModel - The model name from the request
  * @param options - Optional configuration including cli_first preference
  * @returns Resolved model with thinking configuration
  */
 export function resolveModelWithTier(requestedModel: string, options: ModelResolverOptions = {}): ResolvedModel {
-  const isAntigravity = QUOTA_PREFIX_REGEX.test(requestedModel);
+  const isSovereign = QUOTA_PREFIX_REGEX.test(requestedModel);
   const modelWithoutQuota = requestedModel.replace(QUOTA_PREFIX_REGEX, "");
 
   const tier = extractThinkingTierFromModel(modelWithoutQuota);
@@ -174,32 +174,32 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
   const isImageModel = IMAGE_GENERATION_MODELS.test(modelWithoutQuota);
   const isClaudeModel = modelWithoutQuota.toLowerCase().includes("claude");
   
-  // All models default to Antigravity quota unless cli_first is enabled
-  // Fallback to gemini-cli happens at the account rotation level when Antigravity is exhausted
-  const preferGeminiCli = options.cli_first === true && !isAntigravity && !isImageModel && !isClaudeModel;
-  const quotaPreference = preferGeminiCli ? "gemini-cli" as const : "antigravity" as const;
-  const explicitQuota = isAntigravity || isImageModel;
+  // All models default to Sovereign quota unless cli_first is enabled
+  // Fallback to gemini-cli happens at the account rotation level when Sovereign is exhausted
+  const preferGeminiCli = options.cli_first === true && !isSovereign && !isImageModel && !isClaudeModel;
+  const quotaPreference = preferGeminiCli ? "gemini-cli" as const : "Sovereign" as const;
+  const explicitQuota = isSovereign || isImageModel;
 
   const isGemini3 = modelWithoutQuota.toLowerCase().startsWith("gemini-3");
-  const skipAlias = isAntigravity && isGemini3;
+  const skipAlias = isSovereign && isGemini3;
 
-  // For Antigravity Gemini 3 Pro models without explicit tier, append default tier (-low)
-  // Antigravity API: gemini-3-pro requires tier suffix (gemini-3-pro-low/high)
+  // For Sovereign Gemini 3 Pro models without explicit tier, append default tier (-low)
+  // Sovereign API: gemini-3-pro requires tier suffix (gemini-3-pro-low/high)
   //                  gemini-3-flash uses bare name + thinkingLevel param
   const isGemini3Pro = modelWithoutQuota.toLowerCase().startsWith("gemini-3-pro");
   const isGemini3Flash = modelWithoutQuota.toLowerCase().startsWith("gemini-3-flash");
   
-  let antigravityModel = modelWithoutQuota;
+  let SovereignModel = modelWithoutQuota;
   if (skipAlias) {
     if (isGemini3Pro && !tier && !isImageModel) {
-      antigravityModel = `${modelWithoutQuota}-low`;
+      SovereignModel = `${modelWithoutQuota}-low`;
     } else if (isGemini3Flash && tier) {
-      antigravityModel = baseName;
+      SovereignModel = baseName;
     }
   }
 
   const actualModel = skipAlias
-    ? antigravityModel
+    ? SovereignModel
     : MODEL_ALIASES[modelWithoutQuota] || MODEL_ALIASES[baseName] || baseName;
 
   const resolvedModel = MODEL_FALLBACKS[actualModel] || actualModel;
@@ -296,7 +296,7 @@ export interface VariantConfig {
 
 /**
  * Maps a thinking budget to Gemini 3 thinking level.
- * ≤8192 → low, ≤16384 → medium, >16384 → high
+ * â‰¤8192 â†’ low, â‰¤16384 â†’ medium, >16384 â†’ high
  */
 function budgetToGemini3Level(budget: number): "low" | "medium" | "high" {
   if (budget <= 8192) return "low";
@@ -306,16 +306,16 @@ function budgetToGemini3Level(budget: number): "low" | "medium" | "high" {
 
 /**
  * Resolves model name for a specific headerStyle (quota fallback support).
- * Transforms model names when switching between gemini-cli and antigravity quotas.
+ * Transforms model names when switching between gemini-cli and Sovereign quotas.
  * 
  * Issue #103: When quota fallback occurs, model names need to be transformed:
- * - gemini-3-flash-preview (gemini-cli) → gemini-3-flash (antigravity)
- * - gemini-3-pro-preview (gemini-cli) → gemini-3-pro-low (antigravity)
- * - gemini-3-flash (antigravity) → gemini-3-flash-preview (gemini-cli)
+ * - gemini-3-flash-preview (gemini-cli) â†’ gemini-3-flash (Sovereign)
+ * - gemini-3-pro-preview (gemini-cli) â†’ gemini-3-pro-low (Sovereign)
+ * - gemini-3-flash (Sovereign) â†’ gemini-3-flash-preview (gemini-cli)
  */
 export function resolveModelForHeaderStyle(
   requestedModel: string,
-  headerStyle: "antigravity" | "gemini-cli"
+  headerStyle: "Sovereign" | "gemini-cli"
 ): ResolvedModel {
   const lower = requestedModel.toLowerCase();
   const isGemini3 = lower.includes("gemini-3");
@@ -324,10 +324,10 @@ export function resolveModelForHeaderStyle(
     return resolveModelWithTier(requestedModel);
   }
 
-  if (headerStyle === "antigravity") {
+  if (headerStyle === "Sovereign") {
     let transformedModel = requestedModel
       .replace(/-preview$/i, "")
-      .replace(/^antigravity-/i, "");
+      .replace(/^Sovereign-/i, "");
     
     const isGemini3Pro = transformedModel.toLowerCase().startsWith("gemini-3-pro");
     const hasTierSuffix = /-(low|medium|high)$/i.test(transformedModel);
@@ -338,13 +338,13 @@ export function resolveModelForHeaderStyle(
       transformedModel = `${transformedModel}-low`;
     }
     
-    const prefixedModel = `antigravity-${transformedModel}`;
+    const prefixedModel = `Sovereign-${transformedModel}`;
     return resolveModelWithTier(prefixedModel);
   }
   
   if (headerStyle === "gemini-cli") {
     let transformedModel = requestedModel
-      .replace(/^antigravity-/i, "")
+      .replace(/^Sovereign-/i, "")
       .replace(/-(low|medium|high)$/i, "");
     
     if (!transformedModel.endsWith("-preview")) {
@@ -389,11 +389,11 @@ export function resolveModelWithVariant(
 
   if (isGemini3) {
     const level = budgetToGemini3Level(budget);
-    const isAntigravityGemini3Pro = base.quotaPreference === "antigravity" &&
+    const isSovereignGemini3Pro = base.quotaPreference === "Sovereign" &&
       base.actualModel.toLowerCase().startsWith("gemini-3-pro");
 
     let actualModel = base.actualModel;
-    if (isAntigravityGemini3Pro) {
+    if (isSovereignGemini3Pro) {
       const baseModel = base.actualModel.replace(/-(low|medium|high)$/, "");
       actualModel = `${baseModel}-${level}`;
     }

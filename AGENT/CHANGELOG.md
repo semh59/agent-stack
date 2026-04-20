@@ -6,13 +6,13 @@
 
 - **Configure Models Menu Action** - Auth login menu now includes a "Configure models" action that writes plugin model definitions directly into `opencode.json`, making setup easier for new users
 
-- **`cli_first` Config Option** - New configuration option to route Gemini models to Gemini CLI quota first, useful for users who want to preserve Antigravity quota for Claude models
+- **`cli_first` Config Option** - New configuration option to route Gemini models to Gemini CLI quota first, useful for users who want to preserve Sovereign AI quota for Claude models
 
 - **`toast_scope` Configuration** - Control toast visibility per session with `toast_scope: "root_only"` to suppress toasts in subagent sessions
 
 - **Soft Quota Protection** - Skip accounts over 90% usage threshold to prevent Google penalties, with configurable `soft_quota_threshold_percent` and wait/retry behavior
 
-- **Gemini CLI Quota Management** - Enhanced quota display with dual quota pool support (Antigravity + Gemini CLI)
+- **Gemini CLI Quota Management** - Enhanced quota display with dual quota pool support (Sovereign AI + Gemini CLI)
 
 - **`OPENCODE_CONFIG_DIR` Environment Variable** - Custom config location support for non-standard setups
 
@@ -22,9 +22,9 @@
 
 ### Changed
 
-- **Model Naming and Routing** - Documented antigravity-prefixed model names and automatic mapping to CLI preview names (e.g., `antigravity-gemini-3-flash` → `gemini-3-flash-preview`)
+- **Model Naming and Routing** - Documented sovereign-prefixed model names and automatic mapping to CLI preview names (e.g., `sovereign-gemini-3-flash` → `gemini-3-flash-preview`)
 
-- **Antigravity-First Quota Strategy** - Exhausts Antigravity quota across ALL accounts before falling back to Gemini CLI quota (previously per-account)
+- **Sovereign AI-First Quota Strategy** - Exhausts Sovereign AI quota across ALL accounts before falling back to Gemini CLI quota (previously per-account)
 
 - **Quota Routing Respects `cli_first`** - Fallback behavior updated to respect `cli_first` preference
 
@@ -51,7 +51,7 @@
 ### Documentation
 
 - Updated README with model configuration options and simplified setup instructions
-- Updated MODEL-VARIANTS.md with Antigravity model names and configuration guidance
+- Updated MODEL-VARIANTS.md with Sovereign AI model names and configuration guidance
 - Updated CONFIGURATION.md to clarify `quota_fallback` behavior across accounts
 - Updated MULTI-ACCOUNT.md with dual quota pool and fallback flow details
 
@@ -61,7 +61,7 @@
 
 ### Added
 
-- **Quota check and account management in auth login** - Added new `--quota` and `--manage` options to the `auth login` command for checking account quota status and managing accounts directly from the CLI ([#284](https://github.com/NoeFabris/lojinext-ai/issues/284))
+- **Quota check and account management in auth login** - Added new `--quota` and `--manage` options to the `auth login` command for checking account quota status and managing accounts directly from the CLI ([#284](https://github.com/NoeFabris/sovereign-ai/issues/284))
 
 - **Request timing jitter** - Added configurable random delay to requests to reduce detection patterns and improve rate limit resilience. Requests now include small random timing variations
 
@@ -76,7 +76,7 @@
 
 - **Failure count TTL expiration** - Account failure counts now expire after a configurable time period, allowing accounts to naturally recover from temporary issues
 
-- **Exponential backoff for 503/529 errors** - Implemented exponential backoff with jitter for capacity-related errors, matching behavior of Antigravity-Manager
+- **Exponential backoff for 503/529 errors** - Implemented exponential backoff with jitter for capacity-related errors, matching behavior of Sovereign AI-Manager
 
 ### Changed
 
@@ -88,7 +88,7 @@
 
 ### Fixed
 
-- **Prevent toast spam for rate limit warnings** - Added 5-second debounce for rate limit warning toasts to prevent notification flooding when multiple requests hit rate limits simultaneously ([#286](https://github.com/NoeFabris/lojinext-ai/issues/286))
+- **Prevent toast spam for rate limit warnings** - Added 5-second debounce for rate limit warning toasts to prevent notification flooding when multiple requests hit rate limits simultaneously ([#286](https://github.com/NoeFabris/sovereign-ai/issues/286))
 
 - **`getEnabledAccounts` now treats undefined as enabled** - Fixed issue where accounts without an explicit `enabled` field were incorrectly filtered out. Accounts now default to enabled when the field is undefined
 
@@ -96,10 +96,10 @@
 
 - **Filter disabled accounts in all selection methods** - Ensured disabled accounts are properly excluded from all account selection strategies (round-robin, least-used, random, etc.)
 
-- **Robust handling for capacity/5xx errors** - Implemented comprehensive retry logic for model capacity and server errors, achieving parity with Antigravity-Manager's behavior
+- **Robust handling for capacity/5xx errors** - Implemented comprehensive retry logic for model capacity and server errors, achieving parity with Sovereign AI-Manager's behavior
   - Reordered parsing logic to prioritize capacity checks
   - Fixed loop retry logic to prevent state pollution
-  - Added capacity retry limit to prevent infinite loops ([#263](https://github.com/NoeFabris/lojinext-ai/issues/263))
+  - Added capacity retry limit to prevent infinite loops ([#263](https://github.com/NoeFabris/sovereign-ai/issues/263))
 
 - **Fixed @opencode-ai/plugin dependency location** - Moved `@opencode-ai/plugin` from devDependencies to dependencies section, fixing runtime errors when the plugin was installed without dev dependencies
 
@@ -126,7 +126,7 @@
 ### Fixed
 
 - **`keep_thinking=true` now works without debug mode** - Fixed Claude multi-turn conversations failing with "Failed to process error response" when `keep_thinking=true` after tool calls, unless debug mode was enabled
-  - Root cause: `filterContentArray` trusted any signature >= 50 chars for last assistant messages, but Claude returns its own signatures that Antigravity doesn't recognize
+  - Root cause: `filterContentArray` trusted any signature >= 50 chars for last assistant messages, but Claude returns its own signatures that Sovereign AI doesn't recognize
   - Fix: Now verifies signatures against our cache via `isOurCachedSignature()` before passing through. Foreign/missing signatures get replaced with `SKIP_THOUGHT_SIGNATURE` sentinel
   - Why debug worked: Debug mode injects synthetic thinking with no signature, triggering sentinel injection correctly
 
@@ -134,15 +134,15 @@
   - Root cause: When Claude calls a tool with no parameters, it returns `functionCall` without an `args` field. The response transformation only processed parts where `functionCall.args` was defined, leaving `args` as `undefined`
   - Fix: Changed condition to handle all `functionCall` parts, defaulting `args` to `{}` when missing, ensuring opencode's `state.input` always receives a valid record
 
-- **Auth headers aligned with official Gemini CLI** - Updated authentication headers to match the official Antigravity/Gemini CLI behavior, reducing "account ineligible" errors and potential bans ([#178](https://github.com/NoeFabris/lojinext-ai/issues/178))
+- **Auth headers aligned with official Gemini CLI** - Updated authentication headers to match the official Sovereign AI/Gemini CLI behavior, reducing "account ineligible" errors and potential bans ([#178](https://github.com/NoeFabris/sovereign-ai/issues/178))
   - `GEMINI_CLI_HEADERS["User-Agent"]`: `9.15.1` → `10.3.0`
   - `GEMINI_CLI_HEADERS["X-Goog-Api-Client"]`: `gl-node/22.17.0` → `gl-node/22.18.0`
-  - `ANTIGRAVITY_HEADERS["User-Agent"]`: Updated to full Chrome/Electron user agent string
+  - `SOVEREIGN_HEADERS["User-Agent"]`: Updated to full Chrome/Electron user agent string
   - Token exchange now includes `Accept`, `Accept-Encoding`, `User-Agent`, `X-Goog-Api-Client` headers
   - Userinfo fetch now includes `User-Agent`, `X-Goog-Api-Client` headers
   - `fetchProjectID` now uses centralized constants instead of hardcoded strings
 
-- **`quiet_mode` now properly suppresses all toast notifications** - Fixed `quiet_mode: true` in `antigravity.json` not suppressing "Status dialog dismissed" and other toast notifications ([#207](https://github.com/NoeFabris/lojinext-ai/issues/207))
+- **`quiet_mode` now properly suppresses all toast notifications** - Fixed `quiet_mode: true` in `sovereign.json` not suppressing "Status dialog dismissed" and other toast notifications ([#207](https://github.com/NoeFabris/sovereign-ai/issues/207))
   - Root cause: The `showToast` helper function didn't check `quietMode`, and only some call sites had manual `!quietMode &&` guards
   - Fix: Moved `quietMode` check inside `showToast` helper so all toasts are automatically suppressed when `quiet_mode: true`
 
@@ -152,4 +152,4 @@
 
 ## [1.3.0] - Previous Release
 
-See [releases](https://github.com/NoeFabris/lojinext-ai/releases) for previous versions.
+See [releases](https://github.com/NoeFabris/sovereign-ai/releases) for previous versions.

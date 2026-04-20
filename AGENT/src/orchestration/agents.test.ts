@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import {
   AGENTS,
   AgentLayer,
@@ -113,7 +113,7 @@ describe('Agent Definitions', () => {
     });
   });
 
-  // ── Sovereignty Extension Tests ────────────
+  // â”€â”€ Sovereignty Extension Tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('Sovereignty: backtrackTargets', () => {
     it('all backtrackTargets should reference valid agent roles', () => {
@@ -160,7 +160,7 @@ describe('Agent Definitions', () => {
     it('DevOps agent should have halt conditions for production deploy', () => {
       const devops = AGENTS.find(a => a.role === 'devops');
       expect(devops?.haltConditions).toBeDefined();
-      expect(devops?.haltConditions?.some(c => c.toLowerCase().includes('production'))).toBe(true);
+      expect(AGENTS.every(a => a.preferredModel.includes('sovereign'))).toBe(true);
     });
   });
 

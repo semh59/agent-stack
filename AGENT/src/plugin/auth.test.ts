@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 
 import {
   isOAuthAuth,
@@ -115,7 +115,7 @@ describe("accessTokenExpired", () => {
       type: "oauth",
       refresh: "token|project",
       access: "ya29.test",
-      expires: Date.now() + 30_000, // 30 seconds from now — inside 60s buffer
+      expires: Date.now() + 30_000, // 30 seconds from now â€” inside 60s buffer
     };
     expect(accessTokenExpired(auth)).toBe(true);
   });

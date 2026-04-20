@@ -1,4 +1,4 @@
-import fastify from "fastify";
+﻿import fastify from "fastify";
 import { afterEach, describe, expect, it } from "vitest";
 import { GatewayAuthManager } from "./gateway-auth-manager";
 import {

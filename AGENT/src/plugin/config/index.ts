@@ -1,9 +1,9 @@
-/**
- * Configuration module for lojinext-ai plugin.
+﻿/**
+ * Configuration module for sovereign-ai plugin.
  * 
  * @example
  * ```typescript
- * import { loadConfig, type AntigravityConfig } from "./config";
+ * import { loadConfig, type SovereignGatewayConfig } from "./config";
  * 
  * const config = loadConfig(directory);
  * if (config.session_recovery) {
@@ -13,10 +13,10 @@
  */
 
 export {
-  AntigravityConfigSchema,
+  SovereignGatewayConfigSchema,
   SignatureCacheConfigSchema,
   DEFAULT_CONFIG,
-  type AntigravityConfig,
+  type SovereignGatewayConfig,
   type SignatureCacheConfig,
 } from "./schema";
 

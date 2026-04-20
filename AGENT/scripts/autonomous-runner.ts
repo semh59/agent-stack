@@ -1,7 +1,7 @@
 import { IntentEngine, PipelineType } from "../src/orchestration/intent-engine";
 import { SequentialPipeline, PlanMode } from "../src/orchestration/sequential-pipeline";
 import { AccountManager } from "../src/plugin/accounts";
-import { AntigravityClient } from "../src/orchestration/antigravity-client";
+import { SovereignGatewayClient } from "../src/orchestration/sovereign-client";
 import { loadConfig } from "../src/plugin/config/loader";
 import { AGENTS } from "../src/orchestration/agents";
 import * as path from "node:path";
@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 async function main() {
     const prompt = process.argv[2] || "Masaüstünde 'timer' adında bir klasör oluştur (C:\\Users\\semih\\Desktop\\timer) ve içine modern bir geri sayım sayacı web uygulaması hazırla. HİÇBİR ONAY BEKLEMEDEN OTONOM TAMAMLA.";
-    console.log(`[AutonomousRunner] Initializing Antigravity v4 with prompt: "${prompt}"`);
+    console.log(`[AutonomousRunner] Initializing Sovereign AI v4 with prompt: "${prompt}"`);
 
     const projectRoot = path.resolve(__dirname, "..");
     
@@ -31,10 +31,10 @@ async function main() {
         return accountManager.toAuthDetails(primaryAccount);
     };
     
-    const client = new AntigravityClient(
+    const client = new SovereignGatewayClient(
         accountManager,
         config,
-        "antigravity",
+        "sovereign",
         getAuth
     );
 
@@ -60,7 +60,7 @@ async function main() {
             skipAgents,
             force: true,
             startFromOrder: 8,
-            modelOverride: "google/antigravity-claude-opus-4-6-thinking",
+            modelOverride: "google/sovereign-claude-opus-4-6-thinking",
             autoVerify: false, // Minimize calls
             generateSkills: false
         });

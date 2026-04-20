@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import { SmartMultiModelRouter } from "./autonomy-model-router";
 
 describe("SmartMultiModelRouter", () => {
@@ -6,7 +6,7 @@ describe("SmartMultiModelRouter", () => {
     const router = new SmartMultiModelRouter();
     const decision = router.decide({
       taskType: "analysis",
-      anchorModel: "google/antigravity-gemini-3-pro-high",
+      anchorModel: "google/Sovereign-gemini-3-pro-high",
       policy: "smart_multi",
       previousModel: null,
       reasonCode: "INITIAL",

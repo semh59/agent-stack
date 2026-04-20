@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   isClaudeModel,
   isClaudeThinkingModel,
@@ -28,7 +28,7 @@ describe("isClaudeModel", () => {
   });
 
   it("returns true for prefixed claude models", () => {
-    expect(isClaudeModel("antigravity-claude-sonnet-4-5")).toBe(true);
+    expect(isClaudeModel("Sovereign-claude-sonnet-4-5")).toBe(true);
     expect(isClaudeModel("google/claude-opus-4-5")).toBe(true);
   });
 
@@ -59,7 +59,7 @@ describe("isClaudeThinkingModel", () => {
   });
 
   it("returns true for prefixed thinking models", () => {
-    expect(isClaudeThinkingModel("antigravity-claude-sonnet-4-5-thinking")).toBe(true);
+    expect(isClaudeThinkingModel("Sovereign-claude-sonnet-4-5-thinking")).toBe(true);
     expect(isClaudeThinkingModel("google/claude-opus-4-5-thinking-high")).toBe(true);
   });
 

@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+﻿import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { HeaderStyle, ModelFamily } from "./accounts";
 
 type ResolveQuotaFallbackHeaderStyle = (input: {
@@ -24,39 +24,39 @@ beforeAll(async () => {
 });
 
 describe("quota fallback direction", () => {
-  it("falls back from gemini-cli to antigravity when cli_first is enabled", () => {
+  it("falls back from gemini-cli to Sovereign when cli_first is enabled", () => {
     const result = resolveQuotaFallbackHeaderStyle?.({
       quotaFallback: true,
       cliFirst: true,
       explicitQuota: false,
       family: "gemini",
       headerStyle: "gemini-cli",
-      alternateStyle: "antigravity",
+      alternateStyle: "Sovereign",
     });
 
-    expect(result).toBe("antigravity");
+    expect(result).toBe("Sovereign");
   });
 
-  it("does not fall back from antigravity when cli_first is enabled", () => {
+  it("does not fall back from Sovereign when cli_first is enabled", () => {
     const result = resolveQuotaFallbackHeaderStyle?.({
       quotaFallback: true,
       cliFirst: true,
       explicitQuota: false,
       family: "gemini",
-      headerStyle: "antigravity",
+      headerStyle: "Sovereign",
       alternateStyle: "gemini-cli",
     });
 
     expect(result).toBeNull();
   });
 
-  it("falls back from antigravity to gemini-cli when cli_first is disabled", () => {
+  it("falls back from Sovereign to gemini-cli when cli_first is disabled", () => {
     const result = resolveQuotaFallbackHeaderStyle?.({
       quotaFallback: true,
       cliFirst: false,
       explicitQuota: false,
       family: "gemini",
-      headerStyle: "antigravity",
+      headerStyle: "Sovereign",
       alternateStyle: "gemini-cli",
     });
 

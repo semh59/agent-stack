@@ -1,4 +1,6 @@
+﻿import { log } from '../../../orchestration/gateway-utils';
 import type {
+  LlmStreamingResponse,
   SignatureStore,
   StreamingCallbacks,
   StreamingOptions,
@@ -29,7 +31,7 @@ export function createThoughtBuffer(): ThoughtBuffer {
 
 export function transformStreamingPayload(
   payload: string,
-  transformThinkingParts?: (response: unknown) => unknown,
+  transformThinkingParts?: (response: LlmStreamingResponse) => LlmStreamingResponse,
 ): string {
   return payload
     .split('\n')
@@ -42,53 +44,49 @@ export function transformStreamingPayload(
         return line;
       }
       try {
-        const parsed = JSON.parse(json) as { response?: unknown };
+        const parsed = JSON.parse(json) as { response?: LlmStreamingResponse };
         if (parsed.response !== undefined) {
           const transformed = transformThinkingParts
             ? transformThinkingParts(parsed.response)
             : parsed.response;
           return `data: ${JSON.stringify(transformed)}`;
         }
-      } catch (_) {}
+      } catch (err) {
+        log.debug('SSE line parse skip (non-critical)', { err, line });
+      }
       return line;
     })
     .join('\n');
 }
 
 export function deduplicateThinkingText(
-  response: unknown,
+  response: LlmStreamingResponse | null | undefined,
   sentBuffer: ThoughtBuffer,
   displayedThinkingHashes?: Set<string>,
-): unknown {
-  if (!response || typeof response !== 'object') return response;
+): LlmStreamingResponse | null | undefined {
+  if (!response || typeof response !== "object") return response;
 
-  const resp = response as Record<string, unknown>;
+  if (Array.isArray(response.candidates)) {
+    const newCandidates = response.candidates.map((candidate, index: number) => {
+      if (!candidate?.content) return candidate;
 
-  if (Array.isArray(resp.candidates)) {
-    const newCandidates = resp.candidates.map((candidate: unknown, index: number) => {
-      const cand = candidate as Record<string, unknown> | null;
-      if (!cand?.content) return candidate;
-
-      const content = cand.content as Record<string, unknown>;
+      const content = candidate.content;
       if (!Array.isArray(content.parts)) return candidate;
 
-      const newParts = content.parts.map((part: unknown) => {
-        const p = part as Record<string, unknown>;
-        
+      const newParts = content.parts.map((part) => {
         // Handle image data - save to disk and return file path
-        if (p.inlineData) {
-          const inlineData = p.inlineData as Record<string, unknown>;
+        if (part.inlineData) {
           const result = processImageData({
-            mimeType: inlineData.mimeType as string | undefined,
-            data: inlineData.data as string | undefined,
+            mimeType: part.inlineData.mimeType,
+            data: part.inlineData.data,
           });
           if (result) {
             return { text: result };
           }
         }
         
-        if (p.thought === true || p.type === 'thinking') {
-          const fullText = (p.text || p.thinking || '') as string;
+        if (part.thought === true || part.type === 'thinking') {
+          const fullText = (part.text || part.thinking || '') as string;
           
           if (displayedThinkingHashes) {
             const hash = hashString(fullText);
@@ -106,7 +104,7 @@ export function deduplicateThinkingText(
             sentBuffer.set(index, fullText);
 
             if (delta) {
-              return { ...p, text: delta, thinking: delta };
+              return { ...part, text: delta, thinking: delta };
             }
             return null;
           }
@@ -117,23 +115,22 @@ export function deduplicateThinkingText(
         return part;
       });
 
-      const filteredParts = newParts.filter((p) => p !== null);
+      const filteredParts = newParts.filter((p): p is import('./types').LlmBasePart => p !== null);
 
       return {
-        ...cand,
+        ...candidate,
         content: { ...content, parts: filteredParts },
       };
     });
 
-    return { ...resp, candidates: newCandidates };
+    return { ...response, candidates: newCandidates };
   }
 
-  if (Array.isArray(resp.content)) {
+  if (Array.isArray(response.content)) {
     let thinkingIndex = 0;
-    const newContent = resp.content.map((block: unknown) => {
-      const b = block as Record<string, unknown> | null;
-      if (b?.type === 'thinking') {
-        const fullText = (b.thinking || b.text || '') as string;
+    const newContent = response.content.map((block) => {
+      if (block?.type === 'thinking') {
+        const fullText = (block.thinking || block.text || '') as string;
         
         if (displayedThinkingHashes) {
           const hash = hashString(fullText);
@@ -153,7 +150,7 @@ export function deduplicateThinkingText(
           thinkingIndex++;
 
           if (delta) {
-            return { ...b, thinking: delta, text: delta };
+            return { ...block, thinking: delta, text: delta };
           }
           return null;
         }
@@ -165,8 +162,8 @@ export function deduplicateThinkingText(
       return block;
     });
 
-    const filteredContent = newContent.filter((b) => b !== null);
-    return { ...resp, content: filteredContent };
+    const filteredContent = newContent.filter((b): b is { type: string; thinking?: string; text?: string; signature?: string } => b !== null);
+    return { ...response, content: filteredContent };
   }
 
   return response;
@@ -190,7 +187,7 @@ export function transformSseLine(
   }
 
   try {
-    const parsed = JSON.parse(json) as { response?: unknown };
+    const parsed = JSON.parse(json) as { response?: LlmStreamingResponse };
     if (parsed.response !== undefined) {
       if (options.cacheSignatures && options.signatureSessionKey) {
         cacheThinkingSignaturesFromResponse(
@@ -202,14 +199,14 @@ export function transformSseLine(
         );
       }
 
-      let response: unknown = deduplicateThinkingText(
+      let response = deduplicateThinkingText(
         parsed.response,
         sentThinkingBuffer,
         options.displayedThinkingHashes
       );
 
       if (options.debugText && callbacks.onInjectDebug && !debugState.injected) {
-        response = callbacks.onInjectDebug(response, options.debugText);
+        response = callbacks.onInjectDebug(response, options.debugText) as LlmStreamingResponse;
         debugState.injected = true;
       }
       // Note: onInjectSyntheticThinking removed - keep_thinking now uses debugText path
@@ -219,42 +216,40 @@ export function transformSseLine(
         : response;
       return `data: ${JSON.stringify(transformed)}`;
     }
-  } catch (_) {}
+  } catch (err) {
+    log.debug('SSE inner line parse skip', { err, line });
+  }
   return line;
 }
 
 export function cacheThinkingSignaturesFromResponse(
-  response: unknown,
+  response: LlmStreamingResponse | null | undefined,
   signatureSessionKey: string,
   signatureStore: SignatureStore,
   thoughtBuffer: ThoughtBuffer,
   onCacheSignature?: (sessionKey: string, text: string, signature: string) => void,
 ): void {
-  if (!response || typeof response !== 'object') return;
+  if (!response || typeof response !== "object") return;
 
-  const resp = response as Record<string, unknown>;
-
-  if (Array.isArray(resp.candidates)) {
-    resp.candidates.forEach((candidate: unknown, index: number) => {
-      const cand = candidate as Record<string, unknown> | null;
-      if (!cand?.content) return;
-      const content = cand.content as Record<string, unknown>;
+  if (Array.isArray(response.candidates)) {
+    response.candidates.forEach((candidate, index: number) => {
+      if (!candidate?.content) return;
+      const content = candidate.content;
       if (!Array.isArray(content.parts)) return;
 
-      content.parts.forEach((part: unknown) => {
-        const p = part as Record<string, unknown>;
-        if (p.thought === true || p.type === 'thinking') {
-          const text = (p.text || p.thinking || '') as string;
+      content.parts.forEach((part) => {
+        if (part.thought === true || part.type === 'thinking') {
+          const text = (part.text || part.thinking || '') as string;
           if (text) {
             const current = thoughtBuffer.get(index) ?? '';
             thoughtBuffer.set(index, current + text);
           }
         }
 
-        if (p.thoughtSignature) {
+        if (part.thoughtSignature) {
           const fullText = thoughtBuffer.get(index) ?? '';
           if (fullText) {
-            const signature = p.thoughtSignature as string;
+            const signature = part.thoughtSignature;
             onCacheSignature?.(signatureSessionKey, fullText, signature);
             signatureStore.set(signatureSessionKey, { text: fullText, signature });
           }
@@ -263,23 +258,22 @@ export function cacheThinkingSignaturesFromResponse(
     });
   }
 
-  if (Array.isArray(resp.content)) {
+  if (Array.isArray(response.content)) {
     // Use thoughtBuffer to accumulate thinking text across SSE events
     // Claude streams thinking content and signature in separate events
     const CLAUDE_BUFFER_KEY = 0; // Use index 0 for Claude's single-stream content
-    resp.content.forEach((block: unknown) => {
-      const b = block as Record<string, unknown> | null;
-      if (b?.type === 'thinking') {
-        const text = (b.thinking || b.text || '') as string;
+    response.content.forEach((block) => {
+      if (block?.type === 'thinking') {
+        const text = (block.thinking || block.text || '') as string;
         if (text) {
           const current = thoughtBuffer.get(CLAUDE_BUFFER_KEY) ?? '';
           thoughtBuffer.set(CLAUDE_BUFFER_KEY, current + text);
         }
       }
-      if (b?.signature) {
+      if (block?.signature) {
         const fullText = thoughtBuffer.get(CLAUDE_BUFFER_KEY) ?? '';
         if (fullText) {
-          const signature = b.signature as string;
+          const signature = block.signature;
           onCacheSignature?.(signatureSessionKey, fullText, signature);
           signatureStore.set(signatureSessionKey, { text: fullText, signature });
         }

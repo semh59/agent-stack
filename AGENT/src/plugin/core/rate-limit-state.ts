@@ -1,4 +1,4 @@
-import type { HeaderStyle } from "../../constants";
+﻿import type { HeaderStyle } from "../../constants";
 import type { ModelFamily } from "../accounts";
 import { parseDurationToMs } from "./backoff";
 
@@ -223,7 +223,7 @@ export function resetAllRateLimitStateForAccount(accountIndex: number): void {
  */
 export function headerStyleToQuotaKey(headerStyle: HeaderStyle, family: ModelFamily): string {
   if (family === "claude") return "claude";
-  return headerStyle === "antigravity" ? "gemini-antigravity" : "gemini-cli";
+  return headerStyle === "Sovereign" ? "gemini-Sovereign" : "gemini-cli";
 }
 
 // Track consecutive non-429 failures per account

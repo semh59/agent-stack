@@ -1,9 +1,9 @@
-/**
- * Claude Code Auth Provider — OAuth + API Key Dual Mode
+﻿/**
+ * Claude Code Auth Provider â€” OAuth + API Key Dual Mode
  *
  * Authenticates with Anthropic's Claude Code via:
- *   1. OAuth (primary) — Claude Code's native OAuth flow
- *   2. API Key (fallback) — direct API key validation
+ *   1. OAuth (primary) â€” Claude Code's native OAuth flow
+ *   2. API Key (fallback) â€” direct API key validation
  *
  * Auth Flow (OAuth):
  *   1. Redirect user to Claude Code consent page
@@ -27,7 +27,7 @@ import {
   type UnifiedToken,
 } from "./provider-types";
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ANTHROPIC_API_BASE = "https://api.anthropic.com";
 const ANTHROPIC_API_VERSION = "2023-06-01";
@@ -36,7 +36,7 @@ const ANTHROPIC_API_VERSION = "2023-06-01";
 const CLAUDE_OAUTH_AUTHORIZE = "https://console.anthropic.com/oauth/authorize";
 const CLAUDE_OAUTH_TOKEN = "https://console.anthropic.com/oauth/token";
 
-// OAuth client config — set via env vars in production
+// OAuth client config â€” set via env vars in production
 const CLAUDE_CLIENT_ID = process.env.CLAUDE_OAUTH_CLIENT_ID ?? "";
 const CLAUDE_CLIENT_SECRET = process.env.CLAUDE_OAUTH_CLIENT_SECRET ?? "";
 const CLAUDE_REDIRECT_URI = process.env.CLAUDE_OAUTH_REDIRECT_URI ?? "http://localhost:51121/oauth-callback";
@@ -46,11 +46,11 @@ const CLAUDE_SCOPES = "read write";
 const CLAUDE_PRO_KEY_PREFIX = "sk-ant-";
 const CLAUDE_ADMIN_KEY_PREFIX = "sk-admin-";
 
-// ─── Auth Mode ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Auth Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type ClaudeAuthMode = "oauth" | "api_key";
 
-// ─── Claude Provider ────────────────────────────────────────────────────────
+// â”€â”€â”€ Claude Provider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class ClaudeCodeProvider implements ProviderAdapter {
   readonly provider = AIProvider.CLAUDE_CODE;
@@ -91,7 +91,7 @@ export class ClaudeCodeProvider implements ProviderAdapter {
       };
     }
 
-    // API Key fallback — UI shows an input form
+    // API Key fallback â€” UI shows an input form
     return {
       url: `sovereign://auth/claude-code?mode=api_key&state=${state}`,
       state,
@@ -145,7 +145,7 @@ export class ClaudeCodeProvider implements ProviderAdapter {
    */
   isTokenValid(token: UnifiedToken): boolean {
     if (!token.accessToken) return false;
-    if (token.expiresAt === 0) return true; // API key — never expires
+    if (token.expiresAt === 0) return true; // API key â€” never expires
     const buffer = 5 * 60 * 1000; // 5 min buffer
     return Date.now() < token.expiresAt - buffer;
   }
@@ -163,7 +163,7 @@ export class ClaudeCodeProvider implements ProviderAdapter {
     }
   }
 
-  // ─── OAuth Flow ──────────────────────────────────────────────────────────
+  // â”€â”€â”€ OAuth Flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private async exchangeOAuthCode(code: string, _state: string): Promise<UnifiedToken> {
     const response = await fetch(CLAUDE_OAUTH_TOKEN, {
@@ -262,12 +262,12 @@ export class ClaudeCodeProvider implements ProviderAdapter {
         };
       }
     } catch {
-      // Profile endpoint might not exist — graceful fallback
+      // Profile endpoint might not exist â€” graceful fallback
     }
     return { email: "" };
   }
 
-  // ─── API Key Flow ────────────────────────────────────────────────────────
+  // â”€â”€â”€ API Key Flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private async exchangeApiKey(apiKey: string): Promise<UnifiedToken> {
     const validation = await this.validateApiKey(apiKey);
@@ -344,7 +344,7 @@ export class ClaudeCodeProvider implements ProviderAdapter {
     }
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private isApiKey(value: string): boolean {
     return (

@@ -4,7 +4,7 @@ import { IntentEngine } from "../src/orchestration/intent-engine";
 async function testKeyManager() {
   console.log("--- Testing KeyManager ---");
   const km = new KeyManager();
-  const data = { secret: "antigravity-123", accounts: [1, 2, 3] };
+  const data = { secret: "sovereign-123", accounts: [1, 2, 3] };
   
   const encrypted = km.encrypt(data);
   console.log("Encrypted:", encrypted.keyMeta.keyId);

@@ -1,4 +1,4 @@
-# 🏗️ LojiNext AI — Sovereign AI Platform
+# 🏗️ Sovereign AI — Sovereign AI Platform
 # Proje Derin Analizi ve Faz Planlaması
 
 **Analiz Tarihi:** 18 Nisan 2026  
@@ -470,7 +470,7 @@ Fastify tabanlı HTTP/WebSocket sunucusu. Mission REST API, WebSocket olayları,
 
 ### 5.5 SQLite Kalıcılığı
 
-- **Veritabanı:** `~/.config/lojinext/missions.db`
+- **Veritabanı:** `~/.config/sovereign/missions.db`
 - **Mod:** WAL, foreign_keys=ON, busy_timeout=5000
 - **Tablolar:** missions, mission_gate_results, mission_timeline, mission_budget_snapshots
 - **Kurtarma:** Başlangıçta kesintiye uğramış görevleri tara
@@ -664,4 +664,4 @@ Faz 7A ─→ Faz 7B (VS Code Eklentisi)
 
 ---
 
-*Bu doküman, LojiNext AI projesinin tüm kaynak kodlarının satır satır incelenmesiyle oluşturulmuştur.*
+*Bu doküman, Sovereign AI projesinin tüm kaynak kodlarının satır satır incelenmesiyle oluşturulmuştur.*

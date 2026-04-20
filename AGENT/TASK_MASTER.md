@@ -85,7 +85,7 @@ Aktif bir mission çalışırken WebSocket bağlantısı kopar ve yeniden bağla
 
 ### B-3 — BudgetTracker TPM/RPD Kalibrasyonu
 
-Sistem Antigravity üzerinde çalışıyor. USD maliyeti yok. Gerçek limit TPM ve RPD.
+Sistem Sovereign AI üzerinde çalışıyor. USD maliyeti yok. Gerçek limit TPM ve RPD.
 
 - [x] `BudgetLimits` interface'ine `maxTPM` ve `maxRPD` alanları ekle
 - [x] USD bazlı circuit breaker'ı kaldır
@@ -97,7 +97,7 @@ Sistem Antigravity üzerinde çalışıyor. USD maliyeti yok. Gerçek limit TPM 
 
 ### B-4 — Mock Latency Simülasyonu
 
-Gerçek Antigravity bağlantısına geçilmeden önce gerçek model davranışını simüle et.
+Gerçek Sovereign AI bağlantısına geçilmeden önce gerçek model davranışını simüle et.
 
 - [x] 10 saniye gecikme simülasyonu yaz (gerçek LLM yanıt sürelerini taklit eder)
 - [x] Gecikme süresinde interrupt (STOP) gelirse AbortController'ın network üzerinde doğru çalıştığını doğrula
@@ -126,7 +126,7 @@ Not: Faz 2 roadmap alt maddeleri `ROADMAP_FULL.md` içinde bulunmadığı için 
 
 ### 2.2 — Dashboard yenileme
 
-- [x] LojiNext Elite Design System
+- [x] Sovereign Elite Design System
 - [x] `DashboardView` ana ekranı
 - [x] High-density terminal timeline
 - [x] Magic Toolbar model kontrolleri
@@ -415,12 +415,12 @@ Tamamlanan: 0 / Toplam: 50
 
 ### 4.2 — Komutlar
 
-- [ ] `lojinext.startMission` — input box aç, prompt al, `POST /api/missions` çağır
-- [ ] `lojinext.viewMission` — aktif mission detayını Webview'da aç
-- [ ] `lojinext.approvePlan` — plan onay ekranını aç, `POST /api/missions/:id/approve` çağır
-- [ ] `lojinext.pauseMission` — aktif mission'ı durdur
-- [ ] `lojinext.resumeMission` — duraklatılmış mission'ı devam ettir
-- [ ] `lojinext.cancelMission` — mission'ı iptal et
+- [ ] `sovereign.startMission` — input box aç, prompt al, `POST /api/missions` çağır
+- [ ] `sovereign.viewMission` — aktif mission detayını Webview'da aç
+- [ ] `sovereign.approvePlan` — plan onay ekranını aç, `POST /api/missions/:id/approve` çağır
+- [ ] `sovereign.pauseMission` — aktif mission'ı durdur
+- [ ] `sovereign.resumeMission` — duraklatılmış mission'ı devam ettir
+- [ ] `sovereign.cancelMission` — mission'ı iptal et
 - [ ] Her komut için Command Palette kaydı
 - [ ] Komut testlerini yaz
 
@@ -430,7 +430,7 @@ Tamamlanan: 0 / Toplam: 50
 - [ ] WebSocket'ten gelen `phase:started` ve `gear:started` olaylarını dinle
 - [ ] Format: `● <state> — <currentGear>` (örn: `● Kodlanıyor — backend-coder`)
 - [ ] Mission yokken: `○ LojNext — Hazır`
-- [ ] Tıklanınca `lojinext.viewMission` komutu tetiklenir
+- [ ] Tıklanınca `sovereign.viewMission` komutu tetiklenir
 - [ ] Status bar testini yaz
 
 ### 4.4 — Output Panel
@@ -467,7 +467,7 @@ Tamamlanan: 0 / Toplam: 50
 
 ### 4.7 — Faz 4 Doğrulama
 
-- [ ] VS Code debug mode ile `lojinext.startMission` komutu çalıştır
+- [ ] VS Code debug mode ile `sovereign.startMission` komutu çalıştır
 - [ ] Status bar'ın phase değişimlerini doğru yansıttığını doğrula
 - [ ] Output panel'de log akışının kesilmeden geldiğini doğrula
 - [ ] Webview'da tüm bileşenlerin doğru render ettiğini doğrula
@@ -532,7 +532,7 @@ Tamamlanan: 0 / Toplam: 32
 Tamamlanan: 0 / Toplam: 31  
 ⛔ Başlamak için şunlar tamamlanmalı: Bölüm 6 tamamlanmış olmalı.
 
-### P-1 — Pilot Mission (Gerçek Antigravity Bağlantısı)
+### P-1 — Pilot Mission (Gerçek Sovereign AI Bağlantısı)
 
 Tüm fazlar tamamlandıktan sonra yapılır. İlk kez gerçek OAuth token'ları kullanılır.
 
@@ -554,7 +554,7 @@ Pilot mission sonrası gerçek limitler görüldükten sonra yapılır.
 - [ ] Gerçek RPD limitini ölç (hesap başına)
 - [ ] BudgetTracker'daki default limit değerlerini gerçek değerlerle güncelle
 - [ ] Soft fail eşiğini gerçek verilere göre kalibre et
-- [ ] Multi-account rotation'ın (mevcut Antigravity özelliği) gerçek ortamda çalıştığını doğrula
+- [ ] Multi-account rotation'ın (mevcut Sovereign AI özelliği) gerçek ortamda çalıştığını doğrula
 - [ ] Her hesap için ayrı TPM/RPD sayacı olduğunu doğrula
 
 ### P-3 — SkillGenerator Dişlisi
@@ -609,7 +609,7 @@ Bu kararlar alındı ve belgelendi. Yeniden tartışılmaz.
 
 | Karar | Açıklama |
 |---|---|
-| LLM erişimi | Antigravity üzerinden — kanal değişebilir, orkestratör değişmez |
+| LLM erişimi | Sovereign AI üzerinden — kanal değişebilir, orkestratör değişmez |
 | State ownership | Backend Orchestrator → Source of Truth. Frontend → Authoritative Mirror |
 | Rate limiting | API Key bazlı (IP değil) |
 | Timeline pagination | Cursor-based (offset değil) |

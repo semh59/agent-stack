@@ -1,4 +1,4 @@
-export interface NpmDistTags {
+﻿export interface NpmDistTags {
   latest: string;
   [key: string]: string;
 }

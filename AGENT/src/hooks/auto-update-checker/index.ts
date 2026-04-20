@@ -1,4 +1,4 @@
-import type { AutoUpdateCheckerOptions } from "./types";
+﻿import type { AutoUpdateCheckerOptions } from "./types";
 import { getCachedVersion, getLocalDevVersion, findPluginEntry, getLatestVersion, updatePinnedVersion } from "./checker";
 import { invalidatePackage } from "./cache";
 import { PACKAGE_NAME } from "./constants";
@@ -104,7 +104,7 @@ async function runBackgroundUpdateCheck(
     return;
   }
 
-  debugLog(`[auto-update-checker] Update available: ${currentVersion} → ${latestVersion}`);
+  debugLog(`[auto-update-checker] Update available: ${currentVersion} â†’ ${latestVersion}`);
 
   if (!autoUpdate) {
     await showUpdateAvailableToast(client, latestVersion);
@@ -117,7 +117,7 @@ async function runBackgroundUpdateCheck(
     if (updated) {
       invalidatePackage(PACKAGE_NAME);
       await showAutoUpdatedToast(client, currentVersion, latestVersion);
-      debugLog(`[auto-update-checker] Config updated: ${pluginInfo.entry} → ${PACKAGE_NAME}@${latestVersion}`);
+      debugLog(`[auto-update-checker] Config updated: ${pluginInfo.entry} â†’ ${PACKAGE_NAME}@${latestVersion}`);
     } else {
       await showUpdateAvailableToast(client, latestVersion);
     }
@@ -131,7 +131,7 @@ async function showUpdateAvailableToast(client: PluginClient, latestVersion: str
   await client.tui
     .showToast({
       body: {
-        title: `Antigravity Auth Update`,
+        title: `Sovereign Auth Update`,
         message: `v${latestVersion} available. Restart OpenCode to apply.`,
         variant: "info" as const,
         duration: 8000,
@@ -145,21 +145,21 @@ async function showAutoUpdatedToast(client: PluginClient, oldVersion: string, ne
   await client.tui
     .showToast({
       body: {
-        title: `Antigravity Auth Updated!`,
-        message: `v${oldVersion} → v${newVersion}\nRestart OpenCode to apply.`,
+        title: `Sovereign Auth Updated!`,
+        message: `v${oldVersion} â†’ v${newVersion}\nRestart OpenCode to apply.`,
         variant: "success" as const,
         duration: 8000,
       },
     })
     .catch(() => {});
-  debugLog(`[auto-update-checker] Auto-updated toast shown: v${oldVersion} → v${newVersion}`);
+  debugLog(`[auto-update-checker] Auto-updated toast shown: v${oldVersion} â†’ v${newVersion}`);
 }
 
 async function showLocalDevToast(client: PluginClient, version: string): Promise<void> {
   await client.tui
     .showToast({
       body: {
-        title: `Antigravity Auth ${version} (dev)`,
+        title: `Sovereign Auth ${version} (dev)`,
         message: "Running in local development mode.",
         variant: "warning" as const,
         duration: 5000,

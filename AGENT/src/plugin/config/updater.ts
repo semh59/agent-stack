@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OpenCode configuration file updater.
  *
  * Updates ~/.config/opencode/opencode.json with plugin models.
@@ -41,7 +41,7 @@ export interface UpdateConfigOptions {
 // Constants
 // =============================================================================
 
-const PLUGIN_NAME = "lojinext-ai@latest";
+const PLUGIN_NAME = "sovereign-ai@latest";
 const SCHEMA_URL = "https://opencode.ai/config.json";
 
 /**
@@ -112,7 +112,7 @@ export async function updateOpencodeConfig(
 
     // Check if plugin is already in the list (any version)
     const hasPlugin = config.plugin.some((p) =>
-      p.includes("lojinext-ai")
+      p.includes("sovereign-ai")
     );
     if (!hasPlugin) {
       config.plugin.push(PLUGIN_NAME);

@@ -1,4 +1,4 @@
-import path from "node:path";
+﻿import path from "node:path";
 import { spawn } from "node:child_process";
 
 interface GitCommandResult {

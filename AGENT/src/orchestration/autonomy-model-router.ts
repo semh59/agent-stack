@@ -1,4 +1,4 @@
-import type { ModelDecision, ModelSwitchReason, TaskNodeType, ModelPolicy } from "./autonomy-types";
+﻿import type { ModelDecision, ModelSwitchReason, TaskNodeType, ModelPolicy } from "./autonomy-types";
 
 interface RouterInput {
   taskType: TaskNodeType;
@@ -29,8 +29,8 @@ const FALLBACK_MODELS = [
 ];
 
 function normalizeModelName(model: string): string {
-  if (model.startsWith("google/antigravity-")) {
-    return model.slice("google/antigravity-".length);
+  if (model.startsWith("google/Sovereign-")) {
+    return model.slice("google/Sovereign-".length);
   }
   return model;
 }
@@ -131,7 +131,7 @@ export class SmartMultiModelRouter {
     SmartMultiModelRouter.CIRCUIT_BREAKER.set(key, { 
         trippedUntil: Date.now() + SmartMultiModelRouter.COOLDOWN_MS 
     });
-    console.warn(`[CircuitBreaker] Tripped model ${model} for session ${sessionId} due to recurring failure.`);
+    console.warn(`[Sovereign:Breaker] Tripped model ${model} for session ${sessionId} due to recurring failure.`);
   }
 
   private isTripped(model: string): boolean {

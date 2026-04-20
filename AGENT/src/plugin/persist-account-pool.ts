@@ -1,4 +1,4 @@
-import type { AntigravityTokenExchangeResult } from "../antigravity/oauth";
+﻿import type { SovereignTokenExchangeResult } from "../google-gemini/oauth";
 import { parseRefreshParts } from "./auth";
 import {
   loadAccountsDetailed,
@@ -9,7 +9,7 @@ import {
   type LoadAccountsResult,
 } from "./storage";
 
-type SuccessfulExchangeResult = Extract<AntigravityTokenExchangeResult, { type: "success" }>;
+type SuccessfulExchangeResult = Extract<SovereignTokenExchangeResult, { type: "success" }>;
 
 interface PersistAccountPoolDeps {
   loadAccountsDetailed: () => Promise<LoadAccountsResult>;
@@ -34,7 +34,7 @@ function buildUnreadableAccountFileMessage(errorCode: LoadAccountsErrorCode): st
   return [
     `Account storage could not be read safely (${errorCode}).`,
     "Recovery options: (r)etry, (b)ackup and continue, (a)bort.",
-    "Fix file permissions or restore a valid antigravity-accounts.json file, then retry login.",
+    "Fix file permissions or restore a valid Sovereign-accounts.json file, then retry login.",
   ].join(" ");
 }
 

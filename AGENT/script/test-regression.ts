@@ -52,10 +52,10 @@ const ERROR_PATTERNS = [
   "must remain as they were",
 ];
 
-const GEMINI_FLASH = "google/antigravity-gemini-3-flash";
+const GEMINI_FLASH = "google/sovereign-gemini-3-flash";
 const GEMINI_FLASH_CLI_QUOTA = "google/gemini-2.5-flash";
-const CLAUDE_SONNET = "google/antigravity-claude-sonnet-4-5-thinking-low";
-const CLAUDE_OPUS = "google/antigravity-claude-opus-4-5-thinking-low";
+const CLAUDE_SONNET = "google/sovereign-claude-sonnet-4-5-thinking-low";
+const CLAUDE_OPUS = "google/sovereign-claude-opus-4-5-thinking-low";
 
 const SANITY_TESTS: MultiTurnTest[] = [
   {
@@ -266,7 +266,7 @@ const CONCURRENT_TESTS: ConcurrentTest[] = [
     timeout: 120000,
   },
   {
-    name: "concurrent-10-antigravity-heavy",
+    name: "concurrent-10-sovereign-heavy",
     category: "concurrency",
     suite: "heavy",
     concurrentRequests: 10,
@@ -529,7 +529,7 @@ function parseArgs(): {
 
 function showHelp(): void {
   console.log(`
-Multi-Turn Regression Test Suite for Antigravity Plugin
+Multi-Turn Regression Test Suite for Sovereign AI Plugin
 
 Test Suites:
   --sanity    Quick tests (7 tests, ~5 min) - run frequently

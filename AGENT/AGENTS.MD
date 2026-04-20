@@ -4,7 +4,7 @@ Guidance for AI agents working with this repository.
 
 ## Overview
 
-This is an **OpenCode plugin** that enables OAuth authentication with Google's Antigravity API. It allows access to models like `gemini-3-pro-high` and `claude-opus-4-5-thinking` using Google credentials.
+This is an **OpenCode plugin** that enables OAuth authentication with Google's LojiNext AI API. It allows access to models like `gemini-3-pro-high` and `claude-opus-4-5-thinking` using Google credentials.
 
 ## Build & Test
 
@@ -21,7 +21,7 @@ npm test         # Run tests
 src/
 ├── plugin.ts                # Main entry, fetch interceptor
 ├── constants.ts             # Endpoints, headers, config
-├── antigravity/oauth.ts     # OAuth token exchange
+├── lojinext/oauth.ts     # OAuth token exchange
 └── plugin/
     ├── auth.ts              # Token validation & refresh
     ├── request.ts           # Request transformation (main logic)
@@ -37,7 +37,7 @@ src/
 ## Key Design Patterns
 
 ### 1. Request Interception
-Plugin intercepts `fetch()` for `generativelanguage.googleapis.com`, transforms to Antigravity format.
+Plugin intercepts `fetch()` for `generativelanguage.googleapis.com`, transforms to LojiNext AI format.
 
 ### 2. Claude Thinking Blocks
 For Claude models, ALL thinking blocks are stripped from outgoing requests. Claude generates fresh thinking each turn. This eliminates signature validation errors.
@@ -49,7 +49,7 @@ When tool execution is interrupted (ESC/timeout), the plugin injects synthetic `
 Tool schemas are cleaned via allowlist approach. Unsupported fields (`const`, `$ref`, `$defs`) are removed or converted.
 
 ### 5. Multi-Account Load Balancing
-Accounts are rotated on rate limits. Gemini has dual quota pools (Antigravity + Gemini CLI headers).
+Accounts are rotated on rate limits. Gemini has dual quota pools (LojiNext AI + Gemini CLI headers).
 
 ## Key Files
 
@@ -65,4 +65,4 @@ Accounts are rotated on rate limits. Gemini has dual quota pools (Antigravity + 
 
 - [README.md](README.md) - Installation & usage
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture guide
-- [docs/ANTIGRAVITY_API_SPEC.md](docs/ANTIGRAVITY_API_SPEC.md) - API reference
+- [docs/LOJINEXT_API_SPEC.md](docs/LOJINEXT_API_SPEC.md) - API reference

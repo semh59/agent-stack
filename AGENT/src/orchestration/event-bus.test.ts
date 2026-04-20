@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventBus } from './event-bus';
 
 describe('EventBus - Thread-Safe Operations', () => {

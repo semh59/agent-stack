@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 
@@ -23,7 +23,7 @@ const __dirnameResolved: string = (() => {
 const PROMPTS_PATH = path.resolve(__dirnameResolved, 'prompts.yaml');
 
 /**
- * Agent Definitions for Sequential Pipeline (Seçenek A)
+ * Agent Definitions for Sequential Pipeline (Sovereign AI - Phase 2)
  */
 
 export const AgentLayer = {
@@ -37,10 +37,10 @@ export const AgentLayer = {
 export type AgentLayer = (typeof AgentLayer)[keyof typeof AgentLayer];
 
 export const PreferredModel = {
-  OPUS: "google/antigravity-claude-opus-4-6-thinking",
-  SONNET: "google/antigravity-claude-sonnet-4-6-thinking",
-  GEMINI_PRO: "google/antigravity-gemini-3-1-pro-high",
-  GEMINI_FLASH: "google/antigravity-gemini-3-flash",
+  OPUS: "google/sovereign-claude-opus-4-6-thinking",
+  SONNET: "google/sovereign-claude-sonnet-4-6-thinking",
+  GEMINI_PRO: "google/sovereign-gemini-3-1-pro-high",
+  GEMINI_FLASH: "google/sovereign-gemini-3-flash",
 } as const;
 
 export type PreferredModel = (typeof PreferredModel)[keyof typeof PreferredModel];
@@ -81,7 +81,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 1,
     role: "ceo",
     name: "CEO",
-    emoji: "🎯",
+    emoji: "ğŸ¯",
     layer: AgentLayer.MANAGEMENT,
     preferredModel: PreferredModel.GEMINI_PRO,
     inputFiles: [],
@@ -95,7 +95,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 2,
     role: "pm",
     name: "Project Manager",
-    emoji: "📋",
+    emoji: "ğŸ“‹",
     layer: AgentLayer.MANAGEMENT,
     preferredModel: PreferredModel.GEMINI_PRO,
     inputFiles: ["ceo-brief.md"],
@@ -109,7 +109,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 3,
     role: "architect",
     name: "Architect",
-    emoji: "🏗️",
+    emoji: "ğŸ—ï¸",
     layer: AgentLayer.MANAGEMENT,
     preferredModel: PreferredModel.OPUS,
     inputFiles: ["ceo-brief.md", "pm-plan.md"],
@@ -124,7 +124,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 4,
     role: "ui_ux",
     name: "UI/UX Designer",
-    emoji: "🎨",
+    emoji: "ğŸ¨",
     layer: AgentLayer.DESIGN,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["ceo-brief.md", "pm-plan.md", "architecture.md"],
@@ -138,7 +138,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 5,
     role: "database",
     name: "Database Designer",
-    emoji: "🗄️",
+    emoji: "ğŸ—„ï¸",
     layer: AgentLayer.DESIGN,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["pm-plan.md", "architecture.md"],
@@ -153,7 +153,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 6,
     role: "api_designer",
     name: "API Designer",
-    emoji: "🔌",
+    emoji: "ğŸ”Œ",
     layer: AgentLayer.DESIGN,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["architecture.md", "db-schema.md"],
@@ -167,7 +167,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 7,
     role: "backend",
     name: "Backend Developer",
-    emoji: "⚙️",
+    emoji: "âš™ï¸",
     layer: AgentLayer.DEVELOPMENT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["architecture.md", "db-schema.md", "api-contracts.md"],
@@ -182,7 +182,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 8,
     role: "frontend",
     name: "Frontend Developer",
-    emoji: "🖥️",
+    emoji: "ğŸ–¥ï¸",
     layer: AgentLayer.DEVELOPMENT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["design-system.md", "api-contracts.md", "architecture.md"],
@@ -197,7 +197,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 9,
     role: "auth",
     name: "Auth Developer",
-    emoji: "🔐",
+    emoji: "ğŸ”",
     layer: AgentLayer.DEVELOPMENT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["architecture.md", "api-contracts.md", "backend-report.md"],
@@ -212,7 +212,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 10,
     role: "integration",
     name: "Integration Developer",
-    emoji: "🔗",
+    emoji: "ğŸ”—",
     layer: AgentLayer.DEVELOPMENT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["backend-report.md", "frontend-report.md", "auth-report.md"],
@@ -227,7 +227,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 11,
     role: "unit_test",
     name: "Unit Tester",
-    emoji: "🧪",
+    emoji: "ğŸ§ª",
     layer: AgentLayer.QUALITY,
     preferredModel: PreferredModel.GEMINI_FLASH,
     inputFiles: ["backend-report.md", "frontend-report.md"],
@@ -242,7 +242,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 12,
     role: "integration_test",
     name: "Integration Tester",
-    emoji: "🔄",
+    emoji: "ğŸ”„",
     layer: AgentLayer.QUALITY,
     preferredModel: PreferredModel.GEMINI_FLASH,
     inputFiles: ["integration-report.md", "api-contracts.md"],
@@ -257,7 +257,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 13,
     role: "security",
     name: "Security Auditor",
-    emoji: "🛡️",
+    emoji: "ğŸ›¡ï¸",
     layer: AgentLayer.QUALITY,
     preferredModel: PreferredModel.OPUS,
     inputFiles: ["auth-report.md", "api-contracts.md", "backend-report.md"],
@@ -273,7 +273,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 14,
     role: "performance",
     name: "Performance Engineer",
-    emoji: "⚡",
+    emoji: "âš¡",
     layer: AgentLayer.QUALITY,
     preferredModel: PreferredModel.GEMINI_FLASH,
     inputFiles: ["backend-report.md", "frontend-report.md", "db-schema.md"],
@@ -287,7 +287,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 15,
     role: "code_review",
     name: "Code Reviewer",
-    emoji: "👁️",
+    emoji: "ğŸ‘ï¸",
     layer: AgentLayer.QUALITY,
     preferredModel: PreferredModel.OPUS,
     inputFiles: ["backend-report.md", "frontend-report.md", "security-audit.md", "performance-report.md", "unit-test-report.md"],
@@ -302,7 +302,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 16,
     role: "docs",
     name: "Documentation Writer",
-    emoji: "📚",
+    emoji: "ğŸ“š",
     layer: AgentLayer.OUTPUT,
     preferredModel: PreferredModel.GEMINI_FLASH,
     inputFiles: ["architecture.md", "api-contracts.md", "code-review.md"],
@@ -316,7 +316,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 17,
     role: "tech_writer",
     name: "Tech Writer",
-    emoji: "📝",
+    emoji: "ğŸ“",
     layer: AgentLayer.OUTPUT,
     preferredModel: PreferredModel.GEMINI_FLASH,
     inputFiles: ["documentation.md", "pm-plan.md"],
@@ -330,7 +330,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 18,
     role: "devops",
     name: "DevOps Engineer",
-    emoji: "🚀",
+    emoji: "ğŸš€",
     layer: AgentLayer.OUTPUT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["architecture.md", "code-review.md", "security-audit.md", "performance-report.md"],

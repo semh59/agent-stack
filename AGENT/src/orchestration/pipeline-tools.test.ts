@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+﻿import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PipelineTools } from './pipeline-tools';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
@@ -10,9 +10,9 @@ describe('PipelineTools: Skill Management', () => {
 
   beforeEach(async () => {
     tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pipeline-tools-test-'));
-    const mockAntigravityClient = {} as any;
+    const mockSovereignGatewayClient = {} as any;
     const mockPluginClient = { tui: { withProgress: (opts: any, cb: any) => cb({}, {}) } } as any;
-    const pt = new PipelineTools(tmpDir, mockAntigravityClient, mockPluginClient);
+    const pt = new PipelineTools(tmpDir, mockSovereignGatewayClient, mockPluginClient);
     tools = pt.getTools();
   });
 

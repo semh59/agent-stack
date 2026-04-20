@@ -1,65 +1,65 @@
-/**
- * Agent Handoff — Auth tamamlandıktan sonra agent sisteminin devralma noktası
+﻿/**
+ * Agent Handoff â€” Auth tamamlandÄ±ktan sonra agent sisteminin devralma noktasÄ±
  *
- * Token'ı AntigravityClient'a bağlar ve SequentialPipeline'ı başlatır.
- * Tam otonom çalışma döngüsüne girer.
+ * Token'Ä± SovereignGatewayClient'a baÄŸlar ve SequentialPipeline'Ä± baÅŸlatÄ±r.
+ * Tam otonom Ã§alÄ±ÅŸma dÃ¶ngÃ¼sÃ¼ne girer.
  */
 
-import { AntigravityClient } from "../orchestration/antigravity-client";
+import { SovereignGatewayClient } from "../orchestration/gateway-client";
 import { AccountManager } from "../plugin/accounts";
 import { TokenStore, type StoredToken } from "./token-store";
-import type { AntigravityConfig } from "../plugin/config";
-import { ANTIGRAVITY_PROVIDER_ID } from "../constants";
+import type { SovereignGatewayConfig } from "../plugin/config";
+import { GOOGLE_GEMINI_PROVIDER_ID } from "../constants";
 import type { OAuthAuthDetails } from "../plugin/types";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface HandoffOptions {
   /** Token store instance */
   tokenStore: TokenStore;
-  /** Varsayılan model (ör. "gemini-3-pro") */
+  /** VarsayÄ±lan model (Ã¶r. "gemini-3-pro") */
   defaultModel?: string;
   /** Otonom seviye: full | supervised */
   autonomyLevel?: "full" | "supervised";
-  /** Antigravity config override */
-  configOverrides?: Partial<AntigravityConfig>;
+  /** Sovereign config override */
+  configOverrides?: Partial<SovereignGatewayConfig>;
 }
 
 export interface HandoffResult {
-  client: AntigravityClient;
+  client: SovereignGatewayClient;
   accountManager: AccountManager;
   token: StoredToken;
 }
 
-// ─── Agent Handoff ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Agent Handoff â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Token store'dan auth bilgilerini alıp AntigravityClient oluşturur.
- * Agent sisteminin otonom çalışma altyapısını hazırlar.
+ * Token store'dan auth bilgilerini alÄ±p SovereignGatewayClient oluÅŸturur.
+ * Agent sisteminin otonom Ã§alÄ±ÅŸma altyapÄ±sÄ±nÄ± hazÄ±rlar.
  */
 export async function performHandoff(
   options: HandoffOptions,
 ): Promise<HandoffResult> {
   const { tokenStore } = options;
 
-  // 1. Geçerli token al
+  // 1. GeÃ§erli token al
   let token = tokenStore.getActiveToken();
   if (!token) {
-    throw new Error("Token store boş — önce auth tamamlanmalı.");
+    throw new Error("Token store boÅŸ â€” Ã¶nce auth tamamlanmalÄ±.");
   }
 
-  // 2. Token süresi dolduysa yenile
+  // 2. Token sÃ¼resi dolduysa yenile
   if (tokenStore.isTokenExpired(token)) {
-    console.log("[Handoff] Token süresi dolmuş, yenileniyor...");
+    console.log("[Handoff] Token sÃ¼resi dolmuÅŸ, yenileniyor...");
     const refreshed = await tokenStore.refreshActiveToken();
     if (!refreshed) {
-      throw new Error("Token yenileme başarısız — tekrar auth gerekli.");
+      throw new Error("Token yenileme baÅŸarÄ±sÄ±z â€” tekrar auth gerekli.");
     }
     token = refreshed;
   }
 
-  // 3. AccountManager oluştur — OAuthAuthDetails fallback ile
-  // AccountManager constructor'ı OAuthAuthDetails kabul eder ve hesabı
+  // 3. AccountManager oluÅŸtur â€” OAuthAuthDetails fallback ile
+  // AccountManager constructor'Ä± OAuthAuthDetails kabul eder ve hesabÄ±
   // otomatik olarak internal pool'a ekler
   const authDetails: OAuthAuthDetails = {
     type: "oauth",
@@ -68,18 +68,18 @@ export async function performHandoff(
     expires: token.expiresAt,
   };
 
-  // Önce diskten yüklemeyi dene (antigravity-accounts.json varsa)
-  // Yoksa authDetails fallback kullanılır
+  // Ã–nce diskten yÃ¼klemeyi dene (Sovereign-accounts.json varsa)
+  // Yoksa authDetails fallback kullanÄ±lÄ±r
   let accountManager: AccountManager;
   try {
     accountManager = await AccountManager.loadFromDisk(authDetails);
   } catch {
-    // Disk dosyası yoksa constructor ile oluştur
+    // Disk dosyasÄ± yoksa constructor ile oluÅŸtur
     accountManager = new AccountManager(authDetails);
   }
 
-  // 4. Config hazırla
-  const defaultConfig: AntigravityConfig = {
+  // 4. Config hazÄ±rla
+  const defaultConfig: SovereignGatewayConfig = {
     account_selection_strategy: "round-robin",
     max_rate_limit_wait_seconds: 300,
     quiet_mode: false,
@@ -90,13 +90,13 @@ export async function performHandoff(
     pid_offset_enabled: false,
     cli_first: false,
     ...options.configOverrides,
-  } as AntigravityConfig;
+  } as SovereignGatewayConfig;
 
   // 5. Auth getter fonksiyonu
   const getAuth = async () => {
     const currentToken = await tokenStore.getValidAccessToken();
     if (!currentToken) {
-      throw new Error("Geçerli access token bulunamadı.");
+      throw new Error("GeÃ§erli access token bulunamadÄ±.");
     }
 
     const activeToken = tokenStore.getActiveToken()!;
@@ -110,18 +110,18 @@ export async function performHandoff(
     };
   };
 
-  // 6. AntigravityClient oluştur
-  const client = new AntigravityClient(
+  // 6. SovereignGatewayClient oluÅŸtur
+  const client = new SovereignGatewayClient(
     accountManager,
     defaultConfig,
-    ANTIGRAVITY_PROVIDER_ID,
+    GOOGLE_GEMINI_PROVIDER_ID,
     getAuth,
   );
 
-  console.log(`[Handoff] ✅ AntigravityClient hazır`);
+  console.log(`[Handoff] âœ… SovereignGatewayClient hazÄ±r`);
   console.log(`[Handoff]    Hesap: ${token.email || "bilinmiyor"}`);
   console.log(`[Handoff]    Project: ${token.projectId || "otomatik"}`);
-  console.log(`[Handoff]    Model: ${options.defaultModel || "varsayılan"}`);
+  console.log(`[Handoff]    Model: ${options.defaultModel || "varsayÄ±lan"}`);
   console.log(`[Handoff]    Otonom Seviye: ${options.autonomyLevel || "supervised"}`);
 
   return { client, accountManager, token };

@@ -33,7 +33,7 @@ Açık bırakılan satır: `8`
 
 1. `npm test -- --run src/plugin/request.test.ts src/plugin/request-helpers.test.ts src/plugin/accounts.test.ts`
 2. `npm test -- --run src/orchestration/autonomous-loop-engine.test.ts src/gateway/autonomy-session-manager.test.ts src/orchestration/phase2-deep.test.ts src/orchestration/SessionPersistenceManager.test.ts src/orchestration/SkillEngine.test.ts src/orchestration/PhaseEngine.test.ts src/orchestration/GearEngine.test.ts src/orchestration/TaskGraphManager.test.ts`
-3. `npm test -- --run ui/src/pages/DashboardView.test.tsx ui/src/tests/performance/TimelineStress.test.tsx ui/src/pages/ActivePipelineView.test.tsx ui/src/pages/PipelineHistoryView.test.tsx ui/src/components/dashboard/TokenUsageChart.test.tsx ui/src/components/telemetry/DecisionMatrix.test.tsx ui/src/store/appStore.test.ts ui/src/tests/integration/OrchestrationSync.test.ts ui/src/store/slices/websocketSlice.test.ts src/orchestration/GateEngine.test.ts src/orchestration/BudgetTracker.test.ts src/orchestration/antigravity-api.test.ts src/orchestration/OrchestratorService.test.ts`
+3. `npm test -- --run ui/src/pages/DashboardView.test.tsx ui/src/tests/performance/TimelineStress.test.tsx ui/src/pages/ActivePipelineView.test.tsx ui/src/pages/PipelineHistoryView.test.tsx ui/src/components/dashboard/TokenUsageChart.test.tsx ui/src/components/telemetry/DecisionMatrix.test.tsx ui/src/store/appStore.test.ts ui/src/tests/integration/OrchestrationSync.test.ts ui/src/store/slices/websocketSlice.test.ts src/orchestration/GateEngine.test.ts src/orchestration/BudgetTracker.test.ts src/orchestration/sovereign-api.test.ts src/orchestration/OrchestratorService.test.ts`
 
 ## Faz 0 Audit
 
@@ -116,12 +116,12 @@ Açık bırakılan satır: `8`
 
 | Görev | Kod Kanıtı | Doğrudan Test Kanıtı | Çalıştırılan Sonuç | Güven Skoru | Karar |
 | --- | --- | --- | --- | --- | --- |
-| 10 saniye gecikme simülasyonu yaz (gerçek LLM yanıt sürelerini taklit eder) | `src/orchestration/antigravity-api.ts` | `src/orchestration/antigravity-api.test.ts` | Latency simülasyonu yeşil | A | Koru `[x]` |
-| Gecikme süresinde interrupt (STOP) gelirse AbortController'ın network üzerinde doğru çalıştığını doğrula | `src/orchestration/antigravity-api.ts`, `src/gateway/autonomy-session-manager.ts` | `src/orchestration/antigravity-api.test.ts`, `src/gateway/autonomy-session-manager.test.ts` | Abort-aware wait ve STOP path yeşil | A | Koru `[x]` |
-| Mission ortasında OAuth token expire simülasyonu yaz | `src/orchestration/antigravity-api.ts`, `src/orchestration/antigravity-client.ts` | `src/orchestration/antigravity-api.test.ts` | 401 expire/refresh akışı yeşil | A | Koru `[x]` |
-| Token expire sonrası sistemin graceful hata verdiğini (crash değil) doğrula | `src/orchestration/antigravity-api.ts` | `src/orchestration/antigravity-api.test.ts` | Refresh fail sonrası graceful response yeşil | A | Koru `[x]` |
+| 10 saniye gecikme simülasyonu yaz (gerçek LLM yanıt sürelerini taklit eder) | `src/orchestration/sovereign-api.ts` | `src/orchestration/sovereign-api.test.ts` | Latency simülasyonu yeşil | A | Koru `[x]` |
+| Gecikme süresinde interrupt (STOP) gelirse AbortController'ın network üzerinde doğru çalıştığını doğrula | `src/orchestration/sovereign-api.ts`, `src/gateway/autonomy-session-manager.ts` | `src/orchestration/sovereign-api.test.ts`, `src/gateway/autonomy-session-manager.test.ts` | Abort-aware wait ve STOP path yeşil | A | Koru `[x]` |
+| Mission ortasında OAuth token expire simülasyonu yaz | `src/orchestration/sovereign-api.ts`, `src/orchestration/sovereign-client.ts` | `src/orchestration/sovereign-api.test.ts` | 401 expire/refresh akışı yeşil | A | Koru `[x]` |
+| Token expire sonrası sistemin graceful hata verdiğini (crash değil) doğrula | `src/orchestration/sovereign-api.ts` | `src/orchestration/sovereign-api.test.ts` | Refresh fail sonrası graceful response yeşil | A | Koru `[x]` |
 | TPM limitine takılan mission simülasyonu yaz (dakikada çok fazla istek) | `src/orchestration/autonomous-loop-engine.ts` | `src/orchestration/autonomous-loop-engine.test.ts` | Rapid-fire TPM exhaustion senaryosu yeşil | A | Koru `[x]` |
-| Rate limit sonrası retry-after stratejisinin doğru çalıştığını doğrula | `src/orchestration/antigravity-api.ts` | `src/orchestration/antigravity-api.test.ts` | `retry-after`, account rotation ve abort-backoff yeşil | A | Koru `[x]` |
+| Rate limit sonrası retry-after stratejisinin doğru çalıştığını doğrula | `src/orchestration/sovereign-api.ts` | `src/orchestration/sovereign-api.test.ts` | `retry-after`, account rotation ve abort-backoff yeşil | A | Koru `[x]` |
 
 ## Faz 2 Audit
 
@@ -135,7 +135,7 @@ Açık bırakılan satır: `8`
 | 2.1 `AutonomyEvent` tipine `decision_log` event type eklenmesi | `ui/src/store/types.ts`, `ui/src/store/helpers.ts` | `ui/src/tests/integration/OrchestrationSync.test.ts` | `decision_log` store ve timeline'a düşüyor | A | Koru `[x]` |
 | 2.1 Decision confidence backend feed + WebSocket publish | `src/orchestration/*`, `ui/src/components/telemetry/DecisionMatrix.tsx` | `ui/src/tests/integration/OrchestrationSync.test.ts`, `ui/src/components/telemetry/DecisionMatrix.test.tsx` | Confidence alanı UI'ya taşınıyor | A | Koru `[x]` |
 | 2.1 BudgetTracker session snapshot refactor | `ui/src/store/helpers.ts`, `ui/src/store/slices/websocketSlice.ts` | `ui/src/tests/integration/OrchestrationSync.test.ts`, `ui/src/components/dashboard/TokenUsageChart.test.tsx` | Budget snapshot normalize akışı yeşil | B | Koru `[x]` |
-| 2.2 LojiNext Elite Design System | `ui/src/pages/DashboardView.tsx`, `ui/src/styles/*` | `ui/src/pages/DashboardView.test.tsx`, `ui/src/pages/ActivePipelineView.test.tsx` | Tasarım dili yüzeyi render ediliyor | B | Koru `[x]` |
+| 2.2 Sovereign Elite Design System | `ui/src/pages/DashboardView.tsx`, `ui/src/styles/*` | `ui/src/pages/DashboardView.test.tsx`, `ui/src/pages/ActivePipelineView.test.tsx` | Tasarım dili yüzeyi render ediliyor | B | Koru `[x]` |
 | 2.2 `DashboardView` ana ekranı | `ui/src/pages/DashboardView.tsx` | `ui/src/pages/DashboardView.test.tsx` | `3/3` geçti | A | Koru `[x]` |
 | 2.2 High-density terminal timeline | `ui/src/pages/DashboardView.tsx` | `ui/src/pages/DashboardView.test.tsx`, `ui/src/tests/performance/TimelineStress.test.tsx` | Timeline render ve scroll window var | B | Koru `[x]` |
 | 2.2 Magic Toolbar model kontrolleri | `ui/src/pages/DashboardView.tsx` | `ui/src/pages/DashboardView.test.tsx` | Kontroller render ediliyor; model seçim etkileşimi ayrı assert edilmedi | B | Koru `[x]` |

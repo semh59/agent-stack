@@ -78,7 +78,7 @@ async function main() {
       await rotateKeys();
       break;
     case "export-keys":
-      const out = args[1] || "antigravity-export.bundle";
+      const out = args[1] || "sovereign-export.bundle";
       await exportKeys(out);
       break;
     case "import-keys":
@@ -90,7 +90,7 @@ async function main() {
       await importKeys(from);
       break;
     default:
-      console.log("Antigravity Key Manager");
+      console.log("Sovereign AI Key Manager");
       console.log("Usage:");
       console.log("  rotate-keys             - Rotate encryption keys");
       console.log("  export-keys [path]      - Export accounts to an encrypted bundle");

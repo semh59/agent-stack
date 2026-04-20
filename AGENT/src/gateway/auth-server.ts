@@ -1,7 +1,7 @@
-import * as http from "node:http";
+﻿import * as http from "node:http";
 import { URL } from "node:url";
-import { exchangeAntigravity } from "../antigravity/oauth";
-import { ANTIGRAVITY_REDIRECT_URI } from "../constants";
+import { exchangeGoogleGemini } from "../google-gemini/oauth";
+import { SOVEREIGN_REDIRECT_URI } from "../constants";
 import { TokenStore, type StoredToken } from "./token-store";
 
 export interface AuthServerOptions {
@@ -40,7 +40,7 @@ const SUCCESS_HTML = `<!DOCTYPE html>
 <head><meta charset="UTF-8"><title>Giris Basarili</title></head>
 <body>
   <h1>Giris Basarili</h1>
-  <p>Google Antigravity hesabi baglandi. Bu pencereyi kapatabilirsiniz.</p>
+  <p>Google Sovereign hesabi baglandi. Bu pencereyi kapatabilirsiniz.</p>
 </body>
 </html>`;
 
@@ -63,7 +63,7 @@ export class AuthServer {
   private serverState: ServerState;
 
   constructor(options: AuthServerOptions = {}) {
-    const redirectUrl = new URL(ANTIGRAVITY_REDIRECT_URI);
+    const redirectUrl = new URL(SOVEREIGN_REDIRECT_URI);
     this.port = options.port ?? (parseInt(redirectUrl.port, 10) || 51121);
     this.timeoutMs = options.timeoutMs ?? 10 * 60 * 1000; // 5'ten 10 dakikaya cikarildi
     this.tokenStore = options.tokenStore ?? new TokenStore();
@@ -157,7 +157,7 @@ export class AuthServer {
 
         try {
           console.log(`[AuthServer] Token exchange baslatiliyor... (state: ${state.slice(0, 8)}...)`);
-          const result = await exchangeAntigravity(code, state);
+          const result = await exchangeGoogleGemini(code, state);
 
           if (result.type === "failed") {
             console.error("[AuthServer] Token exchange failed:", result.error);

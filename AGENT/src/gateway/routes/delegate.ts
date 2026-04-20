@@ -1,12 +1,12 @@
-/**
- * Delegation Route — Task Assignment API
+﻿/**
+ * Delegation Route â€” Task Assignment API
  *
  * Enables users to delegate work to specific agent groups:
- *   POST /api/delegate           → Start a delegated task
- *   GET  /api/delegate/groups    → List available groups
- *   POST /api/delegate/plan      → Preview execution plan without starting
+ *   POST /api/delegate           â†’ Start a delegated task
+ *   GET  /api/delegate/groups    â†’ List available groups
+ *   POST /api/delegate/plan      â†’ Preview execution plan without starting
  *
- * This is the core "plana ayrı, code yazana ayrı iş ver" capability.
+ * This is the core "plana ayrÄ±, code yazana ayrÄ± iÅŸ ver" capability.
  */
 
 import type { FastifyInstance } from "fastify";
@@ -14,11 +14,11 @@ import { apiResponse, apiError } from "../rest-response";
 import { TaskDelegator, TaskGroup, type DelegationRequest } from "../task-delegator";
 import { AGENTS } from "../../orchestration/agents";
 
-// ─── Singleton Delegator ────────────────────────────────────────────────────
+// â”€â”€â”€ Singleton Delegator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const delegator = new TaskDelegator();
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface DelegateBody {
   task: string;
@@ -39,17 +39,17 @@ interface PlanPreviewBody {
   skipAgents?: string[];
 }
 
-// ─── Route Registration ─────────────────────────────────────────────────────
+// â”€â”€â”€ Route Registration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function registerDelegationRoutes(app: FastifyInstance): void {
 
-  // ── GET /api/delegate/groups — List available groups ─────────────────────
+  // â”€â”€ GET /api/delegate/groups â€” List available groups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/delegate/groups", async () => {
     const groups = TaskDelegator.getAvailableGroups();
     return apiResponse(groups);
   });
 
-  // ── GET /api/delegate/agents — List all agents with metadata ────────────
+  // â”€â”€ GET /api/delegate/agents â€” List all agents with metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/delegate/agents", async () => {
     const agents = AGENTS.map((a) => ({
       order: a.order,
@@ -65,7 +65,7 @@ export function registerDelegationRoutes(app: FastifyInstance): void {
     return apiResponse(agents);
   });
 
-  // ── POST /api/delegate/plan — Preview execution plan ────────────────────
+  // â”€â”€ POST /api/delegate/plan â€” Preview execution plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.post<{ Body: PlanPreviewBody }>(
     "/api/delegate/plan",
     async (request, reply) => {
@@ -116,7 +116,7 @@ export function registerDelegationRoutes(app: FastifyInstance): void {
     },
   );
 
-  // ── POST /api/delegate — Start a delegated task ─────────────────────────
+  // â”€â”€ POST /api/delegate â€” Start a delegated task â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.post<{ Body: DelegateBody }>(
     "/api/delegate",
     async (request, reply) => {

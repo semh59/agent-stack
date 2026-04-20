@@ -44,17 +44,18 @@ describe('SequentialPipeline', () => {
     tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pipeline-test-'));
     pipeline = new SequentialPipeline(tmpDir);
 
-    // Mock global fetch using stubGlobal for better persistence during parallel runs
+    // Universal mock that satisfies Gemini, Anthropic, and OpenAI response parsers
     fetchSpy = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        candidates: [
-          {
-            content: {
-              parts: [{ text: 'Mocked LLM response output' }]
-            }
-          }
-        ]
+        // Gemini
+        candidates: [{ content: { parts: [{ text: 'Mocked LLM response output' }] } }],
+        usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 20, totalTokenCount: 30 },
+        // Anthropic
+        content: [{ type: 'text', text: 'Mocked LLM response output' }],
+        usage: { input_tokens: 10, output_tokens: 20 },
+        // OpenAI
+        choices: [{ message: { content: 'Mocked LLM response output' } }],
       })
     });
     vi.stubGlobal('fetch', fetchSpy);
@@ -224,9 +225,17 @@ describe('SequentialPipeline', () => {
         startFromOrder: 18, // Run only the last agent to speed up test
       });
 
-      const lastCallBody = JSON.parse(fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1][1].body);
-      expect(lastCallBody.generationConfig.temperature).toBe(0.7);
-      expect(lastCallBody.generationConfig.maxOutputTokens).toBe(2048);
+      const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1];
+      const body = JSON.parse(lastCall[1].body);
+      
+      // Flexible assertion: check either Gemini generationConfig or Anthropic fields
+      if (body.generationConfig) {
+        expect(body.generationConfig.temperature).toBe(0.7);
+        expect(body.generationConfig.maxOutputTokens).toBe(2048);
+      } else {
+        expect(body.temperature).toBe(0.7);
+        expect(body.max_tokens).toBe(2048);
+      }
     });
   });
 

@@ -1,4 +1,4 @@
-import * as fs from "node:fs";
+﻿import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { NpmDistTags, OpencodeConfig, PackageJson, UpdateCheckResult } from "./types";
@@ -206,7 +206,7 @@ export function updatePinnedVersion(configPath: string, oldEntry: string, newVer
     }
 
     fs.writeFileSync(configPath, updatedContent, "utf-8");
-    debugLog(`[auto-update-checker] Updated ${configPath}: ${oldEntry} → ${newEntry}`);
+    debugLog(`[auto-update-checker] Updated ${configPath}: ${oldEntry} â†’ ${newEntry}`);
     return true;
   } catch (err) {
     console.error(`[auto-update-checker] Failed to update config file ${configPath}:`, err);

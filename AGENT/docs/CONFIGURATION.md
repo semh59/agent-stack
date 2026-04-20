@@ -1,10 +1,10 @@
 # Configuration
 
-Create `~/.config/opencode/antigravity.json` (or `.opencode/antigravity.json` in project root):
+Create `~/.config/opencode/sovereign.json` (or `.opencode/sovereign.json` in project root):
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/lojinext-ai/main/assets/antigravity.schema.json"
+  "$schema": "https://raw.githubusercontent.com/NoeFabris/sovereign-ai/main/assets/sovereign.schema.json"
 }
 ```
 
@@ -18,7 +18,7 @@ Most settings have sensible defaults. Only configure what you need.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/lojinext-ai/main/assets/antigravity.schema.json"
+  "$schema": "https://raw.githubusercontent.com/NoeFabris/sovereign-ai/main/assets/sovereign.schema.json"
 }
 ```
 
@@ -62,7 +62,7 @@ Settings for managing multiple Google accounts.
 | `account_selection_strategy` | `"hybrid"` | How to select accounts |
 | `switch_on_first_rate_limit` | `true` | Switch account immediately on first 429 |
 | `pid_offset_enabled` | `false` | Distribute sessions across accounts (for parallel agents) |
-| `quota_fallback` | `false` | **Gemini only.** When Antigravity exhausted on ALL accounts, fall back to Gemini CLI quota |
+| `quota_fallback` | `false` | **Gemini only.** When Sovereign AI exhausted on ALL accounts, fall back to Gemini CLI quota |
 
 ### Strategy Guide
 
@@ -98,14 +98,14 @@ Settings for plugin behavior.
 
 ```bash
 # Via environment variable (temporary)
-OPENCODE_ANTIGRAVITY_DEBUG=1 opencode   # Basic logging
-OPENCODE_ANTIGRAVITY_DEBUG=2 opencode   # Verbose logging
+OPENCODE_SOVEREIGN_DEBUG=1 opencode   # Basic logging
+OPENCODE_SOVEREIGN_DEBUG=2 opencode   # Verbose logging
 
 # Via config (persistent)
 { "debug": true }
 ```
 
-Logs are written to `~/.config/opencode/antigravity-logs/` (or `log_dir` if set).
+Logs are written to `~/.config/opencode/sovereign-logs/` (or `log_dir` if set).
 
 ---
 
@@ -117,7 +117,7 @@ Copy-paste ready configs with all recommended settings enabled.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/lojinext-ai/main/assets/antigravity.schema.json",
+  "$schema": "https://raw.githubusercontent.com/NoeFabris/sovereign-ai/main/assets/sovereign.schema.json",
   "account_selection_strategy": "sticky"
 }
 ```
@@ -129,7 +129,7 @@ Copy-paste ready configs with all recommended settings enabled.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/lojinext-ai/main/assets/antigravity.schema.json",
+  "$schema": "https://raw.githubusercontent.com/NoeFabris/sovereign-ai/main/assets/sovereign.schema.json",
   "account_selection_strategy": "hybrid"
 }
 ```
@@ -141,7 +141,7 @@ Copy-paste ready configs with all recommended settings enabled.
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/lojinext-ai/main/assets/antigravity.schema.json",
+  "$schema": "https://raw.githubusercontent.com/NoeFabris/sovereign-ai/main/assets/sovereign.schema.json",
   "account_selection_strategy": "round-robin",
   "switch_on_first_rate_limit": true,
   "pid_offset_enabled": true
@@ -179,12 +179,12 @@ These settings are `false` by default:
 All options can be set via environment variables:
 
 ```bash
-OPENCODE_ANTIGRAVITY_QUIET=1                              # quiet_mode
-OPENCODE_ANTIGRAVITY_DEBUG=1                              # debug (1=basic, 2=verbose)
-OPENCODE_ANTIGRAVITY_LOG_DIR=/path                        # log_dir
-OPENCODE_ANTIGRAVITY_KEEP_THINKING=1                      # keep_thinking
-OPENCODE_ANTIGRAVITY_ACCOUNT_SELECTION_STRATEGY=round-robin
-OPENCODE_ANTIGRAVITY_PID_OFFSET_ENABLED=1
+OPENCODE_SOVEREIGN_QUIET=1                              # quiet_mode
+OPENCODE_SOVEREIGN_DEBUG=1                              # debug (1=basic, 2=verbose)
+OPENCODE_SOVEREIGN_LOG_DIR=/path                        # log_dir
+OPENCODE_SOVEREIGN_KEEP_THINKING=1                      # keep_thinking
+OPENCODE_SOVEREIGN_ACCOUNT_SELECTION_STRATEGY=round-robin
+OPENCODE_SOVEREIGN_PID_OFFSET_ENABLED=1
 ```
 
 ---

@@ -1,10 +1,10 @@
-/**
- * Token Store — OAuth token saklama ve yenileme
+﻿/**
+ * Token Store â€” OAuth token saklama ve yenileme
  *
- * Google Antigravity OAuth tokenlarını diske kaydeder,
- * geçerlilik süresi dolarsa otomatik yeniler.
+ * Google Sovereign OAuth tokenlarÄ±nÄ± diske kaydeder,
+ * geÃ§erlilik sÃ¼resi dolarsa otomatik yeniler.
  *
- * Dosya: ~/.config/agent/antigravity-tokens.json
+ * Dosya: ~/.config/agent/google-gemini-tokens.json
  */
 
 import * as fs from "node:fs";
@@ -12,8 +12,8 @@ import * as path from "node:path";
 import * as os from "node:os";
 import AsyncLock from "async-lock";
 import {
-  ANTIGRAVITY_CLIENT_ID,
-  ANTIGRAVITY_CLIENT_SECRET,
+  SOVEREIGN_CLIENT_ID,
+  SOVEREIGN_CLIENT_SECRET,
   GEMINI_CLI_HEADERS,
 } from "../constants";
 import { createCipheriv, createDecipheriv, scryptSync, randomBytes } from "node:crypto";
@@ -26,7 +26,7 @@ const accountCache = new Map<string, StoredToken>();
 
 const keyManager = new KeyManager();
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface StoredToken {
   accessToken: string;
@@ -43,7 +43,7 @@ export interface TokenStoreData {
   activeIndex: number;
 }
 
-// ─── Defaults ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Defaults â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function getDefaultStore(): TokenStoreData {
   return {
@@ -53,9 +53,9 @@ function getDefaultStore(): TokenStoreData {
   };
 }
 
-const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 dakika önce yenile
+const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 dakika Ã¶nce yenile
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function getStorePath(): string {
   const configDir =
@@ -67,11 +67,11 @@ function getStorePath(): string {
     fs.mkdirSync(configDir, { recursive: true, mode: 0o700 });
   }
 
-  return path.join(configDir, "antigravity-tokens.json");
+  return path.join(configDir, "google-gemini-tokens.json");
 }
 
 /**
- * ─── ENCRYPTION UTILITIES ──────────────────────────────────────────────────
+ * â”€â”€â”€ ENCRYPTION UTILITIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  * Note: Legacy AES-256-CBC methods removed to prevent downgrade attacks.
  * All storage now uses KeyManager v3 (AES-256-GCM).
  */
@@ -81,7 +81,7 @@ function isEncrypted(content: string): boolean {
   return KeyManager.isV3Encrypted(content);
 }
 
-// ─── TokenStore Class ────────────────────────────────────────────────────────
+// â”€â”€â”€ TokenStore Class â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class TokenStore {
   private storePath: string;
@@ -94,7 +94,7 @@ export class TokenStore {
     this.data = this.loadFromDisk();
   }
 
-  // ── Persistence ──────────────────────────────────────────────────────────
+  // â”€â”€ Persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private loadFromDisk(): TokenStoreData {
     try {
@@ -127,7 +127,7 @@ export class TokenStore {
         }
       }
     } catch {
-      // Corrupted file — start fresh
+      // Corrupted file â€” start fresh
     }
     return getDefaultStore();
   }
@@ -142,9 +142,9 @@ export class TokenStore {
     fs.writeFileSync(this.storePath, JSON.stringify(encrypted, null, 2), "utf-8");
   }
 
-  // ── Public API ───────────────────────────────────────────────────────────
+  // â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  /** Yeni bir token hesabı ekle veya mevcut olanı güncelle */
+  /** Yeni bir token hesabÄ± ekle veya mevcut olanÄ± gÃ¼ncelle */
   addOrUpdateAccount(token: StoredToken): void {
     const existingIndex = this.data.accounts.findIndex(
       (a) => a.email && a.email === token.email,
@@ -163,7 +163,7 @@ export class TokenStore {
     this.saveToDisk();
   }
 
-  /** Bir hesabı email'e göre sil */
+  /** Bir hesabÄ± email'e gÃ¶re sil */
   removeAccount(email: string): boolean {
     const existingIndex = this.data.accounts.findIndex((a) => a.email === email);
     if (existingIndex >= 0) {
@@ -181,24 +181,24 @@ export class TokenStore {
     return false;
   }
 
-  /** Aktif hesabın tokenını döndür */
+  /** Aktif hesabÄ±n tokenÄ±nÄ± dÃ¶ndÃ¼r */
   getActiveToken(): StoredToken | null {
     if (this.data.accounts.length === 0) return null;
     const idx = Math.min(this.data.activeIndex, this.data.accounts.length - 1);
     return this.data.accounts[idx] ?? null;
   }
 
-  /** Tüm hesapları döndür */
+  /** TÃ¼m hesaplarÄ± dÃ¶ndÃ¼r */
   getAllAccounts(): StoredToken[] {
     return [...this.data.accounts];
   }
 
-  /** Hesap sayısı */
+  /** Hesap sayÄ±sÄ± */
   getAccountCount(): number {
     return this.data.accounts.length;
   }
 
-  /** Aktif hesabı email ile seç - O(1) optimized */
+  /** Aktif hesabÄ± email ile seÃ§ - O(1) optimized */
   setActiveAccountByEmail(email: string): boolean {
     const account = accountCache.get(email);
     if (account) {
@@ -212,14 +212,14 @@ export class TokenStore {
     return false;
   }
 
-  /** Geçerli token var mı? (expire olmamış) */
+  /** GeÃ§erli token var mÄ±? (expire olmamÄ±ÅŸ) */
   hasValidToken(): boolean {
     const token = this.getActiveToken();
     if (!token) return false;
     return !this.isTokenExpired(token);
   }
 
-  /** Token süresi dolmuş mu? (5 dk buffer ile) */
+  /** Token sÃ¼resi dolmuÅŸ mu? (5 dk buffer ile) */
   isTokenExpired(token: StoredToken): boolean {
     return Date.now() >= token.expiresAt - TOKEN_REFRESH_BUFFER_MS;
   }
@@ -240,7 +240,7 @@ export class TokenStore {
     // Acquire lock for this email and start refresh
     const refreshPromise = this.refreshLock.acquire(lockKey, async () => {
       try {
-        // Refresh token'dan projectId çıkar (format: "refreshToken|projectId")
+        // Refresh token'dan projectId Ã§Ä±kar (format: "refreshToken|projectId")
         let actualRefreshToken = token.refreshToken;
         let projectId = token.projectId || "";
 
@@ -258,8 +258,8 @@ export class TokenStore {
             "X-Goog-Api-Client": GEMINI_CLI_HEADERS["X-Goog-Api-Client"],
           },
           body: new URLSearchParams({
-            client_id: ANTIGRAVITY_CLIENT_ID,
-            client_secret: ANTIGRAVITY_CLIENT_SECRET,
+            client_id: SOVEREIGN_CLIENT_ID,
+            client_secret: SOVEREIGN_CLIENT_SECRET,
             refresh_token: actualRefreshToken,
             grant_type: "refresh_token",
           }),
@@ -303,13 +303,13 @@ export class TokenStore {
     return refreshPromise;
   }
 
-  /** Geçerli bir access token döndür — gerekirse otomatik yenile */
+  /** GeÃ§erli bir access token dÃ¶ndÃ¼r â€” gerekirse otomatik yenile */
   async getValidAccessToken(): Promise<string | null> {
     let token = this.getActiveToken();
     if (!token) return null;
 
     if (this.isTokenExpired(token)) {
-      console.log("[TokenStore] Token süresi dolmuş, yenileniyor...");
+      console.log("[TokenStore] Token sÃ¼resi dolmuÅŸ, yenileniyor...");
       token = await this.refreshActiveToken();
       if (!token) return null;
     }

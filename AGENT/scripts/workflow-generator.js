@@ -25,7 +25,7 @@ if (!fs.existsSync(WORKFLOWS_DIR)) {
 }
 
 WORKFLOWS.forEach(w => {
-  const content = `# Workflow: ${w.name}\n\nAntigravity v4 Sovereign Autonomy Protocol kapsamında bu aşamanın adımları aşağıdadır.\n\n## Adımlar\n1. Mevcut bağlamı (context) oku.\n2. ${w.name} için gerekli analizi tamamla.\n3. Çıktıyı belirlenen formatta (md/json) kaydet.\n4. Bir sonraki aşama için handoff notu bırak.`;
+  const content = `# Workflow: ${w.name}\n\nSovereign AI v4 Sovereign Autonomy Protocol kapsamında bu aşamanın adımları aşağıdadır.\n\n## Adımlar\n1. Mevcut bağlamı (context) oku.\n2. ${w.name} için gerekli analizi tamamla.\n3. Çıktıyı belirlenen formatta (md/json) kaydet.\n4. Bir sonraki aşama için handoff notu bırak.`;
   fs.writeFileSync(path.join(WORKFLOWS_DIR, w.file), content);
   console.log(`Generated: ${w.file}`);
 });

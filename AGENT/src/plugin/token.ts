@@ -1,4 +1,4 @@
-import { ANTIGRAVITY_CLIENT_ID, ANTIGRAVITY_CLIENT_SECRET } from "../constants";
+﻿import { SOVEREIGN_CLIENT_ID, SOVEREIGN_CLIENT_SECRET } from "../constants";
 import { formatRefreshParts, parseRefreshParts, calculateTokenExpiry } from "./auth";
 import { clearCachedAuth, storeCachedAuth } from "./cache";
 import { createLogger } from "./logger";
@@ -57,7 +57,7 @@ function parseOAuthErrorPayload(text: string | undefined): { code?: string; desc
   }
 }
 
-export class AntigravityTokenRefreshError extends Error {
+export class SovereignTokenRefreshError extends Error {
   code?: string;
   description?: string;
   status: number;
@@ -71,7 +71,7 @@ export class AntigravityTokenRefreshError extends Error {
     statusText: string;
   }) {
     super(options.message);
-    this.name = "AntigravityTokenRefreshError";
+    this.name = "SovereignTokenRefreshError";
     this.code = options.code;
     this.description = options.description;
     this.status = options.status;
@@ -82,7 +82,7 @@ export class AntigravityTokenRefreshError extends Error {
 const refreshPromises = new Map<string, Promise<OAuthAuthDetails | undefined>>();
 
 /**
- * Refreshes an Antigravity OAuth access token, updates persisted credentials, and handles revocation.
+ * Refreshes an Sovereign OAuth access token, updates persisted credentials, and handles revocation.
  * Implements Double-Fetch Protection to prevent multiple simultaneous refreshes for the same token.
  */
 export async function refreshAccessToken(
@@ -113,8 +113,8 @@ export async function refreshAccessToken(
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: parts.refreshToken!,
-          client_id: ANTIGRAVITY_CLIENT_ID,
-          client_secret: ANTIGRAVITY_CLIENT_SECRET,
+          client_id: SOVEREIGN_CLIENT_ID,
+          client_secret: SOVEREIGN_CLIENT_SECRET,
         }),
       });
 
@@ -128,7 +128,7 @@ export async function refreshAccessToken(
 
         const { code, description } = parseOAuthErrorPayload(errorText);
         const details = [code, description ?? errorText].filter(Boolean).join(": ");
-        const baseMessage = `Antigravity token refresh failed (${response.status} ${response.statusText})`;
+        const baseMessage = `Sovereign token refresh failed (${response.status} ${response.statusText})`;
         const message = details ? `${baseMessage} - ${details}` : baseMessage;
         log.warn("Token refresh failed", { status: response.status, code, details });
 
@@ -138,7 +138,7 @@ export async function refreshAccessToken(
           clearCachedAuth(auth.refresh);
         }
 
-        throw new AntigravityTokenRefreshError({
+        throw new SovereignTokenRefreshError({
           message,
           code,
           description: description ?? errorText,
@@ -171,7 +171,7 @@ export async function refreshAccessToken(
 
       return updatedAuth;
     } catch (error) {
-      if (error instanceof AntigravityTokenRefreshError) {
+      if (error instanceof SovereignTokenRefreshError) {
         throw error;
       }
       log.error("Unexpected token refresh error", { error: String(error) });

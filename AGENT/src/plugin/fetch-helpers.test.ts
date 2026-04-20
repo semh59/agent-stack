@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for fetch helper utilities.
  * Covers: URL parsing, model extraction, header style detection, quota fallback.
  */
@@ -11,7 +11,7 @@ import {
   isExplicitQuotaFromUrl,
 } from "./fetch-helpers";
 
-// ── toUrlString ──────────────────────────────────────────────────────
+// â”€â”€ toUrlString â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("toUrlString", () => {
   it("should return string input unchanged", () => {
@@ -24,7 +24,7 @@ describe("toUrlString", () => {
   });
 });
 
-// ── extractModelFromUrl ──────────────────────────────────────────────
+// â”€â”€ extractModelFromUrl â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("extractModelFromUrl", () => {
   it("should extract model from generativelanguage URL", () => {
@@ -47,7 +47,7 @@ describe("extractModelFromUrl", () => {
   });
 });
 
-// ── getModelFamilyFromUrl ────────────────────────────────────────────
+// â”€â”€ getModelFamilyFromUrl â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getModelFamilyFromUrl", () => {
   it("should detect gemini family from generativelanguage URL", () => {
@@ -61,13 +61,13 @@ describe("getModelFamilyFromUrl", () => {
   });
 });
 
-// ── getHeaderStyleFromUrl ────────────────────────────────────────────
+// â”€â”€ getHeaderStyleFromUrl â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getHeaderStyleFromUrl", () => {
-  it("should return antigravity style for gemini family by default", () => {
+  it("should return Sovereign style for gemini family by default", () => {
     const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
     const style = getHeaderStyleFromUrl(url, "gemini");
-    expect(style).toBe("antigravity");
+    expect(style).toBe("Sovereign");
   });
 
   it("should handle different family/style combinations", () => {
@@ -77,7 +77,7 @@ describe("getHeaderStyleFromUrl", () => {
   });
 });
 
-// ── isExplicitQuotaFromUrl ───────────────────────────────────────────
+// â”€â”€ isExplicitQuotaFromUrl â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("isExplicitQuotaFromUrl", () => {
   it("should return false for URL without model (no extractable model)", () => {

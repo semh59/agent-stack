@@ -2,7 +2,7 @@
 
 **Last Updated:** April 2026
 
-This document provides a deep technical reference for the Antigravity OAuth authentication system — covering token lifecycle, multi-account management, load balancing, quota protection, and gateway authentication.
+This document provides a deep technical reference for the Sovereign AI OAuth authentication system — covering token lifecycle, multi-account management, load balancing, quota protection, and gateway authentication.
 
 ---
 
@@ -18,7 +18,7 @@ This document provides a deep technical reference for the Antigravity OAuth auth
 │                          Authorization Code                          │
 │                                  │                                   │
 │                                  ▼                                   │
-│                    antigravity/oauth.ts (PKCE + Exchange)            │
+│                    sovereign/oauth.ts (PKCE + Exchange)            │
 │                                  │                                   │
 │                          ┌────────┴────────┐                        │
 │                          ▼                 ▼                         │
@@ -50,7 +50,7 @@ This document provides a deep technical reference for the Antigravity OAuth auth
 
 | Package | Used By | Purpose |
 |---------|---------|---------|
-| `@openauthjs/openauth/pkce` | `antigravity/oauth.ts` | PKCE code generation |
+| `@openauthjs/openauth/pkce` | `sovereign/oauth.ts` | PKCE code generation |
 | `async-lock` | `gateway/token-store.ts` | Per-key async serialization |
 | `node-machine-id` | `plugin/key-manager.ts`, `gateway/token-store.ts` | Machine-bound encryption key derivation |
 
@@ -61,7 +61,7 @@ This document provides a deep technical reference for the Antigravity OAuth auth
 | File | Lines | Size | Responsibility |
 |------|-------|------|----------------|
 | `src/constants.ts` | 270 | 8.2 KB | OAuth constants, endpoint definitions, header styles |
-| `src/antigravity/oauth.ts` | ~200 | — | OAuth token exchange (authorize → exchange), PKCE state management |
+| `src/sovereign/oauth.ts` | ~200 | — | OAuth token exchange (authorize → exchange), PKCE state management |
 | `src/plugin/auth.ts` | 46 | 1.8 KB | Token validation and refresh helpers |
 | `src/plugin/token.ts` | ~150 | — | Access token refresh logic |
 | `src/plugin/types.ts` | — | — | Core type definitions (`OAuthAuthDetails`, `RefreshParts`) |
@@ -96,7 +96,7 @@ The system uses Google OAuth2 Authorization Code flow with **PKCE** (Proof Key f
 
 ```
 ┌────────┐     ┌──────────┐     ┌──────────────┐     ┌─────────────┐
-│ Client  │     │ Browser  │     │ Google OAuth2│     │ Antigravity │
+│ Client  │     │ Browser  │     │ Google OAuth2│     │ Sovereign AI │
 │ (Plugin │     │          │     │ Server       │     │ API         │
 └───┬─────┘     └────┬─────┘     └──────┬───────┘     └──────┬──────┘
     │                │                  │                    │
@@ -133,12 +133,12 @@ The system uses Google OAuth2 Authorization Code flow with **PKCE** (Proof Key f
 
 | Step | Component | What Happens |
 |------|-----------|--------------|
-| 1 | `antigravity/oauth.ts` | `PKCEStateManager` generates `verifier` + SHA256 `challenge`, stores in server-side session map (10-min TTL, one-time use) |
+| 1 | `sovereign/oauth.ts` | `PKCEStateManager` generates `verifier` + SHA256 `challenge`, stores in server-side session map (10-min TTL, one-time use) |
 | 2 | `gateway/browser-launcher.ts` → `launchOAuthBrowser()` or CLI | Opens browser to `accounts.google.com/o/oauth2/v2/auth` with `client_id`, `redirect_uri`, `scope`, `state`, `code_challenge`, `code_challenge_method=S256` |
 | 3 | Google | User authenticates and consents |
 | 4 | Google | Redirects to `http://127.0.0.1:{port}/oauth-callback?code=...&state=...` |
 | 5 | `plugin/server.ts` or `gateway/auth-server.ts` | Local HTTP server captures the callback, extracts `code` and `state` |
-| 6 | `antigravity/oauth.ts` → `exchangeAntigravity()` | Sends `code` + `verifier` + `client_secret` to Antigravity token endpoint |
+| 6 | `sovereign/oauth.ts` → `exchangeSovereign AI()` | Sends `code` + `verifier` + `client_secret` to Sovereign AI token endpoint |
 | 7 | Response | Receives `access_token` (short-lived ~1h), `refresh_token` (long-lived), `expiry_date` |
 
 ### PKCE Implementations
@@ -147,7 +147,7 @@ Two PKCE modules exist in the codebase:
 
 | Module | Used By | Implementation |
 |--------|---------|----------------|
-| `PKCEStateManager` (class in `antigravity/oauth.ts`) | Plugin + Gateway auth flow | Full stateful manager with server-side session storage, one-time use, 10-min TTL |
+| `PKCEStateManager` (class in `sovereign/oauth.ts`) | Plugin + Gateway auth flow | Full stateful manager with server-side session storage, one-time use, 10-min TTL |
 | `generatePKCE()` (function in `gateway/pkce.ts`) | Lightweight utility | Stateless function returning `{codeVerifier, codeChallenge}` pair |
 
 ```typescript
@@ -158,7 +158,7 @@ interface PKCEPair {
 }
 function generatePKCE(): PKCEPair
 
-// antigravity/oauth.ts — Full stateful PKCE manager
+// sovereign/oauth.ts — Full stateful PKCE manager
 class PKCEStateManager {
   private sessions = new Map<string, PKCESession>();
 
@@ -187,26 +187,26 @@ Key properties of `PKCEStateManager`:
 
 | Constant | Value | Purpose |
 |----------|-------|---------|
-| `ANTIGRAVITY_CLIENT_ID` | Google OAuth2 client ID | Identifies the Antigravity application |
-| `ANTIGRAVITY_CLIENT_SECRET` | From `AG_CLIENT_SECRET` env or fallback | Client secret for token exchange |
-| `ANTIGRAVITY_SCOPES` | 5 scopes (see below) | OAuth permission scopes |
-| `ANTIGRAVITY_REDIRECT_URI` | `http://127.0.0.1:51121/oauth-callback` | Local callback URL |
-| `ANTIGRAVITY_ENDPOINT_FALLBACKS` | daily → autopush → prod | Ordered endpoint fallback list |
-| `ANTIGRAVITY_LOAD_ENDPOINTS` | prod-first ordering | Endpoint order for `loadCodeAssist` |
-| `ANTIGRAVITY_VERSION` | `1.15.8` | Version string for User-Agent header |
-| `ANTIGRAVITY_ENDPOINT` | Points to `DAILY` | Primary API endpoint (development/testing) |
+| `SOVEREIGN_CLIENT_ID` | Google OAuth2 client ID | Identifies the Sovereign AI application |
+| `SOVEREIGN_CLIENT_SECRET` | From `AG_CLIENT_SECRET` env or fallback | Client secret for token exchange |
+| `SOVEREIGN_SCOPES` | 5 scopes (see below) | OAuth permission scopes |
+| `SOVEREIGN_REDIRECT_URI` | `http://127.0.0.1:51121/oauth-callback` | Local callback URL |
+| `SOVEREIGN_ENDPOINT_FALLBACKS` | daily → autopush → prod | Ordered endpoint fallback list |
+| `SOVEREIGN_LOAD_ENDPOINTS` | prod-first ordering | Endpoint order for `loadCodeAssist` |
+| `SOVEREIGN_VERSION` | `1.15.8` | Version string for User-Agent header |
+| `SOVEREIGN_ENDPOINT` | Points to `DAILY` | Primary API endpoint (development/testing) |
 | `GEMINI_CLI_ENDPOINT` | Points to `PROD` | Gemini CLI quota pool endpoint |
 
 ### API Endpoints
 
 | Constant | URL | Purpose |
 |----------|-----|---------|
-| `ANTIGRAVITY_ENDPOINT_DAILY` | `https://daily-cloudcode-pa.sandbox.googleapis.com` | Daily build (primary default) |
-| `ANTIGRAVITY_ENDPOINT_AUTOPUSH` | `https://autopush-cloudcode-pa.sandbox.googleapis.com` | Autopush staging |
-| `ANTIGRAVITY_ENDPOINT_PROD` | `https://cloudcode-pa.googleapis.com` | Production |
+| `SOVEREIGN_ENDPOINT_DAILY` | `https://daily-cloudcode-pa.sandbox.googleapis.com` | Daily build (primary default) |
+| `SOVEREIGN_ENDPOINT_AUTOPUSH` | `https://autopush-cloudcode-pa.sandbox.googleapis.com` | Autopush staging |
+| `SOVEREIGN_ENDPOINT_PROD` | `https://cloudcode-pa.googleapis.com` | Production |
 
-**Fallback order:** `ANTIGRAVITY_ENDPOINT_FALLBACKS = [daily, autopush, prod]`
-**Load order:** `ANTIGRAVITY_LOAD_ENDPOINTS = [prod, ...]` (prod-first for `loadCodeAssist`)
+**Fallback order:** `SOVEREIGN_ENDPOINT_FALLBACKS = [daily, autopush, prod]`
+**Load order:** `SOVEREIGN_LOAD_ENDPOINTS = [prod, ...]` (prod-first for `loadCodeAssist`)
 
 ### OAuth Scopes
 
@@ -222,12 +222,12 @@ Key properties of `PKCEStateManager`:
 
 | Style | Use Case |
 |-------|----------|
-| `antigravity` | Default Antigravity API requests |
+| `sovereign` | Default Sovereign AI API requests |
 | `gemini-cli` | Gemini CLI fallback quota pool |
 | `gemini-cli-pro` | Gemini CLI Pro model variant |
 | `gemini-cli-flash` | Gemini CLI Flash model variant |
 
-### Config File (`~/.config/opencode/antigravity.json`)
+### Config File (`~/.config/opencode/sovereign.json`)
 
 Managed via `src/plugin/config/schema.ts` (Zod schema) and loaded by `src/plugin/config/loader.ts`.
 
@@ -271,7 +271,7 @@ Managed via `src/plugin/config/schema.ts` (Zod schema) and loaded by `src/plugin
 | Token | Lifetime | Storage | Purpose |
 |-------|----------|---------|---------|
 | **Access Token** | ~1 hour | In-memory (`AuthCache`) | API request authorization |
-| **Refresh Token** | Indefinite (until revoked) | Disk (`antigravity-accounts.json`) | Obtain new access tokens |
+| **Refresh Token** | Indefinite (until revoked) | Disk (`sovereign-accounts.json`) | Obtain new access tokens |
 | **PKCE State** | 10 minutes | In-memory (`PKCEStateManager`) | CSRF + code verifier binding |
 
 ### Token Refresh Flow
@@ -310,8 +310,8 @@ The gateway `TokenStore` refreshes tokens via Google's OAuth2 endpoint:
 POST https://oauth2.googleapis.com/token
 Content-Type: application/x-www-form-urlencoded
 
-client_id={ANTIGRAVITY_CLIENT_ID}
-client_secret={ANTIGRAVITY_CLIENT_SECRET}
+client_id={SOVEREIGN_CLIENT_ID}
+client_secret={SOVEREIGN_CLIENT_SECRET}
 refresh_token={refreshToken}
 grant_type=refresh_token
 ```
@@ -411,7 +411,7 @@ Disk-based persistence for Claude thinking block signatures.
 │  └───────────────────┘  └───────────────────────────────┘   │
 │                                                              │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │ Persistence (antigravity-accounts.json)                │  │
+│  │ Persistence (sovereign-accounts.json)                │  │
 │  │ loadFromDisk() ←→ saveToDisk()                        │  │
 │  └───────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
@@ -529,7 +529,7 @@ Rate limit state is tracked via `RateLimitStateV3` (defined in `src/plugin/stora
 ```typescript
 interface RateLimitStateV3 {
   claude?: number;              // Reset timestamp for Claude quota key
-  "gemini-antigravity"?: number; // Reset timestamp for Gemini via Antigravity
+  "gemini-sovereign"?: number; // Reset timestamp for Gemini via Sovereign AI
   "gemini-cli"?: number;        // Reset timestamp for Gemini CLI fallback
   [key: string]: number | undefined;  // Extensible for future keys
 }
@@ -635,7 +635,7 @@ interface QuotaSummary {
 async function checkAccountsQuota(
   accounts: AccountMetadataV3[],
   client: PluginClient,
-  providerId?: string,        // default = ANTIGRAVITY_PROVIDER_ID
+  providerId?: string,        // default = GOOGLE_GEMINI_PROVIDER_ID
 ): Promise<AccountQuotaResult[]>
 ```
 
@@ -645,16 +645,16 @@ For Gemini models, two independent quota pools exist per account:
 
 | Pool | Endpoint | When Used |
 |------|----------|-----------|
-| **Antigravity** | Antigravity API | Default for all requests |
-| **Gemini CLI** | Gemini API directly | Automatic fallback when Antigravity exhausted on ALL accounts |
+| **Sovereign AI** | Sovereign AI API | Default for all requests |
+| **Gemini CLI** | Gemini API directly | Automatic fallback when Sovereign AI exhausted on ALL accounts |
 
 Transition flow:
 
 ```
-1. Request on Account A (Antigravity) ──▶ 429
-2. Try Account B (Antigravity)         ──▶ 429
-3. Try Account C (Antigravity)         ──▶ 429
-4. All Antigravity exhausted
+1. Request on Account A (Sovereign AI) ──▶ 429
+2. Try Account B (Sovereign AI)         ──▶ 429
+3. Try Account C (Sovereign AI)         ──▶ 429
+4. All Sovereign AI exhausted
 5. Fallback: Account A (Gemini CLI)    ──▶ Success
    (Model name transformed automatically)
 ```
@@ -673,12 +673,12 @@ Enabled via `"quota_fallback": true` in config.
 
 ```
 Machine ID (node-machine-id)
-    + Application Salt (ANTIGRAVITY_SALT env or 'ag-default-salt-v3')
+    + Application Salt (SOVEREIGN_SALT env or 'ag-default-salt-v3')
     ────────────────────────────────────────────────
     ▼ scryptSync(machineId, salt, 32)
     Master Key (32 bytes)
 
-Override: ANTIGRAVITY_MASTER_KEY env → raw hex key (for CI/headless)
+Override: SOVEREIGN_MASTER_KEY env → raw hex key (for CI/headless)
 ```
 
 #### Encrypted Payload Format (v3)
@@ -741,7 +741,7 @@ interface ClientMetadata {
 interface Fingerprint {
   deviceId: string;          // Random UUID
   sessionToken: string;      // Random 32-hex-char token
-  userAgent: string;         // "antigravity/{version} {platform}/{arch}"
+  userAgent: string;         // "sovereign/{version} {platform}/{arch}"
   apiClient: string;         // Random SDK client string
   clientMetadata: ClientMetadata;  // Structured metadata
   quotaUser: string;         // "device-{random hex}"
@@ -779,7 +779,7 @@ interface FingerprintVersion {
 
 ### Account Pool Storage (`src/plugin/persist-account-pool.ts`)
 
-Location: `~/.config/opencode/antigravity-accounts.json`
+Location: `~/.config/opencode/sovereign-accounts.json`
 
 ```json
 {
@@ -796,14 +796,14 @@ Location: `~/.config/opencode/antigravity-accounts.json`
       "lastSwitchReason": "initial",
       "rateLimitResetTimes": {
         "claude": 1713124000000,
-        "gemini-antigravity": 1713124000000
+        "gemini-sovereign": 1713124000000
       },
       "coolingDownUntil": null,
       "cooldownReason": null,
       "fingerprint": {
         "deviceId": "550e8400-e29b-41d4-a716-446655440000",
         "sessionToken": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
-        "userAgent": "antigravity/1.15.8 darwin/arm64",
+        "userAgent": "sovereign/1.15.8 darwin/arm64",
         "apiClient": "google-cloud-sdk vscode/1.87.0",
         "clientMetadata": { "ideType": "VSCODE", "platform": "MACOS", ... },
         "quotaUser": "device-a1b2c3d4e5f6a1b2",
@@ -879,7 +879,7 @@ Lightweight HTTP server for the OAuth callback in gateway mode.
 | Feature | Detail |
 |---------|--------|
 | **Bind address** | `127.0.0.1` (localhost only) |
-| **Default port** | Derived from `ANTIGRAVITY_REDIRECT_URI` (51121) |
+| **Default port** | Derived from `SOVEREIGN_REDIRECT_URI` (51121) |
 | **Timeout** | 10 minutes (configurable) |
 | **CSRF protection** | `state` parameter validation against `expectedState` |
 | **Response** | Styled HTML success page in Turkish |
@@ -900,7 +900,7 @@ interface AuthResult {
 
 AES-256-GCM encrypted, file-based multi-account token storage for the gateway.
 
-**Storage location:** `~/.config/agent/antigravity-tokens.json` (encrypted via `KeyManager`)
+**Storage location:** `~/.config/agent/sovereign-tokens.json` (encrypted via `KeyManager`)
 
 ```typescript
 interface StoredToken {
@@ -981,12 +981,12 @@ Launches OAuth flow in the system browser or provides URL for manual copy.
 
 ```typescript
 interface LaunchResult {
-  authorization: AntigravityAuthorization;
+  authorization: Sovereign AIAuthorization;
   browserOpened: boolean;
 }
 
 async function launchOAuthBrowser(projectId?: string): Promise<LaunchResult>
-async function generateOAuthUrl(projectId?: string): Promise<AntigravityAuthorization>
+async function generateOAuthUrl(projectId?: string): Promise<Sovereign AIAuthorization>
 ```
 
 | Platform | Command |
@@ -1000,7 +1000,7 @@ If browser fails to open, the URL is printed to terminal as fallback.
 ### OAuth Port Management (`src/gateway/oauth-port.ts`)
 
 ```typescript
-const DEFAULT_OAUTH_CALLBACK_PORT: number  // Parsed from ANTIGRAVITY_REDIRECT_URI (51121)
+const DEFAULT_OAUTH_CALLBACK_PORT: number  // Parsed from SOVEREIGN_REDIRECT_URI (51121)
 
 interface OAuthPortCheckResult {
   available: boolean;
@@ -1065,7 +1065,7 @@ Authenticated Account
 │    (per refresh token) │
 │                        │
 │ 2. If not cached:      │
-│    loadCodeAssist()    │────▶ Antigravity API
+│    loadCodeAssist()    │────▶ Sovereign AI API
 │                        │       (loadCodeAssist endpoint)
 │ 3. If no project:      │
 │    onboardManagedProject() │─▶ Auto-provision project
@@ -1142,7 +1142,7 @@ Authenticated Account
 ### Network Security
 
 - **Callback server** binds to `127.0.0.1` (localhost only)
-- **HTTPS** used for all Google/Antigravity API calls
+- **HTTPS** used for all Google/Sovereign AI API calls
 - **No token logging** — Tokens never appear in debug logs
 
 ### Account Isolation
@@ -1159,7 +1159,7 @@ OAuth-related test files in the codebase:
 
 | Test File | Tests |
 |-----------|-------|
-| `src/antigravity/oauth.test.ts` | OAuth token exchange, PKCE state management |
+| `src/sovereign/oauth.test.ts` | OAuth token exchange, PKCE state management |
 | `src/plugin/auth.test.ts` | Token validation helpers |
 | `src/plugin/token.test.ts` | Access token refresh logic |
 | `src/plugin/accounts.test.ts` | Multi-account management, load balancing |

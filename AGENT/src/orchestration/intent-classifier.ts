@@ -1,4 +1,4 @@
-export interface TrainingExample {
+﻿export interface TrainingExample {
   text: string;
   label: string;
 }
@@ -25,7 +25,7 @@ export class IntentClassifier {
 
   private tokenize(text: string): string[] {
     return text.toLowerCase()
-      .replace(/[^\w\sа-яğüşıöç]/gi, '') // Support basic Turkish characters
+      .replace(/[^\w\sĞ°-ÑÄŸÃ¼ÅŸÄ±Ã¶Ã§]/gi, '') // Support basic Turkish characters
       .split(/\s+/)
       .filter(t => t.length > 1);
   }

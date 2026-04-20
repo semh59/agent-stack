@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Proactive Token Refresh Queue
  * 
  * Ported from LLM-API-Key-Proxy's BackgroundRefresher.
@@ -57,7 +57,7 @@ interface RefreshQueueState {
  * This ensures that user requests never block on token refresh.
  * 
  * All logging is silent by default - uses structured logger that only outputs
- * when OPENCODE_ANTIGRAVITY_CONSOLE_LOG=1 is set or TUI logging is available.
+ * when OPENCODE_SOVEREIGN_CONSOLE_LOG=1 is set or TUI logging is available.
  */
 export class ProactiveRefreshQueue {
   private readonly config: ProactiveRefreshConfig;

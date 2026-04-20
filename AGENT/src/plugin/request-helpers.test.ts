@@ -1,21 +1,21 @@
-/**
+﻿/**
  * Tests for request helper functions.
  * Covers: JSON schema cleaning, thinking config, tool normalization.
  */
 import { describe, it, expect } from "vitest";
 import {
-  cleanJSONSchemaForAntigravity,
+  cleanJSONSchemaForSovereign,
   isThinkingCapableModel,
 } from "./request-helpers";
 
-// ── cleanJSONSchemaForAntigravity ────────────────────────────────────
+// â”€â”€ cleanJSONSchemaForSovereign â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe("cleanJSONSchemaForAntigravity", () => {
+describe("cleanJSONSchemaForSovereign", () => {
   it("should return null/undefined/primatives unchanged", () => {
-    expect(cleanJSONSchemaForAntigravity(null)).toBeNull();
-    expect(cleanJSONSchemaForAntigravity(undefined)).toBeUndefined();
-    expect(cleanJSONSchemaForAntigravity("hello")).toBe("hello");
-    expect(cleanJSONSchemaForAntigravity(42)).toBe(42);
+    expect(cleanJSONSchemaForSovereign(null)).toBeNull();
+    expect(cleanJSONSchemaForSovereign(undefined)).toBeUndefined();
+    expect(cleanJSONSchemaForSovereign("hello")).toBe("hello");
+    expect(cleanJSONSchemaForSovereign(42)).toBe(42);
   });
 
   it("should keep allowed schema keywords", () => {
@@ -28,7 +28,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
       required: ["name"],
       description: "A person",
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     expect(result.type).toBe("object");
     expect(result.properties).toBeDefined();
     expect(result.required).toEqual(["name"]);
@@ -40,7 +40,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
       type: "string",
       enum: ["a", "b", "c"],
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     expect(result.enum).toEqual(["a", "b", "c"]);
   });
 
@@ -49,7 +49,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
       type: "array",
       items: { type: "string" },
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     expect(result.type).toBe("array");
     expect(result.items).toEqual({ type: "string" });
   });
@@ -59,7 +59,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
       type: "string",
       const: "fixed_value",
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     expect(result.enum).toEqual(["fixed_value"]);
     expect(result.const).toBeUndefined();
   });
@@ -71,7 +71,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
         empty: {},
       },
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     // Empty object should be replaced with a placeholder
     expect(result.properties.empty).toBeDefined();
     // Should have at least a type or description
@@ -90,7 +90,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
       default: { name: "test" },
       examples: [{ name: "example" }],
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     // additionalProperties is removed (moved to description hint)
     expect(result.additionalProperties).toBeUndefined();
     // default and examples are removed (moved to description hints)
@@ -107,7 +107,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
       minProperties: 1,
       maxProperties: 10,
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     // minProperties/maxProperties are NOT in UNSUPPORTED_KEYWORDS
     expect(result.minProperties).toBe(1);
     expect(result.maxProperties).toBe(10);
@@ -125,7 +125,7 @@ describe("cleanJSONSchemaForAntigravity", () => {
         },
       },
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     const deepProp = result.properties.nested.properties.deep;
     expect(deepProp.enum).toEqual(["deep_value"]);
     expect(deepProp.const).toBeUndefined();
@@ -139,13 +139,13 @@ describe("cleanJSONSchemaForAntigravity", () => {
         { type: "number", const: 42 },
       ],
     };
-    const result = cleanJSONSchemaForAntigravity(schema);
+    const result = cleanJSONSchemaForSovereign(schema);
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items[1].enum).toEqual([42]);
   });
 });
 
-// ── isThinkingCapableModel ───────────────────────────────────────────
+// â”€â”€ isThinkingCapableModel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("isThinkingCapableModel", () => {
   // Only models with "thinking", "gemini-3", or "opus" in the name are recognized

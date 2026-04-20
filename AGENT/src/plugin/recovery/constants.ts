@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Constants for session recovery storage paths.
  * 
  * Based on oh-my-opencode/src/hooks/session-recovery/constants.ts
@@ -22,7 +22,7 @@ function getXdgData(): string {
 }
 
 /**
- * Get the XDG config directory for Antigravity config.
+ * Get the XDG config directory for Sovereign config.
  * Falls back to ~/.config on Linux/Mac, or APPDATA on Windows.
  */
 export function getXdgConfig(): string {
@@ -36,10 +36,10 @@ export function getXdgConfig(): string {
 }
 
 /**
- * Get the Antigravity config directory.
- * Default: ~/.config/opencode/antigravity.json
+ * Get the Sovereign config directory.
+ * Default: ~/.config/opencode/Sovereign.json
  */
-export function getAntigravityConfigDir(): string {
+export function getSovereignGatewayConfigDir(): string {
   return join(getXdgConfig(), "opencode");
 }
 

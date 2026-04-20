@@ -6,7 +6,7 @@
 ## EXECUTIVE SUMMARY
 
 The Agent Stack represents a sophisticated, dual-component AI platform combining:
-- **AGENT (LojiNext AI)**: Advanced authentication and orchestration layer for AI models
+- **AGENT (Sovereign AI)**: Advanced authentication and orchestration layer for AI models
 - **ai-stack-mcp**: Intelligent token optimization and caching infrastructure
 
 Together, they form a comprehensive enterprise-grade AI agent platform with advanced optimization capabilities.

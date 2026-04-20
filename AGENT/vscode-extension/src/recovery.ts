@@ -89,7 +89,7 @@ export function runStartupRecoveryFlow(
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      void vscode.window.showWarningMessage(`LojiNext recovery check failed: ${message}`);
+      void vscode.window.showWarningMessage(`Sovereign AI recovery check failed: ${message}`);
     } finally {
       activeRecoveryRun = null;
     }

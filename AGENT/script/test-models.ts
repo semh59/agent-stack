@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 
 interface ModelTest {
   model: string;
-  category: "gemini-cli" | "antigravity-gemini" | "antigravity-claude";
+  category: "gemini-cli" | "sovereign-gemini" | "sovereign-claude";
 }
 
 const MODELS: ModelTest[] = [
@@ -13,22 +13,22 @@ const MODELS: ModelTest[] = [
   { model: "google/gemini-2.5-pro", category: "gemini-cli" },
   { model: "google/gemini-2.5-flash", category: "gemini-cli" },
 
-  // Antigravity Gemini
-  { model: "google/antigravity-gemini-3-pro-low", category: "antigravity-gemini" },
-  { model: "google/antigravity-gemini-3-pro-high", category: "antigravity-gemini" },
-  { model: "google/antigravity-gemini-3-flash", category: "antigravity-gemini" },
+  // Sovereign AI Gemini
+  { model: "google/sovereign-gemini-3-pro-low", category: "sovereign-gemini" },
+  { model: "google/sovereign-gemini-3-pro-high", category: "sovereign-gemini" },
+  { model: "google/sovereign-gemini-3-flash", category: "sovereign-gemini" },
 
-  // Antigravity Claude
-  { model: "google/antigravity-claude-sonnet-4-5", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-sonnet-4-5-thinking-low", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-sonnet-4-5-thinking-medium", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-sonnet-4-5-thinking-high", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-opus-4-5-thinking-low", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-opus-4-5-thinking-medium", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-opus-4-5-thinking-high", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-opus-4-6-thinking-low", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-opus-4-6-thinking-medium", category: "antigravity-claude" },
-  { model: "google/antigravity-claude-opus-4-6-thinking-high", category: "antigravity-claude" },
+  // Sovereign AI Claude
+  { model: "google/sovereign-claude-sonnet-4-5", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-sonnet-4-5-thinking-low", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-sonnet-4-5-thinking-medium", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-sonnet-4-5-thinking-high", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-opus-4-5-thinking-low", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-opus-4-5-thinking-medium", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-opus-4-5-thinking-high", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-opus-4-6-thinking-low", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-opus-4-6-thinking-medium", category: "sovereign-claude" },
+  { model: "google/sovereign-claude-opus-4-6-thinking-high", category: "sovereign-claude" },
 ];
 
 const TEST_PROMPT = "Reply with exactly one word: WORKING";
@@ -100,7 +100,7 @@ Usage:
 
 Options:
   --model <model>      Test specific model
-  --category <cat>     Test by category (gemini-cli, antigravity-gemini, antigravity-claude)
+  --category <cat>     Test by category (gemini-cli, sovereign-gemini, sovereign-claude)
   --timeout <ms>       Timeout per model (default: 120000)
   --dry-run            List models without testing
   --help, -h           Show this help
@@ -108,7 +108,7 @@ Options:
 Examples:
   npx tsx script/test-models.ts --dry-run
   npx tsx script/test-models.ts --model google/gemini-3-flash-preview
-  npx tsx script/test-models.ts --category antigravity-claude
+  npx tsx script/test-models.ts --category sovereign-claude
 `);
 }
 

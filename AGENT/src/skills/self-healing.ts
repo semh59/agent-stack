@@ -1,4 +1,4 @@
-export interface Hypothesis {
+﻿export interface Hypothesis {
   cause: string;
   probability: number; // 0-1
   evidence: string;
@@ -13,12 +13,12 @@ export interface DiagnosisResult {
 
 export class SelfHealingEngine {
   /**
-   * Hata mesajını ve context'i analiz ederek hipotezler üretir.
+   * Hata mesajÄ±nÄ± ve context'i analiz ederek hipotezler Ã¼retir.
    */
   public diagnose(errorMessage: string, stackTrace?: string): DiagnosisResult {
     const hypotheses: Hypothesis[] = [];
     
-    // 1. Örüntü Tanıma (Basitleştirilmiş 'Smart Debug' mantığı)
+    // 1. Ã–rÃ¼ntÃ¼ TanÄ±ma (BasitleÅŸtirilmiÅŸ 'Smart Debug' mantÄ±ÄŸÄ±)
     if (errorMessage.includes('timeout') || errorMessage.includes('ETIMEDOUT')) {
       hypotheses.push({
         cause: 'External API or Database timeout',

@@ -101,7 +101,7 @@ Problem: bu durum log gurultusu gibi gorunuyordu; gercek semantik net degildi.
 
 Yapilan:
 - Varsayilan `console.warn` kaldirildi.
-- Warning opt-in hale getirildi: sadece `LOJINEXT_WARN_VERIFY_NO_TOUCHED=1` iken basilir.
+- Warning opt-in hale getirildi: sadece `SOVEREIGN_WARN_VERIFY_NO_TOUCHED=1` iken basilir.
 - `analysis` ve `finalize` gibi no-file task tipleri icin warning basilmamasi netlestirildi.
 
 Neden:

@@ -1,7 +1,7 @@
-import {
-  ANTIGRAVITY_ENDPOINT_PROD,
-  ANTIGRAVITY_HEADERS,
-  ANTIGRAVITY_PROVIDER_ID,
+﻿import {
+  SOVEREIGN_ENDPOINT_PROD,
+  SOVEREIGN_HEADERS,
+  GOOGLE_GEMINI_PROVIDER_ID,
 } from "../constants";
 import { accessTokenExpired, formatRefreshParts, parseRefreshParts } from "./auth";
 import { logQuotaFetch, logQuotaStatus } from "./debug";
@@ -186,8 +186,8 @@ async function fetchAvailableModels(
   accessToken: string,
   projectId: string,
 ): Promise<FetchAvailableModelsResponse> {
-  const endpoint = ANTIGRAVITY_ENDPOINT_PROD;
-  const quotaUserAgent = ANTIGRAVITY_HEADERS["User-Agent"] || "antigravity/windows/amd64";
+  const endpoint = SOVEREIGN_ENDPOINT_PROD;
+  const quotaUserAgent = SOVEREIGN_HEADERS["User-Agent"] || "Sovereign/windows/amd64";
   const errors: string[] = [];
 
   const body = projectId ? { project: projectId } : {};
@@ -218,8 +218,8 @@ async function fetchGeminiCliQuota(
   accessToken: string,
   projectId: string,
 ): Promise<RetrieveUserQuotaResponse> {
-  const endpoint = ANTIGRAVITY_ENDPOINT_PROD;
-  // Use Gemini CLI user-agent to get CLI quota buckets (not Antigravity buckets)
+  const endpoint = SOVEREIGN_ENDPOINT_PROD;
+  // Use Gemini CLI user-agent to get CLI quota buckets (not Sovereign buckets)
   const platform = process.platform || "darwin";
   const arch = process.arch || "arm64";
   const geminiCliUserAgent = `GeminiCLI/1.0.0/gemini-2.5-pro (${platform}; ${arch})`;
@@ -310,7 +310,7 @@ function applyAccountUpdates(account: AccountMetadataV3, auth: OAuthAuthDetails)
 export async function checkAccountsQuota(
   accounts: AccountMetadataV3[],
   client: PluginClient,
-  providerId = ANTIGRAVITY_PROVIDER_ID,
+  providerId = GOOGLE_GEMINI_PROVIDER_ID,
 ): Promise<AccountQuotaResult[]> {
   const results: AccountQuotaResult[] = [];
   
@@ -337,22 +337,22 @@ export async function checkAccountsQuota(
       let quotaResult: QuotaSummary;
       let geminiCliQuotaResult: GeminiCliQuotaSummary;
       
-      // Fetch both Antigravity and Gemini CLI quotas in parallel
-      const [antigravityResponse, geminiCliResponse] = await Promise.all([
+      // Fetch both Sovereign and Gemini CLI quotas in parallel
+      const [SovereignResponse, geminiCliResponse] = await Promise.all([
         fetchAvailableModels(auth.access ?? "", projectContext.effectiveProjectId)
           .catch((error): FetchAvailableModelsResponse => ({ models: undefined })),
         fetchGeminiCliQuota(auth.access ?? "", projectContext.effectiveProjectId),
       ]);
 
-      // Process Antigravity quota
-      if (antigravityResponse.models === undefined) {
+      // Process Sovereign quota
+      if (SovereignResponse.models === undefined) {
         quotaResult = {
           groups: {},
           modelCount: 0,
-          error: "Failed to fetch Antigravity quota",
+          error: "Failed to fetch Sovereign quota",
         };
       } else {
-        quotaResult = aggregateQuota(antigravityResponse.models);
+        quotaResult = aggregateQuota(SovereignResponse.models);
       }
 
       // Process Gemini CLI quota

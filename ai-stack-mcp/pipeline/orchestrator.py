@@ -1,8 +1,8 @@
 """
-Pipeline Orchestrator — stub implementation (Adım 1).
+Pipeline Orchestrator.
 
-Full implementation added in Adım 10 once all sub-components are ready.
-This stub allows the MCP server to start and respond to tool calls immediately.
+Main orchestrator for the Sovereign AI platform.
+Coordinates MAB, Tool Execution, and Pipeline components.
 """
 from __future__ import annotations
 
@@ -104,18 +104,18 @@ class Orchestrator:
             if self._initialized:  # re-check after acquiring lock
                 return
 
-        # Run dependency health check
-        states, self.capability_matrix = check_dependencies()
-        logger.info("deps_checked", report=get_capability_report(self.capability_matrix))
+            # Run dependency health check
+            states, self.capability_matrix = check_dependencies()
+            logger.info("deps_checked", report=get_capability_report(self.capability_matrix))
 
-        self._init_caches()
-        self._init_logic()
-        self._init_cleaning()
-        self._init_compression()
-        self._init_rag()
-        self._init_models()
+            self._init_caches()
+            self._init_logic()
+            self._init_cleaning()
+            self._init_compression()
+            self._init_rag()
+            self._init_models()
 
-        self._initialized = True
+            self._initialized = True
 
     def _init_caches(self) -> None:
         try:

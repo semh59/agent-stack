@@ -1,4 +1,4 @@
-import { formatRefreshParts, parseRefreshParts } from "./auth";
+﻿import { formatRefreshParts, parseRefreshParts } from "./auth";
 import { loadAccounts, saveAccounts, type AccountStorageV3, type AccountMetadataV3, type RateLimitStateV3, type ModelFamily, type HeaderStyle, type CooldownReason } from "./storage";
 import type { OAuthAuthDetails, RefreshParts } from "./types";
 import type { AccountSelectionStrategy } from "./config/schema";
@@ -7,7 +7,7 @@ import { generateFingerprint, type Fingerprint, type FingerprintVersion, MAX_FIN
 import type { QuotaGroup, QuotaGroupSummary } from "./quota";
 import { getModelFamily } from "./transform/model-resolver";
 import { debugLogToFile } from "./debug";
-import { ANTIGRAVITY_VERSION } from "../constants";
+import { SOVEREIGN_VERSION } from "../constants";
 
 export type { ModelFamily, HeaderStyle, CooldownReason } from "./storage";
 export type { AccountSelectionStrategy } from "./config/schema";
@@ -17,10 +17,10 @@ export type { AccountSelectionStrategy } from "./config/schema";
  * Extracts platform/arch from existing userAgent and rebuilds with current version.
  */
 function updateFingerprintVersion(fingerprint: Fingerprint): Fingerprint {
-  const match = fingerprint.userAgent.match(/^antigravity\/[\d.]+ (.+)$/);
+  const match = fingerprint.userAgent.match(/^Sovereign\/[\d.]+ (.+)$/);
   if (match) {
     const platformArch = match[1];
-    const expectedUserAgent = `antigravity/${ANTIGRAVITY_VERSION} ${platformArch}`;
+    const expectedUserAgent = `Sovereign/${SOVEREIGN_VERSION} ${platformArch}`;
     if (fingerprint.userAgent !== expectedUserAgent) {
       return { ...fingerprint, userAgent: expectedUserAgent };
     }
@@ -44,7 +44,7 @@ const QUOTA_EXHAUSTED_BACKOFFS = [60_000, 300_000, 1_800_000, 7_200_000] as cons
 const RATE_LIMIT_EXCEEDED_BACKOFF = 30_000;
 // Increased from 15s to 45s base + jitter to reduce retry pressure on capacity errors
 const MODEL_CAPACITY_EXHAUSTED_BASE_BACKOFF = 45_000;
-const MODEL_CAPACITY_EXHAUSTED_JITTER_MAX = 30_000; // ±15s jitter range
+const MODEL_CAPACITY_EXHAUSTED_JITTER_MAX = 30_000; // Â±15s jitter range
 const SERVER_ERROR_BACKOFF = 20_000;
 const UNKNOWN_BACKOFF = 60_000;
 const MIN_BACKOFF_MS = 2_000;
@@ -136,7 +136,7 @@ export function calculateBackoffMs(
   }
 }
 
-export type BaseQuotaKey = "claude" | "gemini-antigravity" | "gemini-cli";
+export type BaseQuotaKey = "claude" | "gemini-Sovereign" | "gemini-cli";
 export type QuotaKey = BaseQuotaKey | `${BaseQuotaKey}:${string}` | `${BaseQuotaKey}:${string}:${string}`;
 
 export interface ManagedAccount {
@@ -183,7 +183,7 @@ function getQuotaKey(family: ModelFamily, headerStyle: HeaderStyle, model?: stri
     if (endpoint) return `claude:${endpoint}` as QuotaKey;
     return "claude";
   }
-  const base = headerStyle === "gemini-cli" ? "gemini-cli" : "gemini-antigravity";
+  const base = headerStyle === "gemini-cli" ? "gemini-cli" : "gemini-Sovereign";
   
   if (model && endpoint) {
     return `${base}:${model}:${endpoint}` as QuotaKey;
@@ -207,10 +207,10 @@ function isRateLimitedForFamily(account: ManagedAccount, family: ModelFamily, mo
     return isRateLimitedForQuotaKey(account, "claude");
   }
   
-  const antigravityIsLimited = isRateLimitedForHeaderStyle(account, family, "antigravity", model);
+  const SovereignIsLimited = isRateLimitedForHeaderStyle(account, family, "Sovereign", model);
   const cliIsLimited = isRateLimitedForHeaderStyle(account, family, "gemini-cli", model);
   
-  return antigravityIsLimited && cliIsLimited;
+  return SovereignIsLimited && cliIsLimited;
 }
 
 function isRateLimitedForHeaderStyle(account: ManagedAccount, family: ModelFamily, headerStyle: HeaderStyle, model?: string | null, endpoint?: string | null): boolean {
@@ -261,8 +261,8 @@ function clearExpiredRateLimits(account: ManagedAccount): void {
  * 
  * When a model string is available, we can precisely determine the quota group.
  * When model is null/undefined, we fall back based on family:
- * - Claude → "claude" quota group
- * - Gemini → "gemini-pro" (conservative fallback; may misclassify flash models)
+ * - Claude â†’ "claude" quota group
+ * - Gemini â†’ "gemini-pro" (conservative fallback; may misclassify flash models)
  * 
  * @param family - The model family ("claude" | "gemini")
  * @param model - Optional model string for precise resolution
@@ -326,7 +326,7 @@ export function computeSoftQuotaCacheTtlMs(
  * Rate limits are tracked per-model-family (claude/gemini) so an account
  * rate-limited for Claude can still be used for Gemini.
  *
- * Source of truth for the pool is `antigravity-accounts.json`.
+ * Source of truth for the pool is `Sovereign-accounts.json`.
  */
 export class AccountManager {
   private accounts: ManagedAccount[] = [];
@@ -554,7 +554,7 @@ export class AccountManager {
     family: ModelFamily, 
     model?: string | null,
     strategy: AccountSelectionStrategy = 'sticky',
-    headerStyle: HeaderStyle = 'antigravity',
+    headerStyle: HeaderStyle = 'Sovereign',
     pidOffsetEnabled: boolean = false,
     softQuotaThresholdPercent: number = 100,
     softQuotaCacheTtlMs: number = 10 * 60 * 1000,
@@ -638,7 +638,7 @@ export class AccountManager {
     return next;
   }
 
-  getNextForFamily(family: ModelFamily, model?: string | null, headerStyle: HeaderStyle = "antigravity", softQuotaThresholdPercent: number = 100, softQuotaCacheTtlMs: number = 10 * 60 * 1000): ManagedAccount | null {
+  getNextForFamily(family: ModelFamily, model?: string | null, headerStyle: HeaderStyle = "Sovereign", softQuotaThresholdPercent: number = 100, softQuotaCacheTtlMs: number = 10 * 60 * 1000): ManagedAccount | null {
     const available = this.accounts.filter((a) => {
       clearExpiredRateLimits(a);
       return a.enabled !== false && 
@@ -665,7 +665,7 @@ export class AccountManager {
     account: ManagedAccount,
     retryAfterMs: number,
     family: ModelFamily,
-    headerStyle: HeaderStyle = "antigravity",
+    headerStyle: HeaderStyle = "Sovereign",
     model?: string | null,
     endpoint?: string | null
   ): void {
@@ -724,9 +724,9 @@ export class AccountManager {
       if (family === "claude") {
         delete account.rateLimitResetTimes.claude;
       } else {
-        const antigravityKey = getQuotaKey(family, "antigravity", model);
+        const SovereignKey = getQuotaKey(family, "Sovereign", model);
         const cliKey = getQuotaKey(family, "gemini-cli", model);
-        delete account.rateLimitResetTimes[antigravityKey];
+        delete account.rateLimitResetTimes[SovereignKey];
         delete account.rateLimitResetTimes[cliKey];
       }
       account.consecutiveFailures = 0;
@@ -799,10 +799,10 @@ export class AccountManager {
   getAvailableHeaderStyle(account: ManagedAccount, family: ModelFamily, model?: string | null): HeaderStyle | null {
     clearExpiredRateLimits(account);
     if (family === "claude") {
-      return isRateLimitedForHeaderStyle(account, family, "antigravity") ? null : "antigravity";
+      return isRateLimitedForHeaderStyle(account, family, "Sovereign") ? null : "Sovereign";
     }
-    if (!isRateLimitedForHeaderStyle(account, family, "antigravity", model)) {
-      return "antigravity";
+    if (!isRateLimitedForHeaderStyle(account, family, "Sovereign", model)) {
+      return "Sovereign";
     }
     if (!isRateLimitedForHeaderStyle(account, family, "gemini-cli", model)) {
       return "gemini-cli";
@@ -811,18 +811,18 @@ export class AccountManager {
   }
 
   /**
-   * Check if any OTHER account has antigravity quota available for the given family/model.
+   * Check if any OTHER account has Sovereign quota available for the given family/model.
    * 
    * Used to determine whether to switch accounts vs fall back to gemini-cli:
-   * - If true: Switch to another account (preserve antigravity priority)
-   * - If false: All accounts exhausted antigravity, safe to fall back to gemini-cli
+   * - If true: Switch to another account (preserve Sovereign priority)
+   * - If false: All accounts exhausted Sovereign, safe to fall back to gemini-cli
    * 
    * @param currentAccountIndex - Index of the current account (will be excluded from check)
    * @param family - Model family ("gemini" or "claude")
    * @param model - Optional model name for model-specific rate limits
-   * @returns true if any other enabled, non-cooling-down account has antigravity available
+   * @returns true if any other enabled, non-cooling-down account has Sovereign available
    */
-  hasOtherAccountWithAntigravityAvailable(
+  hasOtherAccountWithSovereignAvailable(
     currentAccountIndex: number,
     family: ModelFamily,
     model?: string | null
@@ -848,8 +848,8 @@ export class AccountManager {
       }
       // Clear expired rate limits before checking
       clearExpiredRateLimits(acc);
-      // Check if antigravity is available for this account
-      return !isRateLimitedForHeaderStyle(acc, family, "antigravity", model);
+      // Check if Sovereign is available for this account
+      return !isRateLimitedForHeaderStyle(acc, family, "Sovereign", model);
     });
   }
 
@@ -936,10 +936,10 @@ export class AccountManager {
         if (t !== undefined) waitTimes.push(Math.max(0, t - nowMs()));
       } else {
         // For Gemini, account becomes available when EITHER pool expires for this model/family
-        const antigravityKey = getQuotaKey(family, "antigravity", model);
+        const SovereignKey = getQuotaKey(family, "Sovereign", model);
         const cliKey = getQuotaKey(family, "gemini-cli", model);
 
-        const t1 = a.rateLimitResetTimes[antigravityKey];
+        const t1 = a.rateLimitResetTimes[SovereignKey];
         const t2 = a.rateLimitResetTimes[cliKey];
         
         const accountWait = Math.min(
@@ -1204,7 +1204,7 @@ export class AccountManager {
     
     if (waitTimes.length === 0) return null;
     const minWait = Math.min(...waitTimes);
-    // Treat 0 as stale cache (resetTime in the past) → fail-open to avoid spin loop
+    // Treat 0 as stale cache (resetTime in the past) â†’ fail-open to avoid spin loop
     return minWait === 0 ? null : minWait;
   }
 }

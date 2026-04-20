@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+﻿import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AutonomousLoopEngine } from "./autonomous-loop-engine";
 import { GateEngine } from "./GateEngine";
 import type { GateContext, GateResult } from "./autonomy-types";

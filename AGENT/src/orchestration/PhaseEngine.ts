@@ -1,4 +1,4 @@
-import type { 
+﻿import type { 
   AutonomyState, 
   AutonomySession, 
   TaskNode 
@@ -87,7 +87,7 @@ export class PhaseEngine {
           const noFileVerifyTask =
             task?.type === "analysis" ||
             task?.type === "finalize";
-          if (!noFileVerifyTask && process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED === "1") {
+          if (!noFileVerifyTask && process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED === "1") {
             // Opt-in warning for debugging unexpected verify transitions with no file changes.
             console.warn(`[PhaseEngine] Transitioning to 'verify' without touched files in session ${session.id}`);
           }

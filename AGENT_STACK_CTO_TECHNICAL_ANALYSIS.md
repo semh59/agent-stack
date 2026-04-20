@@ -7,7 +7,7 @@
 
 The Agent Stack is a dual-component AI platform consisting of:
 
-1. **AGENT (LojiNext AI)**: Authentication and orchestration layer built in TypeScript/Node.js
+1. **AGENT (Sovereign AI)**: Authentication and orchestration layer built in TypeScript/Node.js
 2. **ai-stack-mcp**: Token optimization and caching infrastructure built in Python
 
 ### Technology Stack

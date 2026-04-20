@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { getKeepThinking } from "./config";
 import { createLogger } from "./logger";
 import { cacheSignature } from "./cache";
@@ -12,11 +12,11 @@ import type { GoogleSearchConfig } from "./transform/types";
 
 const log = createLogger("request-helpers");
 
-const ANTIGRAVITY_PREVIEW_LINK = "https://goo.gle/enable-preview-features"; // TODO: Update to Antigravity link if available
+const SOVEREIGN_PREVIEW_LINK = "https://goo.gle/enable-preview-features"; // TODO: Update to Sovereign link if available
 
 // ============================================================================
-// JSON SCHEMA CLEANING FOR ANTIGRAVITY API
-// Ported from CLIProxyAPI's CleanJSONSchemaForAntigravity (gemini_schema.go)
+// JSON SCHEMA CLEANING FOR SOVEREIGN API
+// Ported from CLIProxyAPI's CleanJSONSchemaForSovereign (gemini_schema.go)
 // ============================================================================
 
 /**
@@ -52,7 +52,7 @@ function appendDescriptionHint(schema: any, hint: string): any {
 
 /**
  * Phase 1a: Converts $ref to description hints.
- * $ref: "#/$defs/Foo" → { type: "object", description: "See: Foo" }
+ * $ref: "#/$defs/Foo" â†’ { type: "object", description: "See: Foo" }
  */
 function convertRefsToHints(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -84,7 +84,7 @@ function convertRefsToHints(schema: any): any {
 
 /**
  * Phase 1b: Converts const to enum.
- * { const: "foo" } → { enum: ["foo"] }
+ * { const: "foo" } â†’ { enum: ["foo"] }
  */
 function convertConstToEnum(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -109,7 +109,7 @@ function convertConstToEnum(schema: any): any {
 
 /**
  * Phase 1c: Adds enum hints to description.
- * { enum: ["a", "b", "c"] } → adds "(Allowed: a, b, c)" to description
+ * { enum: ["a", "b", "c"] } â†’ adds "(Allowed: a, b, c)" to description
  */
 function addEnumHints(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -141,7 +141,7 @@ function addEnumHints(schema: any): any {
 
 /**
  * Phase 1d: Adds additionalProperties hints.
- * { additionalProperties: false } → adds "(No extra properties allowed)" to description
+ * { additionalProperties: false } â†’ adds "(No extra properties allowed)" to description
  */
 function addAdditionalPropertiesHints(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -171,7 +171,7 @@ function addAdditionalPropertiesHints(schema: any): any {
 
 /**
  * Phase 1e: Moves unsupported constraints to description hints.
- * { minLength: 1, maxLength: 100 } → adds "(minLength: 1) (maxLength: 100)" to description
+ * { minLength: 1, maxLength: 100 } â†’ adds "(minLength: 1) (maxLength: 100)" to description
  */
 function moveConstraintsToDescription(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -205,7 +205,7 @@ function moveConstraintsToDescription(schema: any): any {
 /**
  * Phase 2a: Merges allOf schemas into a single object.
  * { allOf: [{ properties: { a: ... } }, { properties: { b: ... } }] }
- * → { properties: { a: ..., b: ... } }
+ * â†’ { properties: { a: ..., b: ... } }
  */
 function mergeAllOf(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -368,11 +368,11 @@ function tryMergeEnumFromUnion(options: any[]): string[] | null {
 /**
  * Phase 2b: Flattens anyOf/oneOf to the best option with type hints.
  * { anyOf: [{ type: "string" }, { type: "number" }] }
- * → { type: "string", description: "(Accepts: string | number)" }
+ * â†’ { type: "string", description: "(Accepts: string | number)" }
  *
  * Special handling for enum patterns:
  * { anyOf: [{ const: "a" }, { const: "b" }] }
- * → { type: "string", enum: ["a", "b"] }
+ * â†’ { type: "string", enum: ["a", "b"] }
  */
 function flattenAnyOfOneOf(schema: any): any {
   if (!schema || typeof schema !== "object") {
@@ -463,7 +463,7 @@ function flattenAnyOfOneOf(schema: any): any {
 
 /**
  * Phase 2c: Flattens type arrays to single type with nullable hint.
- * { type: ["string", "null"] } → { type: "string", description: "(nullable)" }
+ * { type: ["string", "null"] } â†’ { type: "string", description: "(nullable)" }
  */
 function flattenTypeArrays(schema: any, nullableFields?: Map<string, string[]>, currentPath?: string): any {
   if (!schema || typeof schema !== "object") {
@@ -659,12 +659,12 @@ function addEmptySchemaPlaceholder(schema: any): any {
 }
 
 /**
- * Cleans a JSON schema for Antigravity API compatibility.
+ * Cleans a JSON schema for Sovereign API compatibility.
  * Transforms unsupported features into description hints while preserving semantic information.
  * 
- * Ported from CLIProxyAPI's CleanJSONSchemaForAntigravity (gemini_schema.go)
+ * Ported from CLIProxyAPI's CleanJSONSchemaForSovereign (gemini_schema.go)
  */
-export function cleanJSONSchemaForAntigravity(schema: any): any {
+export function cleanJSONSchemaForSovereign(schema: any): any {
   if (!schema || typeof schema !== "object") {
     return schema;
   }
@@ -697,28 +697,28 @@ export function cleanJSONSchemaForAntigravity(schema: any): any {
 // END JSON SCHEMA CLEANING
 // ============================================================================
 
-export const AntigravityApiErrorSchema = z.record(z.string(), z.unknown()).and(z.object({
+export const SovereignApiErrorSchema = z.record(z.string(), z.unknown()).and(z.object({
   code: z.number().optional(),
   message: z.string().optional(),
   status: z.string().optional(),
 }));
 
-export type AntigravityApiError = z.infer<typeof AntigravityApiErrorSchema>;
+export type SovereignApiError = z.infer<typeof SovereignApiErrorSchema>;
 
 /**
- * Minimal representation of Antigravity API responses we touch.
+ * Minimal representation of Sovereign API responses we touch.
  */
-export const AntigravityApiBodySchema = z.record(z.string(), z.unknown()).and(z.object({
+export const SovereignApiBodySchema = z.record(z.string(), z.unknown()).and(z.object({
   response: z.unknown().optional(),
-  error: AntigravityApiErrorSchema.optional(),
+  error: SovereignApiErrorSchema.optional(),
 }));
 
-export type AntigravityApiBody = z.infer<typeof AntigravityApiBodySchema>;
+export type SovereignApiBody = z.infer<typeof SovereignApiBodySchema>;
 
 /**
- * Usage metadata exposed by Antigravity responses. Fields are optional to reflect partial payloads.
+ * Usage metadata exposed by Sovereign responses. Fields are optional to reflect partial payloads.
  */
-export const AntigravityUsageMetadataSchema = z.object({
+export const SovereignUsageMetadataSchema = z.object({
   totalTokenCount: z.number().optional(),
   promptTokenCount: z.number().optional(),
   candidatesTokenCount: z.number().optional(),
@@ -726,10 +726,10 @@ export const AntigravityUsageMetadataSchema = z.object({
   thoughtsTokenCount: z.number().optional(),
 });
 
-export type AntigravityUsageMetadata = z.infer<typeof AntigravityUsageMetadataSchema>;
+export type SovereignUsageMetadata = z.infer<typeof SovereignUsageMetadataSchema>;
 
 /**
- * Normalized thinking configuration accepted by Antigravity.
+ * Normalized thinking configuration accepted by Sovereign.
  */
 export const ThinkingConfigSchema = z.object({
   thinkingBudget: z.number().optional(),
@@ -808,7 +808,7 @@ export interface VariantThinkingConfig {
 /**
  * Extracts variant thinking config from OpenCode's providerOptions.
  * 
- * All Antigravity models route through the Google provider, so we only check
+ * All Sovereign models route through the Google provider, so we only check
  * providerOptions.google. Supports two formats:
  * 
  * 1. Gemini 3 native: { google: { thinkingLevel: "high", includeThoughts: true } }
@@ -970,7 +970,7 @@ function getSignature(part: Record<string, unknown>): string | undefined {
 /**
  * Checks if a thinking part's signature was generated by our plugin (exists in our cache).
  * This prevents accepting signatures from other providers (e.g., direct Anthropic API, OpenAI)
- * which would cause "Invalid signature" errors when sent to Antigravity Claude.
+ * which would cause "Invalid signature" errors when sent to Sovereign Claude.
  */
 function isOurCachedSignature(
   part: Record<string, unknown>,
@@ -1145,9 +1145,9 @@ function filterContentArray(
 
     // For the LAST assistant message with thinking blocks:
     // - If signature is OUR cached signature, pass through unchanged
-    // - Otherwise inject sentinel to bypass Antigravity validation
+    // - Otherwise inject sentinel to bypass Sovereign validation
     // NOTE: We can't trust signatures just because they're >= 50 chars - Claude returns
-    // its own signatures which are long but invalid for Antigravity.
+    // its own signatures which are long but invalid for Sovereign.
     if (isLastAssistantMessage && (isThinking || hasSignature)) {
       // First check if it's our cached signature
       if (isOurCachedSignature(item, sessionId, getCachedSignatureFn)) {
@@ -1429,7 +1429,7 @@ function isShadowThinkingString(text: string): boolean {
 /**
  * Transforms Gemini-style thought parts (thought: true) and Anthropic-style
  * thinking parts (type: "thinking") to reasoning format.
- * Claude responses through Antigravity may use candidates structure with Anthropic-style parts.
+ * Claude responses through Sovereign may use candidates structure with Anthropic-style parts.
  */
 function transformGeminiCandidate(candidate: any): any {
   if (!candidate || typeof candidate !== "object") {
@@ -1622,9 +1622,9 @@ export function normalizeThinkingConfig(config: unknown): ThinkingConfig | undef
 }
 
 /**
- * Parses an Antigravity API body; handles array-wrapped responses the API sometimes returns.
+ * Parses an Sovereign API body; handles array-wrapped responses the API sometimes returns.
  */
-export function parseAntigravityApiBody(rawText: string): AntigravityApiBody | null {
+export function parseSovereignApiBody(rawText: string): SovereignApiBody | null {
   try {
     const parsed = JSON.parse(rawText);
     const target = Array.isArray(parsed)
@@ -1635,16 +1635,16 @@ export function parseAntigravityApiBody(rawText: string): AntigravityApiBody | n
       return null;
     }
 
-    const result = AntigravityApiBodySchema.safeParse(target);
+    const result = SovereignApiBodySchema.safeParse(target);
     if (!result.success) {
-      log.warn("Forensic validation failed for Antigravity API body", {
+      log.warn("Forensic validation failed for Sovereign API body", {
         issues: result.error.issues,
         rawText: rawText.slice(0, 500),
       });
       // Fallback: return raw object if it has either 'response' or 'error' keys
       // to avoid breaking legacy paths that might be looser than our schema.
       if ('response' in target || 'error' in target) {
-        return target as AntigravityApiBody;
+        return target as SovereignApiBody;
       }
       return null;
     }
@@ -1658,10 +1658,10 @@ export function parseAntigravityApiBody(rawText: string): AntigravityApiBody | n
 /**
  * Extracts usageMetadata from a response object, guarding types.
  */
-export function extractUsageMetadata(body: AntigravityApiBody): AntigravityUsageMetadata | null {
+export function extractUsageMetadata(body: SovereignApiBody): SovereignUsageMetadata | null {
   const usage = (body.response && typeof body.response === "object"
     ? (body.response as { usageMetadata?: unknown }).usageMetadata
-    : undefined) as AntigravityUsageMetadata | undefined;
+    : undefined) as SovereignUsageMetadata | undefined;
 
   if (!usage || typeof usage !== "object") {
     return null;
@@ -1683,7 +1683,7 @@ export function extractUsageMetadata(body: AntigravityApiBody): AntigravityUsage
 /**
  * Walks SSE lines to find a usage-bearing response chunk.
  */
-export function extractUsageFromSsePayload(payload: string): AntigravityUsageMetadata | null {
+export function extractUsageFromSsePayload(payload: string): SovereignUsageMetadata | null {
   const lines = payload.split("\n");
   for (const line of lines) {
     if (!line.startsWith("data:")) {
@@ -1709,23 +1709,23 @@ export function extractUsageFromSsePayload(payload: string): AntigravityUsageMet
 }
 
 /**
- * Enhances 404 errors for Antigravity models with a direct preview-access message.
+ * Enhances 404 errors for Sovereign models with a direct preview-access message.
  */
-export function rewriteAntigravityPreviewAccessError(
-  body: AntigravityApiBody,
+export function rewriteSovereignPreviewAccessError(
+  body: SovereignApiBody,
   status: number,
   requestedModel?: string,
-): AntigravityApiBody | null {
+): SovereignApiBody | null {
   if (!needsPreviewAccessOverride(status, body, requestedModel)) {
     return null;
   }
 
-  const error: AntigravityApiError = body.error ?? {};
+  const error: SovereignApiError = body.error ?? {};
   const trimmedMessage = typeof error.message === "string" ? error.message.trim() : "";
   const messagePrefix = trimmedMessage.length > 0
     ? trimmedMessage
-    : "Antigravity preview features are not enabled for this account.";
-  const enhancedMessage = `${messagePrefix} Request preview access at ${ANTIGRAVITY_PREVIEW_LINK} before using this model.`;
+    : "Sovereign preview features are not enabled for this account.";
+  const enhancedMessage = `${messagePrefix} Request preview access at ${SOVEREIGN_PREVIEW_LINK} before using this model.`;
 
   return {
     ...body,
@@ -1738,28 +1738,28 @@ export function rewriteAntigravityPreviewAccessError(
 
 function needsPreviewAccessOverride(
   status: number,
-  body: AntigravityApiBody,
+  body: SovereignApiBody,
   requestedModel?: string,
 ): boolean {
   if (status !== 404) {
     return false;
   }
 
-  if (isAntigravityModel(requestedModel)) {
+  if (isSovereignModel(requestedModel)) {
     return true;
   }
 
   const errorMessage = typeof body.error?.message === "string" ? body.error.message : "";
-  return isAntigravityModel(errorMessage);
+  return isSovereignModel(errorMessage);
 }
 
-function isAntigravityModel(target?: string): boolean {
+function isSovereignModel(target?: string): boolean {
   if (!target) {
     return false;
   }
 
-  // Check for Antigravity models instead of Gemini 3
-  return /antigravity/i.test(target) || /opus/i.test(target) || /claude/i.test(target);
+  // Check for Sovereign models instead of Gemini 3
+  return /sovereign/i.test(target) || /opus/i.test(target) || /claude/i.test(target);
 }
 
 // ============================================================================
@@ -1785,7 +1785,7 @@ export function isEmptyResponseBody(text: string): boolean {
   try {
     const parsed = JSON.parse(text);
     
-    // Check for empty candidates (Gemini/Antigravity format)
+    // Check for empty candidates (Gemini/Sovereign format)
     if (parsed.candidates !== undefined) {
       if (!Array.isArray(parsed.candidates) || parsed.candidates.length === 0) {
         return true;
@@ -1845,7 +1845,7 @@ export function isEmptyResponseBody(text: string): boolean {
       }
     }
     
-    // Check response wrapper (Antigravity envelope)
+    // Check response wrapper (Sovereign envelope)
     if (parsed.response !== undefined) {
       const response = parsed.response;
       if (!response || typeof response !== "object") {
@@ -1943,11 +1943,11 @@ export function isMeaningfulSseLine(line: string): boolean {
  * This is a port of LLM-API-Key-Proxy's _recursively_parse_json_strings() function.
  * 
  * Handles:
- * - JSON-stringified values: {"files": "[{...}]"} → {"files": [{...}]}
+ * - JSON-stringified values: {"files": "[{...}]"} â†’ {"files": [{...}]}
  * - Malformed double-encoded JSON (extra trailing chars)
- * - Escaped control characters (\\n → \n, \\t → \t)
+ * - Escaped control characters (\\n â†’ \n, \\t â†’ \t)
  * 
- * This is useful because Antigravity sometimes returns JSON-stringified values
+ * This is useful because Sovereign sometimes returns JSON-stringified values
  * in tool arguments, which can cause downstream parsing issues.
  * 
  * @param obj - The object to recursively parse
@@ -2561,7 +2561,7 @@ export function validateAndFixClaudeToolPairing(messages: any[]): any[] {
 
   // Third: Nuclear option - remove orphaned tool_use entirely
   // This should rarely happen, but provides defense in depth
-  console.warn("[antigravity] fixClaudeToolPairing left orphans, applying nuclear option", {
+  console.warn("[Sovereign] fixClaudeToolPairing left orphans, applying nuclear option", {
     orphanIds: [...orphanIds],
   });
 
@@ -2645,7 +2645,7 @@ function formatTypeHint(propData: Record<string, unknown>, depth = 0): string {
  */
 export function injectParameterSignatures(
   tools: any[],
-  promptTemplate = "\n\n⚠️ STRICT PARAMETERS: {params}.",
+  promptTemplate = "\n\nâš ï¸ STRICT PARAMETERS: {params}.",
 ): any[] {
   if (!tools || !Array.isArray(tools)) return tools;
 
@@ -2976,8 +2976,8 @@ data: ${JSON.stringify({ type: "message_stop" })}
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
-      "X-Antigravity-Synthetic": "true",
-      "X-Antigravity-Error-Type": "prompt_too_long",
+      "X-Sovereign-Synthetic": "true",
+      "X-Sovereign-Error-Type": "prompt_too_long",
     },
   });
 }

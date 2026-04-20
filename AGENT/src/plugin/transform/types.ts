@@ -1,4 +1,4 @@
-import type { HeaderStyle } from "../../constants";
+﻿import type { HeaderStyle } from "../../constants";
 
 export type ModelFamily = "claude" | "gemini-flash" | "gemini-pro";
 
@@ -75,7 +75,7 @@ export interface ThinkingConfig {
   thinkingLevel?: string;
   /** Whether to include thinking in the response */
   includeThoughts?: boolean;
-  /** Snake_case variant for Antigravity backend */
+  /** Snake_case variant for Sovereign backend */
   include_thoughts?: boolean;
 }
 
@@ -108,7 +108,7 @@ export interface ResolvedModel {
   isThinkingModel?: boolean;
   /** Whether this is an image generation model */
   isImageModel?: boolean;
-  /** Quota preference - all models default to antigravity, with CLI as fallback */
+  /** Quota preference - all models default to Sovereign, with CLI as fallback */
   quotaPreference?: HeaderStyle;
   /** Whether user explicitly specified quota via suffix (vs default selection) */
   explicitQuota?: boolean;

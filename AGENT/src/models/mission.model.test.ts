@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import type { AutonomySession, GateResult } from "../orchestration/autonomy-types";
 import { parseMissionPlan, toMissionModel } from "./mission.model";
 

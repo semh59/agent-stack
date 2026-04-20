@@ -1,4 +1,4 @@
-import * as fs from 'node:fs/promises';
+﻿import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import * as crypto from 'node:crypto';
 
@@ -21,7 +21,7 @@ export interface ApprovalRequest {
 
 /**
  * IToolExecutionEngine: Interface for file operations used by the pipeline.
- * Decouples orchestration from VSCode runtime — can be implemented
+ * Decouples orchestration from VSCode runtime â€” can be implemented
  * by standalone Node.js or VSCode extension.
  */
 export interface IToolExecutionEngine {
@@ -34,7 +34,7 @@ export interface IToolExecutionEngine {
 
 /**
  * StandaloneToolExecutionEngine: Node.js-only implementation.
- * Uses fs/promises — no VSCode dependency.
+ * Uses fs/promises â€” no VSCode dependency.
  * Includes realpath traversal protection.
  */
 export class StandaloneToolExecutionEngine implements IToolExecutionEngine {
@@ -103,7 +103,7 @@ export class StandaloneToolExecutionEngine implements IToolExecutionEngine {
     try {
       targetReal = await fs.realpath(targetPath);
     } catch {
-      // File doesn't exist yet — verify parent is inside workspace
+      // File doesn't exist yet â€” verify parent is inside workspace
       let current = targetPath;
       while (current !== path.dirname(current)) {
         const parent = path.dirname(current);

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import { GatewayAuthManager } from "./gateway-auth-manager";
 
 describe("GatewayAuthManager", () => {

@@ -1,4 +1,4 @@
-import path from "node:path";
+﻿import path from "node:path";
 import * as fs from "node:fs/promises";
 import { TerminalExecutor } from "./terminal-executor";
 import { GateValidatorProcess } from "./autonomy-gate-validator";
@@ -48,6 +48,10 @@ const SECRET_PATTERNS: Array<{ label: string; regex: RegExp }> = [
   {
     label: "Hardcoded credential assignment",
     regex: /\b(api[_-]?key|secret|token|password)\b\s*[:=]\s*["'][^"'\r\n]{16,}["']/gi,
+  },
+  {
+    label: "Obfuscated via Concatenation",
+    regex: /(?:key|secret|token|password|auth)[A-Za-z0-9_-]*\s*[:=]\s*["'][^"']{4,}["']\s*\+\s*["'][^"']{4,}["']/gi,
   },
 ];
 

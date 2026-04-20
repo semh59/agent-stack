@@ -1,5 +1,5 @@
-import type { PluginClient } from "../types";
-import type { AntigravityConfig } from "../config";
+﻿import type { PluginClient } from "../types";
+import type { SovereignGatewayConfig } from "../config";
 import { createLogger } from "../logger";
 
 const log = createLogger("toast");
@@ -59,7 +59,7 @@ export function setRateLimitToastShown(val: boolean): void { rateLimitToastShown
  */
 export async function showToast(
   client: PluginClient,
-  config: AntigravityConfig,
+  config: SovereignGatewayConfig,
   message: string,
   variant: "info" | "warning" | "success" | "error",
   isChildSession: boolean = false,

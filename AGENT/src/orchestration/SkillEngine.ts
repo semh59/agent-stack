@@ -1,4 +1,4 @@
-import * as fs from "node:fs/promises";
+﻿import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
 export interface Skill {
@@ -26,7 +26,7 @@ export class SkillEngine {
 
   /**
    * Initializes the engine by scanning the skills directory.
-   * Idempotent — subsequent calls are no-ops.
+   * Idempotent â€” subsequent calls are no-ops.
    */
   public async initialize(): Promise<void> {
     if (this.initialized) return;

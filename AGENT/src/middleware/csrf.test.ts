@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CSRFTokenManager, csrfTokenManager, csrfProtection, skipCsrf } from './csrf';
 
 describe('CSRF Token Manager', () => {

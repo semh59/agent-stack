@@ -8,7 +8,7 @@ import { useAppStore } from "./store/appStore";
 
 declare global {
   interface Window {
-    __LOJINEXT_BOOT?: {
+    __SOVEREIGN_BOOT?: {
       ready: (payload?: Record<string, unknown>) => void;
       fail: (payload?: Record<string, unknown>) => void;
     };
@@ -16,7 +16,7 @@ declare global {
 }
 
 function reportBootReady(payload?: Record<string, unknown>): void {
-  window.__LOJINEXT_BOOT?.ready(payload);
+  window.__SOVEREIGN_BOOT?.ready(payload);
 }
 
 function reportBootFailure(error: unknown): void {
@@ -26,7 +26,7 @@ function reportBootFailure(error: unknown): void {
       : typeof error === "string"
         ? error
         : "Unknown UI boot failure";
-  window.__LOJINEXT_BOOT?.fail({ message });
+  window.__SOVEREIGN_BOOT?.fail({ message });
 }
 
 useAppStore.getState().initializeWebSocket();

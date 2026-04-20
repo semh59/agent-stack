@@ -1,4 +1,4 @@
-export interface SignedThinking {
+﻿export interface SignedThinking {
   text: string;
   signature: string;
 }
@@ -29,4 +29,32 @@ export interface ThoughtBuffer {
   get(index: number): string | undefined;
   set(index: number, text: string): void;
   clear(): void;
+}
+export interface LlmBasePart {
+  text?: string;
+  thought?: boolean;
+  thinking?: boolean | string;
+  type?: string;
+  inlineData?: {
+    mimeType?: string;
+    data?: string;
+  };
+  thoughtSignature?: string;
+  signature?: string;
+}
+
+export interface LlmCandidate {
+  content?: {
+    parts?: LlmBasePart[];
+  };
+}
+
+export interface LlmStreamingResponse {
+  candidates?: LlmCandidate[];
+  content?: { type: string; thinking?: string; text?: string; signature?: string }[];
+  usageMetadata?: {
+    promptTokenCount: number;
+    candidatesTokenCount: number;
+    totalTokenCount: number;
+  };
 }

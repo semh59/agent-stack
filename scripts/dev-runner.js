@@ -105,8 +105,8 @@ if (process.env.SKIP_GATEWAY !== "1") {
   launch("gateway", "green", "npx", ["tsx", "src/main.ts"], {
     cwd: agentDir,
     env: {
-      LOJINEXT_GATEWAY_PORT: GATEWAY_PORT,
-      LOJINEXT_GATEWAY_HOST: "127.0.0.1",
+      SOVEREIGN_GATEWAY_PORT: GATEWAY_PORT,
+      SOVEREIGN_GATEWAY_HOST: "127.0.0.1",
       AI_STACK_BRIDGE_HOST: "127.0.0.1",
       AI_STACK_BRIDGE_PORT: BRIDGE_PORT,
       LOJINEXT_GATEWAY_TOKEN: process.env.LOJINEXT_GATEWAY_TOKEN || "dev-local-token",

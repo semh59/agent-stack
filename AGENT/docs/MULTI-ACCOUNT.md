@@ -12,7 +12,7 @@ opencode auth login  # Run again to add more accounts
 
 - **Sticky account selection** — Sticks to the same account until rate-limited (preserves Anthropic's prompt cache)
 - **Per-model-family limits** — Rate limits tracked separately for Claude and Gemini models
-- **Antigravity-first for Gemini** — All Gemini requests use Antigravity quota first, then automatically fall back to Gemini CLI when exhausted across all accounts
+- **Sovereign AI-first for Gemini** — All Gemini requests use Sovereign AI quota first, then automatically fall back to Gemini CLI when exhausted across all accounts
 - **Smart retry threshold** — Short rate limits (≤5s) are retried on same account
 - **Exponential backoff** — Increasing delays for consecutive rate limits
 
@@ -24,20 +24,20 @@ For Gemini models, the plugin accesses **two independent quota pools** per accou
 
 | Quota Pool | When Used |
 |------------|-----------|
-| **Antigravity** | Default for all requests |
-| **Gemini CLI** | Automatic fallback when Antigravity exhausted on ALL accounts |
+| **Sovereign AI** | Default for all requests |
+| **Gemini CLI** | Automatic fallback when Sovereign AI exhausted on ALL accounts |
 
 This effectively **doubles your Gemini quota** when you have `quota_fallback` enabled.
 
 ### How Quota Fallback Works
 
-1. Request uses Antigravity quota on current account
-2. If rate-limited, plugin checks if ANY other account has Antigravity available
-3. If yes → switch to that account (stay on Antigravity)
+1. Request uses Sovereign AI quota on current account
+2. If rate-limited, plugin checks if ANY other account has Sovereign AI available
+3. If yes → switch to that account (stay on Sovereign AI)
 4. If no (all accounts exhausted) → fall back to Gemini CLI quota on current account
 5. Model names are automatically transformed (e.g., `gemini-3-flash` → `gemini-3-flash-preview`)
 
-To enable automatic fallback between pools, set in `antigravity.json`:
+To enable automatic fallback between pools, set in `sovereign.json`:
 
 ```json
 {
@@ -114,7 +114,7 @@ Choose `a` to add more accounts while keeping existing ones.
 
 ## Account Storage
 
-Accounts are stored in `~/.config/opencode/antigravity-accounts.json`:
+Accounts are stored in `~/.config/opencode/sovereign-accounts.json`:
 
 ```json
 {
@@ -162,7 +162,7 @@ If Google revokes a token (e.g., password change, security event), you'll see `i
 To manually reset:
 
 ```bash
-rm ~/.config/opencode/antigravity-accounts.json
+rm ~/.config/opencode/sovereign-accounts.json
 opencode auth login
 ```
 
@@ -172,7 +172,7 @@ opencode auth login
 
 When using oh-my-opencode with parallel subagents, multiple processes may select the same account, causing rate limit errors.
 
-**Solution:** Enable PID-based offset in `antigravity.json`:
+**Solution:** Enable PID-based offset in `sovereign.json`:
 
 ```json
 {
@@ -188,7 +188,7 @@ Alternatively, add more accounts via `opencode auth login`.
 
 ## Account Selection Strategies
 
-Configure in `antigravity.json`:
+Configure in `sovereign.json`:
 
 ```json
 {

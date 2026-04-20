@@ -497,11 +497,11 @@ describe("websocketSlice", () => {
 
     it("masks email addresses even inside URLs", () => {
       const state = handleAutonomyWithPayload({ 
-        message: "Contact support at help@lojinxt.com or go to https://app.lojinxt.com/user/semih@lojinext.com/settings" 
+        message: "Contact support at help@lojinxt.com or go to https://app.lojinxt.com/user/semih@sovereign.com/settings" 
       });
       const entry = state.timelineBySession["session-1"][0];
       expect(entry.message).toContain("[EMAIL_MASKED]");
-      expect(entry.message).not.toContain("semih@lojinext.com");
+      expect(entry.message).not.toContain("semih@sovereign.com");
       expect(entry.message).not.toContain("help@lojinxt.com");
     });
 
@@ -527,7 +527,7 @@ describe("websocketSlice", () => {
     it("handles multiple different PII types in a single complex payload object", () => {
       const state = handleAutonomyWithPayload({ 
         user: { 
-          email: "admin@lojinext.com", 
+          email: "admin@sovereign.com", 
           phone: "05321112233",
           meta: "Internal ID: 11122233344"
         } 

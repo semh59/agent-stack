@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import path from "node:path";
+import { LoopGuard } from "./LoopGuard";
 import type {
   AutonomyEvent,
   AutonomySession,
@@ -13,8 +14,12 @@ import type {
   TaskNode,
   TaskNodeType,
   GearLevel,
+  AutonomousTaskExecutionContext,
+  AutonomousTaskExecutorResult,
+  AutonomousClientResolver,
 } from "./autonomy-types";
-import { normalizeTouchedFiles } from "./antigravity-utils";
+import { log, toUrlString, extractModelFromUrl, getModelFamilyFromUrl } from "./gateway-utils";
+import { normalizeTouchedFiles } from "./gateway-utils";
 import { SmartMultiModelRouter } from "./autonomy-model-router";
 import { AutonomyGitManager } from "./autonomy-git-manager";
 import { phaseEngine } from "./PhaseEngine";
@@ -40,34 +45,13 @@ const DEFAULT_MAX_TPM = 1_000_000;
 const DEFAULT_MAX_RPD = 5_000;
 const PAUSE_POLL_INTERVAL_MS = 500;
 
-export interface AutonomousTaskExecutionContext {
-  session: AutonomySession;
-  task: TaskNode;
-  modelDecision: ModelDecision;
-  cycle: number;
-  isInterrupted: () => boolean;
-}
-
-export interface AutonomousTaskExecutionResult {
-  summary: string;
-  touchedFiles?: string[];
-  nextActionReason?: string;
-  contextPack?: string;
-  usageAccounting?: BudgetExecutionAccounting;
-  inputTokens?: number;
-  outputTokens?: number;
-  estimatedUsd?: number;
-}
-
-export type AutonomousClientResolver = (session: AutonomySession) => Promise<any>;
-
 export type AutonomousTaskExecutor = (
   context: AutonomousTaskExecutionContext,
-) => Promise<AutonomousTaskExecutionResult>;
+) => Promise<AutonomousTaskExecutorResult>;
 
 interface AutonomousLoopEngineOptions {
   projectRoot: string;
-  client?: import("./antigravity-client").AntigravityClient;
+  client?: import("./gateway-client").SovereignGatewayClient;
   clientResolver?: AutonomousClientResolver;
   taskExecutor?: AutonomousTaskExecutor;
   gateEngine?: GateEngine;
@@ -615,7 +599,8 @@ export class AutonomousLoopEngine {
     await this.transition(session, "paused", null, pauseReason);
     this.emit("log", session, { reason: pauseReason, paused: true });
 
-    while (true) {
+    const guard = new LoopGuard("PausePolling", 10000, 600000); // 10k iterations, 10min max
+    while (guard.tick()) {
       if (await this.applyStopIfRequested(session)) return true;
       const resumeReason = this.resumeRequests.get(session.id);
       if (resumeReason) {
@@ -633,6 +618,13 @@ export class AutonomousLoopEngine {
       }
       await sleep(PAUSE_POLL_INTERVAL_MS);
     }
+    // Guard exhausted — fail the session cleanly rather than leaving it
+    // silently in paused state.
+    this.failSession(
+      session,
+      `Pause polling exceeded guard budget for session ${session.id}`,
+    );
+    return true;
   }
 
   private async revalidateTouchedFiles(session: AutonomySession): Promise<void> {
@@ -648,7 +640,7 @@ export class AutonomousLoopEngine {
       if (stillTouched.length !== session.touchedFiles.length) {
         const removedCount = session.touchedFiles.length - stillTouched.length;
         this.emit("log", session, {
-          message: `Oturum devam ettirilirken doğrulama yapıldı: ${removedCount} dosya artık kirli değil (dirty), touchedFiles listesi güncellendi.`,
+          message: `Oturum devam ettirilirken doÄŸrulama yapÄ±ldÄ±: ${removedCount} dosya artÄ±k kirli deÄŸil (dirty), touchedFiles listesi gÃ¼ncellendi.`,
         });
         session.touchedFiles = stillTouched;
       }
@@ -1070,7 +1062,8 @@ export class AutonomousLoopEngine {
       reviewStatus: session.reviewStatus,
     });
 
-    while (true) {
+    const reviewGuard = new LoopGuard("ReviewPolling", 10000, 600000);
+    while (reviewGuard.tick()) {
       const stopReason = this.stopRequests.get(session.id);
       if (stopReason) {
         this.stopRequests.delete(session.id);
@@ -1104,6 +1097,9 @@ export class AutonomousLoopEngine {
 
       await sleep(PAUSE_POLL_INTERVAL_MS);
     }
+    
+    this.failSession(session, `Review polling exceeded guard budget for session ${session.id}`);
+    return "failed";
   }
 
   private calculateConfidence(session: AutonomySession, decision: ModelDecision): number {
@@ -1156,7 +1152,7 @@ export class AutonomousLoopEngine {
     session: AutonomySession,
     task: TaskNode,
     modelDecision: ModelDecision,
-  ): Promise<{ success: boolean; result?: AutonomousTaskExecutionResult; nextSwitchReason?: ModelSwitchReason }> {
+  ): Promise<{ success: boolean; result?: AutonomousTaskExecutorResult; nextSwitchReason?: ModelSwitchReason }> {
     this.transition(session, "execute", task, `Executing ${task.type}`);
     task.status = "in_progress";
     task.attempts += 1;

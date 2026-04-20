@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Unified Event Bus for Sovereign AI Platform
  * 
  * Typed event system replacing raw WebSocket JSON messages.
@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import { AIProvider } from './provider-types';
 
-// ─── Typed Event Payloads ──────────────────────────────────────────────────
+// â”€â”€â”€ Typed Event Payloads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface TokenUsage {
   promptTokens: number;
@@ -41,7 +41,7 @@ export type SovereignEvent =
   | { type: "model:routed"; agentId: string; modelId: string; tier: string; reasoning: string }
   | { type: "ui:log"; id: number; time: string; source: string; text: string; level: "info"|"success"|"error"|"warning" };
 
-// ─── Backpressure Ring Buffer ─────────────────────────────────────────────
+// â”€â”€â”€ Backpressure Ring Buffer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface EventBusConfig {
   maxReplaySize: number;

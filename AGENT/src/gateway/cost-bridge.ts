@@ -1,17 +1,17 @@
-/**
- * Cost Bridge — TypeScript BudgetTracker → Python CostTracker
+﻿/**
+ * Cost Bridge â€” TypeScript BudgetTracker â†’ Python CostTracker
  *
  * Synchronizes cost tracking between the TS orchestration engine
  * and the Python optimization pipeline.
  *
  * Flow:
- *   1. AGENT makes an LLM call → BudgetTracker records TS-side cost
- *   2. CostBridge posts the cost to Python bridge → cost_tracker.py
+ *   1. AGENT makes an LLM call â†’ BudgetTracker records TS-side cost
+ *   2. CostBridge posts the cost to Python bridge â†’ cost_tracker.py
  *   3. Python side tracks total optimization savings
  *   4. Dashboard pulls unified cost report from Python (single source of truth)
  */
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface CostEntry {
   /** Which agent incurred this cost */
@@ -46,13 +46,13 @@ export interface CostReport {
   period: string;
 }
 
-// ─── Bridge Configuration ───────────────────────────────────────────────────
+// â”€â”€â”€ Bridge Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const BRIDGE_HOST = process.env.AI_STACK_BRIDGE_HOST ?? "127.0.0.1";
 const BRIDGE_PORT = parseInt(process.env.AI_STACK_BRIDGE_PORT ?? "9100", 10);
 const BRIDGE_SECRET = process.env.AI_STACK_BRIDGE_SECRET ?? "";
 
-// ─── Cost Bridge ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Cost Bridge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class CostBridge {
   private readonly baseUrl: string;
@@ -155,7 +155,7 @@ export class CostBridge {
   }
 
   /**
-   * Cleanup — flush remaining entries.
+   * Cleanup â€” flush remaining entries.
    */
   async dispose(): Promise<void> {
     await this.flush();

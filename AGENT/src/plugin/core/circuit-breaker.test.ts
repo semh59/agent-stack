@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for endpoint circuit breaker.
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";

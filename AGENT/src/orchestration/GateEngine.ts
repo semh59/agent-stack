@@ -1,13 +1,16 @@
-import path from "node:path";
+﻿import path from "node:path";
 import * as fs from "node:fs/promises";
 import type { 
   AutonomousGate, 
   GateContext,
   GateResult,
   GateCommandResult,
-  AuditSummary
+  AuditSummary,
+  GateMetadata
 } from "./autonomy-types";
 import { TerminalExecutor } from "./terminal-executor";
+
+import { log, toUrlString } from "./gateway-utils";
 
 /**
  * GateEngine: Orchestrates multiple quality gates for otonom missions.
@@ -17,7 +20,7 @@ export class GateEngine {
 
   constructor(
     private terminal?: TerminalExecutor,
-    private client?: import("./antigravity-client").AntigravityClient
+    private client?: import("./gateway-client").SovereignGatewayClient
   ) {}
 
   public registerGate(gate: AutonomousGate): void {
@@ -37,13 +40,14 @@ export class GateEngine {
     // Phase 4C: Parallel Gate Runner with Timeout
     const GATE_TIMEOUT_MS = 60_000;
     const runGateWithTimeout = async (gate: AutonomousGate) => {
-      const timeoutPromise = new Promise<{ passed: boolean, issues: string[] }>((_, reject) =>
+      const timeoutPromise = new Promise<{ passed: boolean, issues: string[], metadata?: GateMetadata }>((_, reject) =>
         setTimeout(() => reject(new Error(`Gate ${gate.name} timed out after ${GATE_TIMEOUT_MS}ms`)), GATE_TIMEOUT_MS)
       );
       try {
         return await Promise.race([gate.run(context), timeoutPromise]);
       } catch (err: any) {
-        return { passed: false, issues: [err.message] };
+        log.error(`Gate ${gate.name} execution error`, { err });
+        return { passed: false, issues: [err.message], metadata: {} as GateMetadata };
       }
     };
 
@@ -57,13 +61,13 @@ export class GateEngine {
           blockingIssues.push(...value.issues.map(issue => `[${gate.name}] ${issue}`));
         }
         
-        const metadata = (value as any).metadata;
+        const metadata = value.metadata;
         if (metadata) {
           if (Array.isArray(metadata.commands)) {
             commandResults.push(...metadata.commands);
           }
           if (metadata.audit) {
-            const a = metadata.audit as AuditSummary;
+            const a = metadata.audit;
             auditSummary.critical += a.critical;
             auditSummary.high += a.high;
             auditSummary.moderate += a.moderate;
@@ -72,7 +76,7 @@ export class GateEngine {
           }
           if (Array.isArray(metadata.scopes)) {
             for (const s of metadata.scopes) {
-              if (!impactedScopes.includes(s as any)) impactedScopes.push(s as any);
+              if (!impactedScopes.includes(s)) impactedScopes.push(s);
             }
           }
         }
@@ -101,7 +105,7 @@ export class GateEngine {
    */
   public static createDefaultGateEngine(
     terminal: TerminalExecutor, 
-    client?: import("./antigravity-client").AntigravityClient
+    client?: import("./gateway-client").SovereignGatewayClient
   ): GateEngine {
     const engine = new GateEngine(terminal, client);
     engine.registerGate(new LintGate(terminal));
@@ -234,7 +238,8 @@ export class SecurityGate implements AutonomousGate {
 
       if (audit.critical > 0) issues.push(`${audit.critical} critical vulnerabilities found`);
       if (audit.high > 0) issues.push(`${audit.high} high vulnerabilities found`);
-    } catch {
+    } catch (err) {
+      log.warn('Audit JSON parse failed, using exit code fallback', { err, stdout: resp.stdout });
       // If JSON parse fails, fall back to exit code
       if (!resp.success) {
         issues.push("npm audit failed (non-JSON output)");
@@ -288,7 +293,9 @@ export class SecretGate implements AutonomousGate {
             issues.push(`Secret detected in ${path.basename(file)}: ${p.label}`);
           }
         }
-      } catch (err) { }
+      } catch (err) {
+        log.debug('SecretGate file read failed (non-critical)', { err, file });
+      }
     }
     return { passed: issues.length === 0, issues };
   }
@@ -300,7 +307,7 @@ export class SecretGate implements AutonomousGate {
 export class ArchitectGate implements AutonomousGate {
   name = "ArchitectGate";
   
-  constructor(private client?: import("./antigravity-client").AntigravityClient) {}
+  constructor(private client?: import("./gateway-client").SovereignGatewayClient) {}
 
   async run(context: GateContext) {
     if (context.touchedFiles.length === 0) {
@@ -330,13 +337,13 @@ export class ArchitectGate implements AutonomousGate {
     }
 
     try {
-      const response = await activeClient.fetch("https://api.antigravity.ai/v1/chat/completions", {
+      const response = await activeClient.fetch("https://api.Sovereign.ai/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-3-sonnet",
           messages: [
-            { role: "system", content: "You are the LojiNext Architecture Inspector. Your job is to verify if code changes comply with the project's ARCHITECTURE.md rules. Return JSON: { \"passed\": boolean, \"issues\": string[] }" },
+            { role: "system", content: "You are the Sovereign Architecture Inspector. Your job is to verify if code changes comply with the project's ARCHITECTURE.md rules. Return JSON: { \"passed\": boolean, \"issues\": string[] }" },
             { role: "user", content: prompt }
           ],
           response_format: { type: "json_object" }

@@ -1,21 +1,21 @@
-/**
- * Provider Types — Unified interface for all AI providers.
+﻿/**
+ * Provider Types â€” Unified interface for all AI providers.
  *
- * Both Google Antigravity and Claude Code auth flows produce
+ * Both Google Sovereign and Claude Code auth flows produce
  * tokens that conform to this interface. The rest of the system
  * (gateway, orchestrator, model router) works with these types only.
  */
 
-// ─── Provider Enum ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Provider Enum â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const AIProvider = {
-  GOOGLE_ANTIGRAVITY: "google_antigravity",
+  GOOGLE_GEMINI: "google_gemini",
   CLAUDE_CODE: "claude_code",
 } as const;
 
 export type AIProvider = (typeof AIProvider)[keyof typeof AIProvider];
 
-// ─── Unified Token ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Unified Token â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface UnifiedToken {
   /** Which provider this token belongs to */
@@ -56,7 +56,7 @@ export interface ProviderQuota {
   resetsAt: number;
 }
 
-// ─── Provider Adapter Interface ─────────────────────────────────────────────
+// â”€â”€â”€ Provider Adapter Interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface ProviderAdapter {
   /** Provider identifier */
@@ -81,13 +81,13 @@ export interface ProviderAdapter {
   getQuota(token: UnifiedToken): Promise<ProviderQuota | null>;
 }
 
-// ─── Model Registry ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Model Registry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-export const GOOGLE_ANTIGRAVITY_MODELS: ProviderModel[] = [
+export const GOOGLE_GEMINI_MODELS: ProviderModel[] = [
   {
-    id: "google/antigravity-gemini-3-flash",
+    id: "google/Sovereign-gemini-3-flash",
     name: "Gemini 3 Flash",
-    provider: AIProvider.GOOGLE_ANTIGRAVITY,
+    provider: AIProvider.GOOGLE_GEMINI,
     maxTokens: 32_768,
     supportsStreaming: true,
     supportsThinking: false,
@@ -96,9 +96,9 @@ export const GOOGLE_ANTIGRAVITY_MODELS: ProviderModel[] = [
     tier: "fast",
   },
   {
-    id: "google/antigravity-gemini-3-1-pro-high",
+    id: "google/Sovereign-gemini-3-1-pro-high",
     name: "Gemini 3.1 Pro (High)",
-    provider: AIProvider.GOOGLE_ANTIGRAVITY,
+    provider: AIProvider.GOOGLE_GEMINI,
     maxTokens: 65_536,
     supportsStreaming: true,
     supportsThinking: true,
@@ -107,9 +107,9 @@ export const GOOGLE_ANTIGRAVITY_MODELS: ProviderModel[] = [
     tier: "balanced",
   },
   {
-    id: "google/antigravity-claude-sonnet-4-6-thinking",
+    id: "google/Sovereign-claude-sonnet-4-6-thinking",
     name: "Claude Sonnet 4.6 (via AG)",
-    provider: AIProvider.GOOGLE_ANTIGRAVITY,
+    provider: AIProvider.GOOGLE_GEMINI,
     maxTokens: 64_000,
     supportsStreaming: true,
     supportsThinking: true,
@@ -118,9 +118,9 @@ export const GOOGLE_ANTIGRAVITY_MODELS: ProviderModel[] = [
     tier: "powerful",
   },
   {
-    id: "google/antigravity-claude-opus-4-6-thinking",
+    id: "google/Sovereign-claude-opus-4-6-thinking",
     name: "Claude Opus 4.6 (via AG)",
-    provider: AIProvider.GOOGLE_ANTIGRAVITY,
+    provider: AIProvider.GOOGLE_GEMINI,
     maxTokens: 128_000,
     supportsStreaming: true,
     supportsThinking: true,
@@ -166,20 +166,20 @@ export const CLAUDE_CODE_MODELS: ProviderModel[] = [
   },
 ];
 
-/** Cached model list (hot path — called by ModelRouter on every route) */
+/** Cached model list (hot path â€” called by ModelRouter on every route) */
 let _allModelsCache: ProviderModel[] | null = null;
 
 /** Get all models across all providers (memoized) */
 export function getAllModels(): ProviderModel[] {
   if (!_allModelsCache) {
-    _allModelsCache = [...GOOGLE_ANTIGRAVITY_MODELS, ...CLAUDE_CODE_MODELS];
+    _allModelsCache = [...GOOGLE_GEMINI_MODELS, ...CLAUDE_CODE_MODELS];
   }
   return _allModelsCache;
 }
 
 /** Get models for a specific provider */
 export function getModelsByProvider(provider: AIProvider): ProviderModel[] {
-  if (provider === AIProvider.GOOGLE_ANTIGRAVITY) return [...GOOGLE_ANTIGRAVITY_MODELS];
+  if (provider === AIProvider.GOOGLE_GEMINI) return [...GOOGLE_GEMINI_MODELS];
   if (provider === AIProvider.CLAUDE_CODE) return [...CLAUDE_CODE_MODELS];
   return [];
 }

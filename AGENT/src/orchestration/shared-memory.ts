@@ -1,4 +1,4 @@
-import * as fs from 'node:fs/promises';
+﻿import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import lockfile from 'proper-lockfile';
 import AsyncLock from 'async-lock';
@@ -25,7 +25,7 @@ export interface PipelineState {
   startedAt: string | null;
   completedAt: string | null;
 
-  // ── Sovereignty Extensions ────────────────────
+  // â”€â”€ Sovereignty Extensions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Verification results per agent */
   verificationResults?: Record<string, {
@@ -117,7 +117,7 @@ export class SharedMemory {
 
   /**
    * Initialize the .ai-company/ directory and state file.
-   * Safe to call multiple times — won't overwrite existing state.
+   * Safe to call multiple times â€” won't overwrite existing state.
    */
   public async init(): Promise<void> {
     await fs.mkdir(this.rootDir, { recursive: true });
@@ -299,7 +299,7 @@ export class SharedMemory {
         
         await fs.writeFile(fullPath, fileContent, 'utf-8');
         writtenFiles.push(filePath);
-        console.log(`[SharedMemory] ${agentRole} extracted → ${filePath} (${Buffer.byteLength(fileContent)} bytes)`);
+        console.log(`[SharedMemory] ${agentRole} extracted â†’ ${filePath} (${Buffer.byteLength(fileContent)} bytes)`);
       }
 
       // Fallback: If no @file markers, write whole thing to default filename
@@ -308,7 +308,7 @@ export class SharedMemory {
         await fs.mkdir(path.dirname(fullPath), { recursive: true });
         await fs.writeFile(fullPath, content.trim(), 'utf-8');
         writtenFiles.push(defaultFilename);
-        console.log(`[SharedMemory] ${agentRole} wrote (legacy) → ${defaultFilename} (${Buffer.byteLength(content)} bytes)`);
+        console.log(`[SharedMemory] ${agentRole} wrote (legacy) â†’ ${defaultFilename} (${Buffer.byteLength(content)} bytes)`);
       }
 
       return writtenFiles;
@@ -424,7 +424,7 @@ export class SharedMemory {
     return this.rootDir;
   }
 
-  // ── Private ─────────────────────────────────
+  // â”€â”€ Private â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private async writeState(state: PipelineState): Promise<void> {
     await fs.mkdir(path.dirname(this.stateFile), { recursive: true });

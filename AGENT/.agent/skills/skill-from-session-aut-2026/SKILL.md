@@ -1,12 +1,13 @@
 ---
 name: Skill from session aut_2026
-description: Tactical skill extracted from objective: Sunk cost retry path
+description: Tactical skill extracted from objective: Fix cycle test
 tags: autonomy-extracted, ts
-extractedAt: 2026-04-19T20:29:35.797Z
+extractedAt: 2026-04-20T07:43:59.525Z
 ---
 ## Tactical Summary
-step implementation
-step implementation
+fixed
+fixed
+fixed
 
 ## Files Touched
-- src/retry-cost.ts
+- src/app.ts

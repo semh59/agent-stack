@@ -1,9 +1,9 @@
-/**
- * Sovereign settings store — SQLite-backed persistence.
+﻿/**
+ * Sovereign settings store â€” SQLite-backed persistence.
  *
  * Two tables:
- *   settings          — a single row JSON blob (non-secret fields)
- *   settings_secrets  — one row per secret path, AES-GCM envelope columns
+ *   settings          â€” a single row JSON blob (non-secret fields)
+ *   settings_secrets  â€” one row per secret path, AES-GCM envelope columns
  *
  * We keep the non-secret settings as a single JSON row rather than a
  * normalized shape because (a) the schema evolves rapidly and (b) the
@@ -40,20 +40,20 @@ import {
   type SecretEnvelope,
 } from "./encryption.js";
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Types
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface SettingsStoreOptions {
   dbPath?: string;
   /** If true, throws on corruption instead of auto-recovering. Tests use this. */
   strict?: boolean;
-  /** Env override — used by tests to supply a deterministic master key. */
+  /** Env override â€” used by tests to supply a deterministic master key. */
   env?: NodeJS.ProcessEnv;
 }
 
 /**
- * A "redacted" settings view — secret fields are replaced with
+ * A "redacted" settings view â€” secret fields are replaced with
  * `{ set: boolean, updated_at?: number }`. Safe to send to the UI.
  */
 export type SettingsRedacted = Omit<Settings, "providers"> & {
@@ -68,9 +68,9 @@ export type SettingsRedacted = Omit<Settings, "providers"> & {
   };
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Migrations (inline — no file loader here since this is a new service)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Migrations (inline â€” no file loader here since this is a new service)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const SETTINGS_SCHEMA_VERSION = 1;
 
@@ -95,9 +95,9 @@ CREATE INDEX IF NOT EXISTS idx_settings_secrets_updated
   ON settings_secrets(updated_at DESC);
 `;
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Paths
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function resolveSettingsDatabasePath(override?: string): string {
   if (override) return path.resolve(override);
@@ -109,9 +109,9 @@ function ensureParentDirectory(dbPath: string): void {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Store
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class SettingsStore {
   private readonly db: Database.Database;
@@ -141,23 +141,25 @@ export class SettingsStore {
     if (this.db.open) this.db.close();
   }
 
-  // ── Reads ────────────────────────────────────────────────────────────────
+  // â”€â”€ Reads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Returns the full hydrated settings object (including decrypted secrets). */
   public getSettings(): Settings {
     const { blob, secrets } = this.readRaw();
-    const base = blob ?? {};
-    const merged = this.hydrateSecrets(base, secrets, /* plaintext */ true);
+    const base = (blob as Settings) ?? settingsSchema.parse({});
+    const merged = this.hydrateSecrets(base as Record<string, unknown>, secrets, /* plaintext */ true);
     return settingsSchema.parse(merged);
   }
 
-  /** Returns the redacted view — safe to send to the UI. */
+
+  /** Returns the redacted view â€” safe to send to the UI. */
   public getSettingsRedacted(): SettingsRedacted {
     const { blob, secrets } = this.readRaw();
-    const base = blob ?? settingsSchema.parse({});
-    const redacted = this.hydrateSecrets(base, secrets, /* plaintext */ false);
+    const base = (blob as Settings) ?? settingsSchema.parse({});
+    const redacted = this.hydrateSecrets(base as Record<string, unknown>, secrets, /* plaintext */ false);
     return redacted as SettingsRedacted;
   }
+
 
   /** Returns a single decrypted secret, or null if not set. */
   public getSecret(pathDotted: SecretPath): string | null {
@@ -186,7 +188,7 @@ export class SettingsStore {
     );
   }
 
-  // ── Writes ───────────────────────────────────────────────────────────────
+  // â”€â”€ Writes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /**
    * Validate + persist. Secret fields are extracted, encrypted, and written
@@ -200,7 +202,7 @@ export class SettingsStore {
     input: SettingsInput,
     updatedBy?: string,
   ): SettingsRedacted {
-    // Parse → throws ZodError on invalid input. This is the authoritative gate.
+    // Parse â†’ throws ZodError on invalid input. This is the authoritative gate.
     const parsed = settingsSchema.parse(input);
 
     // Split secret vs non-secret fields.
@@ -255,7 +257,7 @@ export class SettingsStore {
   }
 
   /**
-   * Reset to defaults. Wipes both tables. Irreversible — caller (route)
+   * Reset to defaults. Wipes both tables. Irreversible â€” caller (route)
    * is responsible for confirming with the user.
    */
   public reset(updatedBy?: string): SettingsRedacted {
@@ -268,7 +270,7 @@ export class SettingsStore {
     return this.setSettings({} as SettingsInput, updatedBy);
   }
 
-  // ── Internals ────────────────────────────────────────────────────────────
+  // â”€â”€ Internals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private readRaw(): {
     blob: Record<string, unknown> | null;
@@ -321,8 +323,6 @@ export class SettingsStore {
       if (plaintext) {
         if (envelope) {
           setAtPath(out, p, decryptSecret(envelope, this.env));
-        } else {
-          setAtPath(out, p, undefined);
         }
       } else {
         setAtPath(out, p, {
@@ -330,6 +330,7 @@ export class SettingsStore {
           updated_at: envelope?.updated_at,
         });
       }
+
     }
     return out;
   }
@@ -337,10 +338,10 @@ export class SettingsStore {
   /**
    * Strip secret fields out of the parsed input, returning:
    *   - scrubbed:   the object with secret fields deleted (persisted as JSON)
-   *   - secrets:    paths → plaintext values to encrypt (non-empty strings)
+   *   - secrets:    paths â†’ plaintext values to encrypt (non-empty strings)
    *   - clearPaths: paths the user explicitly set to null/""  (DELETE from DB)
    *
-   * `undefined` means "leave as-is" — NOT in secrets and NOT in clearPaths.
+   * `undefined` means "leave as-is" â€” NOT in secrets and NOT in clearPaths.
    */
   private extractSecrets(
     rawInput: SettingsInput,
@@ -361,9 +362,9 @@ export class SettingsStore {
       // Strip from scrubbed regardless (we never store plaintext in the blob)
       setAtPath(scrubbed, p, undefined);
 
-      // Decide action based on RAW input (not parsed — parsed drops undefineds)
+      // Decide action based on RAW input (not parsed â€” parsed drops undefineds)
       if (rawValue === undefined) {
-        // "Leave as-is" — no action needed.
+        // "Leave as-is" â€” no action needed.
         continue;
       }
       if (rawValue === null || rawValue === "") {
@@ -374,7 +375,7 @@ export class SettingsStore {
         secrets.push([p, rawValue]);
         continue;
       }
-      // Ignore objects like `{ set: true }` posted back from the redacted view —
+      // Ignore objects like `{ set: true }` posted back from the redacted view â€”
       // treat as "leave as-is". The UI is allowed to round-trip these.
       if (
         typeof rawValue === "object" &&
@@ -384,7 +385,7 @@ export class SettingsStore {
         // leave as-is
         continue;
       }
-      // Anything else is invalid — but Zod would have caught string-typed
+      // Anything else is invalid â€” but Zod would have caught string-typed
       // violations already. Fall back to leave-as-is for forward compat.
       void parsedValue;
     }
@@ -393,9 +394,9 @@ export class SettingsStore {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Path helpers (dotted-path get/set on plain objects)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function getAtPath(obj: Record<string, unknown>, dotted: string): unknown {
   const parts = dotted.split(".");
@@ -430,9 +431,9 @@ function setAtPath(
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Singleton accessors
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const storeByPath = new Map<string, SettingsStore>();
 

@@ -1,8 +1,8 @@
-/**
- * Public façade for the settings service.
+﻿/**
+ * Public faÃ§ade for the settings service.
  *
  * Other services (gateway routes, MCP host, optimization bridge client)
- * should import from here — never reach into `store.ts` or `schema.ts`
+ * should import from here â€” never reach into `store.ts` or `schema.ts`
  * directly. Keeps the surface area small and makes future refactors
  * painless.
  */

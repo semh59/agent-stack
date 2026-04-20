@@ -1,8 +1,8 @@
-import type { RecoveryNotifier } from "./RecoveryNotifier";
+﻿import type { RecoveryNotifier } from "./RecoveryNotifier";
 import type { PendingRecoverySummary } from "./RecoveryPrompt";
 
 function encodeMessage(recoveries: PendingRecoverySummary[], gatewayBaseUrl: string): string {
-  const lines = ["LojiNext startup recovery pending:"];
+  const lines = ["Sovereign startup recovery pending:"];
   for (const recovery of recoveries) {
     lines.push(`- ${recovery.prompt}`);
     lines.push(`  id: ${recovery.missionId}`);
@@ -15,8 +15,8 @@ function encodeMessage(recoveries: PendingRecoverySummary[], gatewayBaseUrl: str
 
 export class TelegramRecoveryNotifier implements RecoveryNotifier {
   public constructor(
-    private readonly botToken = process.env.LOJINEXT_TELEGRAM_BOT_TOKEN ?? "",
-    private readonly chatId = process.env.LOJINEXT_TELEGRAM_CHAT_ID ?? "",
+    private readonly botToken = process.env.SOVEREIGN_TELEGRAM_BOT_TOKEN ?? "",
+    private readonly chatId = process.env.SOVEREIGN_TELEGRAM_CHAT_ID ?? "",
   ) {}
 
   public async notifyPendingRecoveries(

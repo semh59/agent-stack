@@ -1,5 +1,5 @@
-import type { PluginInput } from "@opencode-ai/plugin";
-import type { AntigravityTokenExchangeResult } from "../antigravity/oauth";
+﻿import type { PluginInput } from "@opencode-ai/plugin";
+import type { SovereignTokenExchangeResult } from "../google-gemini/oauth";
 
 export interface OAuthAuthDetails {
   type: "oauth";
@@ -66,11 +66,11 @@ export type AuthPrompt =
 export type OAuthAuthorizationResult = { url: string; instructions: string } & (
   | {
       method: "auto";
-      callback: () => Promise<AntigravityTokenExchangeResult>;
+      callback: () => Promise<SovereignTokenExchangeResult>;
     }
   | {
       method: "code";
-      callback: (code: string) => Promise<AntigravityTokenExchangeResult>;
+      callback: (code: string) => Promise<SovereignTokenExchangeResult>;
     }
 );
 

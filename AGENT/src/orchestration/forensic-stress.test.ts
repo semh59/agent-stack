@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import { AutonomousLoopEngine } from './autonomous-loop-engine';
 import { GateEngine } from './GateEngine';
 import { SessionPersistenceManager } from './SessionPersistenceManager';
 import path from 'node:path';
+import os from 'node:os';
 import * as fs from 'node:fs/promises';
 
 class FakeGateEngine extends GateEngine {
@@ -20,9 +21,10 @@ class FakeGateEngine extends GateEngine {
 }
 
 describe('Forensic Stress Tests (STR)', () => {
-    // Use an absolute path that's definitely safe
-    const projectRoot = path.resolve('d:/PROJECT/agent-stack/AGENT/test-workspace-stress');
-    
+    // Was a hardcoded Windows path `d:/PROJECT/...` which leaked a literal
+    // `d:` directory into the repo on non-Windows runners. Use OS temp dir.
+    const projectRoot = path.join(os.tmpdir(), `sov-stress-${process.pid}`, 'test-workspace-stress');
+
     beforeEach(async () => {
         try {
             await fs.rm(projectRoot, { recursive: true, force: true });
@@ -30,6 +32,11 @@ describe('Forensic Stress Tests (STR)', () => {
         } catch (e) {
             console.error("Cleanup failed:", e);
         }
+    });
+
+    afterAll(async () => {
+        // Sweep tmp tree so stress artifacts never bleed back.
+        await fs.rm(path.dirname(projectRoot), { recursive: true, force: true }).catch(() => null);
     });
 
     it('STR-01: atomic state integrity under heavy parallel pressure (50 agents)', async () => {
@@ -153,11 +160,4 @@ describe('Forensic Stress Tests (STR)', () => {
         const engine2 = new AutonomousLoopEngine({
             projectRoot,
             gateEngine: new FakeGateEngine(true),
-            taskExecutor: async () => ({ summary: "step 2", touchedFiles: ["src/b.ts"] })
-        });
-
-        const finalSession = await engine2.startExisting(sessionId);
-        expect(finalSession.state).toBe("done");
-    });
-});
-
+            taskExecutor: async () => ({ summary: "step 2", touchedFiles: ["

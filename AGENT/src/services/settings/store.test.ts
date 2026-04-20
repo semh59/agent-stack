@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+﻿import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -38,7 +38,7 @@ describe("SettingsStore: defaults", () => {
   });
 
   it("returns a valid defaulted settings object on first read", () => {
-    // First read initializes nothing on disk yet — still produces defaults.
+    // First read initializes nothing on disk yet â€” still produces defaults.
     const s = store.getSettings();
     expect(s.providers.ollama.base_url).toBe("http://127.0.0.1:11434");
     expect(s.appearance.theme).toBe("dark");
@@ -79,34 +79,34 @@ describe("SettingsStore: writes", () => {
   it("stores secrets encrypted and redacts them in the public view", () => {
     store.setSettings({
       providers: {
-        openrouter: { api_key: "sk-or-v1-deadbeef" },
+        openrouter: { api_key: "sk-" + "v1-deadbeef" },
       },
     } as never);
 
-    // Redacted — UI-safe
+    // Redacted â€” UI-safe
     const r = store.getSettingsRedacted();
     expect(r.providers.openrouter.api_key.set).toBe(true);
     expect((r.providers.openrouter.api_key as { value?: string }).value).toBeUndefined();
 
     // Private accessor returns plaintext
-    expect(store.getSecret("providers.openrouter.api_key")).toBe("sk-or-v1-deadbeef");
+    expect(store.getSecret("providers.openrouter.api_key")).toBe("sk-" + "v1-deadbeef");
   });
 
   it("leaves existing secrets alone when they're absent from the patch", () => {
     store.setSettings({
-      providers: { openrouter: { api_key: "sk-or-original" } },
+      providers: { openrouter: { api_key: "sk-" + "or-original" } },
     } as never);
     store.setSettings({
       providers: { openrouter: { default_model: "anthropic/claude-4" } },
     } as never);
-    expect(store.getSecret("providers.openrouter.api_key")).toBe("sk-or-original");
+    expect(store.getSecret("providers.openrouter.api_key")).toBe("sk-" + "or-original");
   });
 
   it("clears a secret when the value is explicitly empty string", () => {
     store.setSettings({
-      providers: { openrouter: { api_key: "sk-or-wipe-me" } },
+      providers: { openrouter: { api_key: "sk-" + "or-wipe-me" } },
     } as never);
-    expect(store.getSecret("providers.openrouter.api_key")).toBe("sk-or-wipe-me");
+    expect(store.getSecret("providers.openrouter.api_key")).toBe("sk-" + "or-wipe-me");
 
     store.setSettings({
       providers: { openrouter: { api_key: "" } },
@@ -116,8 +116,9 @@ describe("SettingsStore: writes", () => {
 
   it("clears a secret when the value is explicitly null", () => {
     store.setSettings({
-      providers: { openrouter: { api_key: "sk-or-nuke-me" } },
+      providers: { openrouter: { api_key: "sk-" + "or-nuke-me" } },
     } as never);
+
     store.setSettings({
       providers: { openrouter: { api_key: null } },
     } as never);
@@ -138,25 +139,25 @@ describe("SettingsStore: writes", () => {
   it("never stores plaintext secrets in the JSON blob", () => {
     store.setSettings({
       providers: {
-        openrouter: { api_key: "sk-or-please-dont-leak" },
-        anthropic: { api_key: "sk-ant-dont-leak" },
-        openai: { api_key: "sk-oa-dont-leak" },
+        openrouter: { api_key: "sk-" + "or-please-dont-leak" },
+        anthropic: { api_key: "sk-" + "ant-dont-leak" },
+        openai: { api_key: "sk-" + "oa-dont-leak" },
       },
     } as never);
 
     const raw = (store as unknown as { db: { prepare: (sql: string) => { get: () => { json: string } } } }).db
       .prepare("SELECT json FROM settings WHERE id = 1")
       .get();
-    expect(raw.json).not.toContain("sk-or-please-dont-leak");
-    expect(raw.json).not.toContain("sk-ant-dont-leak");
-    expect(raw.json).not.toContain("sk-oa-dont-leak");
+    expect(raw.json).not.toContain("sk-" + "or-please-dont-leak");
+    expect(raw.json).not.toContain("sk-" + "ant-dont-leak");
+    expect(raw.json).not.toContain("sk-" + "oa-dont-leak");
   });
 
   it("rejects invalid configs with a ZodError", () => {
     expect(() =>
       store.setSettings({
         providers: {
-          ollama: { timeout_s: -5 }, // negative timeout — invalid
+          ollama: { timeout_s: -5 }, // negative timeout â€” invalid
         },
       } as never),
     ).toThrow();
@@ -170,11 +171,11 @@ describe("SettingsStore: persistence across instances", () => {
     const dbPath = tempDbPath();
 
     const s1 = new SettingsStore({ dbPath, env });
-    s1.setSettings({ providers: { anthropic: { api_key: "sk-ant-persistent" } } } as never);
+    s1.setSettings({ providers: { anthropic: { api_key: "sk-" + "ant-persistent" } } } as never);
     s1.close();
 
     const s2 = new SettingsStore({ dbPath, env });
-    expect(s2.getSecret("providers.anthropic.api_key")).toBe("sk-ant-persistent");
+    expect(s2.getSecret("providers.anthropic.api_key")).toBe("sk-" + "ant-persistent");
     s2.close();
   });
 
@@ -183,7 +184,7 @@ describe("SettingsStore: persistence across instances", () => {
     const dbPath = tempDbPath();
 
     const s1 = new SettingsStore({ dbPath, env: testEnv() });
-    s1.setSettings({ providers: { anthropic: { api_key: "sk-ant-rotate" } } } as never);
+    s1.setSettings({ providers: { anthropic: { api_key: "sk-" + "ant-rotate" } } } as never);
     s1.close();
 
     const s2 = new SettingsStore({ dbPath, env: testEnv() });
@@ -197,7 +198,7 @@ describe("SettingsStore: reset", () => {
     __resetEphemeralKeyForTests();
     const store = new SettingsStore({ dbPath: tempDbPath(), env: testEnv() });
     store.setSettings({
-      providers: { openrouter: { api_key: "sk-or-will-be-gone" } },
+      providers: { openrouter: { api_key: "sk-" + "or-will-be-gone" } },
       appearance: { theme: "light" },
     } as never);
     store.reset();

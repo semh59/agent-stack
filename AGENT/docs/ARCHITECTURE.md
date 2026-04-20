@@ -2,7 +2,7 @@
 
 **Last Updated:** March 2026
 
-This document explains how the Antigravity plugin works, including the request/response flow, Claude-specific handling, and session recovery.
+This document explains how the Sovereign AI plugin works, including the request/response flow, Claude-specific handling, and session recovery.
 
 ---
 
@@ -10,7 +10,7 @@ This document explains how the Antigravity plugin works, including the request/r
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  OpenCode ──▶ Plugin ──▶ Antigravity API ──▶ Claude/Gemini      │
+│  OpenCode ──▶ Plugin ──▶ Sovereign AI API ──▶ Claude/Gemini      │
 │     │           │              │                   │            │
 │     │           │              │                   └─ Model     │
 │     │           │              └─ Google's gateway (Gemini fmt) │
@@ -19,7 +19,7 @@ This document explains how the Antigravity plugin works, including the request/r
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-The plugin intercepts requests to `generativelanguage.googleapis.com`, transforms them for the Antigravity API, and handles authentication, rate limits, and error recovery.
+The plugin intercepts requests to `generativelanguage.googleapis.com`, transforms them for the Sovereign AI API, and handles authentication, rate limits, and error recovery.
 
 ---
 
@@ -30,7 +30,7 @@ src/
 ├── index.ts                 # Plugin exports
 ├── plugin.ts                # Main entry, fetch interceptor
 ├── constants.ts             # Endpoints, headers, config
-├── antigravity/
+├── sovereign/
 │   └── oauth.ts             # OAuth token exchange
 └── plugin/
     ├── auth.ts              # Token validation & refresh
@@ -57,7 +57,7 @@ src/
 ### 1. Interception (`plugin.ts`)
 
 ```typescript
-fetch() intercepted → isGenerativeLanguageRequest() → prepareAntigravityRequest()
+fetch() intercepted → isGenerativeLanguageRequest() → prepareSovereign AIRequest()
 ```
 
 - Account selection (round-robin, rate-limit aware)
@@ -91,7 +91,7 @@ fetch() intercepted → isGenerativeLanguageRequest() → prepareAntigravityRequ
 
 ### Why Special Handling?
 
-Claude through Antigravity requires:
+Claude through Sovereign AI requires:
 1. **Gemini format** - `contents[].parts[]` not `messages[].content[]`
 2. **Thinking signatures** - Multi-turn needs signed blocks or errors
 3. **Schema restrictions** - Rejects `const`, `$ref`, `$defs`, etc.
@@ -188,12 +188,12 @@ Claude rejects unsupported JSON Schema features. The plugin uses an **allowlist 
 
 1. **Sticky selection** - Same account until rate limited (preserves cache)
 2. **Per-model-family** - Claude/Gemini rate limits tracked separately
-3. **Dual quota (Gemini)** - Antigravity + Gemini CLI headers
+3. **Dual quota (Gemini)** - Sovereign AI + Gemini CLI headers
 4. **Automatic failover** - On 429, switch to next available account
 
 ### Account Storage
 
-Location: `~/.config/opencode/antigravity-accounts.json`
+Location: `~/.config/opencode/sovereign-accounts.json`
 
 Contains OAuth refresh tokens - treat as sensitive.
 
@@ -221,7 +221,7 @@ Canonical Phase 3 mission routes live under `/api/missions/*`.
 
 Implementation notes:
 
-- `POST /api/missions` performs an active-token preflight. An email alone is not enough; the active Antigravity token must also be valid or refreshable.
+- `POST /api/missions` performs an active-token preflight. An email alone is not enough; the active Sovereign AI token must also be valid or refreshable.
 - The plan-review checkpoint is represented as `state: "paused"` plus `reviewStatus: "plan_pending"`.
 - Successful REST responses always use `{ data, meta, errors: [] }`. Errors always use `{ data: null, meta, errors: [{ code, message }] }`.
 
@@ -257,7 +257,7 @@ Mission Control uses a canonical mission socket per selected mission: `/ws/missi
 - `gear_failed`: task/model execution failed and recovery routing begins.
 - `gate_result`: strict gate pass/fail payload.
 - `gate_bypass`: verify phase explicitly bypassed because no file-changing gate run was required.
-- `verify` can still be valid with `touchedFiles=[]` for no-file task types (for example `analysis`, `finalize`); warning logs for that path are opt-in via `LOJINEXT_WARN_VERIFY_NO_TOUCHED=1`.
+- `verify` can still be valid with `touchedFiles=[]` for no-file task types (for example `analysis`, `finalize`); warning logs for that path are opt-in via `SOVEREIGN_WARN_VERIFY_NO_TOUCHED=1`.
 - `budget`: current budget snapshot; `warning=true` is the `budget:warning` semantic alias.
 - `artifact`: plan / change summary / context pack updates.
 - `decision_log`: DecisionMatrix reasoning node.
@@ -284,7 +284,7 @@ This keeps reconnect behavior deterministic and avoids duplicate listeners or dr
 
 ## Budget Boundary Behavior
 
-Mission budgets now use Antigravity-facing TPM/RPD quotas instead of USD cost.
+Mission budgets now use Sovereign AI-facing TPM/RPD quotas instead of USD cost.
 
 - **TPM warning:** when rolling one-minute token usage reaches **90%** of `maxTPM`, the engine emits a `budget` event with `warning: true`.
 - **RPD warning:** when rolling 24-hour request count reaches **90%** of `maxRPD`, the engine emits the same warning shape.
@@ -303,13 +303,13 @@ Example quota boundary:
 
 ## Mock Latency and Recovery Behavior
 
-Before switching autonomy traffic to a real Antigravity mission path, the orchestration client supports deterministic network simulation and graceful recovery:
+Before switching autonomy traffic to a real Sovereign AI mission path, the orchestration client supports deterministic network simulation and graceful recovery:
 
-- **Mock latency:** internal header `x-antigravity-mock-latency-ms` delays dispatch without forwarding that header upstream.
+- **Mock latency:** internal header `x-sovereign-mock-latency-ms` delays dispatch without forwarding that header upstream.
 - **Abort-aware waits:** both mock latency waits and 429 retry sleeps respect the request `AbortSignal`, so a mission STOP interrupts the network path instead of waiting for the timeout window to finish.
 - **Model request timeout:** `AutonomySessionManager` enforces a local fail-fast timeout via `AbortSignal.timeout(...)`.
   - Default is **`90_000ms`** (`AbortSignal.timeout(90_000)`).
-  - This is a local safety default, **not** an Antigravity provider SLA guarantee.
+  - This is a local safety default, **not** an Sovereign AI provider SLA guarantee.
   - It is configurable per manager instance with `modelRequestTimeoutMs`.
   - Value calibration is operational: tune with production p95/p99 latency telemetry per model/gear.
 - **OAuth expiry:** a 401 during mission execution triggers a single refresh attempt. If refresh fails, the wrapper returns a controlled JSON error response instead of throwing an uncaught exception.
@@ -323,7 +323,7 @@ This keeps pre-production mission simulations close to real model timing while p
 
 Phase 3.1 mission persistence is **SQLite-backed with runtime snapshot recovery**.
 
-- Default DB path: `~/.config/lojinext/missions.db` via `xdg-basedir`.
+- Default DB path: `~/.config/sovereign/missions.db` via `xdg-basedir`.
 - SQLite runs in **WAL mode** with `foreign_keys=ON` and `busy_timeout=5000`.
 - The repository contract stays async even though `better-sqlite3` is synchronous internally.
 - Mission state is split across:
@@ -412,12 +412,12 @@ Gateway REST responses use a single JSON envelope:
 
 | Variable | Purpose |
 |----------|---------|
-| `OPENCODE_ANTIGRAVITY_DEBUG` | `1` or `2` for debug logging |
-| `OPENCODE_ANTIGRAVITY_QUIET` | Suppress toast notifications |
+| `OPENCODE_SOVEREIGN_DEBUG` | `1` or `2` for debug logging |
+| `OPENCODE_SOVEREIGN_QUIET` | Suppress toast notifications |
 
 ### Config File
 
-Location: `~/.config/opencode/antigravity.json`
+Location: `~/.config/opencode/sovereign.json`
 
 ```json
 {
@@ -436,8 +436,8 @@ Location: `~/.config/opencode/antigravity.json`
 
 | Function | Purpose |
 |----------|---------|
-| `prepareAntigravityRequest()` | Main request transformation |
-| `transformAntigravityResponse()` | SSE streaming, format conversion |
+| `prepareSovereign AIRequest()` | Main request transformation |
+| `transformSovereign AIResponse()` | SSE streaming, format conversion |
 | `ensureThinkingBeforeToolUseInContents()` | Inject cached thinking |
 | `createStreamingTransformer()` | Real-time SSE processing |
 
@@ -446,7 +446,7 @@ Location: `~/.config/opencode/antigravity.json`
 | Function | Purpose |
 |----------|---------|
 | `deepFilterThinkingBlocks()` | Recursive thinking block removal |
-| `cleanJSONSchemaForAntigravity()` | Schema sanitization |
+| `cleanJSONSchemaForSovereign AI()` | Schema sanitization |
 | `transformThinkingParts()` | `thought` → `reasoning` format |
 
 ### `thinking-recovery.ts`
@@ -471,12 +471,12 @@ Location: `~/.config/opencode/antigravity.json`
 ### Enable Logging
 
 ```bash
-export OPENCODE_ANTIGRAVITY_DEBUG=2  # Verbose
+export OPENCODE_SOVEREIGN_DEBUG=2  # Verbose
 ```
 
 ### Log Location
 
-`~/.config/opencode/antigravity-logs/`
+`~/.config/opencode/sovereign-logs/`
 
 ### What To Check
 
@@ -501,7 +501,7 @@ export OPENCODE_ANTIGRAVITY_DEBUG=2  # Verbose
 
 ## See Also
 
-- [ANTIGRAVITY_API_SPEC.md](./ANTIGRAVITY_API_SPEC.md) - API reference
+- [SOVEREIGN_API_SPEC.md](./SOVEREIGN_API_SPEC.md) - API reference
 - [OAUTH.md](./OAUTH.md) - OAuth system technical reference
 - [README.md](../README.md) - Installation & usage
 

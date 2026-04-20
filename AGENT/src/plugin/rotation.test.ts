@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   HealthScoreTracker,
@@ -505,7 +505,7 @@ describe("TokenBucketTracker", () => {
         maxTokens: 50
       });
 
-      tracker.consume(0, 1);  // Consume 1 token → 49
+      tracker.consume(0, 1);  // Consume 1 token â†’ 49
       expect(tracker.getTokens(0)).toBe(49);
 
       // Advance time by 1.5 minutes (90000 ms)
@@ -580,7 +580,7 @@ describe("TokenBucketTracker", () => {
         maxTokens: 50
       });
 
-      // Lifecycle: consume → wait → refund → wait
+      // Lifecycle: consume â†’ wait â†’ refund â†’ wait
       tracker.consume(0, 25);
       expect(Number.isInteger(tracker.getTokens(0))).toBe(true);
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BudgetTracker } from "./BudgetTracker";
 import type { AutonomySession } from "./autonomy-types";
 

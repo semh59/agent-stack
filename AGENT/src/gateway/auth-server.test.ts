@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AuthServer } from "./auth-server";
 
 // Test helpers for server readiness synchronization
@@ -22,11 +22,11 @@ async function waitForServerReady(
   }
 }
 
-vi.mock("../antigravity/oauth", () => ({
-  exchangeAntigravity: vi.fn(),
+vi.mock("../google-gemini/oauth", () => ({
+  exchangeGoogleGemini: vi.fn(),
 }));
 
-import { exchangeAntigravity } from "../antigravity/oauth";
+import { exchangeGoogleGemini } from "../google-gemini/oauth";
 
 describe("AuthServer Security", () => {
   let authServer: AuthServer;
@@ -51,7 +51,7 @@ describe("AuthServer Security", () => {
   it("rejects callback with incorrect state using stable errorCode", async () => {
     const authPromise = authServer.start();
 
-    // ✅ Wait for server to be listening before sending request
+    // âœ… Wait for server to be listening before sending request
     await waitForServerReady(authServer);
 
     const response = await fetch(`http://localhost:${mockPort}/oauth-callback?code=mock-code&state=wrong-state`);
@@ -74,7 +74,7 @@ describe("AuthServer Security", () => {
       expectedState: mockState,
     });
 
-    vi.mocked(exchangeAntigravity).mockResolvedValue({
+    vi.mocked(exchangeGoogleGemini).mockResolvedValue({
       type: "success",
       access: "acc",
       refresh: "ref",
@@ -84,7 +84,7 @@ describe("AuthServer Security", () => {
 
     const authPromise = authServer.start();
 
-    // ✅ Wait for server to be listening before sending request
+    // âœ… Wait for server to be listening before sending request
     await waitForServerReady(authServer);
 
     const response = await fetch(`http://localhost:${mockPort}/oauth-callback?code=mock-code&state=${mockState}`);
@@ -97,7 +97,7 @@ describe("AuthServer Security", () => {
     expect(result.success).toBe(true);
     expect(result.errorCode).toBe("NONE");
     expect(result.error).toBeNull();
-    expect(exchangeAntigravity).toHaveBeenCalledWith("mock-code", mockState);
+    expect(exchangeGoogleGemini).toHaveBeenCalledWith("mock-code", mockState);
   });
 });
 

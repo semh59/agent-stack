@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Provider-Aware Model Router
  *
  * Intelligently selects the best model for each agent call based on:
- *   1. Active provider(s) — Google Antigravity / Claude Code / both
- *   2. Agent role tier — Plan (thinking) vs Execute (fast)
- *   3. Complexity score — from MAB or heuristic
- *   4. Context size — token count determines tier
- *   5. Provider health — circuit breaker / rate limit state
- *   6. Cost constraints — budget tracker limits
+ *   1. Active provider(s) â€” Google Sovereign / Claude Code / both
+ *   2. Agent role tier â€” Plan (thinking) vs Execute (fast)
+ *   3. Complexity score â€” from MAB or heuristic
+ *   4. Context size â€” token count determines tier
+ *   5. Provider health â€” circuit breaker / rate limit state
+ *   6. Cost constraints â€” budget tracker limits
  *
  * This replaces the hardcoded `preferredModel` in agents.ts with 
  * a dynamic routing decision at runtime.
@@ -18,12 +18,12 @@ import { AgentLayer } from "../orchestration/agents";
 import {
   AIProvider,
   type ProviderModel,
-  GOOGLE_ANTIGRAVITY_MODELS,
+  GOOGLE_GEMINI_MODELS,
   CLAUDE_CODE_MODELS,
   type UnifiedToken,
 } from "./provider-types";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface RoutingContext {
   /** The agent making the request */
@@ -63,7 +63,7 @@ export interface RoutingDecision {
   useThinking: boolean;
 }
 
-// ─── Role → Tier Mapping ───────────────────────────────────────────────────
+// â”€â”€â”€ Role â†’ Tier Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Agents that require deep thinking / planning capacity */
 const THINKING_ROLES = new Set([
@@ -83,7 +83,7 @@ const FAST_ROLES = new Set([
   "performance", "devops",
 ]);
 
-// ─── Model Router ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Model Router â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class ModelRouter {
   private routingHistory: RoutingDecision[] = [];
@@ -93,7 +93,7 @@ export class ModelRouter {
    * Select the optimal model for a given routing context.
    */
   route(ctx: RoutingContext): RoutingDecision {
-    // Manual override — respect user/system explicit choice
+    // Manual override â€” respect user/system explicit choice
     if (ctx.modelOverride) {
       return this.resolveOverride(ctx.modelOverride, ctx);
     }
@@ -138,7 +138,7 @@ export class ModelRouter {
     return decisions;
   }
 
-  // ── Tier Determination ─────────────────────────────────────────────────
+  // â”€â”€ Tier Determination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private determineTier(ctx: RoutingContext): ProviderModel["tier"] {
     const { agent, complexity, estimatedTokens } = ctx;
@@ -168,7 +168,7 @@ export class ModelRouter {
     return "fast";
   }
 
-  // ── Provider Selection ─────────────────────────────────────────────────
+  // â”€â”€ Provider Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private selectProvider(ctx: RoutingContext, tier: ProviderModel["tier"]): AIProvider {
     if (ctx.providerOverride && ctx.activeProviders.includes(ctx.providerOverride)) {
@@ -196,7 +196,7 @@ export class ModelRouter {
       }
 
       // Provider strengths by tier
-      if (provider === AIProvider.GOOGLE_ANTIGRAVITY) {
+      if (provider === AIProvider.GOOGLE_GEMINI) {
         // Google AG: free models, great for fast/balanced
         if (tier === "fast") score += 50;
         if (tier === "balanced") score += 30;
@@ -212,7 +212,7 @@ export class ModelRouter {
 
       // Budget awareness
       if (ctx.budgetRemaining !== undefined && ctx.budgetRemaining < 1000) {
-        if (provider === AIProvider.GOOGLE_ANTIGRAVITY) score += 100; // Free is preferred when low budget
+        if (provider === AIProvider.GOOGLE_GEMINI) score += 100; // Free is preferred when low budget
       }
 
       scores.set(provider, score);
@@ -231,18 +231,18 @@ export class ModelRouter {
     return bestProvider;
   }
 
-  // ── Model Selection ────────────────────────────────────────────────────
+  // â”€â”€ Model Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private selectModel(provider: AIProvider, tier: ProviderModel["tier"]): ProviderModel {
-    const models = provider === AIProvider.GOOGLE_ANTIGRAVITY
-      ? GOOGLE_ANTIGRAVITY_MODELS
+    const models = provider === AIProvider.GOOGLE_GEMINI
+      ? GOOGLE_GEMINI_MODELS
       : CLAUDE_CODE_MODELS;
 
     // Find exact tier match
     const match = models.find(m => m.tier === tier);
     if (match) return match;
 
-    // Tier fallback chain: ultimate → powerful → balanced → fast
+    // Tier fallback chain: ultimate â†’ powerful â†’ balanced â†’ fast
     const tierOrder: ProviderModel["tier"][] = ["ultimate", "powerful", "balanced", "fast"];
     const tierIndex = tierOrder.indexOf(tier);
 
@@ -258,7 +258,7 @@ export class ModelRouter {
       if (fallback) return fallback;
     }
 
-    // Absolute fallback — first model in the list
+    // Absolute fallback â€” first model in the list
     return models[0]!;
   }
 
@@ -274,7 +274,7 @@ export class ModelRouter {
     return this.selectModel(otherProvider, tier);
   }
 
-  // ── Thinking Mode ──────────────────────────────────────────────────────
+  // â”€â”€ Thinking Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private shouldUseThinking(ctx: RoutingContext): boolean {
     // Use thinking mode for:
@@ -288,10 +288,10 @@ export class ModelRouter {
     );
   }
 
-  // ── Override Resolution ────────────────────────────────────────────────
+  // â”€â”€ Override Resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private resolveOverride(modelId: string, ctx: RoutingContext): RoutingDecision {
-    const allModels = [...GOOGLE_ANTIGRAVITY_MODELS, ...CLAUDE_CODE_MODELS];
+    const allModels = [...GOOGLE_GEMINI_MODELS, ...CLAUDE_CODE_MODELS];
     const model = allModels.find(m => m.id === modelId);
 
     if (model) {
@@ -304,11 +304,11 @@ export class ModelRouter {
       };
     }
 
-    // Unknown model — treat as custom, wrap in a synthetic ProviderModel
+    // Unknown model â€” treat as custom, wrap in a synthetic ProviderModel
     const syntheticModel: ProviderModel = {
       id: modelId,
       name: modelId,
-      provider: ctx.activeProviders[0] ?? AIProvider.GOOGLE_ANTIGRAVITY,
+      provider: ctx.activeProviders[0] ?? AIProvider.GOOGLE_GEMINI,
       maxTokens: 32_768,
       supportsStreaming: true,
       supportsThinking: false,
@@ -326,7 +326,7 @@ export class ModelRouter {
     };
   }
 
-  // ── Reasoning ──────────────────────────────────────────────────────────
+  // â”€â”€ Reasoning â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private buildReasoning(
     ctx: RoutingContext,
@@ -348,7 +348,7 @@ export class ModelRouter {
     return parts.join(" | ");
   }
 
-  // ── Analytics ──────────────────────────────────────────────────────────
+  // â”€â”€ Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   getRoutingHistory(): RoutingDecision[] {
     return [...this.routingHistory];

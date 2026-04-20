@@ -1,4 +1,4 @@
-import path from 'path';
+﻿import path from 'path';
 
 type SqliteOpen = (options: { filename: string; driver: unknown }) => Promise<{
   exec: (sql: string) => Promise<void>;

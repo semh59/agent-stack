@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { AntigravityTokenExchangeResult } from "../antigravity/oauth";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SovereignTokenExchangeResult } from "../google-gemini/oauth";
 import type { AccountMetadataV3, AccountStorageV3, LoadAccountsResult } from "./storage";
 import {
   AccountFileUnreadableError,
@@ -35,7 +35,7 @@ function createStorage(
   };
 }
 
-function successResult(overrides: Partial<Extract<AntigravityTokenExchangeResult, { type: "success" }>> = {}) {
+function successResult(overrides: Partial<Extract<SovereignTokenExchangeResult, { type: "success" }>> = {}) {
   return {
     type: "success" as const,
     refresh: "new-token|project-b|managed-b",

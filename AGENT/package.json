@@ -1,29 +1,31 @@
 {
-    "name": "lojinext-ai",
+    "name": "@sovereign/gateway",
     "version": "1.4.6",
-    "description": "Google Antigravity IDE OAuth auth plugin for Opencode - access Gemini 3 Pro and Claude 4.5 using Google credentials",
+    "description": "Sovereign AI — Gateway, mission orchestrator, and optimization pipeline frontend",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "type": "module",
     "license": "MIT",
-    "author": "noefabris",
+    "author": "Sovereign AI contributors",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/skara-ai/loji-next-ai.git"
+        "url": "git+https://github.com/sovereign-ai/agent-stack.git"
     },
-    "homepage": "https://github.com/skara-ai/loji-next-ai#readme",
+    "homepage": "https://github.com/sovereign-ai/agent-stack#readme",
     "bugs": {
-        "url": "https://github.com/skara-ai/loji-next-ai/issues"
+        "url": "https://github.com/sovereign-ai/agent-stack/issues"
     },
     "keywords": [
-        "opencode",
-        "google",
-        "antigravity",
-        "gemini",
+        "sovereign",
+        "ai",
+        "gateway",
+        "fastify",
+        "mission-orchestrator",
         "oauth",
-        "plugin",
-        "auth",
-        "claude"
+        "mcp",
+        "claude",
+        "gemini",
+        "ollama"
     ],
     "engines": {
         "node": ">=20.0.0"
@@ -37,6 +39,8 @@
         "build": "tsc -p tsconfig.build.json",
         "build:schema": "npx tsx script/build-schema.ts",
         "typecheck": "tsc --noEmit",
+        "lint": "eslint . --ext .ts,.tsx,.mjs",
+        "lint:fix": "eslint . --ext .ts,.tsx,.mjs --fix",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:ui": "vitest --ui",
@@ -63,20 +67,24 @@
         "typescript": "^5"
     },
     "devDependencies": {
+        "@eslint/js": "^9.15.0",
         "@testing-library/react": "^16.3.2",
         "@testing-library/user-event": "^14.6.1",
         "@types/async-lock": "^1.4.2",
+        "@types/better-sqlite3": "^7.6.13",
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^24.10.12",
         "@types/proper-lockfile": "^4.1.4",
         "@types/ws": "^8.18.1",
         "@vitest/coverage-v8": "^4.1.4",
         "@vitest/ui": "^4.1.4",
+        "eslint": "^9.15.0",
         "jsdom": "^28.1.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3",
+        "typescript-eslint": "^8.15.0",
         "vitest": "^4.1.4",
         "zod-to-json-schema": "^3.25.1"
     },
@@ -86,7 +94,6 @@
         "@fastify/websocket": "^11.2.0",
         "@openauthjs/openauth": "^0.4.3",
         "@opencode-ai/plugin": "^1.4.7",
-        "@types/better-sqlite3": "^7.6.13",
         "@xenova/transformers": "^2.17.2",
         "async-lock": "^1.4.1",
         "better-sqlite3": "^12.9.0",

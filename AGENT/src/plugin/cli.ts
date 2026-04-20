@@ -1,4 +1,4 @@
-import { createInterface } from "node:readline/promises";
+﻿import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import {
   showAuthMenu,
@@ -134,9 +134,9 @@ export async function promptLoginMode(existingAccounts: ExistingAccountInfo[]): 
       case "configure-models": {
         const result = await updateOpencodeConfig();
         if (result.success) {
-          console.log(`\n✓ Models configured in ${result.configPath}\n`);
+          console.log(`\nâœ“ Models configured in ${result.configPath}\n`);
         } else {
-          console.log(`\n✗ Failed to configure models: ${result.error}\n`);
+          console.log(`\nâœ— Failed to configure models: ${result.error}\n`);
         }
         continue;
       }

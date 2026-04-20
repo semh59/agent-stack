@@ -1,1 +1,2 @@
-const apiKey = "AIzaSy" + "B_something" + "C123";
+// Redacted. See scripts/cleanup-purge.sh.
+export {};

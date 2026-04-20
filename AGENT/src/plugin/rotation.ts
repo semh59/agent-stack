@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Account Rotation System
  * 
  * Implements advanced account selection algorithms:
@@ -219,7 +219,7 @@ export class HealthScoreTracker {
  * Helps break predictable timing patterns.
  * 
  * @param baseMs - Base delay in milliseconds
- * @param jitterFactor - Fraction of base to vary (default: 0.3 = ±30%)
+ * @param jitterFactor - Fraction of base to vary (default: 0.3 = Â±30%)
  * @returns Jittered delay in milliseconds
  */
 export function addJitter(baseMs: number, jitterFactor: number = 0.3): number {

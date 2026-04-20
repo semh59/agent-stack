@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+﻿import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { SessionPersistenceManager } from "./SessionPersistenceManager";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";

@@ -1,1 +1,3 @@
-console.log(process.env.OPENAI_API_KEY);
+// Redacted. Sensitive fixture removed — test now writes it dynamically.
+// This directory is slated for physical deletion via scripts/cleanup-purge.sh
+export {};

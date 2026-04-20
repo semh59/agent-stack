@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sovereign settings schema.
  *
  * This is the single source of truth for every knob the console exposes.
@@ -16,20 +16,30 @@ import { z } from "zod";
 /**
  * Zod v4 tightened `.default()` so the argument must match the resolved
  * *output* type. Every leaf in this schema has its own `.default(...)`, which
- * means `{}` is a semantically-valid default at runtime — Zod walks the
+ * means `{}` is a semantically-valid default at runtime â€” Zod walks the
  * children and fills everything in. The compiler can't infer that through the
  * generic plumbing, so we provide a typed sentinel used by every
  * all-defaulted object schema below.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const emptyDefault = {} as any;
+// Sentinel for defaulted objects
+const emptyDefault = {};
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Branded primitives
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Secret string — never serialized back to clients in plaintext. */
-export const secret = () => z.string().min(1).brand<"secret">();
+/** Secret string or redacted metadata object. */
+export const secret = () =>
+  z.union([
+    z.string(),
+    z.object({
+      set: z.boolean(),
+      updated_at: z.number().optional(),
+    }),
+  ]).brand<"secret">();
+
+
+
 
 /** A URL that must be resolvable (http/https). */
 const urlString = () =>
@@ -41,9 +51,9 @@ const urlString = () =>
 /** A host:port or absolute URL; we're lenient for local Ollama on `127.0.0.1:11434`. */
 const endpointString = () => z.string().min(1).max(512);
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Providers
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ollamaProvider = z.object({
   enabled: z.boolean().default(true),
@@ -54,20 +64,20 @@ const ollamaProvider = z.object({
 
 const openRouterProvider = z.object({
   enabled: z.boolean().default(false),
-  api_key: secret().optional(),
+  api_key: secret().nullish(),
   default_model: z.string().default("anthropic/claude-3.5-sonnet"),
   http_referer: urlString().optional(),
 });
 
 const anthropicProvider = z.object({
   enabled: z.boolean().default(false),
-  api_key: secret().optional(),
+  api_key: secret().nullish(),
   default_model: z.string().default("claude-sonnet-4-5"),
 });
 
 const openAIProvider = z.object({
   enabled: z.boolean().default(false),
-  api_key: secret().optional(),
+  api_key: secret().nullish(),
   base_url: urlString().default("https://api.openai.com/v1"),
   default_model: z.string().default("gpt-4o-mini"),
   organization_id: z.string().optional(),
@@ -75,7 +85,7 @@ const openAIProvider = z.object({
 
 const googleProvider = z.object({
   enabled: z.boolean().default(false),
-  // OAuth-driven — no api_key field here; tokens live in the accounts table.
+  // OAuth-driven â€” no api_key field here; tokens live in the accounts table.
   default_model: z.string().default("gemini-2.0-pro"),
 });
 
@@ -88,24 +98,24 @@ const lmStudioProvider = z.object({
 const azureProvider = z.object({
   enabled: z.boolean().default(false),
   endpoint: urlString().optional(),
-  api_key: secret().optional(),
+  api_key: secret().nullish(),
   api_version: z.string().default("2024-10-21"),
   deployment: z.string().optional(),
 });
 
 export const providersSchema = z.object({
-  ollama: ollamaProvider.default(emptyDefault),
-  openrouter: openRouterProvider.default(emptyDefault),
-  anthropic: anthropicProvider.default(emptyDefault),
-  openai: openAIProvider.default(emptyDefault),
-  google: googleProvider.default(emptyDefault),
-  lmstudio: lmStudioProvider.default(emptyDefault),
-  azure: azureProvider.default(emptyDefault),
+  ollama: ollamaProvider.default(ollamaProvider.parse({})),
+  openrouter: openRouterProvider.default(openRouterProvider.parse({})),
+  anthropic: anthropicProvider.default(anthropicProvider.parse({})),
+  openai: openAIProvider.default(openAIProvider.parse({})),
+  google: googleProvider.default(googleProvider.parse({})),
+  lmstudio: lmStudioProvider.default(lmStudioProvider.parse({})),
+  azure: azureProvider.default(azureProvider.parse({})),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Model routing
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const modelRef = z.string().min(1).max(256); // "provider/model" or "provider:model"
 
@@ -118,22 +128,48 @@ export const routingSchema = z.object({
       embed: modelRef.default("ollama:nomic-embed-text"),
       rerank: modelRef.default("ollama:qwen2.5:7b"),
     })
-    .default(emptyDefault),
+    .default({
+      chat: "ollama:qwen2.5:7b",
+      autocomplete: "ollama:qwen2.5-coder:7b",
+      edit: "anthropic:claude-sonnet-4-5",
+      embed: "ollama:nomic-embed-text",
+      rerank: "ollama:qwen2.5:7b",
+    }),
   complexity: z
     .object({
       low: modelRef.default("ollama:qwen2.5:7b"),
       medium: modelRef.default("ollama:qwen2.5:14b"),
       high: modelRef.default("anthropic:claude-sonnet-4-5"),
     })
-    .default(emptyDefault),
+    .default({
+      low: "ollama:qwen2.5:7b",
+      medium: "ollama:qwen2.5:14b",
+      high: "anthropic:claude-sonnet-4-5",
+    }),
   fallback_chain: z
     .array(modelRef)
     .default(["ollama:qwen2.5:7b", "openrouter:anthropic/claude-3.5-sonnet"]),
+  timeout_s: z.number().int().positive().max(600).default(60),
+}).default({
+  roles: {
+    chat: "ollama:qwen2.5:7b",
+    autocomplete: "ollama:qwen2.5-coder:7b",
+    edit: "anthropic:claude-sonnet-4-5",
+    embed: "ollama:nomic-embed-text",
+    rerank: "ollama:qwen2.5:7b",
+  },
+  complexity: {
+    low: "ollama:qwen2.5:7b",
+    medium: "ollama:qwen2.5:14b",
+    high: "anthropic:claude-sonnet-4-5",
+  },
+  fallback_chain: ["ollama:qwen2.5:7b", "openrouter:anthropic/claude-3.5-sonnet"],
+  timeout_s: 60,
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pipeline (optimization)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const LAYERS = [
   "cli_cleaner",
@@ -149,9 +185,9 @@ const LAYERS = [
 export const pipelineSchema = z.object({
   layers: z
     .object(
-      Object.fromEntries(LAYERS.map((l) => [l, z.boolean().default(true)])),
+       Object.fromEntries(LAYERS.map((l) => [l, z.boolean().default(true)])),
     )
-    .default(emptyDefault),
+    .default(Object.fromEntries(LAYERS.map((l) => [l, true]))),
   cache: z
     .object({
       exact_ttl_s: z.number().int().min(0).max(30 * 86400).default(86400),
@@ -159,13 +195,21 @@ export const pipelineSchema = z.object({
       semantic_threshold: z.number().min(0).max(1).default(0.87),
       max_entries: z.number().int().positive().max(10_000_000).default(100_000),
     })
-    .default(emptyDefault),
+    .default({
+      exact_ttl_s: 86400,
+      semantic_ttl_s: 7 * 86400,
+      semantic_threshold: 0.87,
+      max_entries: 100_000,
+    }),
   mab: z
     .object({
       epsilon: z.number().min(0).max(1).default(0.1),
       reward_threshold: z.number().min(0).max(1).default(0.2),
     })
-    .default(emptyDefault),
+    .default({
+      epsilon: 0.1,
+      reward_threshold: 0.2,
+    }),
   rag: z
     .object({
       sources: z
@@ -181,26 +225,37 @@ export const pipelineSchema = z.object({
       chunk_size: z.number().int().min(64).max(8192).default(512),
       top_k: z.number().int().min(1).max(50).default(5),
     })
-    .default(emptyDefault),
+    .default({
+      sources: [],
+      chunk_size: 512,
+      top_k: 5,
+    }),
   compression: z
     .object({
       llmlingua_target_ratio: z.number().min(0.1).max(1).default(0.5),
-      caveman_endpoint: urlString().optional(),
+      caveman_endpoint: z.string().url().optional(),
       dedup_mode: z.enum(["off", "exact", "semantic"]).default("exact"),
     })
-    .default(emptyDefault),
+    .default({
+      llmlingua_target_ratio: 0.5,
+      dedup_mode: "exact",
+    }),
   budgets: z
     .object({
       max_tokens_per_day: z.number().int().nonnegative().default(0), // 0 = no cap
       max_usd_per_day: z.number().nonnegative().default(0),
       max_tokens_per_mission: z.number().int().nonnegative().default(0),
     })
-    .default(emptyDefault),
+    .default({
+      max_tokens_per_day: 0,
+      max_usd_per_day: 0,
+      max_tokens_per_mission: 0,
+    }),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MCP
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const mcpSchema = z.object({
   servers: z
@@ -218,11 +273,11 @@ export const mcpSchema = z.object({
       }),
     )
     .default([]),
-});
+}).default({ servers: [] });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Rules & prompts
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const rulesSchema = z.object({
   system_prompt: z.string().default(""),
@@ -235,11 +290,11 @@ export const rulesSchema = z.object({
       }),
     )
     .default({
-      code: { label: "Code", prompt: "You are a senior engineer…" },
-      architect: { label: "Architect", prompt: "You are a systems architect…" },
-      debug: { label: "Debug", prompt: "You help reproduce and isolate bugs…" },
-      ask: { label: "Ask", prompt: "You answer questions concisely…" },
-      autonomous: { label: "Autonomous", prompt: "You operate autonomously…" },
+      code: { label: "Code", prompt: "You are a senior engineerâ€¦" },
+      architect: { label: "Architect", prompt: "You are a systems architectâ€¦" },
+      debug: { label: "Debug", prompt: "You help reproduce and isolate bugsâ€¦" },
+      ask: { label: "Ask", prompt: "You answer questions conciselyâ€¦" },
+      autonomous: { label: "Autonomous", prompt: "You operate autonomouslyâ€¦" },
     }),
   rules_file: z.string().default(""),
   slash_commands: z
@@ -253,9 +308,9 @@ export const rulesSchema = z.object({
     .default([]),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Observability
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const observabilitySchema = z.object({
   log_level: z
@@ -264,33 +319,43 @@ export const observabilitySchema = z.object({
       bridge: z.enum(["DEBUG", "INFO", "WARNING", "ERROR"]).default("INFO"),
       mcp: z.enum(["debug", "info", "warn", "error"]).default("info"),
     })
-    .default(emptyDefault),
+    .default({
+      gateway: "info",
+      bridge: "INFO",
+      mcp: "info",
+    }),
   otel: z
     .object({
       enabled: z.boolean().default(false),
       endpoint: urlString().optional(),
       service_namespace: z.string().default("sovereign-ai"),
     })
-    .default(emptyDefault),
+    .default({
+      enabled: false,
+      service_namespace: "sovereign-ai",
+    }),
   metrics: z
     .object({
       enabled: z.boolean().default(true),
       port: z.number().int().min(1).max(65535).default(9090),
     })
-    .default(emptyDefault),
+    .default({
+      enabled: true,
+      port: 9090,
+    }),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Data
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const dataSchema = z.object({
   data_dir: z.string().default("/data"),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Appearance
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const appearanceSchema = z.object({
   theme: z.enum(["dark", "light", "system"]).default("dark"),
@@ -299,19 +364,19 @@ export const appearanceSchema = z.object({
   compact: z.boolean().default(false),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Root schema
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const settingsSchema = z.object({
-  providers: providersSchema.default(emptyDefault),
-  routing: routingSchema.default(emptyDefault),
-  pipeline: pipelineSchema.default(emptyDefault),
-  mcp: mcpSchema.default(emptyDefault),
-  rules: rulesSchema.default(emptyDefault),
-  observability: observabilitySchema.default(emptyDefault),
-  data: dataSchema.default(emptyDefault),
-  appearance: appearanceSchema.default(emptyDefault),
+  providers: providersSchema.default(providersSchema.parse({})),
+  routing: routingSchema.default(routingSchema.parse({})),
+  pipeline: pipelineSchema.default(pipelineSchema.parse({})),
+  mcp: mcpSchema.default({ servers: [] }),
+  rules: rulesSchema.default(rulesSchema.parse({})),
+  observability: observabilitySchema.default(observabilitySchema.parse({})),
+  data: dataSchema.default(dataSchema.parse({})),
+  appearance: appearanceSchema.default(appearanceSchema.parse({})),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -332,7 +397,7 @@ export const SECRET_PATHS = [
 
 export type SecretPath = (typeof SECRET_PATHS)[number];
 
-/** Default settings — convenient for first-boot seeding. */
+/** Default settings â€” convenient for first-boot seeding. */
 export function defaultSettings(): Settings {
   return settingsSchema.parse({});
 }

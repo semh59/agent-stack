@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Fetch-related helper functions extracted from plugin.ts monolith.
  * URL parsing, model detection, header style resolution.
  */
 import type { HeaderStyle } from "../constants";
 import type { ModelFamily } from "./accounts";
-import type { AntigravityConfig } from "./config";
+import type { SovereignGatewayConfig } from "./config";
 import { resolveModelWithTier } from "./transform/model-resolver";
 import { isDebugEnabled, logModelFamily } from "./debug";
 
@@ -75,20 +75,20 @@ export function resolveQuotaFallbackHeaderStyle(input: {
   return input.alternateStyle;
 }
 
-export function getCliFirst(config: AntigravityConfig): boolean {
-  return (config as AntigravityConfig & { cli_first?: boolean }).cli_first ?? false;
+export function getCliFirst(config: SovereignGatewayConfig): boolean {
+  return (config as SovereignGatewayConfig & { cli_first?: boolean }).cli_first ?? false;
 }
 
 export function getHeaderStyleFromUrl(urlString: string, family: ModelFamily): HeaderStyle {
   if (family === "claude") {
-    return "antigravity";
+    return "Sovereign";
   }
   const modelWithSuffix = extractModelFromUrlWithSuffix(urlString);
   if (!modelWithSuffix) {
-    return "antigravity";
+    return "Sovereign";
   }
   const { quotaPreference } = resolveModelWithTier(modelWithSuffix);
-  return quotaPreference === "gemini-cli" ? "antigravity" : (quotaPreference ?? "antigravity");
+  return quotaPreference === "gemini-cli" ? "Sovereign" : (quotaPreference ?? "Sovereign");
 }
 
 export function isExplicitQuotaFromUrl(urlString: string): boolean {

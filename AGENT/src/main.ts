@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Production entry point for the Sovereign AI Gateway.
  *
  * Differences from scripts/start-gateway.ts:
@@ -33,8 +33,8 @@ function optionalEnv(name: string, fallback: string): string {
 }
 
 async function main(): Promise<void> {
-  const port = Number(optionalEnv("LOJINEXT_GATEWAY_PORT", "3000"));
-  const host = optionalEnv("LOJINEXT_GATEWAY_HOST", "0.0.0.0");
+  const port = Number(optionalEnv("SOVEREIGN_GATEWAY_PORT", "3000"));
+  const host = optionalEnv("SOVEREIGN_GATEWAY_HOST", "0.0.0.0");
   const authToken = requireEnv("LOJINEXT_GATEWAY_TOKEN");
 
   const server = new GatewayServer({
@@ -64,7 +64,7 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));
 
-  // Unhandled rejections / exceptions are fatal — log and exit so the
+  // Unhandled rejections / exceptions are fatal â€” log and exit so the
   // orchestrator (ECS, k8s) restarts us rather than letting us limp along.
   process.on("unhandledRejection", (err) => {
     process.stderr.write(`[gateway] unhandledRejection: ${String(err)}\n`);

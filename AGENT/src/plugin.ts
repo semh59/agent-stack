@@ -1,14 +1,14 @@
 import { spawn } from "node:child_process";
 import { tool } from "@opencode-ai/plugin";
-import { ANTIGRAVITY_ENDPOINT_FALLBACKS, ANTIGRAVITY_ENDPOINT_PROD, ANTIGRAVITY_PROVIDER_ID, type HeaderStyle } from "./constants";
-import { authorizeAntigravity, exchangeAntigravity } from "./antigravity/oauth";
-import type { AntigravityTokenExchangeResult } from "./antigravity/oauth";
+import { SOVEREIGN_ENDPOINT_FALLBACKS, SOVEREIGN_ENDPOINT_PROD, GOOGLE_GEMINI_PROVIDER_ID, type HeaderStyle } from "./constants";
+import { authorizeGoogleGemini, exchangeGoogleGemini } from "./google-gemini/oauth";
+import type { SovereignTokenExchangeResult } from "./google-gemini/oauth";
 import { accessTokenExpired, isOAuthAuth, parseRefreshParts } from "./plugin/auth";
 import { promptAddAnotherAccount, promptLoginMode, promptProjectId } from "./plugin/cli";
 import { ensureProjectContext } from "./plugin/project";
 import {
-  startAntigravityDebugRequest, 
-  logAntigravityDebugResponse,
+  startSovereignDebugRequest, 
+  logSovereignDebugResponse,
   logAccountContext,
   logRateLimitEvent,
   logRateLimitSnapshot,
@@ -21,8 +21,8 @@ import {
 import {
   buildThinkingWarmupBody,
   isGenerativeLanguageRequest,
-  prepareAntigravityRequest,
-  transformAntigravityResponse,
+  prepareSovereignRequest,
+  transformSovereignResponse,
 } from "./plugin/request";
 import { resolveModelWithTier } from "./plugin/transform/model-resolver";
 import {
@@ -31,13 +31,13 @@ import {
 } from "./plugin/request-helpers";
 import { z } from "zod";
 import { EmptyResponseError } from "./plugin/errors";
-import { AntigravityTokenRefreshError, refreshAccessToken } from "./plugin/token";
+import { SovereignTokenRefreshError, refreshAccessToken } from "./plugin/token";
 import { startOAuthListener, type OAuthListener } from "./plugin/server";
 import { clearAccounts, loadAccounts, saveAccounts } from "./plugin/storage";
 import { persistAccountPool } from "./plugin/persist-account-pool";
 import { AccountManager, type ModelFamily, parseRateLimitReason, calculateBackoffMs, computeSoftQuotaCacheTtlMs } from "./plugin/accounts";
 import { createAutoUpdateCheckerHook } from "./hooks/auto-update-checker";
-import { loadConfig, initRuntimeConfig, type AntigravityConfig } from "./plugin/config";
+import { loadConfig, initRuntimeConfig, type SovereignGatewayConfig } from "./plugin/config";
 import { createSessionRecoveryHook, getRecoverySuccessToast } from "./plugin/recovery";
 import { checkAccountsQuota } from "./plugin/quota";
 import { initDiskSignatureCache } from "./plugin/cache";
@@ -46,7 +46,7 @@ import { initLogger, createLogger } from "./plugin/logger";
 import { initHealthTracker, getHealthTracker, initTokenTracker, getTokenTracker } from "./plugin/rotation";
 import { executeSearch } from "./plugin/search";
 import { PipelineTools } from "./orchestration/pipeline-tools";
-import { AntigravityClient } from "./orchestration/antigravity-client";
+import { SovereignGatewayClient } from "./orchestration/gateway-client";
 import { createEventHandler, type ChildSessionState } from "./plugin/event-handler";
 import {
   toUrlString,
@@ -228,7 +228,7 @@ function parseOAuthCallbackInput(
 
 async function promptManualOAuthInput(
   fallbackState: string,
-): Promise<AntigravityTokenExchangeResult> {
+): Promise<SovereignTokenExchangeResult> {
   console.log("1. Open the URL above in your browser and complete Google sign-in.");
   console.log("2. After approving, copy the full redirected localhost URL from the address bar.");
   console.log("3. Paste it back here.\n");
@@ -241,7 +241,7 @@ async function promptManualOAuthInput(
     return { type: "failed", error: params.error };
   }
 
-  return exchangeAntigravity(params.code, params.state);
+  return exchangeGoogleGemini(params.code, params.state);
 }
 
 
@@ -250,9 +250,9 @@ async function promptManualOAuthInput(
 
 
 /**
- * Creates an Antigravity OAuth plugin for a specific provider ID.
+ * Creates an Sovereign OAuth plugin for a specific provider ID.
  */
-export const createAntigravityPlugin = (providerId: string) => async (
+export const createSovereignPlugin = (providerId: string) => async (
   { client, directory }: PluginContext,
 ): Promise<PluginResult> => {
   // Load configuration from files and environment variables
@@ -310,7 +310,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
     autoUpdate: config.auto_update,
   });
 
-  // Event handler — extracted to plugin/event-handler.ts
+  // Event handler â€” extracted to plugin/event-handler.ts
   const eventHandler = createEventHandler({
     client,
     config,
@@ -335,7 +335,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
       // Get current auth context
       const auth = cachedGetAuth ? await cachedGetAuth() : null;
       if (!auth || !isOAuthAuth(auth)) {
-        return "Error: Not authenticated with Antigravity. Please run `opencode auth login` to authenticate.";
+        return "Error: Not authenticated with Sovereign. Please run `opencode auth login` to authenticate.";
       }
 
       // Get access token and project ID
@@ -370,19 +370,19 @@ export const createAntigravityPlugin = (providerId: string) => async (
     },
   });
 
-  // Initialize AntigravityClient for internal tools
+  // Initialize SovereignGatewayClient for internal tools
   const accountManager = await AccountManager.loadFromDisk();
-  const antigravityClient = new AntigravityClient(
+  const sovereignClient = new SovereignGatewayClient(
     accountManager,
-    config,
-    providerId,
+    config as any,
+    'sovereign',
     async () => {
       if (!cachedGetAuth) throw new Error("Auth not initialized");
       return cachedGetAuth();
     }
   );
   
-  const pipelineTools = new PipelineTools(directory, antigravityClient, client);
+  const pipelineTools = new PipelineTools(directory, sovereignClient, client);
   const externalTools = { ...pipelineTools.getTools() };
 
   return {
@@ -467,7 +467,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
           }
 
           if (accountManager.getAccountCount() === 0) {
-            throw new Error("No Antigravity accounts configured. Run `opencode auth login`.");
+            throw new Error("No Sovereign accounts configured. Run `opencode auth login`.");
           }
 
           const urlString = toUrlString(input);
@@ -483,7 +483,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
           type FailureContext = {
             response: Response;
             streaming: boolean;
-            debugContext: ReturnType<typeof startAntigravityDebugRequest>;
+            debugContext: ReturnType<typeof startSovereignDebugRequest>;
             requestedModel?: string;
             projectId?: string;
             endpoint?: string;
@@ -529,7 +529,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
             const accountCount = accountManager.getAccountCount();
             
             if (accountCount === 0) {
-              throw new Error("No Antigravity accounts available. Run `opencode auth login`.");
+              throw new Error("No Sovereign accounts available. Run `opencode auth login`.");
             }
 
             const softQuotaCacheTtlMs = computeSoftQuotaCacheTtlMs(
@@ -541,7 +541,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
               family, 
               model, 
               config.account_selection_strategy,
-              'antigravity',
+              'Sovereign',
               config.pid_offset_enabled,
               config.soft_quota_threshold_percent,
               softQuotaCacheTtlMs,
@@ -664,10 +664,10 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 if (!refreshed) {
                   const { failures, shouldCooldown, cooldownMs } = trackAccountFailure(account.index);
                   getHealthTracker().recordFailure(account.index);
-                  lastError = new Error("Antigravity token refresh failed");
+                  lastError = new Error("Sovereign token refresh failed");
                   if (shouldCooldown) {
                     accountManager.markAccountCoolingDown(account, cooldownMs, "auth-failure");
-                    accountManager.markRateLimited(account, cooldownMs, family, "antigravity", model);
+                    accountManager.markRateLimited(account, cooldownMs, family, "Sovereign", model);
                     pushDebug(`token-refresh-failed: cooldown ${cooldownMs}ms after ${failures} failures`);
                   }
                   continue;
@@ -681,7 +681,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   log.error("Failed to persist refreshed auth", { error: String(error) });
                 }
               } catch (error) {
-                if (error instanceof AntigravityTokenRefreshError && error.code === "invalid_grant") {
+                if (error instanceof SovereignTokenRefreshError && error.code === "invalid_grant") {
                   const removed = accountManager.removeAccount(account);
                   if (removed) {
                     log.warn("Removed revoked account from pool - reauthenticate via `opencode auth login`");
@@ -699,11 +699,11 @@ export const createAntigravityPlugin = (providerId: string) => async (
                         body: { type: "oauth", refresh: "", access: "", expires: 0 },
                       });
                     } catch (storeError) {
-                      log.error("Failed to clear stored Antigravity OAuth credentials", { error: String(storeError) });
+                      log.error("Failed to clear stored Sovereign OAuth credentials", { error: String(storeError) });
                     }
 
                     throw new Error(
-                      "All Antigravity accounts have invalid refresh tokens. Run `opencode auth login` and reauthenticate.",
+                      "All Sovereign accounts have invalid refresh tokens. Run `opencode auth login` and reauthenticate.",
                     );
                   }
 
@@ -716,7 +716,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 lastError = error instanceof Error ? error : new Error(String(error));
                 if (shouldCooldown) {
                   accountManager.markAccountCoolingDown(account, cooldownMs, "auth-failure");
-                  accountManager.markRateLimited(account, cooldownMs, family, "antigravity", model);
+                  accountManager.markRateLimited(account, cooldownMs, family, "Sovereign", model);
                   pushDebug(`token-refresh-error: cooldown ${cooldownMs}ms after ${failures} failures`);
                 }
                 continue;
@@ -742,7 +742,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
               lastError = error instanceof Error ? error : new Error(String(error));
               if (shouldCooldown) {
                 accountManager.markAccountCoolingDown(account, cooldownMs, "project-error");
-                accountManager.markRateLimited(account, cooldownMs, family, "antigravity", model);
+                accountManager.markRateLimited(account, cooldownMs, family, "Sovereign", model);
                 pushDebug(`project-context-error: cooldown ${cooldownMs}ms after ${failures} failures`);
               }
               continue;
@@ -759,7 +759,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
             }
 
             const runThinkingWarmup = async (
-              prepared: ReturnType<typeof prepareAntigravityRequest>,
+              prepared: ReturnType<typeof prepareSovereignRequest>,
               projectId: string,
             ): Promise<void> => {
               if (!prepared.needsSignedThinkingWarmup || !prepared.sessionId) {
@@ -789,7 +789,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 body: warmupBody,
               };
 
-              const warmupDebugContext = startAntigravityDebugRequest({
+              const warmupDebugContext = startSovereignDebugRequest({
                 originalUrl: warmupUrl,
                 resolvedUrl: warmupUrl,
                 method: warmupInit.method,
@@ -802,7 +802,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
               try {
                 pushDebug("thinking-warmup: start");
                 const warmupResponse = await fetch(warmupUrl, warmupInit);
-                const transformed = await transformAntigravityResponse(
+                const transformed = await transformSovereignResponse(
                   warmupResponse,
                   true,
                   warmupDebugContext,
@@ -827,8 +827,8 @@ export const createAntigravityPlugin = (providerId: string) => async (
             let shouldSwitchAccount = false;
             
             // Determine header style from model suffix:
-            // - Gemini models default to Antigravity
-            // - Claude models always use Antigravity
+            // - Gemini models default to Sovereign
+            // - Claude models always use Sovereign
             let headerStyle = getHeaderStyleFromUrl(urlString, family);
             const explicitQuota = isExplicitQuotaFromUrl(urlString);
             const cliFirst = getCliFirst(config);
@@ -839,15 +839,15 @@ export const createAntigravityPlugin = (providerId: string) => async (
             
             // Check if this header style is rate-limited for this account
             if (accountManager.isRateLimitedForHeaderStyle(account, family, headerStyle, model)) {
-              // Antigravity-first fallback: exhaust antigravity across ALL accounts before gemini-cli
-              if (config.quota_fallback && !explicitQuota && family === "gemini" && headerStyle === "antigravity" && !cliFirst) {
-                // Check if ANY other account has antigravity available
-                if (accountManager.hasOtherAccountWithAntigravityAvailable(account.index, family, model)) {
-                  // Switch to another account with antigravity (preserve antigravity priority)
-                  pushDebug(`antigravity rate-limited on account ${account.index}, but available on other accounts. Switching.`);
+              // Sovereign-first fallback: exhaust Sovereign across ALL accounts before gemini-cli
+              if (config.quota_fallback && !explicitQuota && family === "gemini" && headerStyle === "Sovereign" && !cliFirst) {
+                // Check if ANY other account has Sovereign available
+                if (accountManager.hasOtherAccountWithSovereignAvailable(account.index, family, model)) {
+                  // Switch to another account with Sovereign (preserve Sovereign priority)
+                  pushDebug(`Sovereign rate-limited on account ${account.index}, but available on other accounts. Switching.`);
                   shouldSwitchAccount = true;
                 } else {
-                  // All accounts exhausted antigravity - fall back to gemini-cli on this account
+                  // All accounts exhausted Sovereign - fall back to gemini-cli on this account
                   const alternateStyle = accountManager.getAvailableHeaderStyle(account, family, model);
                   const fallbackStyle = resolveQuotaFallbackHeaderStyle({
                     quotaFallback: config.quota_fallback,
@@ -858,15 +858,15 @@ export const createAntigravityPlugin = (providerId: string) => async (
                     alternateStyle,
                   });
                   if (fallbackStyle) {
-                    await showToast(client, config, `Antigravity quota exhausted on all accounts. Using Gemini CLI quota.`, "warning", childState.isChildSession, childState.childSessionParentID);
+                    await showToast(client, config, `Sovereign quota exhausted on all accounts. Using Gemini CLI quota.`, "warning", childState.isChildSession, childState.childSessionParentID);
                     headerStyle = fallbackStyle;
-                    pushDebug(`all-accounts antigravity exhausted, quota fallback: ${headerStyle}`);
+                    pushDebug(`all-accounts Sovereign exhausted, quota fallback: ${headerStyle}`);
                   } else {
                     shouldSwitchAccount = true;
                   }
                 }
               } else if (config.quota_fallback && !explicitQuota && family === "gemini") {
-                // gemini-cli rate-limited - try alternate style (antigravity) on same account
+                // gemini-cli rate-limited - try alternate style (Sovereign) on same account
                 const alternateStyle = accountManager.getAvailableHeaderStyle(account, family, model);
                 const fallbackStyle = resolveQuotaFallbackHeaderStyle({
                   quotaFallback: config.quota_fallback,
@@ -877,8 +877,8 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   alternateStyle,
                 });
                 if (fallbackStyle) {
-                  const quotaName = headerStyle === "gemini-cli" ? "Gemini CLI" : "Antigravity";
-                  const altQuotaName = fallbackStyle === "gemini-cli" ? "Gemini CLI" : "Antigravity";
+                  const quotaName = headerStyle === "gemini-cli" ? "Gemini CLI" : "Sovereign";
+                  const altQuotaName = fallbackStyle === "gemini-cli" ? "Gemini CLI" : "Sovereign";
                   await showToast(client, config, `${quotaName} quota exhausted, using ${altQuotaName} quota`, "warning", childState.isChildSession, childState.childSessionParentID);
                   headerStyle = fallbackStyle;
                   pushDebug(`quota fallback: ${headerStyle}`);
@@ -902,8 +902,8 @@ export const createAntigravityPlugin = (providerId: string) => async (
             let capacityRetryCount = 0;
             let lastEndpointIndex = -1;
             
-            for (let i = 0; i < ANTIGRAVITY_ENDPOINT_FALLBACKS.length; i++) {
-              const currentEndpoint = ANTIGRAVITY_ENDPOINT_FALLBACKS[i];
+            for (let i = 0; i < SOVEREIGN_ENDPOINT_FALLBACKS.length; i++) {
+              const currentEndpoint = SOVEREIGN_ENDPOINT_FALLBACKS[i];
               if (!currentEndpoint) continue;
 
               // Circuit Breaker Check
@@ -915,15 +915,15 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
               // Reset capacity retry counter when switching to a new endpoint
 
-              // Skip sandbox endpoints for Gemini CLI models - they only work with Antigravity quota
+              // Skip sandbox endpoints for Gemini CLI models - they only work with Sovereign quota
               // Gemini CLI models must use production endpoint (cloudcode-pa.googleapis.com)
-              if (headerStyle === "gemini-cli" && currentEndpoint !== ANTIGRAVITY_ENDPOINT_PROD) {
+              if (headerStyle === "gemini-cli" && currentEndpoint !== SOVEREIGN_ENDPOINT_PROD) {
                 pushDebug(`Skipping sandbox endpoint ${currentEndpoint} for gemini-cli headerStyle`);
                 continue;
               }
 
               try {
-                const prepared = prepareAntigravityRequest(
+                const prepared = prepareSovereignRequest(
                   input,
                   init,
                   accessToken,
@@ -941,7 +941,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 const resolvedUrl = toUrlString(prepared.request);
                 pushDebug(`endpoint=${currentEndpoint}`);
                 pushDebug(`resolved=${resolvedUrl}`);
-                const debugContext = startAntigravityDebugRequest({
+                const debugContext = startSovereignDebugRequest({
                   originalUrl,
                   resolvedUrl,
                   method: prepared.init.method,
@@ -993,12 +993,12 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   // Goal: Wait and Retry SAME Account. DO NOT LOCK.
                   // We handle this FIRST to avoid calling getRateLimitBackoff() and polluting the global rate limit state for transient errors.
                   if (rateLimitReason === "MODEL_CAPACITY_EXHAUSTED" || rateLimitReason === "SERVER_ERROR") {
-                     // Exponential backoff with jitter for capacity errors: 1s → 2s → 4s → 8s (max)
-                     // Matches Antigravity-Manager's ExponentialBackoff(1s, 8s)
+                     // Exponential backoff with jitter for capacity errors: 1s â†’ 2s â†’ 4s â†’ 8s (max)
+                     // Matches Sovereign-Manager's ExponentialBackoff(1s, 8s)
                      const baseDelayMs = 1000;
                      const maxDelayMs = 8000;
                      const exponentialDelay = Math.min(baseDelayMs * Math.pow(2, capacityRetryCount), maxDelayMs);
-                     // Add ±10% jitter to prevent thundering herd
+                     // Add Â±10% jitter to prevent thundering herd
                      const jitter = exponentialDelay * (0.9 + Math.random() * 0.2);
                      const waitMs = Math.round(jitter);
                      const waitSec = Math.round(waitMs / 1000);
@@ -1008,7 +1008,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                      await showToast(
                        client,
                        config,
-                       `⏳ Server busy (${response.status}). Retrying in ${waitSec}s...`,
+                       `â³ Server busy (${response.status}). Retrying in ${waitSec}s...`,
                        "warning",
                        childState.isChildSession,
                        childState.childSessionParentID
@@ -1073,7 +1073,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
                   const accountLabel = account.email || `Account ${account.index + 1}`;
 
-                  // Progressive retry for standard 429s: 1st 429 → 1s then switch (if enabled) or retry same
+                  // Progressive retry for standard 429s: 1st 429 â†’ 1s then switch (if enabled) or retry same
                   if (attempt === 1 && rateLimitReason !== "QUOTA_EXHAUSTED") {
                     await showToast(client, config, `Rate limited. Quick retry in 1s...`, "warning", childState.isChildSession, childState.childSessionParentID);
                     await sleep(FIRST_RETRY_DELAY_MS, abortSignal);
@@ -1084,7 +1084,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                       // effectiveDelayMs is the backoff calculated for this account
                       if (effectiveDelayMs <= maxCacheFirstWaitMs) {
                         pushDebug(`cache_first: waiting ${effectiveDelayMs}ms for same account to recover`);
-                        await showToast(client, config, `⏳ Waiting ${Math.ceil(effectiveDelayMs / 1000)}s for same account (prompt cache preserved)...`, "info", childState.isChildSession, childState.childSessionParentID);
+                        await showToast(client, config, `â³ Waiting ${Math.ceil(effectiveDelayMs / 1000)}s for same account (prompt cache preserved)...`, "info", childState.isChildSession, childState.childSessionParentID);
                         accountManager.markRateLimitedWithReason(account, family, headerStyle, model, rateLimitReason, serverRetryMs, currentEndpoint);
                         await sleep(effectiveDelayMs, abortSignal);
                         // Retry same endpoint after wait
@@ -1112,17 +1112,17 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
                   // For Gemini, preserve preferred quota across accounts before fallback
                   if (family === "gemini") {
-                    if (headerStyle === "antigravity" && !cliFirst) {
-                      // Check if any other account has Antigravity quota for this model
-                      if (accountManager.hasOtherAccountWithAntigravityAvailable(account.index, family, model)) {
-                        pushDebug(`antigravity exhausted on account ${account.index}, but available on others. Switching account.`);
+                    if (headerStyle === "Sovereign" && !cliFirst) {
+                      // Check if any other account has Sovereign quota for this model
+                      if (accountManager.hasOtherAccountWithSovereignAvailable(account.index, family, model)) {
+                        pushDebug(`Sovereign exhausted on account ${account.index}, but available on others. Switching account.`);
                         await showToast(client, config, `Rate limited again. Switching account in 5s...`, "warning", childState.isChildSession, childState.childSessionParentID);
                         await sleep(SWITCH_ACCOUNT_DELAY_MS, abortSignal);
                         shouldSwitchAccount = true;
                         break;
                       }
 
-                      // All accounts exhausted for Antigravity on THIS model.
+                      // All accounts exhausted for Sovereign on THIS model.
                       // Before falling back to gemini-cli, check if it's the last option (automatic fallback)
                       if (config.quota_fallback && !explicitQuota) {
                         const alternateStyle = accountManager.getAvailableHeaderStyle(account, family, model);
@@ -1139,7 +1139,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                           await showToast(
                             client,
                             config,
-                            `Antigravity quota exhausted for ${safeModelName}. Switching to Gemini CLI quota...`,
+                            `Sovereign quota exhausted for ${safeModelName}. Switching to Gemini CLI quota...`,
                             "warning",
                             childState.isChildSession,
                             childState.childSessionParentID
@@ -1165,7 +1165,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                           await showToast(
                             client,
                             config,
-                            `Gemini CLI quota exhausted for ${safeModelName}. Switching to Antigravity quota...`,
+                            `Gemini CLI quota exhausted for ${safeModelName}. Switching to Sovereign quota...`,
                             "warning",
                             childState.isChildSession,
                             childState.childSessionParentID
@@ -1178,7 +1178,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                     }
                   }
 
-                  const quotaName = headerStyle === "antigravity" ? "Antigravity" : "Gemini CLI";
+                  const quotaName = headerStyle === "Sovereign" ? "Sovereign" : "Gemini CLI";
 
                   if (accountCount > 1) {
                     const quotaMsg = bodyInfo.quotaResetTime 
@@ -1243,7 +1243,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   await logResponseBody(debugContext, response, response.status);
                 }
 
-                if (shouldRetryEndpoint && i < ANTIGRAVITY_ENDPOINT_FALLBACKS.length - 1) {
+                if (shouldRetryEndpoint && i < SOVEREIGN_ENDPOINT_FALLBACKS.length - 1) {
                   if (currentEndpoint) circuitBreaker.recordFailure(currentEndpoint);
                   lastFailure = {
                     response,
@@ -1278,7 +1278,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                     config.quota_refresh_interval_minutes,
                   );
                 }
-                logAntigravityDebugResponse(debugContext, response, {
+                logSovereignDebugResponse(debugContext, response, {
                   note: response.ok ? "Success" : `Error ${response.status}`,
                 });
                 if (!response.ok) {
@@ -1297,7 +1297,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                         childState.isChildSession,
                         childState.childSessionParentID
                       );
-                      const errorMessage = `[Antigravity Error] Context is too long for this model.\n\nPlease use /compact to reduce context size, then retry your request.\n\nAlternatively, you can:\n- Use /clear to start fresh\n- Use /undo to remove recent messages\n- Switch to a model with larger context window`;
+                      const errorMessage = `[Sovereign Error] Context is too long for this model.\n\nPlease use /compact to reduce context size, then retry your request.\n\nAlternatively, you can:\n- Use /clear to start fresh\n- Use /undo to remove recent messages\n- Switch to a model with larger context window`;
                       return createSyntheticErrorResponse(errorMessage, prepared.requestedModel);
                     }
                   }
@@ -1338,7 +1338,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                     // Clean up and throw after max attempts
                     resetEmptyResponseAttempts(emptyAttemptKey);
                     throw new EmptyResponseError(
-                      "antigravity",
+                      "Sovereign",
                       prepared.effectiveModel ?? "unknown",
                       currentAttempts,
                     );
@@ -1355,15 +1355,15 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   try {
                     const clonedForValidation = response.clone();
                     const json = await clonedForValidation.json();
-                    const AntigravityResponseSchema = z.object({
+                    const SovereignResponseSchema = z.object({
                       type: z.string().optional(),
                       message: z.any().optional(),
                       error: z.any().optional(),
                     }).passthrough();
                     
-                    const result = AntigravityResponseSchema.safeParse(json);
+                    const result = SovereignResponseSchema.safeParse(json);
                     if (!result.success) {
-                      log.error("Antigravity response validation failed", { errors: result.error.format() });
+                      log.error("Sovereign response validation failed", { errors: result.error.format() });
                       // We don't throw here to avoid breaking everything, but we log for hardening and can add stricter logic later
                     }
                   } catch (e) {
@@ -1371,7 +1371,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   }
                 }
                 
-                const transformedResponse = await transformAntigravityResponse(
+                const transformedResponse = await transformSovereignResponse(
                   response,
                   prepared.streaming,
                   debugContext,
@@ -1387,7 +1387,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 );
 
                 // Check for context errors and show appropriate toast
-                const contextError = transformedResponse.headers.get("x-antigravity-context-error");
+                const contextError = transformedResponse.headers.get("x-Sovereign-context-error");
                 if (contextError) {
                   if (contextError === "prompt_too_long") {
                     await showToast(
@@ -1446,7 +1446,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   });
                 }
 
-                if (i < ANTIGRAVITY_ENDPOINT_FALLBACKS.length - 1) {
+                if (i < SOVEREIGN_ENDPOINT_FALLBACKS.length - 1) {
                   lastError = error instanceof Error ? error : new Error(String(error));
                   continue;
                 }
@@ -1470,7 +1470,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
               // Avoid tight retry loops when there's only one account.
               if (accountCount <= 1) {
                 if (lastFailure) {
-                  return transformAntigravityResponse(
+                  return transformSovereignResponse(
                     lastFailure.response,
                     lastFailure.streaming,
                     lastFailure.debugContext,
@@ -1486,7 +1486,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                   );
                 }
 
-                throw lastError || new Error("All Antigravity endpoints failed");
+                throw lastError || new Error("All Sovereign endpoints failed");
               }
 
               continue;
@@ -1494,7 +1494,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
             // If we get here without returning, something went wrong
             if (lastFailure) {
-              return transformAntigravityResponse(
+              return transformSovereignResponse(
                 lastFailure.response,
                 lastFailure.streaming,
                 lastFailure.debugContext,
@@ -1510,14 +1510,14 @@ export const createAntigravityPlugin = (providerId: string) => async (
               );
             }
 
-            throw lastError || new Error("All Antigravity accounts failed");
+            throw lastError || new Error("All Sovereign accounts failed");
           }
         },
       };
     },
     methods: [
       {
-        label: "OAuth with Google (Antigravity)",
+        label: "OAuth with Google (Sovereign)",
         type: "oauth",
         authorize: async (inputs?: Record<string, string>) => {
           const isHeadless = !!(
@@ -1529,7 +1529,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
           // CLI flow (`opencode auth login`) passes an inputs object.
           if (inputs) {
-            const accounts: Array<Extract<AntigravityTokenExchangeResult, { type: "success" }>> = [];
+            const accounts: Array<Extract<SovereignTokenExchangeResult, { type: "success" }>> = [];
             const noBrowser = inputs.noBrowser === "true" || inputs["no-browser"] === "true";
             const useManualMode = noBrowser || shouldSkipLocalServer();
 
@@ -1576,19 +1576,19 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 menuResult = await promptLoginMode(existingAccounts);
 
                 if (menuResult.mode === "check") {
-                  console.log("\n📊 Checking quotas for all accounts...\n");
+                  console.log("\nğŸ“Š Checking quotas for all accounts...\n");
                   const results = await checkAccountsQuota(existingStorage.accounts, client, providerId);
                   let storageUpdated = false;
                   
                   for (const res of results) {
                     const label = res.email || `Account ${res.index + 1}`;
                     const disabledStr = res.disabled ? " (disabled)" : "";
-                    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+                    console.log(`â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”`);
                     console.log(`  ${label}${disabledStr}`);
-                    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+                    console.log(`â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”`);
                     
                     if (res.status === "error") {
-                      console.log(`  ❌ Error: ${res.error}\n`);
+                      console.log(`  âŒ Error: ${res.error}\n`);
                       continue;
                     }
 
@@ -1610,11 +1610,11 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
                     // Helper to create colored progress bar
                     const createProgressBar = (remaining?: number, width: number = 20): string => {
-                      if (typeof remaining !== 'number') return '░'.repeat(width) + ' ???';
+                      if (typeof remaining !== 'number') return 'â–‘'.repeat(width) + ' ???';
                       const filled = Math.round(remaining * width);
                       const empty = width - filled;
                       const color = getColor(remaining);
-                      const bar = `${color}${'█'.repeat(filled)}${colors.reset}${'░'.repeat(empty)}`;
+                      const bar = `${color}${'â–ˆ'.repeat(filled)}${colors.reset}${'â–‘'.repeat(empty)}`;
                       const pct = `${color}${Math.round(remaining * 100)}%${colors.reset}`.padStart(4 + color.length + colors.reset.length);
                       return `${bar} ${pct}`;
                     };
@@ -1639,29 +1639,29 @@ export const createAntigravityPlugin = (providerId: string) => async (
 
                     // Display Gemini CLI Quota first (as requested - swap order)
                     const hasGeminiCli = res.geminiCliQuota && res.geminiCliQuota.models.length > 0;
-                    console.log(`\n  ┌─ Gemini CLI Quota`);
+                    console.log(`\n  â”Œâ”€ Gemini CLI Quota`);
                     if (!hasGeminiCli) {
                       const errorMsg = res.geminiCliQuota?.error || "No Gemini CLI quota available";
-                      console.log(`  │  └─ ${errorMsg}`);
+                      console.log(`  â”‚  â””â”€ ${errorMsg}`);
                     } else {
                       const models = res.geminiCliQuota!.models;
                       models.forEach((model, idx) => {
                         const isLast = idx === models.length - 1;
-                        const connector = isLast ? "└─" : "├─";
+                        const connector = isLast ? "â””â”€" : "â”œâ”€";
                         const bar = createProgressBar(model.remainingFraction);
                         const reset = formatReset(model.resetTime);
                         const modelName = model.modelId.padEnd(29);
-                        console.log(`  │  ${connector} ${modelName} ${bar}${reset}`);
+                        console.log(`  â”‚  ${connector} ${modelName} ${bar}${reset}`);
                       });
                     }
 
-                    // Display Antigravity Quota second
-                    const hasAntigravity = res.quota && Object.keys(res.quota.groups).length > 0;
-                    console.log(`  │`);
-                    console.log(`  └─ Antigravity Quota`);
-                    if (!hasAntigravity) {
+                    // Display Sovereign Quota second
+                    const hasSovereign = res.quota && Object.keys(res.quota.groups).length > 0;
+                    console.log(`  â”‚`);
+                    console.log(`  â””â”€ Sovereign Quota`);
+                    if (!hasSovereign) {
                       const errorMsg = res.quota?.error || "No quota information available";
-                      console.log(`     └─ ${errorMsg}`);
+                      console.log(`     â””â”€ ${errorMsg}`);
                     } else {
                       const groups = res.quota!.groups;
                       const groupEntries = [
@@ -1672,7 +1672,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                       
                       groupEntries.forEach((g, idx) => {
                         const isLast = idx === groupEntries.length - 1;
-                        const connector = isLast ? "└─" : "├─";
+                        const connector = isLast ? "â””â”€" : "â”œâ”€";
                         const bar = createProgressBar(g.data!.remainingFraction);
                         const reset = formatReset(g.data!.resetTime);
                         const modelName = g.name.padEnd(29);
@@ -1776,12 +1776,12 @@ export const createAntigravityPlugin = (providerId: string) => async (
             }
 
             while (accounts.length < MAX_OAUTH_ACCOUNTS) {
-              console.log(`\n=== Antigravity OAuth (Account ${accounts.length + 1}) ===`);
+              console.log(`\n=== Sovereign OAuth (Account ${accounts.length + 1}) ===`);
 
               const projectId = await promptProjectId();
 
-              const result = await (async (): Promise<AntigravityTokenExchangeResult> => {
-                const authorization = await authorizeAntigravity(projectId);
+              const result = await (async (): Promise<SovereignTokenExchangeResult> => {
+                const authorization = await authorizeGoogleGemini(projectId);
                 const fallbackState = getStateFromAuthorizationUrl(authorization.url);
 
                 console.log("\nOAuth URL:\n" + authorization.url + "\n");
@@ -1821,7 +1821,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                       callbackUrl = await Promise.race([callbackPromise, timeoutPromise]);
                     } catch (err) {
                       if (err instanceof Error && err.message === "SOFT_TIMEOUT") {
-                        console.log("\n⏳ Automatic callback not received after 30 seconds.");
+                        console.log("\nâ³ Automatic callback not received after 30 seconds.");
                         console.log("You can paste the redirect URL manually.\n");
                         console.log("OAuth URL (in case you need it again):");
                         console.log(authorization.url + "\n");
@@ -1840,7 +1840,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                       return { type: "failed", error: "Missing code or state in callback URL" };
                     }
 
-                    return exchangeAntigravity(params.code, params.state);
+                    return exchangeGoogleGemini(params.code, params.state);
                   } catch (error) {
                     if (error instanceof Error && error.message !== "SOFT_TIMEOUT") {
                       return {
@@ -1873,7 +1873,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                 }
 
                 console.warn(
-                  `[lojinext-ai] Skipping failed account ${accounts.length + 1}: ${result.error}`,
+                  `[sovereign-ai] Skipping failed account ${accounts.length + 1}: ${result.error}`,
                 );
                 break;
               }
@@ -1989,7 +1989,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
               url: "",
               instructions: successMessage,
               method: "auto",
-              callback: async (): Promise<AntigravityTokenExchangeResult> => primary,
+              callback: async (): Promise<SovereignTokenExchangeResult> => primary,
             };
           }
 
@@ -2013,7 +2013,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
             }
           }
 
-          const authorization = await authorizeAntigravity(projectId);
+          const authorization = await authorizeGoogleGemini(projectId);
           const fallbackState = getStateFromAuthorizationUrl(authorization.url);
 
           if (!useManualFlow) {
@@ -2030,7 +2030,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
               instructions:
                 "Complete sign-in in your browser. We'll automatically detect the redirect back to localhost.",
               method: "auto",
-              callback: async (): Promise<AntigravityTokenExchangeResult> => {
+              callback: async (): Promise<SovereignTokenExchangeResult> => {
                 const CALLBACK_TIMEOUT_MS = 30000;
                 try {
                   const callbackPromise = listener.waitForCallback();
@@ -2056,7 +2056,7 @@ export const createAntigravityPlugin = (providerId: string) => async (
                     return { type: "failed", error: "Missing code or state in callback URL" };
                   }
 
-                  const result = await exchangeAntigravity(params.code, params.state);
+                  const result = await exchangeGoogleGemini(params.code, params.state);
                   if (result.type === "success") {
                     try {
                       await persistAccountPool([result], false);
@@ -2108,13 +2108,13 @@ export const createAntigravityPlugin = (providerId: string) => async (
             instructions:
               "Visit the URL above, complete OAuth, then paste either the full redirect URL or the authorization code.",
             method: "code",
-            callback: async (codeInput: string): Promise<AntigravityTokenExchangeResult> => {
+            callback: async (codeInput: string): Promise<SovereignTokenExchangeResult> => {
               const params = parseOAuthCallbackInput(codeInput, fallbackState);
               if ("error" in params) {
                 return { type: "failed", error: params.error };
               }
 
-              const result = await exchangeAntigravity(params.code, params.state);
+              const result = await exchangeGoogleGemini(params.code, params.state);
               if (result.type === "success") {
                 try {
                   // TUI flow adds to existing accounts (non-destructive)
@@ -2162,8 +2162,8 @@ export const createAntigravityPlugin = (providerId: string) => async (
   };
 };
 
-export const AntigravityCLIOAuthPlugin = createAntigravityPlugin(ANTIGRAVITY_PROVIDER_ID);
-export const GoogleOAuthPlugin = AntigravityCLIOAuthPlugin;
+export const SovereignCLIOAuthPlugin = createSovereignPlugin(GOOGLE_GEMINI_PROVIDER_ID);
+export const GoogleOAuthPlugin = SovereignCLIOAuthPlugin;
 
 export const __testExports = {
   getHeaderStyleFromUrl,

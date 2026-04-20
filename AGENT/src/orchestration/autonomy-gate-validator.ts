@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+﻿import { spawn } from "node:child_process";
 import type { CommandResult } from "./terminal-executor";
 
 function parseCommand(command: string): string[] {

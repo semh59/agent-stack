@@ -126,14 +126,14 @@ export class BridgeManager implements vscode.Disposable {
       vscode.StatusBarAlignment.Right,
       100,
     );
-    this.statusBarItem.command = "lojinext.bridgeDiagnostics";
+    this.statusBarItem.command = "sovereign.bridgeDiagnostics";
     context.subscriptions.push(this.statusBarItem);
     this.updateStatusBar();
     this.statusBarItem.show();
 
     // Register diagnostics command
     context.subscriptions.push(
-      vscode.commands.registerCommand("lojinext.bridgeDiagnostics", () => {
+      vscode.commands.registerCommand("sovereign.bridgeDiagnostics", () => {
         this.showDiagnostics();
       }),
     );

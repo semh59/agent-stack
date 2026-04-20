@@ -1,8 +1,8 @@
-import { spawn } from 'node:child_process';
+﻿import { spawn } from 'node:child_process';
 
 /**
  * Commands that are allowed to execute.
- * Only well-known dev tools — no system-level access.
+ * Only well-known dev tools â€” no system-level access.
  */
 const ALLOWLIST_PREFIXES = [
   'npm', 'npx', 'node', 'tsc', 'vitest', 'jest',
@@ -309,7 +309,7 @@ export class TerminalExecutor {
     return result;
   }
 
-  // ── Private ─────────────────────────────────
+  // â”€â”€ Private â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /**
    * Validate a command against allowlist and denylist.
@@ -345,8 +345,8 @@ export class TerminalExecutor {
     const configDirs = [
       '.config/opencode',
       '.config/agent',
-      'antigravity-accounts.json',
-      'antigravity-tokens.json',
+      'Sovereign-accounts.json',
+      'google-gemini-tokens.json',
       '.ai-company/state.json'
     ];
     
@@ -385,7 +385,7 @@ export class TerminalExecutor {
 
   /**
    * Parse command string into arguments, respecting single and double quotes.
-   * Does NOT use shell — prevents injection.
+   * Does NOT use shell â€” prevents injection.
    */
   public static parseCommandArgs(command: string): string[] {
     const args: string[] = [];

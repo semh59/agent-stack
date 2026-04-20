@@ -1,34 +1,34 @@
 # MCP
-mcp>=1.0.0
-aiohttp>=3.9.0
+mcp==1.0.0
+aiohttp==3.9.0
 
 # Semantic Cache
-chromadb>=0.4.22
+chromadb==0.4.22
 
 # RAG
-lancedb>=0.5.0
-pyarrow>=14.0.0
+lancedb==0.5.0
+pyarrow==14.0.0
 
 # Compression
-llmlingua>=0.2.2
-spacy>=3.7.0
+llmlingua==0.2.2
+spacy==3.7.0
 
 # HTTP (Ollama + OpenRouter)
-httpx>=0.27.0
-tenacity>=8.2.0
+httpx==0.27.0
+tenacity==8.2.0
 
 # Config
-pydantic>=2.0.0
-pydantic-settings>=2.0.0
-python-dotenv>=1.0.0
+pydantic==2.0.0
+pydantic-settings==2.0.0
+python-dotenv==1.0.0
 
 # Logging
-structlog>=23.2.0
-prometheus-client>=0.17.0
+structlog==23.2.0
+prometheus-client==0.17.0
 
 # ML (Router)
-scikit-learn>=1.3.2
-numpy>=1.24.0
+scikit-learn==1.3.2
+numpy==1.24.0
 
 # Test
 pytest>=7.4.0

@@ -1,8 +1,8 @@
-import { EventBus } from './event-bus';
+﻿import { EventBus } from './event-bus';
 
 /**
  * RARV Phase constants.
- * The core cycle: Reason → Act → Reflect → Verify
+ * The core cycle: Reason â†’ Act â†’ Reflect â†’ Verify
  */
 export const RARVPhase = {
   REASON: 'reason',
@@ -81,7 +81,7 @@ export interface RARVMetrics {
 }
 
 /**
- * RARVEngine: Reason-Act-Reflect-Verify döngüsünü yönetir.
+ * RARVEngine: Reason-Act-Reflect-Verify dÃ¶ngÃ¼sÃ¼nÃ¼ yÃ¶netir.
  */
 export class RARVEngine {
   private bus = EventBus.getInstance();

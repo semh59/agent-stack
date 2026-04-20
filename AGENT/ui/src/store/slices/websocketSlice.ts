@@ -39,12 +39,12 @@ let isAnimationScheduled = false;
 // HMR-safe global socket
 declare global {
   interface Window {
-    __lojinext_ws?: WebSocket;
+    __sovereign_ws?: WebSocket;
   }
 }
 
-const AUTONOMY_CLIENT_ID_KEY = "lojinext_autonomy_client_id";
-const AUTONOMY_GENERATION_KEY = "lojinext_autonomy_generation";
+const AUTONOMY_CLIENT_ID_KEY = "sovereign_autonomy_client_id";
+const AUTONOMY_GENERATION_KEY = "sovereign_autonomy_generation";
 
 // VS Code API declaration
 declare const vscode: VSCodeAPI | undefined;
@@ -351,16 +351,16 @@ export const createWebSocketSlice: StateCreator<
       const token = get().gatewayToken;
       if (!token) return;
 
-      if (window.__lojinext_ws) {
-        window.__lojinext_ws.close();
+      if (window.__sovereign_ws) {
+        window.__sovereign_ws.close();
       }
 
       const ws = new WebSocket(`${GATEWAY_WS_LOGS_URL}?token=${encodeURIComponent(token)}`);
-      window.__lojinext_ws = ws;
+      window.__sovereign_ws = ws;
 
       ws.onmessage = (event) => {
         try {
-           if (window.__lojinext_ws !== ws) return;
+           if (window.__sovereign_ws !== ws) return;
            const payload = JSON.parse(event.data) as unknown;
            enqueueBuffer(payload);
         } catch (err) {
@@ -369,8 +369,8 @@ export const createWebSocketSlice: StateCreator<
       };
 
       ws.onclose = () => {
-         if (window.__lojinext_ws === ws) {
-            window.__lojinext_ws = undefined;
+         if (window.__sovereign_ws === ws) {
+            window.__sovereign_ws = undefined;
             setTimeout(connectWS, 3000);
          }
       };

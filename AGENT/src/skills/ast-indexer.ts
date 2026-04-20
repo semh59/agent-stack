@@ -1,10 +1,10 @@
-import ts from 'typescript';
+﻿import ts from 'typescript';
 import fs from 'fs';
 import path from 'path';
 
 /**
- * AST Indexer: Proje kodlarını yapısal (AST) olarak analiz eder.
- * Kod parçalarını sadece metin olarak değil, semantik anlamlarıyla (fonksiyon, sınıf, değişken) bulur.
+ * AST Indexer: Proje kodlarÄ±nÄ± yapÄ±sal (AST) olarak analiz eder.
+ * Kod parÃ§alarÄ±nÄ± sadece metin olarak deÄŸil, semantik anlamlarÄ±yla (fonksiyon, sÄ±nÄ±f, deÄŸiÅŸken) bulur.
  */
 export class ASTIndexer {
   private program: ts.Program;
@@ -20,7 +20,7 @@ export class ASTIndexer {
   }
 
   /**
-   * Tüm dosyaları tarar ve semantik bir sembol listesi çıkarır.
+   * TÃ¼m dosyalarÄ± tarar ve semantik bir sembol listesi Ã§Ä±karÄ±r.
    */
   public indexProject() {
     const symbols: any[] = [];
@@ -59,7 +59,7 @@ export class ASTIndexer {
   }
 
   /**
-   * Belirli bir sembolü (örneğin bir fonksiyon adı) tüm projede arar.
+   * Belirli bir sembolÃ¼ (Ã¶rneÄŸin bir fonksiyon adÄ±) tÃ¼m projede arar.
    */
   public searchSymbol(query: string) {
     const allSymbols = this.indexProject();
@@ -67,6 +67,6 @@ export class ASTIndexer {
   }
 }
 
-// Örnek kullanım (Agent içinde tool olarak çağrılacak)
+// Ã–rnek kullanÄ±m (Agent iÃ§inde tool olarak Ã§aÄŸrÄ±lacak)
 // const indexer = new ASTIndexer(['src/index.ts']);
 // console.log(indexer.searchSymbol('authorize'));

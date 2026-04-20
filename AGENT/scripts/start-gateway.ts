@@ -12,7 +12,9 @@ function maskToken(token: string): string {
 }
 
 async function main() {
-  let authToken = process.env.LOJINEXT_GATEWAY_TOKEN;
+  // SOVEREIGN_GATEWAY_TOKEN is the current env var name; LOJINEXT_GATEWAY_TOKEN
+  // is retained as a deprecated fallback to avoid breaking existing deployments.
+  let authToken = process.env.SOVEREIGN_GATEWAY_TOKEN ?? process.env.LOJINEXT_GATEWAY_TOKEN;
 
   if (!authToken) {
     try {
@@ -20,16 +22,16 @@ async function main() {
       const envPath = path.join(projectRoot, '.env');
       if (fs.existsSync(envPath)) {
         const envContent = fs.readFileSync(envPath, 'utf8');
-        const match = envContent.match(/LOJINEXT_GATEWAY_TOKEN=['"]?([^'"\n\r]+)['"]?/);
+        const match = envContent.match(/(?:SOVEREIGN|SOVEREIGN)_GATEWAY_TOKEN=['"]?([^'"\n\r]+)['"]?/);
         if (match) authToken = match[1];
       }
     } catch { /* ignore */ }
   }
 
   if (!authToken) {
-    console.warn('⚠️  LOJINEXT_GATEWAY_TOKEN is missing. Generating a temporary one for this session...');
-    authToken = `lojinext_tmp_${crypto.randomBytes(16).toString('hex')}`;
-    console.log(`💡 To persist this, add to .env: LOJINEXT_GATEWAY_TOKEN='${authToken}'`);
+    console.warn('⚠️  SOVEREIGN_GATEWAY_TOKEN is missing. Generating a temporary one for this session...');
+    authToken = `sovereign_tmp_${crypto.randomBytes(16).toString('hex')}`;
+    console.log(`💡 To persist this, add to .env: SOVEREIGN_GATEWAY_TOKEN='${authToken}'`);
   }
 
   const server = new GatewayServer({
@@ -39,10 +41,10 @@ async function main() {
     authToken,
   });
 
-  console.log('--- LojiNext Gateway API ---');
+  console.log('--- Sovereign AI Gateway ---');
   console.log(`Auth token: ${maskToken(authToken)}`);
   console.log('Rotation hint: run `npm run gateway:token:rotate` periodically.');
-  console.log('🖥️  LojiNext Dashboard: http://127.0.0.1:51122/');
+  console.log('🖥️  Sovereign Dashboard: http://127.0.0.1:51122/');
   await server.start();
 }
 

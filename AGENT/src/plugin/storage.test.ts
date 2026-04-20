@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+﻿import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   deduplicateAccountsByEmail,
   migrateV2ToV3,
@@ -236,7 +236,7 @@ describe("Storage Migration", () => {
   const past = now - 100000;
 
   describe("migrateV2ToV3", () => {
-    it("converts gemini rate limits to gemini-antigravity", () => {
+    it("converts gemini rate limits to gemini-Sovereign", () => {
       const v2: AccountStorage = {
         version: 2,
         accounts: [
@@ -259,7 +259,7 @@ describe("Storage Migration", () => {
       if (!account) throw new Error("Account not found");
 
       expect(account.rateLimitResetTimes).toEqual({
-        "gemini-antigravity": future,
+        "gemini-Sovereign": future,
       });
       expect(account.rateLimitResetTimes?.["gemini-cli"]).toBeUndefined();
     });
@@ -312,7 +312,7 @@ describe("Storage Migration", () => {
 
       expect(account.rateLimitResetTimes).toEqual({
         claude: future,
-        "gemini-antigravity": future,
+        "gemini-Sovereign": future,
       });
     });
 
@@ -338,7 +338,7 @@ describe("Storage Migration", () => {
       if (!account) throw new Error("Account not found");
 
       expect(account.rateLimitResetTimes).toEqual({
-        "gemini-antigravity": future,
+        "gemini-Sovereign": future,
       });
       expect(account.rateLimitResetTimes?.claude).toBeUndefined();
     });
@@ -408,7 +408,7 @@ describe("Storage Migration", () => {
       if (!account) throw new Error("Account not found");
 
       expect(account.rateLimitResetTimes).toEqual({
-        "gemini-antigravity": future,
+        "gemini-Sovereign": future,
       });
 
       expect(fs.writeFile).toHaveBeenCalled();
@@ -425,7 +425,7 @@ describe("Storage Migration", () => {
       
       expect(savedContent.version).toBe(3);
       expect(savedContent.accounts[0].rateLimitResetTimes).toEqual({
-        "gemini-antigravity": future,
+        "gemini-Sovereign": future,
       });
 
       const gitignoreCall = vi.mocked(fs.writeFile).mock.calls.find(
@@ -451,9 +451,9 @@ describe("Storage Migration", () => {
       expect(fs.writeFile).toHaveBeenCalled();
       const [path, content] = vi.mocked(fs.writeFile).mock.calls[0]!;
       expect(path).toContain(".gitignore");
-      expect(content).toContain("antigravity-accounts.json");
-      expect(content).toContain("antigravity-signature-cache.json");
-      expect(content).toContain("antigravity-logs/");
+      expect(content).toContain("Sovereign-accounts.json");
+      expect(content).toContain("Sovereign-signature-cache.json");
+      expect(content).toContain("Sovereign-logs/");
     });
 
     it("appends missing entries to existing .gitignore", async () => {
@@ -465,17 +465,17 @@ describe("Storage Migration", () => {
       expect(fs.appendFile).toHaveBeenCalled();
       const [path, content] = vi.mocked(fs.appendFile).mock.calls[0]!;
       expect(path).toContain(".gitignore");
-      expect(content).toContain("antigravity-accounts.json");
+      expect(content).toContain("Sovereign-accounts.json");
       expect((content as string).startsWith("\n")).toBe(true);
     });
 
     it("does nothing when all entries already exist", async () => {
       const existing = [
         ".gitignore",
-        "antigravity-accounts.json",
-        "antigravity-accounts.json.*.tmp",
-        "antigravity-signature-cache.json",
-        "antigravity-logs/",
+        "Sovereign-accounts.json",
+        "Sovereign-accounts.json.*.tmp",
+        "Sovereign-signature-cache.json",
+        "Sovereign-logs/",
       ].join("\n");
       vi.mocked(fs.readFile).mockResolvedValue(existing);
 
@@ -513,9 +513,9 @@ describe("Storage Migration", () => {
       expect(writeFileSync).toHaveBeenCalled();
       const [path, content] = vi.mocked(writeFileSync).mock.calls[0]!;
       expect(path).toContain(".gitignore");
-      expect(content).toContain("antigravity-accounts.json");
-      expect(content).toContain("antigravity-signature-cache.json");
-      expect(content).toContain("antigravity-logs/");
+      expect(content).toContain("Sovereign-accounts.json");
+      expect(content).toContain("Sovereign-signature-cache.json");
+      expect(content).toContain("Sovereign-logs/");
     });
 
     it("appends missing entries to existing .gitignore", async () => {
@@ -528,7 +528,7 @@ describe("Storage Migration", () => {
       expect(appendFileSync).toHaveBeenCalled();
       const [path, content] = vi.mocked(appendFileSync).mock.calls[0]!;
       expect(path).toContain(".gitignore");
-      expect(content).toContain("antigravity-accounts.json");
+      expect(content).toContain("Sovereign-accounts.json");
       expect((content as string).startsWith("\n")).toBe(true);
     });
 
@@ -536,10 +536,10 @@ describe("Storage Migration", () => {
       vi.mocked(existsSync).mockReturnValue(true);
       const existing = [
         ".gitignore",
-        "antigravity-accounts.json",
-        "antigravity-accounts.json.*.tmp",
-        "antigravity-signature-cache.json",
-        "antigravity-logs/",
+        "Sovereign-accounts.json",
+        "Sovereign-accounts.json.*.tmp",
+        "Sovereign-signature-cache.json",
+        "Sovereign-logs/",
       ].join("\n");
       vi.mocked(readFileSync).mockReturnValue(existing);
 

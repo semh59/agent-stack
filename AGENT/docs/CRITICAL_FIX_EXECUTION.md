@@ -17,7 +17,7 @@ This document defines hard step dependencies, security defaults, and quality gat
 | 9. CSP narrowing | 8 | 11 | no wildcard connect-src, no unsafe-eval |
 | 10. Dependency risk reduction | - | 11 | audit policy satisfied |
 | 11. CI quality gates | 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 | release | root/ui/extension stages + release gate |
-| 12. Branding/docs unification | 5 | release | `lojinext-ai` canonical naming + migration note |
+| 12. Branding/docs unification | 5 | release | `sovereign-ai` canonical naming + migration note |
 | 13. Critical test debt closure | 1, 2, 6, 7, 8 | release | no critical `it.skip`/`it.todo` left in scoped areas |
 
 ## 2) Token Lifecycle (Gateway/Auth)
@@ -39,7 +39,7 @@ Default `connect-src`:
 - `ws://127.0.0.1:51122`
 
 Optional additions:
-- VS Code setting: `lojinext.gatewayConnectOrigins` (strict origin list, no wildcard)
+- VS Code setting: `sovereign.gatewayConnectOrigins` (strict origin list, no wildcard)
 
 Disallowed:
 - `connect-src *`

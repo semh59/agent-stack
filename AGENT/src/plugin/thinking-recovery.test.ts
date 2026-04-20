@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for thinking block recovery module.
  * Covers: conversation state analysis, tool loop detection, turn closure,
  * compacted thinking detection, recovery triggers.
@@ -13,7 +13,7 @@ import {
 } from "./thinking-recovery";
 import type { ConversationState } from "./thinking-recovery";
 
-// ── Test Helpers (Gemini format: model/user with parts[]) ────────────
+// â”€â”€ Test Helpers (Gemini format: model/user with parts[]) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function userMsg(text: string) {
   return {
@@ -48,7 +48,7 @@ function functionCallPart(name: string, args: Record<string, unknown> = {}) {
   return { functionCall: { name, args } };
 }
 
-// ── analyzeConversationState ─────────────────────────────────────────
+// â”€â”€ analyzeConversationState â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("analyzeConversationState", () => {
   it("should detect empty conversation", () => {
@@ -88,7 +88,7 @@ describe("analyzeConversationState", () => {
     expect(state.lastModelHasToolCalls).toBe(true);
   });
 
-  it("should detect tool loop (model functionCall → user functionResponse)", () => {
+  it("should detect tool loop (model functionCall â†’ user functionResponse)", () => {
     const contents = [
       userMsg("do something"),
       modelMsg([functionCallPart("tool_1")]),
@@ -149,7 +149,7 @@ describe("analyzeConversationState", () => {
   });
 });
 
-// ── needsThinkingRecovery ────────────────────────────────────────────
+// â”€â”€ needsThinkingRecovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("needsThinkingRecovery", () => {
   it("should not trigger for normal conversation", () => {
@@ -189,7 +189,7 @@ describe("needsThinkingRecovery", () => {
   });
 });
 
-// ── closeToolLoopForThinking ─────────────────────────────────────────
+// â”€â”€ closeToolLoopForThinking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("closeToolLoopForThinking", () => {
   it("should add synthetic messages to close a tool loop", () => {
@@ -247,7 +247,7 @@ describe("closeToolLoopForThinking", () => {
   });
 
   it("should include single tool result message in synthetic model text", () => {
-    // countTrailingToolResults stops at model messages — only 1 trailing result
+    // countTrailingToolResults stops at model messages â€” only 1 trailing result
     const contents = [
       userMsg("do something"),
       modelMsg([functionCallPart("tool_1")]),
@@ -284,12 +284,12 @@ describe("closeToolLoopForThinking", () => {
   });
 });
 
-// ── looksLikeCompactedThinkingTurn ───────────────────────────────────
+// â”€â”€ looksLikeCompactedThinkingTurn â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("looksLikeCompactedThinkingTurn", () => {
   it("should detect compacted thinking: functionCall without thinking or text", () => {
     const msg = modelMsg([functionCallPart("tool_1")]);
-    // No thinking, no text before functionCall → looks compacted
+    // No thinking, no text before functionCall â†’ looks compacted
     expect(looksLikeCompactedThinkingTurn(msg)).toBe(true);
   });
 
@@ -322,7 +322,7 @@ describe("looksLikeCompactedThinkingTurn", () => {
   });
 });
 
-// ── hasPossibleCompactedThinking ─────────────────────────────────────
+// â”€â”€ hasPossibleCompactedThinking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("hasPossibleCompactedThinking", () => {
   it("should return false for empty conversation", () => {
@@ -336,7 +336,7 @@ describe("hasPossibleCompactedThinking", () => {
   it("should detect compacted model message in turn", () => {
     const contents = [
       userMsg("hello"),
-      modelMsg([functionCallPart("tool_1")]), // No thinking, no text → compacted
+      modelMsg([functionCallPart("tool_1")]), // No thinking, no text â†’ compacted
     ];
     expect(hasPossibleCompactedThinking(contents, 1)).toBe(true);
   });

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for backoff and duration utilities.
  */
 import { describe, it, expect } from "vitest";
@@ -9,7 +9,7 @@ import {
   parseDurationToMs,
 } from "./backoff";
 
-// ── getCapacityBackoffDelay ──────────────────────────────────────────
+// â”€â”€ getCapacityBackoffDelay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getCapacityBackoffDelay", () => {
   it("should return first tier for 0 failures", () => {
@@ -30,7 +30,7 @@ describe("getCapacityBackoffDelay", () => {
   });
 });
 
-// ── retryAfterMsFromResponse ─────────────────────────────────────────
+// â”€â”€ retryAfterMsFromResponse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("retryAfterMsFromResponse", () => {
   it("should return default when no retry headers", () => {
@@ -71,7 +71,7 @@ describe("retryAfterMsFromResponse", () => {
   });
 });
 
-// ── parseDurationToMs ────────────────────────────────────────────────
+// â”€â”€ parseDurationToMs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("parseDurationToMs", () => {
   it("should parse milliseconds", () => {

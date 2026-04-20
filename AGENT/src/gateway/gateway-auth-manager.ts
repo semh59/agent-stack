@@ -164,7 +164,7 @@ export class GatewayAuthManager {
   }
 
   private generateToken(): string {
-    return `lojinext_${crypto.randomBytes(32).toString("base64url")}`;
+    return `sovereign_${crypto.randomBytes(32).toString("base64url")}`;
   }
 
   private normalizeGeneration(generation?: WsSocketGeneration | null): WsSocketGeneration {
@@ -176,11 +176,12 @@ export class GatewayAuthManager {
       typeof generation?.seq === "number" && Number.isFinite(generation.seq)
         ? Math.max(0, Math.floor(generation.seq))
         : 0;
+
     return { epochMs, seq };
   }
 
   private maskToken(token: string): string {
-    if (token.length <= 10) return "***";
-    return `${token.slice(0, 6)}...${token.slice(-4)}`;
+    if (token.length <= 12) return "********";
+    return `${token.slice(0, 6)}...${token.slice(-6)}`;
   }
 }

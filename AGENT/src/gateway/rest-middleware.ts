@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+﻿import crypto from "node:crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest, preHandlerHookHandler } from "fastify";
 import { apiError, isApiEnvelope, mapErrorToApi, normalizeApiEnvelope } from "./rest-response";
 import type { GatewayAuthManager } from "./gateway-auth-manager";

@@ -1,7 +1,7 @@
-# Google Antigravity OAuth Plugin - Kapsamlı Kod Analiz Raporu
+# Google Sovereign AI OAuth Plugin - Kapsamlı Kod Analiz Raporu
 
 **Tarih:** 2026-03-09
-**Proje:** LoJiNext AI - Google Antigravity OAuth IDE Eklentisi
+**Proje:** LoJiNext AI - Google Sovereign AI OAuth IDE Eklentisi
 **Toplam Dosya:** 130+ TypeScript dosyası
 **Test Dosya:** 54 test dosyası
 **Satır:** ~50,000+ satır kod
@@ -27,11 +27,11 @@
 ## Proje Genel Bakış
 
 ### Amaç
-Google'ın **Antigravity API**'sine OAuth 2.0 ile yetkilendirilmiş erişim sağlayan Opencode IDE eklentisi. Gemini 3 Pro, Gemini Flash, Claude Opus 4.5 ve diğer advanced AI modellerine erişim sağlar.
+Google'ın **Sovereign AI API**'sine OAuth 2.0 ile yetkilendirilmiş erişim sağlayan Opencode IDE eklentisi. Gemini 3 Pro, Gemini Flash, Claude Opus 4.5 ve diğer advanced AI modellerine erişim sağlar.
 
 ### Temel Özellikler
 - ✅ Multi-account OAuth desteği (max 10 hesap)
-- ✅ Dual quota sistemi (Antigravity + Gemini CLI)
+- ✅ Dual quota sistemi (Sovereign AI + Gemini CLI)
 - ✅ Session recovery ve error handling
 - ✅ Otomatik token refresh (proactive)
 - ✅ Rate limit yönetimi + account rotation
@@ -83,7 +83,7 @@ Encryption: Node.js crypto (AES-256-GCM)
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │ ANTI-GRAVITY API CLIENT (src/orchestration/)          │  │
 │  ├───────────────────────────────────────────────────────┤  │
-│  │ • antigravity-client.ts: HTTP client wrapper         │  │
+│  │ • sovereign-client.ts: HTTP client wrapper         │  │
 │  │ • pipeline-tools.ts: Tool execution engine           │  │
 │  └───────────────────────────────────────────────────────┘  │
 │                          ↓                                    │
@@ -114,7 +114,7 @@ Encryption: Node.js crypto (AES-256-GCM)
 │  └───────────────────────────────────────────────────────┘  │
 │                          ↓                                    │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │ OAUTH & AUTHENTICATION (src/antigravity/)             │  │
+│  │ OAUTH & AUTHENTICATION (src/sovereign/)             │  │
 │  ├───────────────────────────────────────────────────────┤  │
 │  │ • oauth.ts: PKCE state management + token exchange  │  │
 │  │ • oauth.test.ts: OAuth flow tests                    │  │
@@ -135,7 +135,7 @@ Encryption: Node.js crypto (AES-256-GCM)
 │  └───────────────────────────────────────────────────────┘  │
 │                          ↓                                    │
 │              GOOGLE APIS (generativelanguage.googleapis.com) │
-│              & Antigravity API (cloudcode-pa.googleapis.com) │
+│              & Sovereign AI API (cloudcode-pa.googleapis.com) │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -147,7 +147,7 @@ Encryption: Node.js crypto (AES-256-GCM)
 | **Plugin** | Request/response transformation, auth, caching | src/plugin/** |
 | **Orchestration** | Multi-agent coordination, autonomous loops | src/orchestration/** |
 | **Gateway** | OAuth callback handling, token management | src/gateway/** |
-| **OAuth** | PKCE state, token exchange | src/antigravity/** |
+| **OAuth** | PKCE state, token exchange | src/sovereign/** |
 | **Infrastructure** | Utilities, config, security | hooks/, skills/, validators/, middleware/ |
 
 ---
@@ -161,13 +161,13 @@ Encryption: Node.js crypto (AES-256-GCM)
 **Ana Fonksiyonlar:**
 ```typescript
 // Plugin Registration
-export function AntigravityCLIOAuthPlugin(options): Plugin
+export function Sovereign AICLIOAuthPlugin(options): Plugin
 export function GoogleOAuthPlugin(options): Plugin
 
 // These functions return plugin object implementing:
 {
-  name: "antigravity-oauth",
-  version: ANTIGRAVITY_VERSION,
+  name: "sovereign-oauth",
+  version: SOVEREIGN_VERSION,
 
   // OAuth flow
   getAuth(): Promise<GetAuth>
@@ -196,20 +196,20 @@ isGenerativeLanguageRequest() kontrol et
       ├─ Multi-account ise → promptAddAnotherAccount()
       └─ Token döndür
       ↓
-    [prepareAntigravityRequest] Request dönüştür
+    [prepareSovereign AIRequest] Request dönüştür
       ├─ Thinking blocks strip et (cached signatures varsa ekle)
       ├─ Tool IDs assign et
       ├─ Schema clean et
       └─ Headers set et
       ↓
-    [makeRequest] Antigravity API çağrı
+    [makeRequest] Sovereign AI API çağrı
       ├─ Rate limit kontrol et
       ├─ Account select et (strategy: sticky/round-robin/hybrid)
       ├─ Token refresh et (gerekirse)
       ├─ Retry logic (account rotation, backoff)
       └─ Response al
       ↓
-    [transformAntigravityResponse] Response dönüştür
+    [transformSovereign AIResponse] Response dönüştür
       ├─ Thinking signatures cache et
       ├─ Tool pairing fix et
       ├─ JSON parsing et
@@ -377,13 +377,13 @@ cachedQuotaUpdatedAt: timestamp
 
 ```typescript
 // 📥 REQUEST SIDE
-prepareAntigravityRequest(req) {
+prepareSovereign AIRequest(req) {
   1. extractThinkingConfig() → Extract thinking budget/variant
   2. buildSignatureSessionKey() → Create session:model:project:conversation
   3. deepFilterThinkingBlocks() → Strip unsigned thinking
   4. Inject cached signatures (if multi-turn)
   5. assignToolIds() → 3-pass tool ID assignment
-  6. cleanJSONSchemaForAntigravity() → Schema normalization
+  6. cleanJSONSchemaForSovereign AI() → Schema normalization
   7. injectParameterSignatures() → Tool hallucination prevention
   8. transformModelSpecific() → Claude/Gemini conversions
   9. Set headers (User-Agent, X-Goog-Api-Client, etc.)
@@ -391,7 +391,7 @@ prepareAntigravityRequest(req) {
 }
 
 // 📤 RESPONSE SIDE
-transformAntigravityResponse(resp) {
+transformSovereign AIResponse(resp) {
   1. Parse response body (SSE stream handling)
   2. detectThinkingBlockErrors() → Detect block order issues
   3. cacheThinkingSignatures() → Cache for multi-turn
@@ -451,15 +451,15 @@ refreshAccessToken(auth, client, providerId, projectId)
      └─ refreshToken | projectId | managedProjectId
 
   2. HTTP POST /oauth2.googleapis.com/token
-     ├─ client_id: ANTIGRAVITY_CLIENT_ID
-     ├─ client_secret: ANTIGRAVITY_CLIENT_SECRET
+     ├─ client_id: SOVEREIGN_CLIENT_ID
+     ├─ client_secret: SOVEREIGN_CLIENT_SECRET
      ├─ refresh_token: parsed token
      ├─ grant_type: "refresh_token"
      └─ scope: original scopes
 
   3. Handle error
      ├─ invalid_grant → Token revoked, require re-auth
-     ├─ 4xx/5xx → Parse error, throw AntigravityTokenRefreshError
+     ├─ 4xx/5xx → Parse error, throw Sovereign AITokenRefreshError
      └─ Network → Return undefined
 
   4. Update auth
@@ -477,7 +477,7 @@ refreshAccessToken(auth, client, providerId, projectId)
 **Error Handling:**
 
 ```typescript
-class AntigravityTokenRefreshError extends Error {
+class Sovereign AITokenRefreshError extends Error {
   code: string           // OAuth error code
   statusCode: number     // HTTP status
   message: string        // User-friendly message
@@ -494,7 +494,7 @@ class AntigravityTokenRefreshError extends Error {
 **Aşama 1: Yetkilendirme URL Oluştur**
 
 ```typescript
-authorizeAntigravity(projectId?)
+authorizeSovereign AI(projectId?)
 
   1. PKCEStateManager.generateState()
      ├─ verifier: random 64 chars (32 bytes hex)
@@ -504,7 +504,7 @@ authorizeAntigravity(projectId?)
 
   2. Build Google OAuth URL
      ├─ https://accounts.google.com/o/oauth2/v2/auth
-     ├─ client_id: ANTIGRAVITY_CLIENT_ID
+     ├─ client_id: SOVEREIGN_CLIENT_ID
      ├─ response_type: "code"
      ├─ redirect_uri: "http://127.0.0.1:51121/oauth-callback"
      ├─ scope: [cloud-platform, email, profile, cclog, experiments]
@@ -533,7 +533,7 @@ Google:
 **Aşama 3: Token Exchange**
 
 ```typescript
-exchangeAntigravity(code, state)
+exchangeSovereign AI(code, state)
 
   1. Validate state
      ├─ PKCEStateManager.validateAndConsumeState(state)
@@ -542,8 +542,8 @@ exchangeAntigravity(code, state)
      └─ Mark state as consumed (one-time use)
 
   2. HTTP POST /oauth2.googleapis.com/token
-     ├─ client_id: ANTIGRAVITY_CLIENT_ID
-     ├─ client_secret: ANTIGRAVITY_CLIENT_SECRET
+     ├─ client_id: SOVEREIGN_CLIENT_ID
+     ├─ client_secret: SOVEREIGN_CLIENT_SECRET
      ├─ code: authorization code
      ├─ grant_type: "authorization_code"
      ├─ redirect_uri: "http://127.0.0.1:51121/oauth-callback"
@@ -572,7 +572,7 @@ exchangeAntigravity(code, state)
      ├─ access: access token
      ├─ expires: expiry timestamp
      ├─ email: user email
-     └─ projectId: Antigravity project ID
+     └─ projectId: Sovereign AI project ID
 ```
 
 **Aşama 4: Storage**
@@ -647,7 +647,7 @@ getAuth() {
 }
     ↓
 [Request Transform]
-prepareAntigravityRequest()
+prepareSovereign AIRequest()
     ├─ Extract thinking config
     ├─ Strip thinking blocks
     ├─ Cache signatures
@@ -680,7 +680,7 @@ checkSoftQuota()
     └─ Catch network/API errors
     ↓
 [Response Transform]
-transformAntigravityResponse()
+transformSovereign AIResponse()
     ├─ Parse streaming response
     ├─ Cache thinking signatures
     ├─ Fix tool pairing
@@ -705,9 +705,9 @@ Return to OPENCODE IDE
 ```
 Environment (override)
     ↓ (if not set)
-User Config (~/.config/opencode/antigravity.json)
+User Config (~/.config/opencode/sovereign.json)
     ↓ (if not set)
-Project Config (.opencode/antigravity.json)
+Project Config (.opencode/sovereign.json)
     ↓ (if not set)
 Schema Defaults
 ```
@@ -1030,7 +1030,7 @@ AuthServer.start()
     │  ├─ Parse URL + params
     │  ├─ Validate: code exists, state exists
     │  ├─ Validate: state matches (CSRF)
-    │  ├─ Call exchangeAntigravity(code, state)
+    │  ├─ Call exchangeSovereign AI(code, state)
     │  ├─ Add token to TokenStore
     │  ├─ Return HTML success/error
     │  └─ Close server (500ms cleanup delay)
@@ -1051,7 +1051,7 @@ AuthServer.start()
 ```typescript
 // Load from disk (encrypted)
 loadFromDisk()
-  ├─ Path: ~/.config/opencode/antigravity-tokens.json
+  ├─ Path: ~/.config/opencode/sovereign-tokens.json
   ├─ Decrypt with KeyManager v3 (AES-256-GCM)
   ├─ Parse JSON
   ├─ Cache in memory
@@ -1310,7 +1310,7 @@ Typical multi-turn conversation:
       "coolingDownUntil": null,
       "cooldownReason": null,
       "fingerprint": {
-        "userAgent": "antigravity/1.15.8 windows/amd64",
+        "userAgent": "sovereign/1.15.8 windows/amd64",
         "clientMetadata": "ideType=IDE_UNSPECIFIED,..."
       },
       "cachedQuota": {
@@ -1362,13 +1362,13 @@ Durability:
 1. Schema defaults
    └─ All types, hardcoded values
 
-2. User config (~/.config/opencode/antigravity.json)
+2. User config (~/.config/opencode/sovereign.json)
    └─ Partial override
 
-3. Project config (.opencode/antigravity.json)
+3. Project config (.opencode/sovereign.json)
    └─ Final override
 
-4. Environment variables (OPENCODE_ANTIGRAVITY_*)
+4. Environment variables (OPENCODE_SOVEREIGN_*)
    └─ Top priority
 
 Final config: Zod validation + type safety
@@ -1557,7 +1557,7 @@ afterEach(() => {
 ✓ Concurrent operations (parallel refreshes)
 ✓ Timeout scenarios (slow networks)
 ✓ Invalid data (corrupted tokens, malformed JSON)
-✓ Protocol mismatches (gemini-cli vs antigravity headers)
+✓ Protocol mismatches (gemini-cli vs sovereign headers)
 ✓ Model-specific behavior (Claude vs Gemini)
 ✓ Legacy format migration (V1/V2→V3)
 ✓ Permission errors (EACCES, file locked)
@@ -1609,7 +1609,7 @@ Replay Attacks:
 
 **At Rest:**
 ```
-Storage: ~/.config/opencode/antigravity-tokens.json
+Storage: ~/.config/opencode/sovereign-tokens.json
 Encryption: AES-256-GCM (AEAD cipher)
 Key Derivation: PBKDF2(machineId, password)
 IV: Random per encryption
@@ -1893,7 +1893,7 @@ d:\PROJECT\AGENT\
 ├── src\
 │   ├── plugin.ts                          # Main orchestrator
 │   │
-│   ├── antigravity\
+│   ├── sovereign\
 │   │   ├── oauth.ts                       # PKCE flow
 │   │   └── oauth.test.ts
 │   │
@@ -1922,7 +1922,7 @@ d:\PROJECT\AGENT\
 │   │   ├── autonomy-model-router.ts       # Model selection
 │   │   ├── autonomy-types.ts              # Type definitions
 │   │   ├── shared-memory.ts               # Agent comm
-│   │   ├── antigravity-client.ts          # API wrapper
+│   │   ├── sovereign-client.ts          # API wrapper
 │   │   └── ...
 │   │
 │   ├── gateway\

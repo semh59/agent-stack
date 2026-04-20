@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z } from 'zod';
 
 // Mocking Zod schema for response validation test
-const AntigravityResponseSchema = z.object({
+const SovereignResponseSchema = z.object({
   type: z.string().optional(),
   message: z.any().optional(),
   error: z.any().optional(),
 }).passthrough();
 
-describe('Antigravity Hardening Suite', () => {
+describe('Sovereign Hardening Suite', () => {
   describe('Circuit Breaker Logic', () => {
     it('should throw an error after reaching MAX_TOTAL_RETRIES (10)', () => {
       let totalRetryCount = 0;
@@ -32,12 +32,12 @@ describe('Antigravity Hardening Suite', () => {
   });
 
   describe('Response Validation (Zod)', () => {
-    it('should pass for valid Antigravity responses', () => {
+    it('should pass for valid Sovereign responses', () => {
       const validResponse = {
         type: 'message',
         message: { content: 'Hello' }
       };
-      const result = AntigravityResponseSchema.safeParse(validResponse);
+      const result = SovereignResponseSchema.safeParse(validResponse);
       expect(result.success).toBe(true);
     });
 
@@ -47,7 +47,7 @@ describe('Antigravity Hardening Suite', () => {
         extra_field: 'something',
         nested: { a: 1 }
       };
-      const result = AntigravityResponseSchema.safeParse(respWithExtras);
+      const result = SovereignResponseSchema.safeParse(respWithExtras);
       expect(result.success).toBe(true);
     });
 
@@ -55,7 +55,7 @@ describe('Antigravity Hardening Suite', () => {
       const invalidResp = {
         type: 123
       };
-      const result = AntigravityResponseSchema.safeParse(invalidResp);
+      const result = SovereignResponseSchema.safeParse(invalidResp);
       expect(result.success).toBe(false);
     });
   });

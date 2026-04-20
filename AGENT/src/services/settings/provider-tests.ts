@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Sovereign provider connectivity tests.
  *
  * When a user hits "Test connection" in the console, we DON'T wire the full
- * LLM client stack — that's slow, noisy, and leaks credentials on errors.
+ * LLM client stack â€” that's slow, noisy, and leaks credentials on errors.
  * Instead each provider has a lightweight probe that hits the cheapest
  * possible endpoint (usually a /models list) with a short timeout and
  * maps the result into a uniform `ProbeResult`.
@@ -19,11 +19,11 @@ export interface ProbeResult {
   ok: boolean;
   /** Observed latency in ms. */
   latency_ms: number;
-  /** Short operator-visible reason — e.g. "ok", "unauthorized", "timeout". */
+  /** Short operator-visible reason â€” e.g. "ok", "unauthorized", "timeout". */
   reason: string;
   /** Extra human-readable detail. Safe to show in the UI. */
   detail?: string;
-  /** If the endpoint returned a model list, a count — helps users spot misconfig. */
+  /** If the endpoint returned a model list, a count â€” helps users spot misconfig. */
   models_seen?: number;
 }
 
@@ -86,9 +86,9 @@ function classifyError(err: unknown): { reason: string; detail: string } {
   return { reason: "error", detail: String(err) };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Per-provider probes
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function probeOllama(
   cfg: Settings["providers"]["ollama"],
@@ -223,7 +223,7 @@ export async function probeAzure(
 
   const base = cfg.endpoint.replace(/\/$/, "");
   try {
-    // Azure OpenAI exposes deployments via /openai/deployments?api-version=…
+    // Azure OpenAI exposes deployments via /openai/deployments?api-version=â€¦
     const res = await fetchWithTimeout(
       `${base}/openai/deployments?api-version=${encodeURIComponent(cfg.api_version)}`,
       {
@@ -251,7 +251,7 @@ export async function probeAzure(
 export async function probeGoogle(
   _cfg: Settings["providers"]["google"],
 ): Promise<ProbeResult> {
-  // Google provider is OAuth-driven — there's no static api_key to test.
+  // Google provider is OAuth-driven â€” there's no static api_key to test.
   // The canonical "am I connected?" check belongs in the accounts service.
   // Here we simply report "unverified" so the UI can route the user to the
   // accounts page instead of showing a false green checkmark.
@@ -259,13 +259,13 @@ export async function probeGoogle(
   return failProbe(
     started,
     "oauth_required",
-    "Google requires OAuth — connect an account under Accounts, not here.",
+    "Google requires OAuth â€” connect an account under Accounts, not here.",
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Entry point — run one probe by name
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Entry point â€” run one probe by name
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type ProviderName =
   | "ollama"

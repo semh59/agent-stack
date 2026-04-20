@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import Database from "better-sqlite3";
@@ -32,7 +32,7 @@ export function resolveMissionDatabasePath(override?: string): string {
   }
 
   const configRoot = xdgConfig ?? path.join(os.homedir(), ".config");
-  return path.join(configRoot, "lojinext", "missions.db");
+  return path.join(configRoot, "sovereign", "missions.db");
 }
 
 function ensureParentDirectory(dbPath: string): void {

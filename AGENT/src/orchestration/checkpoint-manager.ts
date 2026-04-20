@@ -1,4 +1,4 @@
-import { TerminalExecutor } from './terminal-executor';
+﻿import { TerminalExecutor } from './terminal-executor';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import AsyncLock from 'async-lock';
@@ -201,7 +201,7 @@ export class CheckpointManager {
 		const entries = await fs.readdir(shadowBase);
 		if (entries.length <= maxCount) return 0;
 
-		// Sort by name (contains timestamp) ascending — oldest first
+		// Sort by name (contains timestamp) ascending â€” oldest first
 		const sorted = entries.sort();
 		const toRemove = sorted.slice(0, sorted.length - maxCount);
 

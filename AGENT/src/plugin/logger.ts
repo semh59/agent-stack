@@ -1,12 +1,12 @@
-/**
- * Structured Logger for Antigravity Plugin
+﻿/**
+ * Structured Logger for Sovereign Plugin
  *
  * Provides TUI-integrated logging that is silent by default.
  * Logs are only visible when:
  * 1. TUI client is available (logs to app log panel)
- * 2. OPENCODE_ANTIGRAVITY_CONSOLE_LOG=1 is set (logs to console)
+ * 2. OPENCODE_SOVEREIGN_CONSOLE_LOG=1 is set (logs to console)
  *
- * Ported from opencode-google-antigravity-auth/src/plugin/logger.ts
+ * Ported from opencode-google-Sovereign-auth/src/plugin/logger.ts
  */
 
 import type { PluginClient } from "./types";
@@ -30,8 +30,8 @@ function maskPII(text: string): string {
   return masked;
 }
 
-const ENV_CONSOLE_LOG = "OPENCODE_ANTIGRAVITY_CONSOLE_LOG";
-const ANTIGRAVITY_CONSOLE_PREFIX = "[Antigravity]";
+const ENV_CONSOLE_LOG = "OPENCODE_SOVEREIGN_CONSOLE_LOG";
+const SOVEREIGN_CONSOLE_PREFIX = "[Sovereign]";
 
 export interface Logger {
   debug(message: string, extra?: Record<string, unknown>): void;
@@ -79,7 +79,7 @@ export function getLoggerClient(): PluginClient | null {
  * ```
  */
 export function createLogger(module: string): Logger {
-  const service = `antigravity.${module}`;
+  const service = `Sovereign.${module}`;
 
   const log = (level: LogLevel, message: string, extra?: Record<string, unknown>): void => {
     // Try TUI logging first
@@ -130,8 +130,8 @@ export function createLogger(module: string): Logger {
 }
 
 /**
- * Print a message to the console with Antigravity prefix.
- * Only outputs when OPENCODE_ANTIGRAVITY_CONSOLE_LOG=1 is set.
+ * Print a message to the console with Sovereign prefix.
+ * Only outputs when OPENCODE_SOVEREIGN_CONSOLE_LOG=1 is set.
  *
  * Use this for standalone messages that don't belong to a specific module.
  *
@@ -139,7 +139,7 @@ export function createLogger(module: string): Logger {
  * @param message - Message to print
  * @param extra - Optional extra data
  */
-export function printAntigravityConsole(
+export function printSovereignConsole(
   level: LogLevel,
   message: string,
   extra?: unknown,
@@ -149,7 +149,7 @@ export function printAntigravityConsole(
   }
 
   const maskedMessage = maskPII(message);
-  const prefixedMessage = `${ANTIGRAVITY_CONSOLE_PREFIX} ${maskedMessage}`;
+  const prefixedMessage = `${SOVEREIGN_CONSOLE_PREFIX} ${maskedMessage}`;
   // Extra could be an error or object
   const maskedExtra = extra !== undefined ? (typeof extra === 'string' ? maskPII(extra) : JSON.parse(maskPII(JSON.stringify(extra)))) : undefined;
   

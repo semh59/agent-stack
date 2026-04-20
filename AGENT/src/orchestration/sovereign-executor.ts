@@ -1,4 +1,4 @@
-import { AntigravityClient } from './antigravity-client';
+﻿import { SovereignGatewayClient } from './gateway-client';
 
 /**
  * SovereignExecutor: High-performance autonomous execution.
@@ -6,10 +6,10 @@ import { AntigravityClient } from './antigravity-client';
  * to minimize LLM overhead and rate-limiting while maintaining project standards.
  */
 export class SovereignExecutor {
-  private client: AntigravityClient;
+  private client: SovereignGatewayClient;
   private projectRoot: string;
 
-  constructor(projectRoot: string, client: AntigravityClient) {
+  constructor(projectRoot: string, client: SovereignGatewayClient) {
     this.projectRoot = projectRoot;
     this.client = client;
   }
@@ -20,7 +20,7 @@ export class SovereignExecutor {
   public async execute(userTask: string): Promise<string> {
     console.log(`[Sovereign] Initializing consolidated architect-developer-qa cycle...`);
 
-    const systemPrompt = `You are the Sovereign Execution Engine of the Antigravity v4 project.
+    const systemPrompt = `You are the Sovereign Execution Engine of the Sovereign v4 project.
 Your mission is to fulfill the user's task with absolute autonomy.
 You embody the knowledge of all 18 specialists (CEO to DevOps).
 
@@ -39,7 +39,7 @@ END_FILE
 
 Task: ${userTask}`;
 
-    const response = await (this.client as any).fetch('https://generativelanguage.googleapis.com/v1beta/models/antigravity-claude-opus-4-6-thinking:generateContent', {
+    const response = await (this.client as any).fetch('https://generativelanguage.googleapis.com/v1beta/models/Sovereign-claude-opus-4-6-thinking:generateContent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
-  prepareAntigravityRequest,
+  prepareSovereignRequest,
   getPluginSessionId,
   isGenerativeLanguageRequest,
   __testExports,
@@ -516,12 +516,12 @@ describe("request.ts", () => {
     });
   });
 
-  describe("prepareAntigravityRequest", () => {
+  describe("prepareSovereignRequest", () => {
     const mockAccessToken = "test-token";
     const mockProjectId = "test-project";
 
     it("returns unchanged request for non-generative-language URLs", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://example.com/api",
         { method: "POST" },
         mockAccessToken,
@@ -532,7 +532,7 @@ describe("request.ts", () => {
     });
 
     it("returns unchanged request for URLs without model pattern", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1/models",
         { method: "POST" },
         mockAccessToken,
@@ -542,7 +542,7 @@ describe("request.ts", () => {
     });
 
     it("detects streaming from generateStreamContent action", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -552,7 +552,7 @@ describe("request.ts", () => {
     });
 
     it("detects non-streaming from generateContent action", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -562,7 +562,7 @@ describe("request.ts", () => {
     });
 
     it("sets Authorization header with Bearer token", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -573,7 +573,7 @@ describe("request.ts", () => {
     });
 
     it("removes x-api-key header", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }), headers: { "x-api-key": "old-key" } },
         mockAccessToken,
@@ -584,7 +584,7 @@ describe("request.ts", () => {
     });
 
     it("identifies Claude models correctly", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/claude-sonnet-4-20250514:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -594,7 +594,7 @@ describe("request.ts", () => {
     });
 
     it("identifies Gemini models correctly", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -605,7 +605,7 @@ describe("request.ts", () => {
 
     it("uses custom endpoint override", () => {
       const customEndpoint = "https://custom.api.com";
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -615,12 +615,12 @@ describe("request.ts", () => {
       expect(result.endpoint).toContain(customEndpoint);
     });
 
-    it("handles wrapped Antigravity body format", () => {
+    it("handles wrapped Sovereign body format", () => {
       const wrappedBody = {
         project: "my-project",
         request: { contents: [{ parts: [{ text: "Hello" }] }] }
       };
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify(wrappedBody) },
         mockAccessToken,
@@ -633,7 +633,7 @@ describe("request.ts", () => {
       const unwrappedBody = {
         contents: [{ parts: [{ text: "Hello" }] }]
       };
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify(unwrappedBody) },
         mockAccessToken,
@@ -643,7 +643,7 @@ describe("request.ts", () => {
     });
 
     it("returns requestedModel matching URL model", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -653,7 +653,7 @@ describe("request.ts", () => {
     });
 
     it("handles empty body gracefully", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({}) },
         mockAccessToken,
@@ -663,7 +663,7 @@ describe("request.ts", () => {
     });
 
     it("handles minimal valid JSON body", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -673,7 +673,7 @@ describe("request.ts", () => {
     });
 
     it("preserves headerStyle in response", () => {
-      const result = prepareAntigravityRequest(
+      const result = prepareSovereignRequest(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
         { method: "POST", body: JSON.stringify({ contents: [] }) },
         mockAccessToken,
@@ -685,32 +685,32 @@ describe("request.ts", () => {
     });
 
     describe("Issue #103: model name transformation during quota fallback", () => {
-      it("transforms gemini-3-flash-preview to gemini-3-flash for antigravity headerStyle", () => {
-        const result = prepareAntigravityRequest(
+      it("transforms gemini-3-flash-preview to gemini-3-flash for Sovereign headerStyle", () => {
+        const result = prepareSovereignRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
           { method: "POST", body: JSON.stringify({ contents: [] }) },
           mockAccessToken,
           mockProjectId,
           undefined,
-          "antigravity"
+          "Sovereign"
         );
         expect(result.effectiveModel).toBe("gemini-3-flash");
       });
 
-      it("transforms gemini-3-pro-preview to gemini-3-pro-low for antigravity headerStyle", () => {
-        const result = prepareAntigravityRequest(
+      it("transforms gemini-3-pro-preview to gemini-3-pro-low for Sovereign headerStyle", () => {
+        const result = prepareSovereignRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent",
           { method: "POST", body: JSON.stringify({ contents: [] }) },
           mockAccessToken,
           mockProjectId,
           undefined,
-          "antigravity"
+          "Sovereign"
         );
         expect(result.effectiveModel).toBe("gemini-3-pro-low");
       });
 
       it("transforms gemini-3-flash to gemini-3-flash-preview for gemini-cli headerStyle", () => {
-        const result = prepareAntigravityRequest(
+        const result = prepareSovereignRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent",
           { method: "POST", body: JSON.stringify({ contents: [] }) },
           mockAccessToken,
@@ -722,7 +722,7 @@ describe("request.ts", () => {
       });
 
       it("transforms gemini-3-pro-low to gemini-3-pro-preview for gemini-cli headerStyle", () => {
-        const result = prepareAntigravityRequest(
+        const result = prepareSovereignRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-low:generateContent",
           { method: "POST", body: JSON.stringify({ contents: [] }) },
           mockAccessToken,
@@ -734,13 +734,13 @@ describe("request.ts", () => {
       });
 
       it("keeps non-Gemini-3 models unchanged regardless of headerStyle", () => {
-        const result = prepareAntigravityRequest(
+        const result = prepareSovereignRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
           { method: "POST", body: JSON.stringify({ contents: [] }) },
           mockAccessToken,
           mockProjectId,
           undefined,
-          "antigravity"
+          "Sovereign"
         );
         expect(result.effectiveModel).toBe("gemini-2.5-flash");
       });

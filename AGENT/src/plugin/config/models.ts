@@ -1,4 +1,4 @@
-import type { ProviderModel } from "../types";
+﻿import type { ProviderModel } from "../types";
 
 export type ModelThinkingLevel = "minimal" | "low" | "medium" | "high";
 
@@ -38,8 +38,8 @@ const DEFAULT_MODALITIES: ModelModalities = {
 };
 
 export const OPENCODE_MODEL_DEFINITIONS: OpencodeModelDefinitions = {
-  "antigravity-gemini-3-pro": {
-    name: "Gemini 3 Pro (Antigravity)",
+  "Sovereign-gemini-3-pro": {
+    name: "Gemini 3 Pro (Sovereign)",
     limit: { context: 1048576, output: 65535 },
     modalities: DEFAULT_MODALITIES,
     variants: {
@@ -47,8 +47,8 @@ export const OPENCODE_MODEL_DEFINITIONS: OpencodeModelDefinitions = {
       high: { thinkingLevel: "high" },
     },
   },
-  "antigravity-gemini-3-flash": {
-    name: "Gemini 3 Flash (Antigravity)",
+  "Sovereign-gemini-3-flash": {
+    name: "Gemini 3 Flash (Sovereign)",
     limit: { context: 1048576, output: 65536 },
     modalities: DEFAULT_MODALITIES,
     variants: {
@@ -58,22 +58,13 @@ export const OPENCODE_MODEL_DEFINITIONS: OpencodeModelDefinitions = {
       high: { thinkingLevel: "high" },
     },
   },
-  "antigravity-claude-sonnet-4-5": {
-    name: "Claude Sonnet 4.5 (Antigravity)",
+  "Sovereign-claude-sonnet-4-5": {
+    name: "Claude Sonnet 4.5 (Sovereign)",
     limit: { context: 200000, output: 64000 },
     modalities: DEFAULT_MODALITIES,
   },
-  "antigravity-claude-sonnet-4-5-thinking": {
-    name: "Claude Sonnet 4.5 Thinking (Antigravity)",
-    limit: { context: 200000, output: 64000 },
-    modalities: DEFAULT_MODALITIES,
-    variants: {
-      low: { thinkingConfig: { thinkingBudget: 8192 } },
-      max: { thinkingConfig: { thinkingBudget: 32768 } },
-    },
-  },
-  "antigravity-claude-opus-4-5-thinking": {
-    name: "Claude Opus 4.5 Thinking (Antigravity)",
+  "Sovereign-claude-sonnet-4-5-thinking": {
+    name: "Claude Sonnet 4.5 Thinking (Sovereign)",
     limit: { context: 200000, output: 64000 },
     modalities: DEFAULT_MODALITIES,
     variants: {
@@ -81,8 +72,17 @@ export const OPENCODE_MODEL_DEFINITIONS: OpencodeModelDefinitions = {
       max: { thinkingConfig: { thinkingBudget: 32768 } },
     },
   },
-  "antigravity-claude-opus-4-6-thinking": {
-    name: "Claude Opus 4.6 Thinking (Antigravity)",
+  "Sovereign-claude-opus-4-5-thinking": {
+    name: "Claude Opus 4.5 Thinking (Sovereign)",
+    limit: { context: 200000, output: 64000 },
+    modalities: DEFAULT_MODALITIES,
+    variants: {
+      low: { thinkingConfig: { thinkingBudget: 8192 } },
+      max: { thinkingConfig: { thinkingBudget: 32768 } },
+    },
+  },
+  "Sovereign-claude-opus-4-6-thinking": {
+    name: "Claude Opus 4.6 Thinking (Sovereign)",
     limit: { context: 200000, output: 64000 },
     modalities: DEFAULT_MODALITIES,
     variants: {

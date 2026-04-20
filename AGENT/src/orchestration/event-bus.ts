@@ -1,4 +1,4 @@
-import type { AutonomyEvent } from "./autonomy-types";
+﻿import type { AutonomyEvent } from "./autonomy-types";
 
 /**
  * Known event types for type-safe subscriptions.

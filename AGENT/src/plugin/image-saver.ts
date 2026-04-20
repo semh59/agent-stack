@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Image Saving Utility
  * 
  * Handles saving generated images to disk and returning file paths.

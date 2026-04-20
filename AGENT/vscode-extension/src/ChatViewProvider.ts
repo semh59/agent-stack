@@ -2,10 +2,10 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as crypto from "crypto";
 import { SequentialPipeline } from "../../src/orchestration/sequential-pipeline";
-import { AntigravityClient } from "../../src/orchestration/antigravity-client";
+import { SovereignGatewayClient } from "../../src/orchestration/sovereign-client";
 import { AccountManager } from "../../src/plugin/accounts";
 import { loadConfig } from "../../src/plugin/config/loader";
-import { ANTIGRAVITY_PROVIDER_ID } from "../../src/constants";
+import { GOOGLE_GEMINI_PROVIDER_ID } from "../../src/constants";
 import {
   buildWebviewHtml,
   resolveWebviewAssets,
@@ -178,7 +178,7 @@ function mapOAuthActionableError(parsed: ParsedGatewayError): string {
 }
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = "lojinext.chatView";
+  public static readonly viewType = "sovereign.chatView";
 
   private _view?: vscode.WebviewView;
   private _pipeline?: SequentialPipeline;
@@ -196,8 +196,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly _extensionUri: vscode.Uri, private readonly _globalStoragePath?: string) {
     this._costTracker = new UnifiedCostTracker(undefined, this._globalStoragePath);
-    const config = vscode.workspace.getConfiguration("lojinext");
-    this._gatewayAuthToken = process.env.LOJINEXT_GATEWAY_TOKEN ?? config.get<string>("gatewayAuthToken") ?? null;
+    const config = vscode.workspace.getConfiguration("sovereign");
+    // LOJINEXT_GATEWAY_TOKEN retained as deprecated fallback for users migrating from pre-rebrand.
+    this._gatewayAuthToken = process.env.SOVEREIGN_GATEWAY_TOKEN
+      ?? process.env.LOJINEXT_GATEWAY_TOKEN
+      ?? config.get<string>("gatewayAuthToken")
+      ?? null;
     this._cspConnectOrigins = normalizeConnectOrigins(config.get<string[]>("gatewayConnectOrigins"));
   }
 
@@ -358,7 +362,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       this._postMessage({
         type: "system",
         value:
-          "No workspace folder open. Create/open a folder to use LojiNext AI Agent.",
+          "No workspace folder open. Create/open a folder to use Sovereign AI Agent.",
       });
     }
   }
@@ -384,10 +388,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         return null;
       };
 
-      const client = new AntigravityClient(
+      const client = new SovereignGatewayClient(
         accountManager,
         config,
-        ANTIGRAVITY_PROVIDER_ID,
+        GOOGLE_GEMINI_PROVIDER_ID,
         getAuth,
       );
 
@@ -581,7 +585,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     const uiModels = allEngineModels.map((m: any) => ({
       id: m.id,
       name: m.name,
-      provider: m.provider === "google_antigravity" ? "Google" : "Anthropic",
+      provider: m.provider === "google_gemini" ? "Google" : "Anthropic",
       status: "active", // We would wire CircuitBreaker health here in the future
       tier: m.tier
     }));
@@ -931,26 +935,4 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(assetsPath, resolvedAssets.scriptFileName),
-    );
-    const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(assetsPath, resolvedAssets.styleFileName),
-    );
-
-    const nonce = crypto.randomBytes(16).toString("base64");
-    return buildWebviewHtml({
-      title: "LojiNext AI Mission Control",
-      nonce,
-      cspSource: webview.cspSource,
-      connectSources: [
-        webview.cspSource,
-        ...DEFAULT_CSP_CONNECT_ORIGINS,
-        ...this._cspConnectOrigins,
-      ],
-      styleUri: styleUri.toString(),
-      scriptUri: scriptUri.toString(),
-    });
-  }
-}
-
-// U2 FIX: Dead getNonce() function removed — was never called, crypto.randomBytes used instead.
+      vscode.Uri.joinPath(assetsPath, res

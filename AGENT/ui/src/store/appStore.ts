@@ -8,7 +8,7 @@ import { createWebSocketSlice } from "./slices/websocketSlice";
 import { createPipelineSlice } from "./slices/pipelineSlice";
 
 /**
- * LojiNext App Store Versioning
+ * Sovereign App Store Versioning
  * Version 1: Initial modular store with localStorage.
  */
 const CURRENT_STORE_VERSION = 1;
@@ -36,7 +36,7 @@ function getSafeLocalStorage(): Storage {
 }
 
 /**
- * LojiNext App Store
+ * Sovereign App Store
  * 
  * Modular Zustand store with persistence and version control.
  */
@@ -50,7 +50,7 @@ export const useAppStore = create<AppState>()(
       ...createPipelineSlice(...a),
     }),
     {
-      name: "lojinext-app-store",
+      name: "sovereign-app-store",
       version: CURRENT_STORE_VERSION,
       storage: createJSONStorage(getSafeLocalStorage),
       

@@ -1,5 +1,5 @@
-/**
- * Cache module for lojinext-ai plugin.
+﻿/**
+ * Cache module for sovereign-ai plugin.
  */
 
 export {

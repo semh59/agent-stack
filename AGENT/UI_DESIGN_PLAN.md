@@ -1,4 +1,4 @@
-# LojiNext — Arayüz Tasarım Planı
+# Sovereign — Arayüz Tasarım Planı
 
 > Sovereign Software Factory · 18 Agent · 625 Skill · Tam Kontrol Merkezi
 
@@ -8,7 +8,7 @@
 
 ### Kimlik
 
-LojiNext bir araç değil, bir **fabrika kontrol odası.** Tasarım bunu yansıtmalı.
+Sovereign bir araç değil, bir **fabrika kontrol odası.** Tasarım bunu yansıtmalı.
 
 Referans nokta: Endüstriyel kontrol panelleri, mission control ekranları, Bloomberg terminali.
 **Değil:** Sıradan SaaS dashboard, yapay zeka chatbot arayüzü.
@@ -86,7 +86,7 @@ Router:       React Router v6
 ```
 ┌─────────────────────────────────────────────┐
 │                                             │
-│         [LojiNext wordmark — büyük]         │
+│         [Sovereign wordmark — büyük]         │
 │    "Sovereign Software Factory"             │
 │                                             │
 │    ┌───────────────────────────────────┐    │
@@ -119,7 +119,7 @@ Router:       React Router v6
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ HEADER: LojiNext logo | Aktif hesap | Quota bar | Ayarlar       │
+│ HEADER: Sovereign logo | Aktif hesap | Quota bar | Ayarlar       │
 ├──────────┬──────────────────────────────────────────────────────┤
 │          │                                                       │
 │ SIDEBAR  │  ┌─────────────┐ ┌─────────────┐ ┌───────────────┐  │
@@ -654,10 +654,10 @@ Her skill kartında: [Önizle] [Projeye Ekle]
 │                                                                  │
 │  MEVCUT MODELLER                                                 │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │ Claude Opus 4.6     · Antigravity · 200K context        │    │
-│  │ Claude Sonnet 4.6   · Antigravity · 200K context        │    │
-│  │ Gemini 3 Pro        · Antigravity · 1M context          │    │
-│  │ Gemini 3 Flash      · Antigravity · 1M context · hızlı  │    │
+│  │ Claude Opus 4.6     · Sovereign AI · 200K context        │    │
+│  │ Claude Sonnet 4.6   · Sovereign AI · 200K context        │    │
+│  │ Gemini 3 Pro        · Sovereign AI · 1M context          │    │
+│  │ Gemini 3 Flash      · Sovereign AI · 1M context · hızlı  │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -670,7 +670,7 @@ Her skill kartında: [Önizle] [Projeye Ekle]
 
 ```
 ┌────────────────────┐
-│ LojiNext     [≡]   │
+│ Sovereign     [≡]   │
 │                    │
 │ 🏠 Dashboard       │
 │ ▶ Pipeline      ▸  │

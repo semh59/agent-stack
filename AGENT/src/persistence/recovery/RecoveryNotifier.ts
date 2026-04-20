@@ -1,4 +1,4 @@
-import type { PendingRecoverySummary } from "./RecoveryPrompt";
+﻿import type { PendingRecoverySummary } from "./RecoveryPrompt";
 
 export interface RecoveryNotifier {
   notifyPendingRecoveries(recoveries: PendingRecoverySummary[], gatewayBaseUrl: string): Promise<void>;

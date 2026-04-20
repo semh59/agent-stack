@@ -1,4 +1,4 @@
-import { promises as fs } from "node:fs";
+﻿import { promises as fs } from "node:fs";
 import {
   existsSync,
   readFileSync,
@@ -28,10 +28,10 @@ const keyManager = new KeyManager();
  */
 export const GITIGNORE_ENTRIES = [
   ".gitignore",
-  "antigravity-accounts.json",
-  "antigravity-accounts.json.*.tmp",
-  "antigravity-signature-cache.json",
-  "antigravity-logs/",
+  "Sovereign-accounts.json",
+  "Sovereign-accounts.json.*.tmp",
+  "Sovereign-signature-cache.json",
+  "Sovereign-logs/",
 ];
 
 /**
@@ -141,7 +141,7 @@ export interface RateLimitState {
 
 export interface RateLimitStateV3 {
   claude?: number;
-  "gemini-antigravity"?: number;
+  "gemini-Sovereign"?: number;
   "gemini-cli"?: number;
   [key: string]: number | undefined;
 }
@@ -269,10 +269,10 @@ function migrateLegacyWindowsConfig(): boolean {
     return false;
   }
 
-  const newPath = join(getConfigDir(), "antigravity-accounts.json");
+  const newPath = join(getConfigDir(), "Sovereign-accounts.json");
   const legacyPath = join(
     getLegacyWindowsConfigDir(),
-    "antigravity-accounts.json",
+    "Sovereign-accounts.json",
   );
 
   // Only migrate if legacy exists and new doesn't
@@ -313,7 +313,7 @@ function migrateLegacyWindowsConfig(): boolean {
  * On Windows, attempts to move legacy config to new path for alignment.
  */
 function getStoragePathWithMigration(): string {
-  const newPath = join(getConfigDir(), "antigravity-accounts.json");
+  const newPath = join(getConfigDir(), "Sovereign-accounts.json");
 
   // On Windows, attempt to migrate legacy config to new location
   if (process.platform === "win32") {
@@ -323,7 +323,7 @@ function getStoragePathWithMigration(): string {
     if (!existsSync(newPath)) {
       const legacyPath = join(
         getLegacyWindowsConfigDir(),
-        "antigravity-accounts.json",
+        "Sovereign-accounts.json",
       );
       if (existsSync(legacyPath)) {
         log.info("Using legacy Windows config path (migration failed)", {
@@ -343,7 +343,7 @@ export function getStoragePath(): string {
 }
 
 /**
- * ─── ENCRYPTION UTILITIES ──────────────────────────────────────────────────
+ * â”€â”€â”€ ENCRYPTION UTILITIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  * Note: Legacy AES-256-GCM (v2) methods removed for strict v3-only standard.
  */
 
@@ -592,7 +592,7 @@ export function migrateV2ToV3(v2: AccountStorage): AccountStorageV3 {
         acc.rateLimitResetTimes?.gemini &&
         acc.rateLimitResetTimes.gemini > Date.now()
       ) {
-        rateLimitResetTimes["gemini-antigravity"] =
+        rateLimitResetTimes["gemini-Sovereign"] =
           acc.rateLimitResetTimes.gemini;
       }
       return {

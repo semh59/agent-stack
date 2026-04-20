@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Thinking Recovery Module
  *
  * Minimal implementation for recovering from corrupted thinking state.

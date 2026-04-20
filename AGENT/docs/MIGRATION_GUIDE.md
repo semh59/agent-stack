@@ -1,6 +1,6 @@
 # Migration Guide (Breaking Changes)
 
-This guide covers migration from pre-security-hardening builds to current `lojinext-ai`.
+This guide covers migration from pre-security-hardening builds to current `sovereign-ai`.
 
 ## 1) Gateway Security Defaults
 
@@ -40,13 +40,13 @@ This guide covers migration from pre-security-hardening builds to current `lojin
 - Wildcard `connect-src` and `unsafe-eval` are not allowed.
 
 ### Required Action
-- If extra endpoints are needed, add them through `lojinext.gatewayConnectOrigins`.
+- If extra endpoints are needed, add them through `sovereign.gatewayConnectOrigins`.
 - Keep origin list explicit and minimal.
 
 ## 5) Script Names and Branding
 
 ### Breaking
-- Canonical name is `lojinext-ai`.
+- Canonical name is `sovereign-ai`.
 - Legacy naming references are deprecated.
 
 ### Required Action

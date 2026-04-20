@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import { buildAutonomyBranchName, buildAutonomyCommitTitle } from "./autonomy-git-manager";
 
 describe("autonomy git metadata helpers", () => {

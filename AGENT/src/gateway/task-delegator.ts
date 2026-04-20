@@ -1,12 +1,12 @@
-/**
- * Task Delegation API — Independent Agent Assignment
+﻿/**
+ * Task Delegation API â€” Independent Agent Assignment
  *
  * Enables the user to assign work to specific agent groups independently:
- *   - "Planlama yap" → Management agents only (CEO, PM, Architect)
- *   - "Kod yaz" → Development agents only (Backend, Frontend, Auth)
- *   - "Test et" → Quality agents only (Unit Test, Integration Test, Security)
- *   - "Full pipeline" → All 18 agents
- *   - Custom → Any combination of agents
+ *   - "Planlama yap" â†’ Management agents only (CEO, PM, Architect)
+ *   - "Kod yaz" â†’ Development agents only (Backend, Frontend, Auth)
+ *   - "Test et" â†’ Quality agents only (Unit Test, Integration Test, Security)
+ *   - "Full pipeline" â†’ All 18 agents
+ *   - Custom â†’ Any combination of agents
  *
  * This builds on the existing PlanMode system but adds:
  *   1. Provider-aware model selection per agent group
@@ -19,7 +19,7 @@
  *   {
  *     "task": "Build a REST API with auth",
  *     "groups": ["plan", "code"],
- *     "provider": "google_antigravity",
+ *     "provider": "google_gemini",
  *     "options": { "modelOverride": "claude-opus-4" }
  *   }
  */
@@ -28,18 +28,18 @@ import { AGENTS, AgentLayer, type AgentDefinition } from "../orchestration/agent
 import { PlanMode } from "../orchestration/sequential-pipeline";
 import type { AIProvider } from "./provider-types";
 
-// ─── Task Group Definitions ─────────────────────────────────────────────────
+// â”€â”€â”€ Task Group Definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const TaskGroup = {
-  /** CEO → Architect: Strategic planning, requirements, architecture */
+  /** CEO â†’ Architect: Strategic planning, requirements, architecture */
   PLAN: "plan",
-  /** UI/UX → API Designer: Design specifications */
+  /** UI/UX â†’ API Designer: Design specifications */
   DESIGN: "design",
-  /** Backend → Integration: Code implementation */
+  /** Backend â†’ Integration: Code implementation */
   CODE: "code",
-  /** Unit Test → Performance: Quality assurance */
+  /** Unit Test â†’ Performance: Quality assurance */
   TEST: "test",
-  /** Code Review → DevOps: Final delivery */
+  /** Code Review â†’ DevOps: Final delivery */
   DELIVER: "deliver",
   /** All agents */
   FULL: "full",
@@ -49,7 +49,7 @@ export const TaskGroup = {
 
 export type TaskGroup = (typeof TaskGroup)[keyof typeof TaskGroup];
 
-// ─── Group → Agent Mapping ──────────────────────────────────────────────────
+// â”€â”€â”€ Group â†’ Agent Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GROUP_AGENTS: Record<TaskGroup, string[]> = {
   plan: ["ceo", "pm", "architect"],
@@ -61,7 +61,7 @@ const GROUP_AGENTS: Record<TaskGroup, string[]> = {
   custom: [], // Populated at runtime
 };
 
-// ─── Group → PlanMode Mapping ───────────────────────────────────────────────
+// â”€â”€â”€ Group â†’ PlanMode Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GROUP_PLAN_MODE: Record<TaskGroup, PlanMode> = {
   plan: PlanMode.MANAGEMENT_ONLY,
@@ -73,7 +73,7 @@ const GROUP_PLAN_MODE: Record<TaskGroup, PlanMode> = {
   custom: PlanMode.CUSTOM,
 };
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface DelegationRequest {
   /** The user's task description */
@@ -132,7 +132,7 @@ export interface GroupDependency {
   reason: string;
 }
 
-// ─── Cross-Group Dependencies ───────────────────────────────────────────────
+// â”€â”€â”€ Cross-Group Dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GROUP_DEPENDENCIES: GroupDependency[] = [
   { from: "plan", to: "design", reason: "Design needs architecture decisions" },
@@ -142,7 +142,7 @@ const GROUP_DEPENDENCIES: GroupDependency[] = [
   { from: "test", to: "deliver", reason: "Delivery needs passing tests" },
 ];
 
-// ─── Task Delegator ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Task Delegator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class TaskDelegator {
   /**
@@ -247,7 +247,7 @@ export class TaskDelegator {
     };
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private getRequiredGroups(group: TaskGroup, selectedGroups: TaskGroup[]): TaskGroup[] {
     return GROUP_DEPENDENCIES
@@ -290,27 +290,27 @@ export class TaskDelegator {
 
   private getGroupLabel(group: TaskGroup): string {
     const labels: Record<TaskGroup, string> = {
-      plan: "📋 Planlama",
-      design: "🎨 Tasarım",
-      code: "⚙️ Geliştirme",
-      test: "🧪 Test",
-      deliver: "🚀 Teslimat",
-      full: "🏭 Tam Pipeline",
-      custom: "⚡ Özel",
+      plan: "ğŸ“‹ Planlama",
+      design: "ğŸ¨ TasarÄ±m",
+      code: "âš™ï¸ GeliÅŸtirme",
+      test: "ğŸ§ª Test",
+      deliver: "ğŸš€ Teslimat",
+      full: "ğŸ­ Tam Pipeline",
+      custom: "âš¡ Ã–zel",
     };
     return labels[group] ?? group;
   }
 
-  // ── Static Utilities ───────────────────────────────────────────────────
+  // â”€â”€ Static Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   static getAvailableGroups(): { id: TaskGroup; label: string; agents: string[]; estimatedMinutes: number }[] {
     return [
-      { id: TaskGroup.PLAN, label: "📋 Planlama (CEO → Architect)", agents: GROUP_AGENTS.plan, estimatedMinutes: 18 },
-      { id: TaskGroup.DESIGN, label: "🎨 Tasarım (UI/UX → API)", agents: GROUP_AGENTS.design, estimatedMinutes: 15 },
-      { id: TaskGroup.CODE, label: "⚙️ Geliştirme (Backend → Integration)", agents: GROUP_AGENTS.code, estimatedMinutes: 35 },
-      { id: TaskGroup.TEST, label: "🧪 Test (Unit → Performance)", agents: GROUP_AGENTS.test, estimatedMinutes: 20 },
-      { id: TaskGroup.DELIVER, label: "🚀 Teslimat (Review → DevOps)", agents: GROUP_AGENTS.deliver, estimatedMinutes: 20 },
-      { id: TaskGroup.FULL, label: "🏭 Tam Pipeline (18 Agent)", agents: GROUP_AGENTS.full, estimatedMinutes: 108 },
+      { id: TaskGroup.PLAN, label: "ğŸ“‹ Planlama (CEO â†’ Architect)", agents: GROUP_AGENTS.plan, estimatedMinutes: 18 },
+      { id: TaskGroup.DESIGN, label: "ğŸ¨ TasarÄ±m (UI/UX â†’ API)", agents: GROUP_AGENTS.design, estimatedMinutes: 15 },
+      { id: TaskGroup.CODE, label: "âš™ï¸ GeliÅŸtirme (Backend â†’ Integration)", agents: GROUP_AGENTS.code, estimatedMinutes: 35 },
+      { id: TaskGroup.TEST, label: "ğŸ§ª Test (Unit â†’ Performance)", agents: GROUP_AGENTS.test, estimatedMinutes: 20 },
+      { id: TaskGroup.DELIVER, label: "ğŸš€ Teslimat (Review â†’ DevOps)", agents: GROUP_AGENTS.deliver, estimatedMinutes: 20 },
+      { id: TaskGroup.FULL, label: "ğŸ­ Tam Pipeline (18 Agent)", agents: GROUP_AGENTS.full, estimatedMinutes: 108 },
     ];
   }
 }

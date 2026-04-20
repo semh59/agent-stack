@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import { TerminalExecutor } from './terminal-executor';
 import { VerificationEngine } from './verification-engine';
-import { extractRetryInfoFromBody } from './antigravity-utils';
+import { extractRetryInfoFromBody } from './gateway-utils';
 
 describe('Critical Fixes Deep Verification', () => {
 

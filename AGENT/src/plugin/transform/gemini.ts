@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Gemini-specific Request Transformations
  * 
  * Handles Gemini model-specific request transformations including:
@@ -22,7 +22,7 @@ import type { RequestPayload, ThinkingConfig, ThinkingTier, GoogleSearchConfig }
  * @returns Gemini-compatible schema
  * 
  * Fields that Gemini API rejects and must be removed from schemas.
- * Antigravity uses strict protobuf-backed JSON validation.
+ * Sovereign uses strict protobuf-backed JSON validation.
  */
 const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   "additionalProperties",
@@ -205,7 +205,7 @@ const VALID_ASPECT_RATIOS = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9
  * 
  * Defaults to 1:1 aspect ratio if not specified.
  * 
- * Note: Resolution setting is not currently supported by the Antigravity API.
+ * Note: Resolution setting is not currently supported by the Sovereign API.
  */
 export function buildImageGenerationConfig(): ImageConfig {
   // Read aspect ratio from environment or default to 1:1
@@ -420,7 +420,7 @@ export function applyGeminiTransforms(
   const result = normalizeGeminiTools(payload);
 
   // 4. Wrap tools in functionDeclarations format (fixes #203, #206)
-  // Antigravity strict protobuf validation rejects wrapper-level 'parameters' field
+  // Sovereign strict protobuf validation rejects wrapper-level 'parameters' field
   // Must be: [{ functionDeclarations: [{ name, description, parameters }] }]
   const wrapResult = wrapToolsAsFunctionDeclarations(payload);
 
@@ -439,7 +439,7 @@ export interface WrapToolsResult {
 /**
  * Wrap tools array in Gemini's required functionDeclarations format.
  * 
- * Gemini/Antigravity API expects:
+ * Gemini/Sovereign API expects:
  *   { tools: [{ functionDeclarations: [{ name, description, parameters }] }] }
  * 
  * NOT:

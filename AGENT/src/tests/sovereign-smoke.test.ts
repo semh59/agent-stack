@@ -1,5 +1,5 @@
-/**
- * Smoke Tests — Sovereign AI Platform Phase 1+2
+﻿/**
+ * Smoke Tests â€” Sovereign AI Platform Phase 1+2
  *
  * Validates core module imports and basic functionality
  * without requiring network access or running services.
@@ -7,28 +7,28 @@
 
 import { describe, it, expect } from "vitest";
 
-// ─── Provider Types ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Provider Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("ProviderTypes", () => {
   it("should define both provider constants", async () => {
-    const { AIProvider, GOOGLE_ANTIGRAVITY_MODELS, CLAUDE_CODE_MODELS, getAllModels } =
+    const { AIProvider, GOOGLE_GEMINI_MODELS, CLAUDE_CODE_MODELS, getAllModels } =
       await import("../gateway/provider-types");
 
-    expect(AIProvider.GOOGLE_ANTIGRAVITY).toBe("google_antigravity");
+    expect(AIProvider.GOOGLE_GEMINI).toBe("google_gemini");
     expect(AIProvider.CLAUDE_CODE).toBe("claude_code");
-    expect(GOOGLE_ANTIGRAVITY_MODELS.length).toBeGreaterThan(0);
+    expect(GOOGLE_GEMINI_MODELS.length).toBeGreaterThan(0);
     expect(CLAUDE_CODE_MODELS.length).toBeGreaterThan(0);
     expect(getAllModels().length).toBe(
-      GOOGLE_ANTIGRAVITY_MODELS.length + CLAUDE_CODE_MODELS.length,
+      GOOGLE_GEMINI_MODELS.length + CLAUDE_CODE_MODELS.length,
     );
   });
 
   it("should have correct model tiers", async () => {
-    const { GOOGLE_ANTIGRAVITY_MODELS, CLAUDE_CODE_MODELS } =
+    const { GOOGLE_GEMINI_MODELS, CLAUDE_CODE_MODELS } =
       await import("../gateway/provider-types");
 
     const tiers = new Set(
-      [...GOOGLE_ANTIGRAVITY_MODELS, ...CLAUDE_CODE_MODELS].map((m) => m.tier),
+      [...GOOGLE_GEMINI_MODELS, ...CLAUDE_CODE_MODELS].map((m) => m.tier),
     );
     expect(tiers.has("fast")).toBe(true);
     expect(tiers.has("balanced")).toBe(true);
@@ -36,7 +36,7 @@ describe("ProviderTypes", () => {
   });
 });
 
-// ─── Claude Provider ────────────────────────────────────────────────────────
+// â”€â”€â”€ Claude Provider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("ClaudeCodeProvider", () => {
   it("should default to api_key mode when no OAuth client is configured", async () => {
@@ -101,7 +101,7 @@ describe("ClaudeCodeProvider", () => {
   });
 });
 
-// ─── Model Router ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Model Router â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("ModelRouter", () => {
   it("should route CEO agent to thinking/powerful tier", async () => {
@@ -116,13 +116,13 @@ describe("ModelRouter", () => {
       agent: ceoAgent,
       estimatedTokens: 2000,
       complexity: 7,
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY],
+      activeProviders: [AIProvider.GOOGLE_GEMINI],
       providerHealth: new Map(),
     });
 
     expect(decision.useThinking).toBe(true);
     expect(["powerful", "ultimate"]).toContain(decision.tier);
-    expect(decision.provider).toBe(AIProvider.GOOGLE_ANTIGRAVITY);
+    expect(decision.provider).toBe(AIProvider.GOOGLE_GEMINI);
   });
 
   it("should route DevOps agent to fast tier", async () => {
@@ -137,7 +137,7 @@ describe("ModelRouter", () => {
       agent: devopsAgent,
       estimatedTokens: 500,
       complexity: 3,
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY],
+      activeProviders: [AIProvider.GOOGLE_GEMINI],
       providerHealth: new Map(),
     });
 
@@ -157,12 +157,12 @@ describe("ModelRouter", () => {
       agent: backendAgent,
       estimatedTokens: 4000,
       complexity: 5,
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY, AIProvider.CLAUDE_CODE],
+      activeProviders: [AIProvider.GOOGLE_GEMINI, AIProvider.CLAUDE_CODE],
       providerHealth: new Map(),
       budgetRemaining: 500, // Very low budget
     });
 
-    expect(decision.provider).toBe(AIProvider.GOOGLE_ANTIGRAVITY);
+    expect(decision.provider).toBe(AIProvider.GOOGLE_GEMINI);
   });
 
   it("should handle model override", async () => {
@@ -177,7 +177,7 @@ describe("ModelRouter", () => {
       agent,
       estimatedTokens: 1000,
       complexity: 3,
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY],
+      activeProviders: [AIProvider.GOOGLE_GEMINI],
       providerHealth: new Map(),
       modelOverride: "claude-opus-4",
     });
@@ -187,7 +187,7 @@ describe("ModelRouter", () => {
   });
 });
 
-// ─── Task Delegator ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Task Delegator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("TaskDelegator", () => {
   it("should list available groups", async () => {
@@ -258,7 +258,7 @@ describe("TaskDelegator", () => {
   });
 });
 
-// ─── Circuit Breaker ────────────────────────────────────────────────────────
+// â”€â”€â”€ Circuit Breaker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("ProviderCircuitBreaker", () => {
   it("should start in closed state and allow requests", async () => {
@@ -266,7 +266,7 @@ describe("ProviderCircuitBreaker", () => {
     const { AIProvider } = await import("../gateway/provider-types");
     const cb = new ProviderCircuitBreaker();
 
-    expect(cb.isAvailable(AIProvider.GOOGLE_ANTIGRAVITY)).toBe(true);
+    expect(cb.isAvailable(AIProvider.GOOGLE_GEMINI)).toBe(true);
     expect(cb.isAvailable(AIProvider.CLAUDE_CODE)).toBe(true);
   });
 
@@ -275,12 +275,12 @@ describe("ProviderCircuitBreaker", () => {
     const { AIProvider } = await import("../gateway/provider-types");
     const cb = new ProviderCircuitBreaker({ failureThreshold: 3 });
 
-    cb.recordFailure(AIProvider.GOOGLE_ANTIGRAVITY);
-    cb.recordFailure(AIProvider.GOOGLE_ANTIGRAVITY);
-    expect(cb.isAvailable(AIProvider.GOOGLE_ANTIGRAVITY)).toBe(true); // 2 < 3
+    cb.recordFailure(AIProvider.GOOGLE_GEMINI);
+    cb.recordFailure(AIProvider.GOOGLE_GEMINI);
+    expect(cb.isAvailable(AIProvider.GOOGLE_GEMINI)).toBe(true); // 2 < 3
 
-    cb.recordFailure(AIProvider.GOOGLE_ANTIGRAVITY);
-    expect(cb.isAvailable(AIProvider.GOOGLE_ANTIGRAVITY)).toBe(false); // 3 >= 3 → OPEN
+    cb.recordFailure(AIProvider.GOOGLE_GEMINI);
+    expect(cb.isAvailable(AIProvider.GOOGLE_GEMINI)).toBe(false); // 3 >= 3 â†’ OPEN
 
     // Other provider is unaffected
     expect(cb.isAvailable(AIProvider.CLAUDE_CODE)).toBe(true);
@@ -295,16 +295,16 @@ describe("ProviderCircuitBreaker", () => {
       halfOpenSuccessThreshold: 1,
     });
 
-    cb.recordFailure(AIProvider.GOOGLE_ANTIGRAVITY);
-    cb.recordFailure(AIProvider.GOOGLE_ANTIGRAVITY);
-    expect(cb.isAvailable(AIProvider.GOOGLE_ANTIGRAVITY)).toBe(false);
+    cb.recordFailure(AIProvider.GOOGLE_GEMINI);
+    cb.recordFailure(AIProvider.GOOGLE_GEMINI);
+    expect(cb.isAvailable(AIProvider.GOOGLE_GEMINI)).toBe(false);
 
     // Wait for recovery timeout
     await new Promise((r) => setTimeout(r, 60));
-    expect(cb.isAvailable(AIProvider.GOOGLE_ANTIGRAVITY)).toBe(true); // half-open
+    expect(cb.isAvailable(AIProvider.GOOGLE_GEMINI)).toBe(true); // half-open
 
-    cb.recordSuccess(AIProvider.GOOGLE_ANTIGRAVITY, 100);
-    const stats = cb.getStats(AIProvider.GOOGLE_ANTIGRAVITY);
+    cb.recordSuccess(AIProvider.GOOGLE_GEMINI, 100);
+    const stats = cb.getStats(AIProvider.GOOGLE_GEMINI);
     expect(stats.state).toBe("closed");
   });
 
@@ -314,11 +314,11 @@ describe("ProviderCircuitBreaker", () => {
     const cb = new ProviderCircuitBreaker({ failureThreshold: 1 });
 
     // Break Google
-    cb.recordFailure(AIProvider.GOOGLE_ANTIGRAVITY);
+    cb.recordFailure(AIProvider.GOOGLE_GEMINI);
 
     // Execute with fallback to Claude
     const result = await cb.execute(
-      AIProvider.GOOGLE_ANTIGRAVITY,
+      AIProvider.GOOGLE_GEMINI,
       async () => "google-result",
       AIProvider.CLAUDE_CODE,
       async () => "claude-fallback",
@@ -332,11 +332,11 @@ describe("ProviderCircuitBreaker", () => {
     const { AIProvider } = await import("../gateway/provider-types");
     const cb = new ProviderCircuitBreaker();
 
-    cb.recordSuccess(AIProvider.GOOGLE_ANTIGRAVITY, 50);
-    cb.recordSuccess(AIProvider.GOOGLE_ANTIGRAVITY, 100);
+    cb.recordSuccess(AIProvider.GOOGLE_GEMINI, 50);
+    cb.recordSuccess(AIProvider.GOOGLE_GEMINI, 100);
     cb.recordFailure(AIProvider.CLAUDE_CODE);
 
-    const googleStats = cb.getStats(AIProvider.GOOGLE_ANTIGRAVITY);
+    const googleStats = cb.getStats(AIProvider.GOOGLE_GEMINI);
     const claudeStats = cb.getStats(AIProvider.CLAUDE_CODE);
 
     expect(googleStats.totalSuccesses).toBe(2);
@@ -348,7 +348,7 @@ describe("ProviderCircuitBreaker", () => {
   });
 });
 
-// ─── Pipeline Optimizer ─────────────────────────────────────────────────────
+// â”€â”€â”€ Pipeline Optimizer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("PipelineOptimizer", () => {
   it("should import and instantiate", async () => {
@@ -356,7 +356,7 @@ describe("PipelineOptimizer", () => {
     const { AIProvider } = await import("../gateway/provider-types");
 
     const optimizer = new PipelineOptimizer({
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY],
+      activeProviders: [AIProvider.GOOGLE_GEMINI],
       enableOptimization: false, // No bridge needed for this test
     });
 
@@ -370,7 +370,7 @@ describe("PipelineOptimizer", () => {
     const { AGENTS } = await import("../orchestration/agents");
 
     const optimizer = new PipelineOptimizer({
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY, AIProvider.CLAUDE_CODE],
+      activeProviders: [AIProvider.GOOGLE_GEMINI, AIProvider.CLAUDE_CODE],
       enableOptimization: false, // Skip bridge
     });
 
@@ -389,7 +389,7 @@ describe("PipelineOptimizer", () => {
     const { AGENTS } = await import("../orchestration/agents");
 
     const optimizer = new PipelineOptimizer({
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY],
+      activeProviders: [AIProvider.GOOGLE_GEMINI],
       enableOptimization: false,
     });
 
@@ -410,7 +410,7 @@ describe("PipelineOptimizer", () => {
     const { AGENTS } = await import("../orchestration/agents");
 
     const optimizer = new PipelineOptimizer({
-      activeProviders: [AIProvider.GOOGLE_ANTIGRAVITY],
+      activeProviders: [AIProvider.GOOGLE_GEMINI],
       enableOptimization: true,
       bridgePort: 19999, // Port nothing listens on
     });

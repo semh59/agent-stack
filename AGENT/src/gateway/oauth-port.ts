@@ -1,10 +1,10 @@
-import * as net from "node:net";
+﻿import * as net from "node:net";
 import { URL } from "node:url";
-import { ANTIGRAVITY_REDIRECT_URI } from "../constants";
+import { SOVEREIGN_REDIRECT_URI } from "../constants";
 
 export const DEFAULT_OAUTH_CALLBACK_PORT = (() => {
   try {
-    const parsed = new URL(ANTIGRAVITY_REDIRECT_URI);
+    const parsed = new URL(SOVEREIGN_REDIRECT_URI);
     const port = Number.parseInt(parsed.port, 10);
     return Number.isFinite(port) && port > 0 ? port : 51121;
   } catch {

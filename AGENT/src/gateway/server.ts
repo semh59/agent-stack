@@ -1,4 +1,4 @@
-import fastify from "fastify";
+﻿import fastify from "fastify";
 import cors from "@fastify/cors";
 import staticPlugin from "@fastify/static";
 import websocket from "@fastify/websocket";
@@ -6,7 +6,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { TokenStore, type StoredToken } from "./token-store";
 import { SequentialPipeline } from "../orchestration/sequential-pipeline";
-import { AntigravityClient } from "../orchestration/antigravity-client";
+import { SovereignGatewayClient } from "../orchestration/gateway-client";
 import { eventBus } from "../orchestration/event-bus";
 import { loadManagedProject } from "../plugin/project";
 import { AccountManager } from "../plugin/accounts";
@@ -51,9 +51,9 @@ import { MissionService, MissionServiceError } from "../services/mission.service
 import { AutonomyMissionRuntime } from "../services/mission-runtime";
 import { SQLiteUnitOfWork } from "../uow/unit-of-work";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Mask email for PII safety: "user@gmail.com" → "u***@gmail.com" */
+/** Mask email for PII safety: "user@gmail.com" â†’ "u***@gmail.com" */
 function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return "***";
@@ -86,9 +86,9 @@ function normalizeOAuthConsentUrl(rawUrl: string): string {
   }
 }
 
-// ─── Rate Limit Tracking (in-memory, per-IP) ────────────────────────────────
+// â”€â”€â”€ Rate Limit Tracking (in-memory, per-IP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ─── Allowed Plan Modes ─────────────────────────────────────────────────────
+// â”€â”€â”€ Allowed Plan Modes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const VALID_PLAN_MODES = new Set([
   "full",
@@ -99,7 +99,7 @@ const VALID_PLAN_MODES = new Set([
 ]);
 const MAX_USER_TASK_LENGTH = 10_000;
 
-// ─── CORS Whitelist ──────────────────────────────────────────────────────────
+// â”€â”€â”€ CORS Whitelist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const CORS_ALLOWED_ORIGINS = [
   /^http:\/\/localhost:\d+$/,
@@ -115,7 +115,7 @@ function isOriginAllowed(origin: string | undefined): boolean {
   });
 }
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface GatewayServerOptions {
   port: number;
@@ -227,12 +227,12 @@ interface MissionWsTicketRequestBody {
   generation?: WsSocketGeneration | null;
 }
 
-// ─── Server ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class GatewayServer {
   private app = fastify({
     logger: {
-      level: process.env.LOJINEXT_GATEWAY_LOG_LEVEL ?? "info",
+      level: process.env.SOVEREIGN_GATEWAY_LOG_LEVEL ?? "info",
       redact: {
         paths: [
           "req.headers.authorization",
@@ -346,7 +346,7 @@ export class GatewayServer {
   }
 
   public async start(): Promise<void> {
-    // 1. CORS — whitelist based (fixes CORS origin: '*' vulnerability)
+    // 1. CORS â€” whitelist based (fixes CORS origin: '*' vulnerability)
     const extraOrigins = this.options.corsOrigins ?? [];
     await this.app.register(cors, {
       origin: (origin, callback) => {
@@ -512,7 +512,7 @@ export class GatewayServer {
     try {
       await this.app.listen({ port: this.options.port, host: this.host });
       console.log(
-        `🚀 Gateway Server running at http://${this.host}:${this.options.port}`,
+        `ğŸš€ Gateway Server running at http://${this.host}:${this.options.port}`,
       );
       if (this.missionDatabase?.lastCorruptionNotice) {
         this.app.log.warn(this.missionDatabase.lastCorruptionNotice);
@@ -616,10 +616,10 @@ export class GatewayServer {
       async (request, reply) => issueMissionWsTicket(request.params.id, reply, request.body),
     );
 
-    // Sovereign settings — full console configuration surface.
+    // Sovereign settings â€” full console configuration surface.
     registerSettingsRoutes(this.app);
 
-    // Bridge proxy routes — /api/optimize/*.
+    // Bridge proxy routes â€” /api/optimize/*.
     registerOptimizeRoutes(this.app);
 
     this.app.get("/api/health", async () => {
@@ -634,7 +634,7 @@ export class GatewayServer {
 
     this.app.get("/api/auth/login", async (_request, reply) => {
       try {
-        const { authorizeAntigravity } = await import("../antigravity/oauth");
+        const { authorizeGoogleGemini } = await import("../google-gemini/oauth");
         const { AuthServer } = await import("./auth-server");
         const { loadAccounts, saveAccounts } = await import("../plugin/storage");
 
@@ -666,7 +666,7 @@ export class GatewayServer {
         
         // Generate the Google OAuth Consent URL and state first
         console.log("[Gateway] Generating OAuth URL...");
-        const authData = await authorizeAntigravity();
+        const authData = await authorizeGoogleGemini();
         const oauthUrl = normalizeOAuthConsentUrl(authData.url);
         if (oauthUrl !== authData.url) {
           console.warn("[Gateway] OAuth URL normalized before returning to client.");
@@ -707,7 +707,7 @@ export class GatewayServer {
                });
             }
             await saveAccounts(storage);
-            console.log("[Gateway] Hesabın VSCode plugin storage'a senkronizasyonu tamamlandı.");
+            console.log("[Gateway] HesabÄ±n VSCode plugin storage'a senkronizasyonu tamamlandÄ±.");
 
           } catch (storageErr) {
              console.error("[Gateway] Plugin storage sync error:", storageErr);
@@ -746,7 +746,7 @@ export class GatewayServer {
       }
     });
 
-    // ── GET /api/skills ──────────────────────────────────────────────────────
+    // â”€â”€ GET /api/skills â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get("/api/skills", async (_request, reply) => {
       try {
         const skillsDir = path.join(this.projectRoot, ".agent", "skills");
@@ -797,7 +797,7 @@ export class GatewayServer {
       }
     });
 
-    // ── GET /api/accounts — paginated account list ──────────────────────────
+    // â”€â”€ GET /api/accounts â€” paginated account list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get<{ Querystring: Record<string, unknown> }>(
       "/api/accounts",
       async (request) => {
@@ -823,11 +823,11 @@ export class GatewayServer {
       },
     );
     
-    // ── GET /api/accounts/quota ─────────────────────────────────────────────
+    // â”€â”€ GET /api/accounts/quota â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get("/api/accounts/quota", async (_request, reply) => {
       try {
         if (!this.accountManager) {
-          return reply.status(503).send(apiError("Hesap yöneticisi henüz hazır değil"));
+          return reply.status(503).send(apiError("Hesap yÃ¶neticisi henÃ¼z hazÄ±r deÄŸil"));
         }
         
         const accounts = this.accountManager.getAccountsSnapshot();
@@ -842,17 +842,17 @@ export class GatewayServer {
         return apiResponse(quotaResults);
       } catch (err) {
         console.error("[Gateway] Failed to fetch quota data:", err);
-        return reply.status(500).send(apiError("Kota bilgileri alınamadı"));
+        return reply.status(500).send(apiError("Kota bilgileri alÄ±namadÄ±"));
       }
     });
 
-    // ── GET /api/accounts/active ────────────────────────────────────────────
+    // â”€â”€ GET /api/accounts/active â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get("/api/accounts/active", async () => {
       const token = this.tokenStore.getActiveToken();
       return apiResponse(token ? { email: token.email ?? '' } : null);
     });
 
-    // ── POST /api/accounts/active — input validated ─────────────────────────
+    // â”€â”€ POST /api/accounts/active â€” input validated â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.post<{ Body: { email: string } }>(
       "/api/accounts/active",
       async (request, reply) => {
@@ -863,16 +863,16 @@ export class GatewayServer {
 
         const success = this.tokenStore.setActiveAccountByEmail(email);
         if (success) return apiResponse({ email: email });
-        return reply.status(404).send(apiError("Hesap bulunamadı"));
+        return reply.status(404).send(apiError("Hesap bulunamadÄ±"));
       },
     );
 
-    // ── DELETE /api/accounts/:email ──────────────────────────────────────────
+    // â”€â”€ DELETE /api/accounts/:email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.delete<{ Params: { email: string } }>(
       "/api/accounts/:email",
       async (request, reply) => {
         const emailToDel = request.params.email;
-        if (!emailToDel) return reply.status(400).send(apiError("Geçersiz email"));
+        if (!emailToDel) return reply.status(400).send(apiError("GeÃ§ersiz email"));
         
         const decodedEmail = decodeURIComponent(emailToDel).trim().toLowerCase();
         console.log(`[Gateway] Attempting to delete account: "${decodedEmail}"`);
@@ -880,7 +880,7 @@ export class GatewayServer {
         // 1. Remove from Gateway's TokenStore
         const tokenDeleted = this.tokenStore.removeAccount(decodedEmail);
         
-        // 2. Remove from Antigravity's AccountManager pool
+        // 2. Remove from Sovereign's AccountManager pool
         let poolDeleted = false;
         if (this.accountManager) {
           const accounts = this.accountManager.getAccounts();
@@ -900,12 +900,12 @@ export class GatewayServer {
         if (tokenDeleted || poolDeleted) {
           return apiResponse({ deleted: true });
         } else {
-          return reply.status(404).send(apiError("Hesap bulunamadı"));
+          return reply.status(404).send(apiError("Hesap bulunamadÄ±"));
         }
       }
     );
 
-    // ── GET /api/pipelines/status ───────────────────────────────────────────
+    // â”€â”€ GET /api/pipelines/status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get("/api/pipelines/status", async () => {
       if (!this.activePipeline) {
         return apiResponse({ status: "idle" });
@@ -914,7 +914,7 @@ export class GatewayServer {
       return apiResponse(progress);
     });
 
-    // ── POST /api/pipelines/start — validated userTask + planMode ───────────
+    // â”€â”€ POST /api/pipelines/start â€” validated userTask + planMode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.post<{ Body: { userTask: string; planMode?: string } }>(
       "/api/pipelines/start",
       async (request, reply) => {
@@ -969,7 +969,7 @@ export class GatewayServer {
             this.accountManager.switchToAccountByEmail(token.email);
         }
 
-        const client = AntigravityClient.fromToken(
+        const client = SovereignGatewayClient.fromToken(
           token.accessToken,
           token.email,
           this.accountManager || undefined
@@ -987,7 +987,7 @@ export class GatewayServer {
       },
     );
 
-    // ── POST /api/pipelines/stop ────────────────────────────────────────────
+    // â”€â”€ POST /api/pipelines/stop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.post("/api/pipelines/stop", async (_request, reply) => {
       if (this.activePipeline) {
         this.activePipeline.pause();
@@ -1193,7 +1193,7 @@ export class GatewayServer {
       return apiResponse({ revoked: true });
     });
 
-    // ── GET /api/stats — real metrics for dashboard ─────────────────────────
+    // â”€â”€ GET /api/stats â€” real metrics for dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get("/api/stats", async () => {
       const accounts = this.tokenStore.getAllAccounts();
       const activeAccount = this.tokenStore.getActiveToken();
@@ -1272,7 +1272,7 @@ export class GatewayServer {
       });
     });
 
-    // ── GET /health ─────────────────────────────────────────────────────────
+    // â”€â”€ GET /health â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     this.app.get("/health", async () => {
       const accounts = this.tokenStore.getAllAccounts();
       const validAccounts = accounts.filter((a) => a.expiresAt > Date.now());
@@ -1731,7 +1731,7 @@ export class GatewayServer {
   }
 
   private setupWebSockets() {
-    // ── WebSocket Heartbeat (30s) ──────────────────────────────────────────
+    // â”€â”€ WebSocket Heartbeat (30s) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const HEARTBEAT_INTERVAL_MS = 30_000;
     const HEARTBEAT_TIMEOUT_MS = 5_000;
 

@@ -1,4 +1,4 @@
-import type { MissionRepository } from "../../repositories/mission.repository";
+﻿import type { MissionRepository } from "../../repositories/mission.repository";
 import type { MissionModel } from "../../models/mission.model";
 import type { AutonomySession } from "../../orchestration/autonomy-types";
 import { buildPendingRecoverySummary, type PendingRecoverySummary } from "./RecoveryPrompt";

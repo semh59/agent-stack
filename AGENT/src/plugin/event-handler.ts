@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Event handler module extracted from plugin.ts monolith.
  * Handles session recovery, update checking, and child session tracking.
  */
-import type { AntigravityConfig } from "./config";
+import type { SovereignGatewayConfig } from "./config";
 import { createLogger } from "./logger";
 
 const log = createLogger("event-handler");
@@ -38,7 +38,7 @@ export interface ChildSessionState {
 
 export interface EventHandlerDeps {
   client: EventHandlerClient;
-  config: AntigravityConfig;
+  config: SovereignGatewayConfig;
   directory: string;
   sessionRecovery: SessionRecoveryHook | null;
   updateChecker: UpdateCheckerHook;
@@ -47,7 +47,7 @@ export interface EventHandlerDeps {
 }
 
 /**
- * Creates the event handler function for the Antigravity plugin.
+ * Creates the event handler function for the Sovereign plugin.
  * Handles session.created, session.error, and update checker forwarding.
  */
 export function createEventHandler(deps: EventHandlerDeps) {

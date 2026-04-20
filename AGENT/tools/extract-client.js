@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const pluginPath = path.join(__dirname, '../src/plugin.ts');
-const clientPath = path.join(__dirname, '../src/orchestration/antigravity-client.ts');
+const clientPath = path.join(__dirname, '../src/orchestration/sovereign-client.ts');
 
 const content = fs.readFileSync(pluginPath, 'utf-8');
 const lines = content.split('\n');
@@ -22,10 +22,10 @@ for (let i = fetchStart; i < lines.length; i++) {
 const bottomStart = lines.findIndex(l => l.includes('function toUrlString'));
 
 const imports = `
-import { ANTIGRAVITY_ENDPOINT_FALLBACKS, ANTIGRAVITY_ENDPOINT_PROD, type HeaderStyle } from "../constants";
+import { SOVEREIGN_ENDPOINT_FALLBACKS, SOVEREIGN_ENDPOINT_PROD, type HeaderStyle } from "../constants";
 import { accessTokenExpired, isOAuthAuth } from "../plugin/auth";
 import {
-  startAntigravityDebugRequest,
+  startSovereignDebugRequest,
   logAccountContext,
   logRateLimitEvent,
   logRateLimitSnapshot,
@@ -37,13 +37,13 @@ import {
 import {
   buildThinkingWarmupBody,
   isGenerativeLanguageRequest,
-  prepareAntigravityRequest,
-  transformAntigravityResponse,
+  prepareSovereignRequest,
+  transformSovereignResponse,
 } from "../plugin/request";
 import { resolveModelWithTier } from "../plugin/transform/model-resolver";
-import { AntigravityTokenRefreshError, refreshAccessToken } from "../plugin/token";
+import { SovereignTokenRefreshError, refreshAccessToken } from "../plugin/token";
 import { AccountManager, type ModelFamily, parseRateLimitReason, calculateBackoffMs, computeSoftQuotaCacheTtlMs, headerStyleToQuotaKey, getRateLimitBackoff } from "../plugin/accounts";
-import { type AntigravityConfig } from "../plugin/config";
+import { type SovereignGatewayConfig } from "../plugin/config";
 import { getHealthTracker, getTokenTracker, trackAccountFailure, resetAccountFailureState } from "../plugin/rotation";
 import { extractRetryInfoFromBody, retryAfterMsFromResponse } from "../plugin/request-helpers";
 
@@ -51,24 +51,24 @@ import { extractRetryInfoFromBody, retryAfterMsFromResponse } from "../plugin/re
 ${lines.slice(bottomStart).join('\n').replace(/export const __testExports.*/s, '')}
 
 const log = {
-  debug: (...args) => console.debug('[AntigravityClient]', ...args),
-  info: (...args) => console.info('[AntigravityClient]', ...args),
-  warn: (...args) => console.warn('[AntigravityClient]', ...args),
-  error: (...args) => console.error('[AntigravityClient]', ...args)
+  debug: (...args) => console.debug('[SovereignGatewayClient]', ...args),
+  info: (...args) => console.info('[SovereignGatewayClient]', ...args),
+  warn: (...args) => console.warn('[SovereignGatewayClient]', ...args),
+  error: (...args) => console.error('[SovereignGatewayClient]', ...args)
 };
 
 const FIRST_RETRY_DELAY_MS = 1000;
 const SWITCH_ACCOUNT_DELAY_MS = 5000;
 
-export class AntigravityClient {
+export class SovereignGatewayClient {
   private accountManager: AccountManager;
-  private config: AntigravityConfig;
+  private config: SovereignGatewayConfig;
   private providerId: string;
   private getAuth: () => Promise<any>;
 
   constructor(
     accountManager: AccountManager, 
-    config: AntigravityConfig, 
+    config: SovereignGatewayConfig, 
     providerId: string,
     getAuth: () => Promise<any>
   ) {
@@ -133,4 +133,4 @@ ${lines.slice(fetchStart + 1, fetchEnd).join('\n')}
 `;
 
 fs.writeFileSync(clientPath, imports);
-console.log('Successfully generated AntigravityClient at', clientPath);
+console.log('Successfully generated SovereignGatewayClient at', clientPath);

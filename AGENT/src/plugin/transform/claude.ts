@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Claude-specific Request Transformations
  * 
  * Handles Claude model-specific request transformations including:
@@ -309,7 +309,7 @@ export interface ClaudeTransformOptions {
   tierThinkingBudget?: number;
   /** Normalized thinking config from user settings */
   normalizedThinking?: { includeThoughts?: boolean; thinkingBudget?: number };
-  /** Function to clean JSON schema for Antigravity */
+  /** Function to clean JSON schema for Sovereign */
   cleanJSONSchema: (schema: unknown) => Record<string, unknown>;
 }
 

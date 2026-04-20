@@ -136,7 +136,7 @@ export function AuthPage() {
       <div className="z-10 w-full max-w-md p-8 rounded-xl border border-[var(--color-loji-border)] bg-[var(--color-loji-surface)]/80 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center">
 
         <h1 className="text-4xl font-display tracking-widest text-white mb-2">
-          LOJINEXT
+          SOVEREIGN
         </h1>
         <p className="text-[var(--color-loji-text-sec)] text-sm tracking-wide font-ui mb-10">
           Sovereign Software Factory

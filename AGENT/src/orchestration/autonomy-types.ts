@@ -1,4 +1,4 @@
-export type AutonomyState =
+﻿export type AutonomyState =
   | "queued"
   | "init"
   | "plan"
@@ -128,7 +128,17 @@ export interface GateContext {
   projectRoot: string;
   touchedFiles: string[];
   scopePaths: string[];
-  client?: any; // import("./antigravity-client").AntigravityClient if possible, but cross-module type avoids circularity
+  client?: any; // import("./gateway-client").SovereignGatewayClient if possible, but cross-module type avoids circularity
+}
+
+export interface GateMetadata {
+  commands?: GateCommandResult[];
+  audit?: AuditSummary;
+  scopes?: Array<"root" | "ui" | "vscode-extension">;
+  skipped?: boolean;
+  reason?: string;
+  llmVerified?: boolean;
+  promptLength?: number;
 }
 
 export interface AutonomousGate {
@@ -136,7 +146,7 @@ export interface AutonomousGate {
   run(context: GateContext): Promise<{
     passed: boolean;
     issues: string[];
-    metadata?: Record<string, any>;
+    metadata?: GateMetadata;
   }>;
 }
 
@@ -166,6 +176,31 @@ export interface SessionOpLogEntry {
   touchedFiles: string[];
   timestamp: string;
 }
+
+export type AutonomousClientResolver = (session: AutonomySession) => Promise<import("./gateway-client").SovereignGatewayClient>;
+
+export interface AutonomousTaskExecutorResult {
+  summary: string;
+  touchedFiles?: string[];
+  nextActionReason?: string;
+  contextPack?: string;
+  usageAccounting?: import("./BudgetTracker").BudgetExecutionAccounting;
+  inputTokens?: number;
+  outputTokens?: number;
+  estimatedUsd?: number;
+}
+
+export interface AutonomousTaskExecutionContext {
+  session: AutonomySession;
+  task: TaskNode;
+  modelDecision: ModelDecision;
+  cycle: number;
+  isInterrupted: () => boolean;
+}
+
+export type AutonomousTaskExecutor = (
+  context: AutonomousTaskExecutionContext,
+) => Promise<AutonomousTaskExecutorResult>;
 
 export interface AutonomySession {
   id: string;

@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Tests for custom error classes.
  */
 import { describe, it, expect } from "vitest";
 import { EmptyResponseError, ToolIdMismatchError } from "./errors";
 
-// ── EmptyResponseError ───────────────────────────────────────────────
+// â”€â”€ EmptyResponseError â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("EmptyResponseError", () => {
   it("should store provider, model, and attempts", () => {
@@ -36,7 +36,7 @@ describe("EmptyResponseError", () => {
   });
 });
 
-// ── ToolIdMismatchError ──────────────────────────────────────────────
+// â”€â”€ ToolIdMismatchError â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("ToolIdMismatchError", () => {
   it("should store expected and found IDs", () => {

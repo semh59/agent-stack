@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Google Search Tool Implementation
  *
  * Due to Gemini API limitations, native search tools (googleSearch, urlContext)
@@ -7,8 +7,8 @@
  */
 
 import {
-  ANTIGRAVITY_ENDPOINT,
-  ANTIGRAVITY_HEADERS,
+  SOVEREIGN_ENDPOINT,
+  SOVEREIGN_HEADERS,
   SEARCH_MODEL,
   SEARCH_TIMEOUT_MS,
   SEARCH_SYSTEM_INSTRUCTION,
@@ -72,7 +72,7 @@ interface SearchResponse {
   };
 }
 
-interface AntigravitySearchResponse {
+interface SovereignSearchResponse {
   response?: SearchResponse;
   error?: {
     code?: number;
@@ -128,7 +128,7 @@ function formatSearchResult(result: SearchResult): string {
   if (result.urlsRetrieved.length > 0) {
     lines.push("### URLs Retrieved");
     for (const url of result.urlsRetrieved) {
-      const status = url.status === "URL_RETRIEVAL_STATUS_SUCCESS" ? "✓" : "✗";
+      const status = url.status === "URL_RETRIEVAL_STATUS_SUCCESS" ? "âœ“" : "âœ—";
       lines.push(`- ${status} ${url.url}`);
     }
     lines.push("");
@@ -144,7 +144,7 @@ function formatSearchResult(result: SearchResult): string {
   return lines.join("\n");
 }
 
-function parseSearchResponse(data: AntigravitySearchResponse): SearchResult {
+function parseSearchResponse(data: SovereignSearchResponse): SearchResult {
   const result: SearchResult = {
     text: "",
     sources: [],
@@ -261,11 +261,11 @@ export async function executeSearch(
     },
   };
 
-  // Wrap in Antigravity format
+  // Wrap in Sovereign format
   const wrappedBody = {
     project: projectId,
     model: SEARCH_MODEL,
-    userAgent: "antigravity",
+    userAgent: "Sovereign",
     requestId: generateRequestId(),
     request: {
       ...requestPayload,
@@ -274,7 +274,7 @@ export async function executeSearch(
   };
 
   // Use non-streaming endpoint for search
-  const url = `${ANTIGRAVITY_ENDPOINT}/v1internal:generateContent`;
+  const url = `${SOVEREIGN_ENDPOINT}/v1internal:generateContent`;
 
   log.debug("Executing search", {
     query,
@@ -286,7 +286,7 @@ export async function executeSearch(
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        ...ANTIGRAVITY_HEADERS,
+        ...SOVEREIGN_HEADERS,
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
@@ -300,7 +300,7 @@ export async function executeSearch(
       return `## Search Error\n\nFailed to execute search: ${response.status} ${response.statusText}\n\n${errorText}\n\nPlease try again with a different query.`;
     }
 
-    const data = (await response.json()) as AntigravitySearchResponse;
+    const data = (await response.json()) as SovereignSearchResponse;
     log.debug("Search response received", { hasResponse: !!data.response });
 
     const result = parseSearchResponse(data);

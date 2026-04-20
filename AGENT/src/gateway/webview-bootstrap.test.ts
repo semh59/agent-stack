@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 
 import {
   buildWebviewHtml,
@@ -113,7 +113,7 @@ describe("buildWebviewHtml", () => {
     expect(html).toContain('<script nonce="nonce123" type="module" src="vscode-resource:/assets/index.js"></script>');
     expect(html).toContain('vscode.postMessage({ type: type, payload: payload || {} });');
     expect(html).toContain('post("ui_boot_started"');
-    expect(html).toContain("window.__LOJINEXT_BOOT");
+    expect(html).toContain("window.__SOVEREIGN_BOOT");
   });
 });
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+﻿import { describe, expect, it, beforeEach } from "vitest";
 import { randomBytes } from "node:crypto";
 import {
   encryptSecret,
@@ -115,7 +115,7 @@ describe("encryption: encrypt/decrypt round trip", () => {
 
   it("handles unicode plaintext", () => {
     const env = makeEnv(freshKey());
-    const plaintext = "🔐 gizli 秘密 سر ᲡᲐᲘᲫᲘ";
+    const plaintext = "ğŸ” gizli ç§˜å¯† Ø³Ø± á²¡á²á²˜á²«á²˜";
     const envelope = encryptSecret(plaintext, env);
     expect(decryptSecret(envelope, env)).toBe(plaintext);
   });

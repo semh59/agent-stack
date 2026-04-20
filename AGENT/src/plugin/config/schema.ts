@@ -1,10 +1,10 @@
-/**
- * Configuration schema for lojinext-ai plugin.
+﻿/**
+ * Configuration schema for sovereign-ai plugin.
  * 
  * Config file locations (in priority order, highest wins):
- * - Project: .opencode/antigravity.json
- * - User: ~/.config/opencode/antigravity.json (Linux/Mac)
- *         %APPDATA%\opencode\antigravity.json (Windows)
+ * - Project: .opencode/Sovereign.json
+ * - User: ~/.config/opencode/Sovereign.json (Linux/Mac)
+ *         %APPDATA%\opencode\Sovereign.json (Windows)
  * 
  * Environment variables always override config file values.
  */
@@ -59,9 +59,16 @@ export const SignatureCacheConfigSchema = z.object({
 });
 
 /**
- * Main configuration schema for the Antigravity OAuth plugin.
+ * Main configuration schema for the Sovereign OAuth plugin.
  */
-export const AntigravityConfigSchema = z.object({
+export const SovereignGatewayConfigSchema = z.object({
+  sovereign: z.object({
+    accounts: z.array(z.object({
+      email: z.string(),
+      accessToken: z.string()
+    }))
+  }).optional(),
+  
   /** JSON Schema reference for IDE support */
   $schema: z.string().optional(),
   
@@ -72,7 +79,7 @@ export const AntigravityConfigSchema = z.object({
   /** 
    * Suppress most toast notifications (rate limit, account switching, etc.)
    * Recovery toasts are always shown regardless of this setting.
-   * Env override: OPENCODE_ANTIGRAVITY_QUIET=1
+   * Env override: OPENCODE_SOVEREIGN_QUIET=1
    * @default false
    */
   quiet_mode: z.boolean().default(false),
@@ -85,22 +92,22 @@ export const AntigravityConfigSchema = z.object({
    * - `all`: All sessions show toasts including subagents and background tasks.
    * 
    * Debug logging captures all toasts regardless of this setting.
-   * Env override: OPENCODE_ANTIGRAVITY_TOAST_SCOPE=all
+   * Env override: OPENCODE_SOVEREIGN_TOAST_SCOPE=all
    * @default "root_only"
    */
   toast_scope: ToastScopeSchema.default('root_only'),
   
   /**
    * Enable debug logging to file.
-   * Env override: OPENCODE_ANTIGRAVITY_DEBUG=1
+   * Env override: OPENCODE_SOVEREIGN_DEBUG=1
    * @default false
    */
   debug: z.boolean().default(false),
   
   /**
    * Custom directory for debug logs.
-   * Env override: OPENCODE_ANTIGRAVITY_LOG_DIR=/path/to/logs
-   * @default OS-specific config dir + "/antigravity-logs"
+   * Env override: OPENCODE_SOVEREIGN_LOG_DIR=/path/to/logs
+   * @default OS-specific config dir + "/Sovereign-logs"
    */
   log_dir: z.string().optional(),
   
@@ -114,7 +121,7 @@ export const AntigravityConfigSchema = z.object({
    * When false (default): Thinking blocks are stripped for reliability.
    * When true: Full context preserved, but may encounter signature errors.
    * 
-   * Env override: OPENCODE_ANTIGRAVITY_KEEP_THINKING=1
+   * Env override: OPENCODE_SOVEREIGN_KEEP_THINKING=1
    * @default false
    */
   keep_thinking: z.boolean().default(false),
@@ -165,7 +172,7 @@ export const AntigravityConfigSchema = z.object({
   // =========================================================================
   
   /**
-   * Maximum retry attempts when Antigravity returns an empty response.
+   * Maximum retry attempts when Sovereign returns an empty response.
    * Empty responses occur when no candidates/choices are returned.
    * 
    * @default 4
@@ -255,11 +262,11 @@ export const AntigravityConfigSchema = z.object({
   
   /**
    * Enable quota fallback for Gemini models.
-   * When the preferred quota (gemini-cli or antigravity) is exhausted,
+   * When the preferred quota (gemini-cli or Sovereign) is exhausted,
    * try the alternate quota on the same account before switching accounts.
    * 
    * Only applies when model is requested without explicit quota suffix.
-   * Explicit suffixes like `:antigravity` or `:gemini-cli` always use
+   * Explicit suffixes like `:Sovereign` or `:gemini-cli` always use
    * that specific quota and switch accounts if exhausted.
    * 
    * @default false
@@ -267,10 +274,10 @@ export const AntigravityConfigSchema = z.object({
   quota_fallback: z.boolean().default(false),
 
   /**
-   * Prefer gemini-cli routing before Antigravity for Gemini models.
+   * Prefer gemini-cli routing before Sovereign for Gemini models.
    * 
-   * When false (default): Antigravity is tried first, then gemini-cli.
-   * When true: gemini-cli is tried first, then Antigravity.
+   * When false (default): Sovereign is tried first, then gemini-cli.
+   * When true: gemini-cli is tried first, then Sovereign.
    * 
    * @default false
    */
@@ -278,7 +285,7 @@ export const AntigravityConfigSchema = z.object({
   
   /**
    * Strategy for selecting accounts when making requests.
-   * Env override: OPENCODE_ANTIGRAVITY_ACCOUNT_SELECTION_STRATEGY
+   * Env override: OPENCODE_SOVEREIGN_ACCOUNT_SELECTION_STRATEGY
    * @default "hybrid"
    */
   account_selection_strategy: AccountSelectionStrategySchema.default('hybrid'),
@@ -292,7 +299,7 @@ export const AntigravityConfigSchema = z.object({
    * When disabled (default), accounts start from the same index, which preserves
    * Anthropic's prompt cache across restarts (recommended for single-session use).
    * 
-   * Env override: OPENCODE_ANTIGRAVITY_PID_OFFSET_ENABLED=1
+   * Env override: OPENCODE_SOVEREIGN_PID_OFFSET_ENABLED=1
    * @default false
    */
   pid_offset_enabled: z.boolean().default(false),
@@ -312,7 +319,7 @@ export const AntigravityConfigSchema = z.object({
      * - `balance`: Switch account immediately on rate limit. Maximum availability.
      * - `performance_first`: Round-robin distribution for maximum throughput.
      * 
-     * Env override: OPENCODE_ANTIGRAVITY_SCHEDULING_MODE
+     * Env override: OPENCODE_SOVEREIGN_SCHEDULING_MODE
      * @default "cache_first"
      */
     scheduling_mode: SchedulingModeSchema.default('cache_first'),
@@ -441,13 +448,13 @@ export const AntigravityConfigSchema = z.object({
 
 });
 
-export type AntigravityConfig = z.infer<typeof AntigravityConfigSchema>;
+export type SovereignGatewayConfig = z.infer<typeof SovereignGatewayConfigSchema>;
 export type SignatureCacheConfig = z.infer<typeof SignatureCacheConfigSchema>;
 
 /**
  * Default configuration values.
  */
-export const DEFAULT_CONFIG: AntigravityConfig = {
+export const DEFAULT_CONFIG: SovereignGatewayConfig = {
   quiet_mode: false,
   toast_scope: 'root_only',
   debug: false,

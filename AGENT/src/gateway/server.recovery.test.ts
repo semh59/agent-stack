@@ -1,4 +1,4 @@
-import * as net from "node:net";
+﻿import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -133,7 +133,7 @@ describe("GatewayServer recovery routes", () => {
   let repository: InMemoryMissionRepository;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(path.join(os.tmpdir(), "lojinext-gateway-recovery-"));
+    tmpDir = await mkdtemp(path.join(os.tmpdir(), "sovereign-gateway-recovery-"));
     port = await getFreePort();
     repository = new InMemoryMissionRepository();
     await repository.create(createMission());

@@ -3,7 +3,7 @@
  * Add Account — OAuth ile yeni Google hesabı ekler.
  *
  * Tarayıcıda Google giriş yapılır, token alınır ve
- * Plugin deposuna (~/.config/opencode/antigravity-accounts.json) kaydedilir.
+ * Plugin deposuna (~/.config/opencode/sovereign-accounts.json) kaydedilir.
  *
  * Kullanım:
  *   npx tsx scripts/add-account.ts

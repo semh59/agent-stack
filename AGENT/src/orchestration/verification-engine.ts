@@ -1,4 +1,4 @@
-import type { AgentDefinition } from './agents';
+﻿import type { AgentDefinition } from './agents';
 import type { TerminalExecutor, CommandResult } from './terminal-executor';
 
 /**
@@ -38,7 +38,7 @@ export interface VerificationResult {
  * VerificationEngine: Physically verifies agent outputs via terminal commands,
  * output section validation, and halt condition checking.
  *
- * This is the "Reality Bridge" — it converts agent text output into physical proof.
+ * This is the "Reality Bridge" â€” it converts agent text output into physical proof.
  */
 export class VerificationEngine {
   private terminal: TerminalExecutor;
@@ -222,14 +222,14 @@ export class VerificationEngine {
   formatAsLog(result: VerificationResult): string {
     const lines: string[] = [
       `=== VERIFICATION: ${result.agentRole} ===`,
-      `Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}`,
+      `Status: ${result.passed ? 'âœ… PASSED' : 'âŒ FAILED'}`,
       `Timestamp: ${result.timestamp}`,
     ];
 
     if (result.commands.length > 0) {
       lines.push('', 'Commands:');
       for (const cmd of result.commands) {
-        const icon = cmd.passed ? '✅' : '❌';
+        const icon = cmd.passed ? 'âœ…' : 'âŒ';
         lines.push(`  ${icon} ${cmd.command} (exit ${cmd.exitCode}, ${cmd.durationMs}ms)`);
         if (!cmd.passed && cmd.stderr) {
           lines.push(`     Error: ${cmd.stderr.slice(0, 200)}`);
@@ -240,13 +240,13 @@ export class VerificationEngine {
     if (result.outputValidation.length > 0) {
       lines.push('', 'Output Sections:');
       for (const section of result.outputValidation) {
-        const icon = section.found ? '✅' : '⚠️';
+        const icon = section.found ? 'âœ…' : 'âš ï¸';
         lines.push(`  ${icon} ${section.section}`);
       }
     }
 
     if (result.haltTriggered) {
-      lines.push('', `🛑 HALT TRIGGERED: ${result.haltReason}`);
+      lines.push('', `ğŸ›‘ HALT TRIGGERED: ${result.haltReason}`);
     }
 
     return lines.join('\n');

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Session recovery hook for handling recoverable errors.
  * 
  * Supports:
@@ -11,7 +11,7 @@
 
 import { RECOVERY_RESUME_TEXT } from "../constants";
 
-import type { AntigravityConfig } from "./config";
+import type { SovereignGatewayConfig } from "./config";
 import { createLogger } from "./logger";
 import { logToast } from "./debug";
 import type { PluginClient } from "./types";
@@ -381,7 +381,7 @@ export interface SessionRecoveryContext {
  */
 export function createSessionRecoveryHook(
   ctx: SessionRecoveryContext,
-  config: AntigravityConfig
+  config: SovereignGatewayConfig
 ): SessionRecoveryHook | null {
   // If session recovery is disabled, return null
   if (!config.session_recovery) {

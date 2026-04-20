@@ -18,7 +18,7 @@ export class VSCodeTerminalExecutor extends TerminalExecutor {
 		
 		return vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
-			title: `LojiNext: Running ${command}`,
+			title: `Sovereign AI: Running ${command}`,
 			cancellable: false
 		}, async () => {
 			return super.run(command, options);

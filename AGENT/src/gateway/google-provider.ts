@@ -1,25 +1,25 @@
-/**
- * Google Antigravity Auth Provider
+﻿/**
+ * Google Sovereign Auth Provider
  *
  * Wraps the existing Google OAuth 2.0 + PKCE infrastructure
  * into a ProviderAdapter for the unified dual-provider architecture.
  *
  * Auth Flow (existing, wrapped):
- *   1. authorizeAntigravity() → OAuth consent URL
- *   2. User approves → callback with code
- *   3. exchangeAntigravity(code, state) → tokens
+ *   1. authorizeGoogleGemini() â†’ OAuth consent URL
+ *   2. User approves â†’ callback with code
+ *   3. exchangeGoogleGemini(code, state) â†’ tokens
  *   4. Wrap in UnifiedToken
  */
 
-import { authorizeAntigravity, exchangeAntigravity } from "../antigravity/oauth";
+import { authorizeGoogleGemini, exchangeGoogleGemini } from "../google-gemini/oauth";
 import {
-  ANTIGRAVITY_CLIENT_ID,
-  ANTIGRAVITY_CLIENT_SECRET,
+  SOVEREIGN_CLIENT_ID,
+  SOVEREIGN_CLIENT_SECRET,
   GEMINI_CLI_HEADERS,
 } from "../constants";
 import {
   AIProvider,
-  GOOGLE_ANTIGRAVITY_MODELS,
+  GOOGLE_GEMINI_MODELS,
   type ProviderAdapter,
   type ProviderModel,
   type ProviderQuota,
@@ -28,15 +28,15 @@ import {
 
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 min buffer
 
-export class GoogleAntigravityProvider implements ProviderAdapter {
-  readonly provider = AIProvider.GOOGLE_ANTIGRAVITY;
+export class GoogleGeminiProvider implements ProviderAdapter {
+  readonly provider = AIProvider.GOOGLE_GEMINI;
 
   /**
    * Generate the Google OAuth consent URL.
-   * Delegates to existing authorizeAntigravity().
+   * Delegates to existing authorizeGoogleGemini().
    */
   async getAuthUrl(): Promise<{ url: string; state: string }> {
-    const result = await authorizeAntigravity();
+    const result = await authorizeGoogleGemini();
     return {
       url: result.url,
       state: result.state,
@@ -45,10 +45,10 @@ export class GoogleAntigravityProvider implements ProviderAdapter {
 
   /**
    * Exchange auth code for tokens.
-   * Delegates to existing exchangeAntigravity().
+   * Delegates to existing exchangeGoogleGemini().
    */
   async exchangeCode(code: string, state: string): Promise<UnifiedToken> {
-    const result = await exchangeAntigravity(code, state);
+    const result = await exchangeGoogleGemini(code, state);
 
     if (result.type === "failed") {
       throw new Error(`Google OAuth exchange failed: ${result.error}`);
@@ -57,14 +57,14 @@ export class GoogleAntigravityProvider implements ProviderAdapter {
     const now = Date.now();
 
     return {
-      provider: AIProvider.GOOGLE_ANTIGRAVITY,
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: result.access,
       refreshToken: result.refresh,
       expiresAt: result.expires,
       email: result.email || "",
       projectId: result.projectId,
       createdAt: now,
-      availableModels: GOOGLE_ANTIGRAVITY_MODELS,
+      availableModels: GOOGLE_GEMINI_MODELS,
     };
   }
 
@@ -73,7 +73,7 @@ export class GoogleAntigravityProvider implements ProviderAdapter {
    */
   async refreshToken(token: UnifiedToken): Promise<UnifiedToken> {
     if (!token.refreshToken) {
-      throw new Error("No refresh token available for Google Antigravity");
+      throw new Error("No refresh token available for Google Sovereign");
     }
 
     let actualRefreshToken = token.refreshToken;
@@ -94,8 +94,8 @@ export class GoogleAntigravityProvider implements ProviderAdapter {
         "X-Goog-Api-Client": GEMINI_CLI_HEADERS["X-Goog-Api-Client"],
       },
       body: new URLSearchParams({
-        client_id: ANTIGRAVITY_CLIENT_ID,
-        client_secret: ANTIGRAVITY_CLIENT_SECRET,
+        client_id: SOVEREIGN_CLIENT_ID,
+        client_secret: SOVEREIGN_CLIENT_SECRET,
         refresh_token: actualRefreshToken,
         grant_type: "refresh_token",
       }),
@@ -130,11 +130,11 @@ export class GoogleAntigravityProvider implements ProviderAdapter {
   }
 
   getAvailableModels(): ProviderModel[] {
-    return [...GOOGLE_ANTIGRAVITY_MODELS];
+    return [...GOOGLE_GEMINI_MODELS];
   }
 
   async getQuota(_token: UnifiedToken): Promise<ProviderQuota | null> {
-    // Google Antigravity doesn't expose quota via API headers.
+    // Google Sovereign doesn't expose quota via API headers.
     // We track it locally via BudgetTracker.
     return null;
   }

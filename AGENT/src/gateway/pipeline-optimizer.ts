@@ -1,10 +1,10 @@
-/**
- * Pipeline Optimizer — Intercepts every agent LLM call in the SequentialPipeline.
+﻿/**
+ * Pipeline Optimizer â€” Intercepts every agent LLM call in the SequentialPipeline.
  *
  * Two responsibilities:
- *   1. **Prompt Optimization** — Sends the prompt to the Python bridge for
+ *   1. **Prompt Optimization** â€” Sends the prompt to the Python bridge for
  *      cleaning/compression/caching before the LLM call, saving 30-60% tokens.
- *   2. **Dynamic Model Selection** — Uses the ModelRouter to pick the optimal
+ *   2. **Dynamic Model Selection** â€” Uses the ModelRouter to pick the optimal
  *      model based on agent role, complexity, provider health, and budget.
  *
  * This replaces the hardcoded model selection logic in sequential-pipeline.ts
@@ -21,7 +21,7 @@ import { ProviderCircuitBreaker } from "./circuit-breaker";
 import { CostBridge, type CostEntry } from "./cost-bridge";
 import { AIProvider, type ProviderModel } from "./provider-types";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface OptimizeResult {
   /** The prompt after optimization (may be shorter than original) */
@@ -85,11 +85,11 @@ function resolveBridgeSecret(): string {
   return "";
 }
 
-// ─── Bridge Constants ───────────────────────────────────────────────────────
+// â”€â”€â”€ Bridge Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const BRIDGE_SECRET = resolveBridgeSecret();
 
-// ─── Pipeline Optimizer ─────────────────────────────────────────────────────
+// â”€â”€â”€ Pipeline Optimizer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class PipelineOptimizer {
   private readonly router: ModelRouter;
@@ -126,7 +126,7 @@ export class PipelineOptimizer {
     this.totalCalls++;
     const estimatedTokens = this.estimateTokensBPE(rawPrompt);
 
-    // ── Step 1: Route to optimal model ───────────────────────────────
+    // â”€â”€ Step 1: Route to optimal model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const availableProviders = this.circuitBreaker.filterAvailable(
       this.config.activeProviders,
     );
@@ -157,7 +157,7 @@ export class PipelineOptimizer {
 
     const routing = this.router.route(routingCtx);
 
-    // ── Step 2: Optimize prompt via Python bridge ────────────────────
+    // â”€â”€ Step 2: Optimize prompt via Python bridge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let optimizedPrompt = rawPrompt;
     let tokensSaved = 0;
     let savingsPercent = 0;
@@ -179,7 +179,7 @@ export class PipelineOptimizer {
           this.totalTokensSaved += tokensSaved;
         }
       } catch {
-        // Bridge unavailable — use raw prompt (no optimization)
+        // Bridge unavailable â€” use raw prompt (no optimization)
         console.warn(`[PipelineOptimizer] Bridge unavailable for ${agent.role}, using raw prompt`);
       }
     }
@@ -239,7 +239,7 @@ export class PipelineOptimizer {
     this.costBridge.record(entry);
   }
 
-  // ── Bridge Communication ───────────────────────────────────────────
+  // â”€â”€ Bridge Communication â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private async callBridge(
     prompt: string,
@@ -283,12 +283,12 @@ export class PipelineOptimizer {
       });
       return response.ok;
     } catch {
-      console.warn("[PipelineOptimizer] Python bridge not available — optimization disabled");
+      console.warn("[PipelineOptimizer] Python bridge not available â€” optimization disabled");
       return false;
     }
   }
 
-  // ── Stats ──────────────────────────────────────────────────────────
+  // â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   getStats() {
     return {
@@ -327,15 +327,15 @@ export class PipelineOptimizer {
 
     // Adaptive chars-per-token: ranges from ~2.5 (code) to ~4.5 (prose)
     const charsPerToken = 3.3
-      - codeRatio * 1.8        // code → more tokens
-      + whitespaceRatio * 0.6  // spaces → natural boundaries
-      - unicodeRatio * 1.2;    // unicode → more tokens per char
+      - codeRatio * 1.8        // code â†’ more tokens
+      + whitespaceRatio * 0.6  // spaces â†’ natural boundaries
+      - unicodeRatio * 1.2;    // unicode â†’ more tokens per char
 
     return Math.ceil(len / Math.max(charsPerToken, 1.5));
   }
 }
 
-// ─── Bridge Response Type ───────────────────────────────────────────────────
+// â”€â”€â”€ Bridge Response Type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface BridgeResponse {
   optimized?: string;

@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   sanitizeCrossModelPayload,
   getModelFamily,
 } from "./transform/cross-model-sanitizer";
 
 describe("Cross-Model Session Integration", () => {
-  describe("Gemini → Claude model switch with tool calls", () => {
+  describe("Gemini â†’ Claude model switch with tool calls", () => {
     it("sanitizes Gemini thinking metadata when preparing Claude request", () => {
       const geminiSessionHistory = {
         contents: [
@@ -215,7 +215,7 @@ describe("Cross-Model Session Integration", () => {
     });
   });
 
-  describe("Claude → Gemini model switch", () => {
+  describe("Claude â†’ Gemini model switch", () => {
     it("sanitizes Claude thinking blocks when preparing Gemini request", () => {
       const payload = {
         extra_body: {

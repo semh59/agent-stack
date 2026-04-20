@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const pluginPath = path.join(__dirname, '../src/plugin.ts');
-const clientPath = path.join(__dirname, '../src/orchestration/antigravity-client.ts');
+const clientPath = path.join(__dirname, '../src/orchestration/lojinext-client.ts');
 
 const content = fs.readFileSync(pluginPath, 'utf-8');
 const lines = content.split('\n');
@@ -50,7 +50,7 @@ ${extractCodeBlock('function trackAccountFailure')}
 ${extractCodeBlock('function resetAccountFailureState')}
 ${extractCodeBlock('function resetRateLimitState')}
 ${extractCodeBlock('async function triggerAsyncQuotaRefreshForAccount')}
-${extractCodeBlock('function logAntigravityDebugResponse')}
+${extractCodeBlock('function logLojiNext AIDebugResponse')}
 ${extractCodeBlock('function createSyntheticErrorResponse')}
 ${extractCodeBlock('function isEmptyResponseBody')}
 class EmptyResponseError extends Error {
@@ -63,10 +63,10 @@ let emptyResponseAttempts: Record<string, number> = {};
 `;
 
 let generatedTS = `
-import { ANTIGRAVITY_ENDPOINT_FALLBACKS, ANTIGRAVITY_ENDPOINT_PROD, type HeaderStyle } from "../constants";
+import { LOJINEXT_ENDPOINT_FALLBACKS, LOJINEXT_ENDPOINT_PROD, type HeaderStyle } from "../constants";
 import { accessTokenExpired, isOAuthAuth } from "../plugin/auth";
 import {
-  startAntigravityDebugRequest,
+  startLojiNext AIDebugRequest,
   logAccountContext,
   logRateLimitEvent,
   logRateLimitSnapshot,
@@ -78,14 +78,14 @@ import {
 import {
   buildThinkingWarmupBody,
   isGenerativeLanguageRequest,
-  prepareAntigravityRequest,
-  transformAntigravityResponse,
+  prepareLojiNext AIRequest,
+  transformLojiNext AIResponse,
   type RateLimitBodyInfo
 } from "../plugin/request";
 import { resolveModelWithTier } from "../plugin/transform/model-resolver";
-import { AntigravityTokenRefreshError, refreshAccessToken } from "../plugin/token";
+import { LojiNext AITokenRefreshError, refreshAccessToken } from "../plugin/token";
 import { AccountManager, type ModelFamily, parseRateLimitReason, calculateBackoffMs, computeSoftQuotaCacheTtlMs } from "../plugin/accounts";
-import { type AntigravityConfig } from "../plugin/config";
+import { type LojiNext AIConfig } from "../plugin/config";
 import { getHealthTracker, getTokenTracker } from "../plugin/rotation";
 
 ${customHelpers}
@@ -94,25 +94,25 @@ ${customHelpers}
 ${lines.slice(bottomStart).join('\n').replace(/export const __testExports.*/s, '')}
 
 const log = {
-  debug: (...args: any[]) => console.debug('[AntigravityClient]', ...args),
-  info: (...args: any[]) => console.info('[AntigravityClient]', ...args),
-  warn: (...args: any[]) => console.warn('[AntigravityClient]', ...args),
-  error: (...args: any[]) => console.error('[AntigravityClient]', ...args)
+  debug: (...args: any[]) => console.debug('[LojiNext AIClient]', ...args),
+  info: (...args: any[]) => console.info('[LojiNext AIClient]', ...args),
+  warn: (...args: any[]) => console.warn('[LojiNext AIClient]', ...args),
+  error: (...args: any[]) => console.error('[LojiNext AIClient]', ...args)
 };
 
 const FIRST_RETRY_DELAY_MS = 1000;
 const SWITCH_ACCOUNT_DELAY_MS = 5000;
 
-export class AntigravityClient {
+export class LojiNext AIClient {
   private accountManager: AccountManager;
-  private config: AntigravityConfig;
+  private config: LojiNext AIConfig;
   private providerId: string;
   private getAuth: () => Promise<any>;
   private mockClient: any;
 
   constructor(
     accountManager: AccountManager, 
-    config: AntigravityConfig, 
+    config: LojiNext AIConfig, 
     providerId: string,
     getAuth: () => Promise<any>
   ) {
@@ -174,4 +174,4 @@ generatedTS += fetchBody + `
 `;
 
 fs.writeFileSync(clientPath, generatedTS);
-console.log('Successfully generated AntigravityClient at', clientPath);
+console.log('Successfully generated LojiNext AIClient at', clientPath);

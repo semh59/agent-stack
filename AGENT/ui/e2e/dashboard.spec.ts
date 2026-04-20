@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('LojiNext Dashboard UI Core Tests', () => {
+test.describe('Sovereign Dashboard UI Core Tests', () => {
 
   test('Core Layout & Navigation', async ({ page }) => {
     await page.goto('/#/');
 
     // Verify Header and basic layout
-    await expect(page.locator('span').filter({ hasText: 'LOJINEXT' })).toBeVisible();
+    await expect(page.locator('span').filter({ hasText: 'SOVEREIGN' })).toBeVisible();
 
     // Verify Navigation links
     const sidebar = page.locator('nav');

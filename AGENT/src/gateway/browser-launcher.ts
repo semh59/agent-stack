@@ -1,23 +1,23 @@
-/**
- * Browser Launcher — Platform bağımsız tarayıcı açma
+﻿/**
+ * Browser Launcher â€” Platform baÄŸÄ±msÄ±z tarayÄ±cÄ± aÃ§ma
  *
- * OAuth URL'yi kullanıcının varsayılan tarayıcısında açar.
- * Windows/macOS/Linux desteği.
- * Tarayıcı açılamıyorsa URL'yi terminale yazdırarak fallback sağlar.
+ * OAuth URL'yi kullanÄ±cÄ±nÄ±n varsayÄ±lan tarayÄ±cÄ±sÄ±nda aÃ§ar.
+ * Windows/macOS/Linux desteÄŸi.
+ * TarayÄ±cÄ± aÃ§Ä±lamÄ±yorsa URL'yi terminale yazdÄ±rarak fallback saÄŸlar.
  */
 
 import { spawn } from "node:child_process";
-import { authorizeAntigravity } from "../antigravity/oauth";
-import type { AntigravityAuthorization } from "../antigravity/oauth";
+import { authorizeGoogleGemini } from "../google-gemini/oauth";
+import type { SovereignAuthorization } from "../google-gemini/oauth";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface LaunchResult {
-  authorization: AntigravityAuthorization;
+  authorization: SovereignAuthorization;
   browserOpened: boolean;
 }
 
-// ─── Browser Open ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Browser Open â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Platform-independent browser opener using spawn (safer than exec).
@@ -59,33 +59,33 @@ function openBrowser(url: string): Promise<boolean> {
   });
 }
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * OAuth authorization URL oluştur ve tarayıcıda aç.
+ * OAuth authorization URL oluÅŸtur ve tarayÄ±cÄ±da aÃ§.
  *
  * @param projectId - Opsiyonel Google Cloud project ID
- * @returns Authorization bilgileri ve tarayıcının açılıp açılmadığı
+ * @returns Authorization bilgileri ve tarayÄ±cÄ±nÄ±n aÃ§Ä±lÄ±p aÃ§Ä±lmadÄ±ÄŸÄ±
  */
 export async function launchOAuthBrowser(
   projectId?: string,
 ): Promise<LaunchResult> {
-  // 1. OAuth URL oluştur (PKCE ile)
-  const authorization = await authorizeAntigravity(projectId);
+  // 1. OAuth URL oluÅŸtur (PKCE ile)
+  const authorization = await authorizeGoogleGemini(projectId);
 
-  console.log("\n🔐 Google Antigravity OAuth Giriş Akışı");
-  console.log("─".repeat(50));
+  console.log("\nğŸ” Google Sovereign OAuth GiriÅŸ AkÄ±ÅŸÄ±");
+  console.log("â”€".repeat(50));
 
-  // 2. Tarayıcı aç
+  // 2. TarayÄ±cÄ± aÃ§
   const browserOpened = await openBrowser(authorization.url);
 
   if (browserOpened) {
-    console.log("🌐 Tarayıcı açıldı — Google hesabınızla giriş yapın.");
-    console.log("   Giriş sonrası otomatik olarak devam edilecek.\n");
+    console.log("ğŸŒ TarayÄ±cÄ± aÃ§Ä±ldÄ± â€” Google hesabÄ±nÄ±zla giriÅŸ yapÄ±n.");
+    console.log("   GiriÅŸ sonrasÄ± otomatik olarak devam edilecek.\n");
   } else {
-    // Fallback: URL'yi terminale yazdır
-    console.log("⚠️  Tarayıcı otomatik açılamadı.");
-    console.log("   Aşağıdaki URL'yi tarayıcınıza kopyalayın:\n");
+    // Fallback: URL'yi terminale yazdÄ±r
+    console.log("âš ï¸  TarayÄ±cÄ± otomatik aÃ§Ä±lamadÄ±.");
+    console.log("   AÅŸaÄŸÄ±daki URL'yi tarayÄ±cÄ±nÄ±za kopyalayÄ±n:\n");
     console.log(`   ${authorization.url}\n`);
   }
 
@@ -93,11 +93,11 @@ export async function launchOAuthBrowser(
 }
 
 /**
- * Sadece URL oluştur (tarayıcı açmadan).
- * Headless ortamlar veya test senaryoları için.
+ * Sadece URL oluÅŸtur (tarayÄ±cÄ± aÃ§madan).
+ * Headless ortamlar veya test senaryolarÄ± iÃ§in.
  */
 export async function generateOAuthUrl(
   projectId?: string,
-): Promise<AntigravityAuthorization> {
-  return authorizeAntigravity(projectId);
+): Promise<SovereignAuthorization> {
+  return authorizeGoogleGemini(projectId);
 }

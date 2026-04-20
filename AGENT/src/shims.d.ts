@@ -1,4 +1,4 @@
-declare module "@openauthjs/openauth/pkce" {
+﻿declare module "@openauthjs/openauth/pkce" {
   interface PkcePair {
     challenge: string;
     verifier: string;

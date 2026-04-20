@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+﻿import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SkillGenerator, type ProposedSkill } from './skill-generator';
 import { SharedMemory } from './shared-memory';
 import * as fs from 'node:fs/promises';
@@ -75,7 +75,7 @@ describe('SkillGenerator', () => {
     });
 
     it('should filter out low-confidence proposals', async () => {
-      // No matching patterns → no proposals
+      // No matching patterns â†’ no proposals
       await memory.writeAgentOutput('docs', 'lessons-learned.md', 'Nothing special happened.');
 
       const proposals = await generator.generateProposals(memory);

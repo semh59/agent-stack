@@ -14,7 +14,7 @@ npm run gateway:start
 
 ```powershell
 npm run gateway:token:generate
-$env:TOKEN="<generated-token>"
+$env:TOKEN="MOCK_TOKEN"
 ```
 
 3. Confirm an active mission account exists:
@@ -234,7 +234,7 @@ Use a dedicated API-key bucket:
 
 ```powershell
 1..101 | ForEach-Object {
-  curl.exe -s "$env:BASE/api/health" -H "x-api-key: phase3-verification" | Out-Null
+  curl.exe -s "$env:BASE/api/health" -H "x-api-key: mock-key" | Out-Null
 }
 ```
 

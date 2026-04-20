@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TerminalExecutor } from './terminal-executor';
 import os from 'node:os';
 
@@ -164,7 +164,7 @@ describe('TerminalExecutor', () => {
   });
 
   describe('convenience methods', () => {
-    // Note: We test command STRINGS only — not actual execution — because
+    // Note: We test command STRINGS only â€” not actual execution â€” because
     // calling `npm test` inside vitest causes recursive invocation.
 
     it('runBuild should produce a result with correct command', async () => {

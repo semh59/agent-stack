@@ -29,7 +29,7 @@ client → [ALB:443] → gateway (ECS task, 2 tasks)
 - Entry point: `AGENT/src/main.ts`
 - Framework: Fastify 4
 - Runtime: `tsx` (we do not pre-compile; `tsconfig.json` uses `module: "Preserve"` + `allowImportingTsExtensions`)
-- Auth: Google Antigravity OAuth, Claude OAuth, shared-secret bearer for the bridge
+- Auth: Google Sovereign AI OAuth, Claude OAuth, shared-secret bearer for the bridge
 
 Request path for `/api/optimize`:
 1. Fastify CORS + auth plugin checks `LOJINEXT_GATEWAY_TOKEN`.

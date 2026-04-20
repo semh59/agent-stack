@@ -1,11 +1,11 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { LATEST_MISSION_DB_SCHEMA_VERSION, MissionDatabase } from "./database";
 
 async function createTempDbPath(): Promise<string> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "lojinext-db-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sovereign-db-"));
   return path.join(dir, "missions.db");
 }
 

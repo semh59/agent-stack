@@ -466,7 +466,7 @@ await fs.rename(tempPath, path);  // 🔴 Can fail on Windows if target locked!
 #### Race Scenario
 ```
 Timeline:
-T0:  Process A: acquires lock on antigravity-accounts.json
+T0:  Process A: acquires lock on sovereign-accounts.json
 T1:  Process A: writes encrypted data to disk
 T2:  Process A: CRASHES before releasing lock
 

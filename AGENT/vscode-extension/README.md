@@ -1,4 +1,4 @@
-# LojiNext AI
+# Sovereign AI
 
 Premium AI Agent with **Sovereignty Pipeline** for VS Code.
 
@@ -12,19 +12,19 @@ Premium AI Agent with **Sovereignty Pipeline** for VS Code.
 
 ## Installation
 
-Launch VS Code and open the Extension Activity Bar, search for **LojiNext AI**.
+Launch VS Code and open the Extension Activity Bar, search for **Sovereign AI**.
 
 ## Usage
 
 1. Open a workspace folder.
-2. Click the **LojiNext AI** icon in the sidebar.
+2. Click the **Sovereign AI** icon in the sidebar.
 3. Enter your task in the **Mission Control** panel.
 4. Review and approve agent actions as they happen.
 
 ## Security
 
-LojiNext AI is designed with a "Security-First" approach, utilizing recursive `realpath` verification and shell-less execution for all binary interactions.
+Sovereign AI is designed with a "Security-First" approach, utilizing recursive `realpath` verification and shell-less execution for all binary interactions.
 
 ---
 
-Created with 💙 by LojiNext Group.
+Created with 💙 by Sovereign AI contributors.

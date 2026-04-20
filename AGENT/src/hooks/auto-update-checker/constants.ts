@@ -1,7 +1,7 @@
-import * as path from "node:path";
+﻿import * as path from "node:path";
 import * as os from "node:os";
 
-export const PACKAGE_NAME = "lojinext-ai";
+export const PACKAGE_NAME = "sovereign-ai";
 export const NPM_REGISTRY_URL = `https://registry.npmjs.org/-/package/${PACKAGE_NAME}/dist-tags`;
 export const NPM_FETCH_TIMEOUT = 5000;
 

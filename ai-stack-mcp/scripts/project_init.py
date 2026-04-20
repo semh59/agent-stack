@@ -1028,6 +1028,24 @@ def run(project_root: Path, dry_run: bool = False, force: bool = False) -> None:
         print("  [skip] .claude/settings.json — already exists, not touched")
 
     w.report()
+    bootstrap_spacy()
+
+
+def bootstrap_spacy():
+    """Ensure spaCy model is installed if spaCy is present."""
+    try:
+        import spacy
+        try:
+            spacy.load("en_core_web_sm")
+            print("  [mcp] spaCy model 'en_core_web_sm' is already installed.")
+        except OSError:
+            print("  [mcp] Installing spaCy model 'en_core_web_sm'...")
+            import subprocess
+            subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
+                           check=True, capture_output=True)
+            print("  [mcp] Success.")
+    except ImportError:
+        pass  # spacy not in this environment
 
 
 def _resolve_root(root_arg: str) -> Path:

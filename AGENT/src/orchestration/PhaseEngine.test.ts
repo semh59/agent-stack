@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+﻿import { describe, it, expect, vi } from "vitest";
 import { PhaseEngine } from "./PhaseEngine";
 import type { AutonomySession, TaskNode } from "./autonomy-types";
 
@@ -29,32 +29,32 @@ describe("PhaseEngine", () => {
   const engine = new PhaseEngine();
 
   describe("canTransition (static)", () => {
-    it("init → plan is allowed", () => {
+    it("init â†’ plan is allowed", () => {
       expect(PhaseEngine.canTransition("init", "plan")).toBe(true);
     });
 
-    it("init → execute is NOT allowed", () => {
+    it("init â†’ execute is NOT allowed", () => {
       expect(PhaseEngine.canTransition("init", "execute")).toBe(false);
     });
 
-    it("done → any is NOT allowed (terminal state)", () => {
+    it("done â†’ any is NOT allowed (terminal state)", () => {
       expect(PhaseEngine.canTransition("done", "plan")).toBe(false);
       expect(PhaseEngine.canTransition("done", "failed")).toBe(false);
     });
 
-    it("failed → any is NOT allowed (terminal state)", () => {
+    it("failed â†’ any is NOT allowed (terminal state)", () => {
       expect(PhaseEngine.canTransition("failed", "plan")).toBe(false);
     });
 
-    it("paused → retry is allowed", () => {
+    it("paused â†’ retry is allowed", () => {
       expect(PhaseEngine.canTransition("paused", "retry")).toBe(true);
     });
 
-    it("paused → stopped is allowed", () => {
+    it("paused â†’ stopped is allowed", () => {
       expect(PhaseEngine.canTransition("paused", "stopped")).toBe(true);
     });
 
-    it("reflect → done is allowed", () => {
+    it("reflect â†’ done is allowed", () => {
       expect(PhaseEngine.canTransition("reflect", "done")).toBe(true);
     });
   });
@@ -124,17 +124,17 @@ describe("PhaseEngine", () => {
     it("verify with no touched files passes without warning by default", () => {
       const session = mockSession({ state: "execute", touchedFiles: [] });
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const previous = process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
-      delete process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
+      const previous = process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
+      delete process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
 
       try {
         expect(() => engine.validateTransition(session, "verify", mockTask({ type: "implementation" }))).not.toThrow();
         expect(warn).not.toHaveBeenCalled();
       } finally {
         if (previous === undefined) {
-          delete process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
+          delete process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
         } else {
-          process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED = previous;
+          process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED = previous;
         }
         warn.mockRestore();
       }
@@ -143,17 +143,17 @@ describe("PhaseEngine", () => {
     it("verify with no touched files warns for implementation tasks when opt-in flag is enabled", () => {
       const session = mockSession({ state: "execute", touchedFiles: [] });
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const previous = process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
-      process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED = "1";
+      const previous = process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
+      process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED = "1";
 
       try {
         expect(() => engine.validateTransition(session, "verify", mockTask({ type: "implementation" }))).not.toThrow();
         expect(warn).toHaveBeenCalledWith(expect.stringContaining("without touched files"));
       } finally {
         if (previous === undefined) {
-          delete process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
+          delete process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
         } else {
-          process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED = previous;
+          process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED = previous;
         }
         warn.mockRestore();
       }
@@ -162,8 +162,8 @@ describe("PhaseEngine", () => {
     it("verify with no touched files does not warn for no-file task types", () => {
       const session = mockSession({ state: "execute", touchedFiles: [] });
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const previous = process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
-      process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED = "1";
+      const previous = process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
+      process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED = "1";
 
       try {
         expect(() => engine.validateTransition(session, "verify", mockTask({ type: "analysis" }))).not.toThrow();
@@ -171,9 +171,9 @@ describe("PhaseEngine", () => {
         expect(warn).not.toHaveBeenCalled();
       } finally {
         if (previous === undefined) {
-          delete process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED;
+          delete process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED;
         } else {
-          process.env.LOJINEXT_WARN_VERIFY_NO_TOUCHED = previous;
+          process.env.SOVEREIGN_WARN_VERIFY_NO_TOUCHED = previous;
         }
         warn.mockRestore();
       }

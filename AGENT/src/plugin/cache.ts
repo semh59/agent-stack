@@ -1,4 +1,4 @@
-import { accessTokenExpired } from "./auth";
+﻿import { accessTokenExpired } from "./auth";
 import type { OAuthAuthDetails } from "./types";
 import { createHash } from "node:crypto";
 

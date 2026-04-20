@@ -1,4 +1,4 @@
-import * as net from "node:net";
+﻿import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -53,7 +53,7 @@ describe("GatewayServer health and oauth preflight routes", () => {
   let port = 0;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(path.join(os.tmpdir(), "lojinext-gateway-test-"));
+    tmpDir = await mkdtemp(path.join(os.tmpdir(), "sovereign-gateway-test-"));
     port = await getFreePort();
     gateway = new GatewayServer({
       port,

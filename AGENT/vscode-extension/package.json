@@ -1,12 +1,12 @@
 {
-  "name": "loji-next-ai",
-  "displayName": "LojiNext AI",
-  "description": "Premium AI Agent with Sovereignty Pipeline",
+  "name": "sovereign-ai",
+  "displayName": "Sovereign AI",
+  "description": "Sovereign AI — Mission Control for the Sovereign AI gateway (Claude, Gemini, Ollama).",
   "version": "0.1.0",
   "type": "module",
-  "publisher": "lojinext",
+  "publisher": "sovereign-ai",
   "license": "MIT",
-  "author": "LojiNext Group",
+  "author": "Sovereign AI contributors",
   "icon": "resources/icon.png",
   "galleryBanner": {
     "color": "#0b0e14",
@@ -14,26 +14,28 @@
   },
   "pricing": "Free",
   "sponsor": {
-    "url": "https://github.com/sponsors/lojinext"
+    "url": "https://github.com/sponsors/sovereign-ai"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/skara-ai/loji-next-ai"
+    "url": "https://github.com/sovereign-ai/agent-stack"
   },
-  "homepage": "https://lojinext.com",
+  "homepage": "https://github.com/sovereign-ai/agent-stack#readme",
   "bugs": {
-    "url": "https://github.com/skara-ai/loji-next-ai/issues"
+    "url": "https://github.com/sovereign-ai/agent-stack/issues"
   },
   "engines": {
     "vscode": "^1.90.0"
   },
   "keywords": [
-    "opencode",
-    "antigravity",
+    "sovereign",
     "ai",
     "agent",
+    "mission-control",
+    "gateway",
+    "claude",
     "gemini",
-    "claude"
+    "ollama"
   ],
   "categories": [
     "AI",
@@ -43,24 +45,24 @@
   "extensionKind": [
     "workspace"
   ],
-  "qna": "https://github.com/skara-ai/loji-next-ai/discussions",
+  "qna": "https://github.com/sovereign-ai/agent-stack/discussions",
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "lojinext-sidebar",
-          "title": "LojiNext AI",
+          "id": "sovereign-sidebar",
+          "title": "Sovereign AI",
           "icon": "resources/icon.png"
         }
       ]
     },
     "views": {
-      "lojinext-sidebar": [
+      "sovereign-sidebar": [
         {
           "type": "webview",
-          "id": "lojinext.chatView",
+          "id": "sovereign.chatView",
           "name": "Mission Control",
           "icon": "resources/icon.png"
         }
@@ -68,20 +70,20 @@
     },
     "commands": [
       {
-        "command": "lojinext.startPipeline",
+        "command": "sovereign.startPipeline",
         "title": "Start Mission Control",
-        "category": "LojiNext AI"
+        "category": "Sovereign AI"
       }
     ],
     "configuration": {
-      "title": "LojiNext AI",
+      "title": "Sovereign AI",
       "properties": {
-        "lojinext.gatewayAuthToken": {
+        "sovereign.gatewayAuthToken": {
           "type": "string",
           "default": "",
           "description": "Gateway API bearer token used by Mission Control account actions."
         },
-        "lojinext.gatewayConnectOrigins": {
+        "sovereign.gatewayConnectOrigins": {
           "type": "array",
           "items": {
             "type": "string"

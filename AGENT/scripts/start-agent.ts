@@ -2,7 +2,7 @@
 /**
  * Agent Start — CLI Entry Point
  *
- * Google Antigravity OAuth ile giriş yapıp agent sistemini başlatan CLI scripti.
+ * Google OAuth ile giriş yapıp Sovereign AI agent sistemini başlatan CLI scripti.
  *
  * Kullanım:
  *   npx tsx scripts/start-agent.ts                          # Normal başlatma
@@ -39,7 +39,7 @@ function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
   const result: CliArgs = {
     authOnly: false,
-    model: "google/antigravity-claude-sonnet-4-5",
+    model: "google/sovereign-claude-sonnet-4-5",
     autonomy: "supervised",
     port: DEFAULT_OAUTH_CALLBACK_PORT,
     task: "Analyze the current project and suggest improvements.",
@@ -142,7 +142,7 @@ async function agentLoop(result: HandoffResult): Promise<void> {
   console.log("╚══════════════════════════════════════════════════════╝");
   console.log("");
 
-  // AntigravityClient hazır — buradan agent sistemi devralabilir
+  // SovereignGatewayClient hazır — buradan agent sistemi devralabilir
   const { client } = result;
 
   // Örnek: Basit bir API testi yaparak bağlantıyı doğrula
@@ -154,7 +154,7 @@ async function agentLoop(result: HandoffResult): Promise<void> {
     const response = await client.fetch(testUrl);
 
     if (response.ok) {
-      console.log("[Agent] ✅ Antigravity API bağlantısı başarılı!");
+      console.log("[Agent] ✅ Sovereign AI gateway bağlantısı başarılı!");
     } else {
       console.log(`[Agent] ⚠️  API yanıtı: ${response.status} ${response.statusText}`);
     }
@@ -288,5 +288,4 @@ async function main(): Promise<void> {
 
 main().catch((err) => {
   console.error("Fatal error:", err);
-  process.exit(1);
-});
+  pr

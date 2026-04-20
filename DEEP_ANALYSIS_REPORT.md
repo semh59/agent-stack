@@ -1,7 +1,7 @@
 # 📊 İKİ PROJENİN DERİN ANALİZ VE BİRLEŞİM RAPORU
 
 > **Tarih:** 17 Nisan 2026  
-> **Kapsam:** AGENT (LojiNext AI Plugin) + ai-stack-mcp  
+> **Kapsam:** AGENT (Sovereign AI Plugin) + ai-stack-mcp  
 > **Hedef:** İki yarım projeyi birleştirerek güçlü bir AI platformu oluşturmak
 
 ---
@@ -23,7 +23,7 @@
 
 ## 1. PROJE ÖZETİ
 
-### AGENT (LojiNext AI Plugin)
+### AGENT (Sovereign AI Plugin)
 | Özellik | Değer |
 |---------|-------|
 | **Dil** | TypeScript (Node.js ES Modules) |

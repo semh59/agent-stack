@@ -17,7 +17,7 @@ interface DataPoint {
 }
 
 /**
- * UnifiedCostTracker: Monitors LLM resource consumption for LojiNext AI.
+ * UnifiedCostTracker: Monitors LLM resource consumption for Sovereign AI.
  * Advanced fusion:
  *  - EventBus integration for live stats
  *  - EWMA (Exponential Weighted Moving Average) burn rate

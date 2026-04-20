@@ -98,8 +98,8 @@ echo "Test 4: google/gemini-3-pro-preview"
 test_model "google/gemini-3-pro-preview" "gemini-3-pro-preview" || true
 echo ""
 
-# Test 5: Cross-model session (gemini-cli → antigravity)
-echo "Test 5: Cross-model session (gemini-cli → antigravity-gemini)"
+# Test 5: Cross-model session (gemini-cli → sovereign)
+echo "Test 5: Cross-model session (gemini-cli → sovereign-gemini)"
 log_info "Step 1: Start with gemini-2.5-flash..."
 timeout 60 opencode run -m google/gemini-2.5-flash \
   "Say: SESSION_START" \
@@ -113,24 +113,24 @@ if [ -z "$SID" ]; then
   log_fail "Test 5 - No session ID created"
 else
   log_info "Session: $SID"
-  log_info "Step 2: Switch to antigravity-gemini-3-flash..."
-  timeout 60 opencode run -s "$SID" -m google/antigravity-gemini-3-flash \
+  log_info "Step 2: Switch to sovereign-gemini-3-flash..."
+  timeout 60 opencode run -s "$SID" -m google/sovereign-gemini-3-flash \
     "Say: SESSION_CONTINUE" \
     2>&1 > /tmp/gemini-cli-e2e-cross-s2.log || true
   
   if check_auth_error /tmp/gemini-cli-e2e-cross-s2.log; then
     log_fail "Test 5 - Auth error on cross-model switch"
   else
-    log_pass "Test 5 - Cross-model session (gemini-cli → antigravity)"
+    log_pass "Test 5 - Cross-model session (gemini-cli → sovereign)"
   fi
 fi
 echo ""
 
-# Test 6: Reverse cross-model (antigravity → gemini-cli)
-echo "Test 6: Cross-model session (antigravity → gemini-cli)"
-log_info "Step 1: Start with antigravity-gemini-3-pro-low..."
-timeout 60 opencode run -m google/antigravity-gemini-3-pro-low \
-  "Say: ANTIGRAVITY_START" \
+# Test 6: Reverse cross-model (sovereign → gemini-cli)
+echo "Test 6: Cross-model session (sovereign → gemini-cli)"
+log_info "Step 1: Start with sovereign-gemini-3-pro-low..."
+timeout 60 opencode run -m google/sovereign-gemini-3-pro-low \
+  "Say: SOVEREIGN_START" \
   2>&1 > /tmp/gemini-cli-e2e-reverse-s1.log || true
 
 sleep 1
@@ -148,7 +148,7 @@ else
   if check_auth_error /tmp/gemini-cli-e2e-reverse-s2.log; then
     log_fail "Test 6 - Auth error on reverse cross-model switch"
   else
-    log_pass "Test 6 - Cross-model session (antigravity → gemini-cli)"
+    log_pass "Test 6 - Cross-model session (sovereign → gemini-cli)"
   fi
 fi
 echo ""

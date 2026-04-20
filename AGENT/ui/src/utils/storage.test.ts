@@ -87,7 +87,7 @@ describe('Secure Token Storage Compatibility', () => {
   });
 
   it('stores access token', () => {
-    const token = 'access-token-xyz-123';
+    const token = 'at_mock';
     secureTokenStorage.setAccessToken(token);
 
     const retrieved = secureTokenStorage.getAccessToken();
@@ -95,7 +95,7 @@ describe('Secure Token Storage Compatibility', () => {
   });
 
   it('stores refresh token', () => {
-    const token = 'refresh-token-abc-456';
+    const token = 'rt_mock';
     secureTokenStorage.setRefreshToken(token);
 
     const retrieved = secureTokenStorage.getRefreshToken();

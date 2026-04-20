@@ -10,9 +10,13 @@ let mcpToolBridge: MCPToolBridge | null = null;
 let workspaceIndexer: WorkspaceIndexer | null = null;
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('LojiNext AI is now active');
-	const config = vscode.workspace.getConfiguration("lojinext");
-	const gatewayAuthToken = process.env.LOJINEXT_GATEWAY_TOKEN ?? config.get<string>("gatewayAuthToken") ?? null;
+	console.log('Sovereign AI is now active');
+	const config = vscode.workspace.getConfiguration("sovereign");
+	// LOJINEXT_GATEWAY_TOKEN retained as deprecated fallback for users migrating from pre-rebrand.
+	const gatewayAuthToken = process.env.SOVEREIGN_GATEWAY_TOKEN
+		?? process.env.LOJINEXT_GATEWAY_TOKEN
+		?? config.get<string>("gatewayAuthToken")
+		?? null;
 
 	try {
 		const provider = new ChatViewProvider(context.extensionUri, context.globalStorageUri.fsPath);
@@ -25,12 +29,12 @@ export function activate(context: vscode.ExtensionContext) {
 	} catch (err: unknown) {
 		const errorMessage = err instanceof Error ? err.message : String(err);
 		console.error('Failed to register WebviewViewProvider:', err);
-		vscode.window.showErrorMessage(`LojiNext AI failed to initialize: ${errorMessage}`);
+		vscode.window.showErrorMessage(`Sovereign AI failed to initialize: ${errorMessage}`);
 	}
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('lojinext.startPipeline', () => {
-			vscode.window.showInformationMessage('Starting LojiNext AI Pipeline...');
+		vscode.commands.registerCommand('sovereign.startPipeline', () => {
+			vscode.window.showInformationMessage('Starting Sovereign AI Pipeline...');
 		})
 	);
 

@@ -95,7 +95,7 @@ export function AppLayout() {
           >
             <Menu size={20} />
           </button>
-          {sidebarOpen ? <span className="ml-3 font-display text-lg tracking-wider text-white">LOJINEXT</span> : null}
+          {sidebarOpen ? <span className="ml-3 font-display text-lg tracking-wider text-white">SOVEREIGN</span> : null}
         </div>
 
         <nav className="flex-1 space-y-1 overflow-x-hidden overflow-y-auto px-2 py-4">

@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Provider-Aware Circuit Breaker
  *
  * Protects the system from cascading failures when a provider is down.
  * Each provider gets its own breaker with independent state.
  *
  * States:
- *   CLOSED  → Normal operation, requests pass through
- *   OPEN    → Provider is failing, requests are rejected immediately
- *   HALF    → Testing recovery, allows a single probe request
+ *   CLOSED  â†’ Normal operation, requests pass through
+ *   OPEN    â†’ Provider is failing, requests are rejected immediately
+ *   HALF    â†’ Testing recovery, allows a single probe request
  *
  * When a breaker opens, the ModelRouter automatically falls to the other provider.
  * This enables true dual-provider resilience.
@@ -15,7 +15,7 @@
 
 import { AIProvider } from "./provider-types";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type BreakerState = "closed" | "open" | "half_open";
 
@@ -45,7 +45,7 @@ export interface BreakerStats {
   p99LatencyMs: number;
 }
 
-// ─── Default Config ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Default Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const DEFAULT_CONFIG: BreakerConfig = {
   failureThreshold: 5,
@@ -54,7 +54,7 @@ const DEFAULT_CONFIG: BreakerConfig = {
   maxLatencyHistory: 100,
 };
 
-// ─── Single Circuit Breaker ─────────────────────────────────────────────────
+// â”€â”€â”€ Single Circuit Breaker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class CircuitBreaker {
   private state: BreakerState = "closed";
@@ -120,7 +120,7 @@ class CircuitBreaker {
     if (latencyMs !== undefined) this.recordLatency(latencyMs);
 
     if (this.state === "half_open") {
-      // Probe failed — back to open
+      // Probe failed â€” back to open
       this.state = "open";
       this.openedAt = Date.now();
       return;
@@ -193,7 +193,7 @@ class CircuitBreaker {
   }
 }
 
-// ─── Provider Circuit Breaker Manager ───────────────────────────────────────
+// â”€â”€â”€ Provider Circuit Breaker Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class ProviderCircuitBreaker {
   private breakers = new Map<AIProvider, CircuitBreaker>();

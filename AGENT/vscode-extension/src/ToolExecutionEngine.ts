@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import type { IToolExecutionEngine, ToolResult, ApprovalRequest } from '../../src/orchestration/tool-execution-engine';
 
 /**
- * ToolExecutionEngine: The "Binary Bridge" of LojiNext AI.
+ * ToolExecutionEngine: The "Binary Bridge" of Sovereign AI.
  * Hardened with realpath protection and ID-mapped HITL.
  * Implements the shared IToolExecutionEngine interface to allow 
  * the orchestration layer to run within VSCode.

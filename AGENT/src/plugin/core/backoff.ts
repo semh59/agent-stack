@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Backoff and Duration Utilities
  */
 

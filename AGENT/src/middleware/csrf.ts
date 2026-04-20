@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+﻿import crypto from 'node:crypto';
 import { createLogger } from '../plugin/logger';
 
 const log = createLogger('csrf');

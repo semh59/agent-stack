@@ -1,4 +1,4 @@
-import * as fs from "node:fs";
+﻿import * as fs from "node:fs";
 import * as path from "node:path";
 
 export interface WebviewAssetResolution {
@@ -175,7 +175,7 @@ export function buildWebviewHtml(options: BuildWebviewHtmlOptions): string {
         }
       };
 
-      window.__LOJINEXT_BOOT = {
+      window.__SOVEREIGN_BOOT = {
         ready: function (payload) { post("ui_boot_ready", payload || {}); },
         fail: function (payload) { post("ui_boot_failed", payload || {}); },
       };

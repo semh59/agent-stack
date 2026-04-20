@@ -41,7 +41,7 @@ async function restore() {
       console.log(`[SkillRestorer] Generating content for: ${skill}...`);
       
       const systemPrompt = `You are a Senior Expert in ${skill}. 
-Your task is to write a comprehensive SKILL.md for the Antigravity v4 project.
+Your task is to write a comprehensive SKILL.md for the Sovereign AI v4 project.
 The document must include:
 1. Core Principles
 2. Best Practices

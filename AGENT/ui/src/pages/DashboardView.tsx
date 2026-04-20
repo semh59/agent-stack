@@ -230,7 +230,7 @@ export function DashboardView() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[var(--color-loji-accent)] shadow-[0_0_8px_var(--color-loji-accent)]" />
-            <span className="text-[11px] font-bold text-white uppercase tracking-[0.3em] glow-accent">LOJINEXT ELITE</span>
+            <span className="text-[11px] font-bold text-white uppercase tracking-[0.3em] glow-accent">SOVEREIGN ELITE</span>
           </div>
           <div className="h-4 w-[1px] bg-white/10" />
           <div className="flex items-center gap-3 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
@@ -258,7 +258,7 @@ export function DashboardView() {
             <span className="text-[9px] text-[var(--color-loji-accent)] font-bold uppercase tracking-widest">Otonom Çekirdek Aktif</span>
           </div>
           <div className="text-[10px] text-gray-600 font-mono tracking-tighter">
-            PROJ: ANTIGRAVITY v1.9.4
+            PROJ: SOVEREIGN v1.9.4
           </div>
         </div>
       </div>

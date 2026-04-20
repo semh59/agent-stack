@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ANSI escape codes and key parsing for interactive CLI menus.
  * Works cross-platform (Windows/Mac/Linux).
  */

@@ -1,14 +1,14 @@
-import { createWriteStream, mkdirSync } from "node:fs";
+﻿import { createWriteStream, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { env } from "node:process";
-import type { AntigravityConfig } from "./config";
+import type { SovereignGatewayConfig } from "./config";
 import { ensureGitignoreSync } from "./storage";
 
 const MAX_BODY_PREVIEW_CHARS = 12000;
 const MAX_BODY_VERBOSE_CHARS = 50000;
 
-export const DEBUG_MESSAGE_PREFIX = "[lojinext-ai debug]";
+export const DEBUG_MESSAGE_PREFIX = "[sovereign-ai debug]";
 
 /**
  * Simple email masking helper for debug strings.
@@ -61,7 +61,7 @@ function getConfigDir(): string {
  * Returns the logs directory, creating it if needed.
  */
 function getLogsDir(customLogDir?: string): string {
-  const logsDir = customLogDir || join(getConfigDir(), "antigravity-logs");
+  const logsDir = customLogDir || join(getConfigDir(), "Sovereign-logs");
 
   try {
     mkdirSync(logsDir, { recursive: true });
@@ -77,7 +77,7 @@ function getLogsDir(customLogDir?: string): string {
  */
 function createLogFilePath(customLogDir?: string): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return join(getLogsDir(customLogDir), `antigravity-debug-${timestamp}.log`);
+  return join(getLogsDir(customLogDir), `Sovereign-debug-${timestamp}.log`);
 }
 
 /**
@@ -105,9 +105,9 @@ function createLogWriter(filePath?: string): (line: string) => void {
  * Initialize or reinitialize debug state with the given config.
  * Call this once at plugin startup after loading config.
  */
-export function initializeDebug(config: AntigravityConfig): void {
+export function initializeDebug(config: SovereignGatewayConfig): void {
   // Config takes precedence, but env var can force enable for debugging
-  const envDebugFlag = env.OPENCODE_ANTIGRAVITY_DEBUG ?? "";
+  const envDebugFlag = env.OPENCODE_SOVEREIGN_DEBUG ?? "";
   const debugLevel = config.debug ? (envDebugFlag === "2" || envDebugFlag === "verbose" ? 2 : 1) : parseDebugLevel(envDebugFlag);
   const debugEnabled = debugLevel >= 1;
   const verboseEnabled = debugLevel >= 2;
@@ -134,7 +134,7 @@ export function initializeDebug(config: AntigravityConfig): void {
 function getDebugState(): DebugState {
   if (!debugState) {
     // Fallback to env-based initialization for backward compatibility
-    const envDebugFlag = env.OPENCODE_ANTIGRAVITY_DEBUG ?? "";
+    const envDebugFlag = env.OPENCODE_SOVEREIGN_DEBUG ?? "";
     const debugLevel = parseDebugLevel(envDebugFlag);
     const debugEnabled = debugLevel >= 1;
     const verboseEnabled = debugLevel >= 2;
@@ -168,13 +168,13 @@ export function getLogFilePath(): string | undefined {
   return getDebugState().logFilePath;
 }
 
-export interface AntigravityDebugContext {
+export interface SovereignDebugContext {
   id: string;
   streaming: boolean;
   startedAt: number;
 }
 
-interface AntigravityDebugRequestMeta {
+interface SovereignDebugRequestMeta {
   originalUrl: string;
   resolvedUrl: string;
   method?: string;
@@ -184,7 +184,7 @@ interface AntigravityDebugRequestMeta {
   projectId?: string;
 }
 
-interface AntigravityDebugResponseMeta {
+interface SovereignDebugResponseMeta {
   body?: string;
   note?: string;
   error?: unknown;
@@ -194,28 +194,28 @@ interface AntigravityDebugResponseMeta {
 let requestCounter = 0;
 
 /**
- * Begins a debug trace for an Antigravity request.
+ * Begins a debug trace for an Sovereign request.
  */
-export function startAntigravityDebugRequest(meta: AntigravityDebugRequestMeta): AntigravityDebugContext | null {
+export function startSovereignDebugRequest(meta: SovereignDebugRequestMeta): SovereignDebugContext | null {
   const state = getDebugState();
   if (!state.debugEnabled) {
     return null;
   }
 
-  const id = `ANTIGRAVITY-${++requestCounter}`;
+  const id = `SOVEREIGN-${++requestCounter}`;
   const method = meta.method ?? "GET";
-  logDebug(`[Antigravity Debug ${id}] pid=${process.pid} ${method} ${meta.resolvedUrl}`);
+  logDebug(`[Sovereign Debug ${id}] pid=${process.pid} ${method} ${meta.resolvedUrl}`);
   if (meta.originalUrl && meta.originalUrl !== meta.resolvedUrl) {
-    logDebug(`[Antigravity Debug ${id}] Original URL: ${meta.originalUrl}`);
+    logDebug(`[Sovereign Debug ${id}] Original URL: ${meta.originalUrl}`);
   }
   if (meta.projectId) {
-    logDebug(`[Antigravity Debug ${id}] Project: ${meta.projectId}`);
+    logDebug(`[Sovereign Debug ${id}] Project: ${meta.projectId}`);
   }
-  logDebug(`[Antigravity Debug ${id}] Streaming: ${meta.streaming ? "yes" : "no"}`);
-  logDebug(`[Antigravity Debug ${id}] Headers: ${JSON.stringify(maskHeaders(meta.headers))}`);
+  logDebug(`[Sovereign Debug ${id}] Streaming: ${meta.streaming ? "yes" : "no"}`);
+  logDebug(`[Sovereign Debug ${id}] Headers: ${JSON.stringify(maskHeaders(meta.headers))}`);
   const bodyPreview = formatBodyPreview(meta.body);
   if (bodyPreview) {
-    logDebug(`[Antigravity Debug ${id}] Body Preview: ${bodyPreview}`);
+    logDebug(`[Sovereign Debug ${id}] Body Preview: ${bodyPreview}`);
   }
 
   return { id, streaming: meta.streaming, startedAt: Date.now() };
@@ -224,10 +224,10 @@ export function startAntigravityDebugRequest(meta: AntigravityDebugRequestMeta):
 /**
  * Logs response details for a previously started debug trace.
  */
-export function logAntigravityDebugResponse(
-  context: AntigravityDebugContext | null | undefined,
+export function logSovereignDebugResponse(
+  context: SovereignDebugContext | null | undefined,
   response: Response,
-  meta: AntigravityDebugResponseMeta = {},
+  meta: SovereignDebugResponseMeta = {},
 ): void {
   const state = getDebugState();
   if (!state.debugEnabled || !context) {
@@ -236,25 +236,25 @@ export function logAntigravityDebugResponse(
 
   const durationMs = Date.now() - context.startedAt;
   logDebug(
-    `[Antigravity Debug ${context.id}] Response ${response.status} ${response.statusText} (${durationMs}ms)`,
+    `[Sovereign Debug ${context.id}] Response ${response.status} ${response.statusText} (${durationMs}ms)`,
   );
   logDebug(
-    `[Antigravity Debug ${context.id}] Response Headers: ${JSON.stringify(
+    `[Sovereign Debug ${context.id}] Response Headers: ${JSON.stringify(
       maskHeaders(meta.headersOverride ?? response.headers),
     )}`,
   );
 
   if (meta.note) {
-    logDebug(`[Antigravity Debug ${context.id}] Note: ${meta.note}`);
+    logDebug(`[Sovereign Debug ${context.id}] Note: ${meta.note}`);
   }
 
   if (meta.error) {
-    logDebug(`[Antigravity Debug ${context.id}] Error: ${formatError(meta.error)}`);
+    logDebug(`[Sovereign Debug ${context.id}] Error: ${formatError(meta.error)}`);
   }
 
   if (meta.body) {
     logDebug(
-      `[Antigravity Debug ${context.id}] Response Body Preview: ${truncateForLog(meta.body)}`,
+      `[Sovereign Debug ${context.id}] Response Body Preview: ${truncateForLog(meta.body)}`,
     );
   }
 }
@@ -419,7 +419,7 @@ export function logRateLimitSnapshot(
 }
 
 export async function logResponseBody(
-  context: AntigravityDebugContext | null | undefined,
+  context: SovereignDebugContext | null | undefined,
   response: Response,
   status: number,
 ): Promise<string | undefined> {
@@ -437,10 +437,10 @@ export async function logResponseBody(
     const preview = text.length <= maxChars 
       ? text 
       : `${text.slice(0, maxChars)}... (truncated ${text.length - maxChars} chars)`;
-    logDebug(`[Antigravity Debug ${context.id}] Response Body (${status}): ${preview}`);
+    logDebug(`[Sovereign Debug ${context.id}] Response Body (${status}): ${preview}`);
     return text;
   } catch (e) {
-    logDebug(`[Antigravity Debug ${context.id}] Failed to read response body: ${formatError(e)}`);
+    logDebug(`[Sovereign Debug ${context.id}] Failed to read response body: ${formatError(e)}`);
     return undefined;
   }
 }
@@ -477,7 +477,7 @@ export function logRetryAttempt(
 ): void {
   if (!getDebugState().debugEnabled) return;
   const delayInfo = delayMs !== undefined ? ` delay=${delayMs}ms` : "";
-  const maxInfo = maxAttempts < 0 ? "∞" : maxAttempts.toString();
+  const maxInfo = maxAttempts < 0 ? "âˆ" : maxAttempts.toString();
   logDebug(`[Retry] Attempt ${attempt}/${maxInfo} reason=${reason}${delayInfo}`);
 }
 

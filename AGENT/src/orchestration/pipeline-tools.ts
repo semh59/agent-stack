@@ -1,10 +1,10 @@
-import { SequentialPipeline, PlanMode } from './sequential-pipeline';
+﻿import { SequentialPipeline, PlanMode } from './sequential-pipeline';
 import { AGENTS, getAgentByRole, getTotalEstimatedMinutes } from './agents';
 import { TerminalExecutor } from './terminal-executor';
 import { tool } from '@opencode-ai/plugin/tool';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
-import { AntigravityClient } from './antigravity-client';
+import { SovereignGatewayClient } from './gateway-client';
 import type { PluginClient } from '../plugin/types';
 
 /**
@@ -14,14 +14,14 @@ export class PipelineTools {
   private pipeline: SequentialPipeline;
   private terminal: TerminalExecutor;
   private projectRoot: string;
-  private antigravityClient: AntigravityClient;
+  private SovereignGatewayClient: SovereignGatewayClient;
   private client: PluginClient;
 
-  constructor(directory: string, antigravityClient: AntigravityClient, client: PluginClient) {
+  constructor(directory: string, SovereignGatewayClient: SovereignGatewayClient, client: PluginClient) {
     this.projectRoot = directory;
-    this.antigravityClient = antigravityClient;
+    this.SovereignGatewayClient = SovereignGatewayClient;
     this.client = client;
-    this.pipeline = new SequentialPipeline(directory, antigravityClient);
+    this.pipeline = new SequentialPipeline(directory, SovereignGatewayClient);
     this.terminal = new TerminalExecutor(directory);
   }
 
@@ -33,7 +33,7 @@ export class PipelineTools {
 
     return {
       pipeline_start: tool({
-        description: `Start the 18-agent sequential pipeline (CEO → PM → Architect → ... → DevOps). Each agent reads previous agents' outputs and writes to .ai-company/. Estimated time: ~${getTotalEstimatedMinutes()} minutes.`,
+        description: `Start the 18-agent sequential pipeline (CEO â†’ PM â†’ Architect â†’ ... â†’ DevOps). Each agent reads previous agents' outputs and writes to .ai-company/. Estimated time: ~${getTotalEstimatedMinutes()} minutes.`,
         args: {
           task: tool.schema
             .string()
@@ -53,7 +53,7 @@ export class PipelineTools {
           modelOverride: tool.schema
             .string()
             .optional()
-            .describe('Override model for ALL agents (e.g. "google/antigravity-claude-sonnet-4-6")'),
+            .describe('Override model for ALL agents (e.g. "google/Sovereign-claude-sonnet-4-6")'),
           skillsDir: tool.schema
             .string()
             .optional()
@@ -65,7 +65,7 @@ export class PipelineTools {
             : [];
 
           return (self.client.tui as any).withProgress({
-            title: `LojiNext Pipeline: ${args.task.slice(0, 30)}...`,
+            title: `Sovereign Pipeline: ${args.task.slice(0, 30)}...`,
             cancellable: true,
           }, async (progress: any, token: any) => {
             try {
@@ -81,23 +81,23 @@ export class PipelineTools {
                     message: `${agent.emoji} ${agent.name} (${agent.order}/18)`,
                     increment: 0 // We don't use cumulative increment here, we just set message
                   });
-                  console.log(`\n${'═'.repeat(60)}`);
+                  console.log(`\n${'â•'.repeat(60)}`);
                   console.log(`${agent.emoji} AGENT ${agent.order}/18: ${agent.name}`);
                   console.log(`Layer: ${agent.layer} | Model: ${agent.preferredModel}`);
-                  console.log(`${'═'.repeat(60)}\n`);
+                  console.log(`${'â•'.repeat(60)}\n`);
                 },
                 onAgentComplete: (agent) => {
-                  console.log(`✅ ${agent.name} completed → ${agent.outputFiles[0]}`);
+                  console.log(`âœ… ${agent.name} completed â†’ ${agent.outputFiles[0]}`);
                 },
                 onError: (agent, error) => {
-                  console.error(`❌ ${agent.name} FAILED: ${error.message}`);
+                  console.error(`âŒ ${agent.name} FAILED: ${error.message}`);
                 },
               });
 
               const summary = result.agentResults
                 .map((r) => {
                   const icon =
-                    r.status === 'completed' ? '✅' : r.status === 'skipped' ? '⏭️' : '❌';
+                    r.status === 'completed' ? 'âœ…' : r.status === 'skipped' ? 'â­ï¸' : 'âŒ';
                   return `${icon} ${r.agent.emoji} ${r.agent.name}: ${r.status}${r.durationMs > 0 ? ` (${r.durationMs}ms)` : ''}`;
                 })
                 .join('\n');
@@ -144,7 +144,7 @@ export class PipelineTools {
             const agentList = AGENTS.map((a) => {
               const done = state.completedAgents.includes(a.role);
               const current = state.currentAgent === a.role;
-              const icon = done ? '✅' : current ? '🔄' : '⬜';
+              const icon = done ? 'âœ…' : current ? 'ğŸ”„' : 'â¬œ';
               return `${icon} ${a.emoji} ${a.name}`;
             }).join('\n');
 
@@ -213,7 +213,7 @@ ${timelineStr || 'No outputs yet.'}
 
           let response = `Skip list updated: ${valid.join(', ')}`;
           if (invalid.length > 0) {
-            response += `\n⚠️ Unknown roles ignored: ${invalid.join(', ')}`;
+            response += `\nâš ï¸ Unknown roles ignored: ${invalid.join(', ')}`;
             response += `\n\nValid roles: ${AGENTS.map((a) => a.role).join(', ')}`;
           }
           return response;
@@ -283,7 +283,7 @@ ${timelineStr || 'No outputs yet.'}
             // Write target SKILL.md
             await fs.writeFile(path.join(targetDir, 'SKILL.md'), content, 'utf-8');
             
-            return `✅ Successfully installed skill: ${args.skillName}`;
+            return `âœ… Successfully installed skill: ${args.skillName}`;
           } catch (error) {
             return `Failed to install skill: ${error instanceof Error ? error.message : String(error)}`;
           }
@@ -333,7 +333,7 @@ ${timelineStr || 'No outputs yet.'}
               console.warn('[PipelineTools] Could not update INDEX.md after skill approval', e);
             }
 
-            return `✅ Successfully approved and installed proposed skill: ${args.skillName}`;
+            return `âœ… Successfully approved and installed proposed skill: ${args.skillName}`;
           } catch (error) {
              return `Failed to approve skill: ${error instanceof Error ? error.message : String(error)}`;
           }

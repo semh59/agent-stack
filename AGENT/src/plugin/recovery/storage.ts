@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Storage utilities for reading OpenCode's session data.
  * 
  * Based on oh-my-opencode/src/hooks/session-recovery/storage.ts

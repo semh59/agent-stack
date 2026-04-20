@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { AntigravityTokenRefreshError, refreshAccessToken } from "./token";
+import { SovereignTokenRefreshError, refreshAccessToken } from "./token";
 import type { OAuthAuthDetails, PluginClient } from "./types";
 
 vi.mock("./cache", () => ({
@@ -41,7 +41,7 @@ describe("refreshAccessToken", () => {
   });
 
   it("returns undefined when refresh parts contain no refresh token", async () => {
-    const auth = makeOAuthAuth(""); // empty refresh string → no refreshToken
+    const auth = makeOAuthAuth(""); // empty refresh string â†’ no refreshToken
     const result = await refreshAccessToken(auth, mockClient, providerId);
     expect(result).toBeUndefined();
   });
@@ -88,7 +88,7 @@ describe("refreshAccessToken", () => {
     expect(result!.refresh).toContain("1//new-refresh");
   });
 
-  it("throws AntigravityTokenRefreshError on non-ok response", async () => {
+  it("throws SovereignTokenRefreshError on non-ok response", async () => {
     const auth = makeOAuthAuth("1//refresh|project");
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -102,7 +102,7 @@ describe("refreshAccessToken", () => {
     );
 
     await expect(refreshAccessToken(auth, mockClient, providerId)).rejects.toThrow(
-      AntigravityTokenRefreshError,
+      SovereignTokenRefreshError,
     );
   });
 
@@ -124,7 +124,7 @@ describe("refreshAccessToken", () => {
     expect(clearCachedAuth).toHaveBeenCalledWith(auth.refresh);
   });
 
-  it("returns undefined on network error (not AntigravityTokenRefreshError)", async () => {
+  it("returns undefined on network error (not SovereignTokenRefreshError)", async () => {
     const auth = makeOAuthAuth("1//refresh|project");
 
     vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("Network failure"));
@@ -169,9 +169,9 @@ describe("refreshAccessToken", () => {
   });
 });
 
-describe("AntigravityTokenRefreshError", () => {
+describe("SovereignTokenRefreshError", () => {
   it("has correct properties", () => {
-    const error = new AntigravityTokenRefreshError({
+    const error = new SovereignTokenRefreshError({
       message: "Refresh failed",
       code: "invalid_grant",
       description: "Token revoked",
@@ -179,7 +179,7 @@ describe("AntigravityTokenRefreshError", () => {
       statusText: "Bad Request",
     });
 
-    expect(error.name).toBe("AntigravityTokenRefreshError");
+    expect(error.name).toBe("SovereignTokenRefreshError");
     expect(error.message).toBe("Refresh failed");
     expect(error.code).toBe("invalid_grant");
     expect(error.description).toBe("Token revoked");
@@ -189,7 +189,7 @@ describe("AntigravityTokenRefreshError", () => {
   });
 
   it("works with minimal options", () => {
-    const error = new AntigravityTokenRefreshError({
+    const error = new SovereignTokenRefreshError({
       message: "Failed",
       status: 500,
       statusText: "Internal Server Error",

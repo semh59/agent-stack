@@ -1,11 +1,13 @@
-import { randomUUID } from "node:crypto";
+﻿import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { AntigravityClient } from "../orchestration/antigravity-client";
+import { SovereignGatewayClient } from "../orchestration/gateway-client";
 import {
   AutonomousLoopEngine,
-  type AutonomousTaskExecutionContext,
-  type AutonomousTaskExecutionResult,
 } from "../orchestration/autonomous-loop-engine";
+import type {
+  AutonomousTaskExecutionContext,
+  AutonomousTaskExecutorResult,
+} from "../orchestration/autonomy-types";
 import {
   BudgetReservationError,
   budgetTracker as defaultBudgetTracker,
@@ -58,7 +60,7 @@ interface SessionManagerOptions {
 const DEFAULT_MODEL_REQUEST_TIMEOUT_MS = 90_000;
 
 /**
- * Bridges autonomy loop execution with Antigravity account/model infrastructure.
+ * Bridges autonomy loop execution with Sovereign account/model infrastructure.
  */
 export class AutonomySessionManager {
   private readonly engine: AutonomousLoopEngine;
@@ -319,7 +321,7 @@ export class AutonomySessionManager {
 
   private async executeTask(
     context: AutonomousTaskExecutionContext,
-  ): Promise<AutonomousTaskExecutionResult> {
+  ): Promise<AutonomousTaskExecutorResult> {
     const abortController = new AbortController();
     this.activeTaskControllers.set(context.session.id, abortController);
     
@@ -420,7 +422,7 @@ export class AutonomySessionManager {
 
       if (error === "Task interrupted by autonomy engine" || normalizedMessage.includes("abort")) {
         await this.budgetTracker.releaseAllForSession(context.session.id, "abort");
-        throw new Error("TASK_INTERRUPTED: Otonom döngü tarafından kesildi.");
+        throw new Error("TASK_INTERRUPTED: Otonom dÃ¶ngÃ¼ tarafÄ±ndan kesildi.");
       }
 
       await this.budgetTracker.releaseAllForSession(context.session.id, "task_failure");
@@ -449,7 +451,7 @@ export class AutonomySessionManager {
       accountManager.switchToAccountByEmail(active.email);
     }
 
-    const client = AntigravityClient.fromToken(token, active.email, accountManager ?? undefined);
+    const client = SovereignGatewayClient.fromToken(token, active.email, accountManager ?? undefined);
     const modelName = normalizeModel(context.modelDecision.selectedModel);
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
 
@@ -627,7 +629,7 @@ export class AutonomySessionManager {
     return controller.signal;
   }
 
-  private async resolveClient(session: AutonomySession): Promise<AntigravityClient> {
+  private async resolveClient(session: AutonomySession): Promise<SovereignGatewayClient> {
     const token = await this.tokenStore.getValidAccessToken();
     const active = this.tokenStore.getActiveToken();
 
@@ -640,7 +642,7 @@ export class AutonomySessionManager {
       accountManager.switchToAccountByEmail(active.email);
     }
 
-    return AntigravityClient.fromToken(token, active.email, accountManager ?? undefined);
+    return SovereignGatewayClient.fromToken(token, active.email, accountManager ?? undefined);
   }
 
   private isWithinScope(relativeFilePath: string, scopeRoots: string[]): boolean {
@@ -653,8 +655,8 @@ export class AutonomySessionManager {
 }
 
 function normalizeModel(model: string): string {
-  if (model.startsWith("google/antigravity-")) {
-    return model.slice("google/antigravity-".length);
+  if (model.startsWith("google/Sovereign-")) {
+    return model.slice("google/Sovereign-".length);
   }
   return model;
 }
@@ -698,10 +700,10 @@ function extractUsageHeaders(headers: Headers): UsageMetadata | null {
   };
 
   const usage: UsageMetadata = {
-    totalTokenCount: parseHeader("x-antigravity-total-token-count"),
-    promptTokenCount: parseHeader("x-antigravity-prompt-token-count"),
-    candidatesTokenCount: parseHeader("x-antigravity-candidates-token-count"),
-    cachedContentTokenCount: parseHeader("x-antigravity-cached-content-token-count"),
+    totalTokenCount: parseHeader("x-LojiNext-total-token-count"),
+    promptTokenCount: parseHeader("x-LojiNext-prompt-token-count"),
+    candidatesTokenCount: parseHeader("x-LojiNext-candidates-token-count"),
+    cachedContentTokenCount: parseHeader("x-LojiNext-cached-content-token-count"),
   };
 
   return Object.values(usage).some((value) => value !== undefined) ? usage : null;

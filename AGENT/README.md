@@ -1,20 +1,20 @@
-# LojiNext AI Plugin for Opencode
+# Sovereign AI Plugin for Opencode
 
-[![npm version](https://img.shields.io/npm/v/lojinext-ai.svg)](https://www.npmjs.com/package/lojinext-ai)
-[![npm beta](https://img.shields.io/npm/v/lojinext-ai/beta.svg?label=beta)](https://www.npmjs.com/package/lojinext-ai)
-[![npm downloads](https://img.shields.io/npm/dw/lojinext-ai.svg)](https://www.npmjs.com/package/lojinext-ai)
+[![npm version](https://img.shields.io/npm/v/sovereign-ai.svg)](https://www.npmjs.com/package/sovereign-ai)
+[![npm beta](https://img.shields.io/npm/v/sovereign-ai/beta.svg?label=beta)](https://www.npmjs.com/package/sovereign-ai)
+[![npm downloads](https://img.shields.io/npm/dw/sovereign-ai.svg)](https://www.npmjs.com/package/sovereign-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![X (Twitter)](https://img.shields.io/badge/X-@dopesalmon-000000?style=flat&logo=x)](https://x.com/dopesalmon)
 
-Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth so you can use Antigravity rate limits and access models like `gemini-3-pro` and `claude-opus-4-5-thinking` with your Google credentials.
+Enable Opencode to authenticate against **Sovereign AI** (Google's IDE) via OAuth so you can use Sovereign AI rate limits and access models like `gemini-3-pro` and `claude-opus-4-5-thinking` with your Google credentials.
 
-> Migration note: older docs may reference `opencode-antigravity-auth`; the active package name is `lojinext-ai`.
+> Migration note: older docs may reference `opencode-sovereign-auth`; the active package name is `sovereign-ai`.
 
 ## What You Get
 
 - **Claude Opus 4.5, Sonnet 4.5** and **Gemini 3 Pro/Flash** via Google OAuth
 - **Multi-account support** — add multiple Google accounts, auto-rotates when rate-limited
-- **Dual quota system** — access both Antigravity and Gemini CLI quotas from one plugin
+- **Dual quota system** — access both Sovereign AI and Gemini CLI quotas from one plugin
 - **Thinking models** — extended thinking for Claude and Gemini 3 with configurable budgets
 - **Google Search grounding** — enable web search for Gemini models (auto or always-on)
 - **Auto-recovery** — handles session errors and tool failures automatically
@@ -53,7 +53,7 @@ Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth
 Paste this into any LLM agent (Claude Code, OpenCode, Cursor, etc.):
 
 ```
-Install the lojinext-ai plugin and add the Antigravity model definitions to ~/.config/opencode/opencode.json by following: https://raw.githubusercontent.com/NoeFabris/lojinext-ai/dev/README.md
+Install the sovereign-ai plugin and add the Sovereign AI model definitions to ~/.config/opencode/opencode.json by following: https://raw.githubusercontent.com/NoeFabris/sovereign-ai/dev/README.md
 ```
 
 **Option B: Manual setup**
@@ -62,11 +62,11 @@ Install the lojinext-ai plugin and add the Antigravity model definitions to ~/.c
 
    ```json
    {
-     "plugin": ["lojinext-ai@latest"]
+     "plugin": ["sovereign-ai@latest"]
    }
    ```
 
-   > Want bleeding-edge features? Use `lojinext-ai@beta` instead.
+   > Want bleeding-edge features? Use `sovereign-ai@beta` instead.
 
 2. **Login** with your Google account:
 
@@ -81,7 +81,7 @@ Install the lojinext-ai plugin and add the Antigravity model definitions to ~/.c
 4. **Use it:**
 
    ```bash
-   opencode run "Hello" --model=google/antigravity-claude-sonnet-4-5-thinking --variant=max
+   opencode run "Hello" --model=google/sovereign-claude-sonnet-4-5-thinking --variant=max
    ```
 
 </details>
@@ -104,7 +104,7 @@ Install the lojinext-ai plugin and add the Antigravity model definitions to ~/.c
 ### Verification
 
 ```bash
-opencode run "Hello" --model=google/antigravity-claude-sonnet-4-5-thinking --variant=max
+opencode run "Hello" --model=google/sovereign-claude-sonnet-4-5-thinking --variant=max
 ```
 
 </details>
@@ -115,18 +115,18 @@ opencode run "Hello" --model=google/antigravity-claude-sonnet-4-5-thinking --var
 
 ### Model Reference
 
-**Antigravity quota** (default routing for Claude and Gemini):
+**Sovereign AI quota** (default routing for Claude and Gemini):
 
 | Model | Variants | Notes |
 |-------|----------|-------|
-| `antigravity-gemini-3-pro` | low, high | Gemini 3 Pro with thinking |
-| `antigravity-gemini-3-flash` | minimal, low, medium, high | Gemini 3 Flash with thinking |
-| `antigravity-claude-sonnet-4-5` | — | Claude Sonnet 4.5 |
-| `antigravity-claude-sonnet-4-5-thinking` | low, max | Claude Sonnet with extended thinking |
-| `antigravity-claude-opus-4-5-thinking` | low, max | Claude Opus 4.5 with extended thinking |
-| `antigravity-claude-opus-4-6-thinking` | low, max | Claude Opus 4.6 with extended thinking |
+| `sovereign-gemini-3-pro` | low, high | Gemini 3 Pro with thinking |
+| `sovereign-gemini-3-flash` | minimal, low, medium, high | Gemini 3 Flash with thinking |
+| `sovereign-claude-sonnet-4-5` | — | Claude Sonnet 4.5 |
+| `sovereign-claude-sonnet-4-5-thinking` | low, max | Claude Sonnet with extended thinking |
+| `sovereign-claude-opus-4-5-thinking` | low, max | Claude Opus 4.5 with extended thinking |
+| `sovereign-claude-opus-4-6-thinking` | low, max | Claude Opus 4.6 with extended thinking |
 
-**Gemini CLI quota** (separate from Antigravity; used when `cli_first` is true or as fallback):
+**Gemini CLI quota** (separate from Sovereign AI; used when `cli_first` is true or as fallback):
 
 | Model | Notes |
 |-------|-------|
@@ -136,15 +136,15 @@ opencode run "Hello" --model=google/antigravity-claude-sonnet-4-5-thinking --var
 | `gemini-3-pro-preview` | Gemini 3 Pro (preview) |
 
 > **Routing Behavior:**
-> - **Antigravity-first (default):** Gemini models use Antigravity quota across accounts.
+> - **Sovereign AI-first (default):** Gemini models use Sovereign AI quota across accounts.
 > - **CLI-first (`cli_first: true`):** Gemini models use Gemini CLI quota first.
 > - With `quota_fallback` enabled, the plugin can spill to the other quota when all accounts are exhausted.
-> - Claude and image models always use Antigravity.
-> Model names are automatically transformed for the target API (e.g., `antigravity-gemini-3-flash` → `gemini-3-flash-preview` for CLI).
+> - Claude and image models always use Sovereign AI.
+> Model names are automatically transformed for the target API (e.g., `sovereign-gemini-3-flash` → `gemini-3-flash-preview` for CLI).
 
 **Using variants:**
 ```bash
-opencode run "Hello" --model=google/antigravity-claude-sonnet-4-5-thinking --variant=max
+opencode run "Hello" --model=google/sovereign-claude-sonnet-4-5-thinking --variant=max
 ```
 
 For details on variant configuration and thinking levels, see [docs/MODEL-VARIANTS.md](docs/MODEL-VARIANTS.md).
@@ -157,12 +157,12 @@ Add this to your `~/.config/opencode/opencode.json`:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["lojinext-ai@latest"],
+  "plugin": ["sovereign-ai@latest"],
   "provider": {
     "google": {
       "models": {
-        "antigravity-gemini-3-pro": {
-          "name": "Gemini 3 Pro (Antigravity)",
+        "sovereign-gemini-3-pro": {
+          "name": "Gemini 3 Pro (Sovereign AI)",
           "limit": { "context": 1048576, "output": 65535 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
@@ -170,8 +170,8 @@ Add this to your `~/.config/opencode/opencode.json`:
             "high": { "thinkingLevel": "high" }
           }
         },
-        "antigravity-gemini-3-flash": {
-          "name": "Gemini 3 Flash (Antigravity)",
+        "sovereign-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Sovereign AI)",
           "limit": { "context": 1048576, "output": 65536 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
@@ -181,13 +181,13 @@ Add this to your `~/.config/opencode/opencode.json`:
             "high": { "thinkingLevel": "high" }
           }
         },
-        "antigravity-claude-sonnet-4-5": {
-          "name": "Claude Sonnet 4.5 (Antigravity)",
+        "sovereign-claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5 (Sovereign AI)",
           "limit": { "context": 200000, "output": 64000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
-        "antigravity-claude-sonnet-4-5-thinking": {
-          "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
+        "sovereign-claude-sonnet-4-5-thinking": {
+          "name": "Claude Sonnet 4.5 Thinking (Sovereign AI)",
           "limit": { "context": 200000, "output": 64000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
@@ -195,8 +195,8 @@ Add this to your `~/.config/opencode/opencode.json`:
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
           }
         },
-        "antigravity-claude-opus-4-5-thinking": {
-          "name": "Claude Opus 4.5 Thinking (Antigravity)",
+        "sovereign-claude-opus-4-5-thinking": {
+          "name": "Claude Opus 4.5 Thinking (Sovereign AI)",
           "limit": { "context": 200000, "output": 64000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
@@ -204,8 +204,8 @@ Add this to your `~/.config/opencode/opencode.json`:
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
           }
         },
-        "antigravity-claude-opus-4-6-thinking": {
-          "name": "Claude Opus 4.6 Thinking (Antigravity)",
+        "sovereign-claude-opus-4-6-thinking": {
+          "name": "Claude Opus 4.6 Thinking (Sovereign AI)",
           "limit": { "context": 200000, "output": 64000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
@@ -239,7 +239,7 @@ Add this to your `~/.config/opencode/opencode.json`:
 }
 ```
 
-> **Backward Compatibility:** Legacy model names with `antigravity-` prefix (e.g., `antigravity-gemini-3-flash`) still work. The plugin automatically handles model name transformation for both Antigravity and Gemini CLI APIs.
+> **Backward Compatibility:** Legacy model names with `sovereign-` prefix (e.g., `sovereign-gemini-3-flash`) still work. The plugin automatically handles model name transformation for both Sovereign AI and Gemini CLI APIs.
 
 </details>
 
@@ -264,7 +264,7 @@ For details on load balancing, dual quota pools, and account storage, see [docs/
 
 ## Troubleshoot
 
-> **Quick Reset**: Most issues can be resolved by deleting `~/.config/opencode/antigravity-accounts.json` and running `opencode auth login` again.
+> **Quick Reset**: Most issues can be resolved by deleting `~/.config/opencode/sovereign-accounts.json` and running `opencode auth login` again.
 
 ### Configuration Path (All Platforms)
 
@@ -273,9 +273,9 @@ OpenCode uses `~/.config/opencode/` on **all platforms** including Windows.
 | File | Path |
 |------|------|
 | Main config | `~/.config/opencode/opencode.json` |
-| Accounts | `~/.config/opencode/antigravity-accounts.json` |
-| Plugin config | `~/.config/opencode/antigravity.json` |
-| Debug logs | `~/.config/opencode/antigravity-logs/` |
+| Accounts | `~/.config/opencode/sovereign-accounts.json` |
+| Plugin config | `~/.config/opencode/sovereign.json` |
+| Debug logs | `~/.config/opencode/sovereign-logs/` |
 
 > **Windows users**: `~` resolves to your user home directory (e.g., `C:\Users\YourName`). Do NOT use `%APPDATA%`.
 
@@ -291,7 +291,7 @@ If you encounter authentication issues with multiple accounts:
 
 1. Delete the accounts file:
    ```bash
-   rm ~/.config/opencode/antigravity-accounts.json
+   rm ~/.config/opencode/sovereign-accounts.json
    ```
 2. Re-authenticate:
    ```bash
@@ -308,7 +308,7 @@ Permission 'cloudaicompanion.companions.generateChat' denied on resource
 '//cloudaicompanion.googleapis.com/projects/rising-fact-p41fc/locations/global'
 ```
 
-**Cause:** Plugin falls back to a default project ID when no valid project is found. This works for Antigravity but fails for Gemini CLI models.
+**Cause:** Plugin falls back to a default project ID when no valid project is found. This works for Sovereign AI but fails for Gemini CLI models.
 
 **Solution:**
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
@@ -363,7 +363,7 @@ Invalid JSON payload received. Unknown name "parameters" at 'request.tools[0]'
 **Solutions:**
 1. **Update to latest beta:**
    ```json
-   { "plugin": ["lojinext-ai@beta"] }
+   { "plugin": ["sovereign-ai@beta"] }
    ```
 
 2. **Disable MCP servers** one-by-one to find the problematic one
@@ -377,7 +377,7 @@ Invalid JSON payload received. Unknown name "parameters" at 'request.tools[0]'
 
 ### MCP Servers Causing Errors
 
-Some MCP servers have schemas incompatible with Antigravity's strict JSON format.
+Some MCP servers have schemas incompatible with Sovereign AI's strict JSON format.
 
 **Common symptom:**
 ```bash
@@ -389,12 +389,12 @@ Sometimes it shows up as:
 GenerateContentRequest.tools[0].function_declarations[12].name: Invalid function name must start with a letter or underscore
 ```
 
-This usually means an MCP tool name starts with a number (for example, a 1mcp key like `1mcp_*`). Rename the MCP key to start with a letter (e.g., `gw`) or disable that MCP entry for Antigravity models.
+This usually means an MCP tool name starts with a number (for example, a 1mcp key like `1mcp_*`). Rename the MCP key to start with a letter (e.g., `gw`) or disable that MCP entry for Sovereign AI models.
 
 **Diagnosis:**
 1. Disable all MCP servers in your config
 2. Enable one-by-one until error reappears
-3. Report the specific MCP in a [GitHub issue](https://github.com/NoeFabris/lojinext-ai/issues)
+3. Report the specific MCP in a [GitHub issue](https://github.com/NoeFabris/sovereign-ai/issues)
 
 ---
 
@@ -405,7 +405,7 @@ This usually means an MCP tool name starts with a number (for example, a 1mcp ke
 **Solutions:**
 1. Update to latest beta version
 2. If persists, delete accounts file and re-authenticate
-3. Try switching `account_selection_strategy` to `"sticky"` in `antigravity.json`
+3. Try switching `account_selection_strategy` to `"sticky"` in `sovereign.json`
 
 ---
 
@@ -427,8 +427,8 @@ If you encounter errors during a session:
 {
   "google_auth": false,
   "agents": {
-    "frontend-ui-ux-engineer": { "model": "google/antigravity-gemini-3-pro" },
-    "document-writer": { "model": "google/antigravity-gemini-3-flash" }
+    "frontend-ui-ux-engineer": { "model": "google/sovereign-gemini-3-pro" },
+    "document-writer": { "model": "google/sovereign-gemini-3-flash" }
   }
 }
 ```
@@ -522,7 +522,7 @@ The correct key is `plugin` (singular):
 
 ```json
 {
-  "plugin": ["lojinext-ai@beta"]
+  "plugin": ["sovereign-ai@beta"]
 }
 ```
 
@@ -532,9 +532,9 @@ The correct key is `plugin` (singular):
 
 ### Migrating Accounts Between Machines
 
-When copying `antigravity-accounts.json` to a new machine:
-1. Ensure the plugin is installed: `"plugin": ["lojinext-ai@beta"]`
-2. Copy `~/.config/opencode/antigravity-accounts.json`
+When copying `sovereign-accounts.json` to a new machine:
+1. Ensure the plugin is installed: `"plugin": ["sovereign-ai@beta"]`
+2. Copy `~/.config/opencode/sovereign-accounts.json`
 3. If you get "API key missing" error, the refresh token may be invalid — re-authenticate
 
 ## Known Plugin Interactions
@@ -551,7 +551,7 @@ DCP creates synthetic assistant messages that lack thinking blocks. **List this 
 ```json
 {
   "plugin": [
-    "lojinext-ai@latest",
+    "sovereign-ai@latest",
     "@tarquinen/opencode-dcp@latest"
   ]
 }
@@ -565,14 +565,14 @@ Disable built-in auth and override agent models in `oh-my-opencode.json`:
 {
   "google_auth": false,
   "agents": {
-    "frontend-ui-ux-engineer": { "model": "google/antigravity-gemini-3-pro" },
-    "document-writer": { "model": "google/antigravity-gemini-3-flash" },
-    "multimodal-looker": { "model": "google/antigravity-gemini-3-flash" }
+    "frontend-ui-ux-engineer": { "model": "google/sovereign-gemini-3-pro" },
+    "document-writer": { "model": "google/sovereign-gemini-3-flash" },
+    "multimodal-looker": { "model": "google/sovereign-gemini-3-flash" }
   }
 }
 ```
 
-> **Tip:** When spawning parallel subagents, enable `pid_offset_enabled: true` in `antigravity.json` to distribute sessions across accounts.
+> **Tip:** When spawning parallel subagents, enable `pid_offset_enabled: true` in `sovereign.json` to distribute sessions across accounts.
 
 ### Plugins you don't need
 
@@ -582,11 +582,11 @@ Disable built-in auth and override agent models in `oh-my-opencode.json`:
 
 ## Configuration
 
-Create `~/.config/opencode/antigravity.json` for optional settings:
+Create `~/.config/opencode/sovereign.json` for optional settings:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/lojinext-ai/main/assets/antigravity.schema.json"
+  "$schema": "https://raw.githubusercontent.com/NoeFabris/sovereign-ai/main/assets/sovereign.schema.json"
 }
 ```
 
@@ -598,7 +598,7 @@ Most users don't need to configure anything — defaults work well.
 |--------|---------|--------------
 | `keep_thinking` | `false` | Preserve Claude's thinking across turns. **Warning:** enabling may degrade model stability. |
 | `session_recovery` | `true` | Auto-recover from tool errors |
-| `cli_first` | `false` | Route Gemini models to Gemini CLI first (Claude and image models stay on Antigravity). |
+| `cli_first` | `false` | Route Gemini models to Gemini CLI first (Claude and image models stay on Sovereign AI). |
 
 ### Account Rotation
 
@@ -647,8 +647,8 @@ For all options, see [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 **Environment variables:**
 ```bash
 OPENCODE_CONFIG_DIR=/path/to/config opencode  # Custom config directory
-OPENCODE_ANTIGRAVITY_DEBUG=1 opencode         # Enable debug logging
-OPENCODE_ANTIGRAVITY_DEBUG=2 opencode         # Verbose logging
+OPENCODE_SOVEREIGN_DEBUG=1 opencode         # Enable debug logging
+OPENCODE_SOVEREIGN_DEBUG=2 opencode         # Verbose logging
 ```
 
 ---
@@ -674,7 +674,7 @@ See the full [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for solutions to c
 - [Model Variants](docs/MODEL-VARIANTS.md) — Thinking budgets and variant system
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and fixes
 - [Architecture](docs/ARCHITECTURE.md) — How the plugin works
-- [API Spec](docs/ANTIGRAVITY_API_SPEC.md) — Antigravity API reference
+- [API Spec](docs/SOVEREIGN_API_SPEC.md) — Sovereign AI API reference
 - [Critical Fix Execution](docs/CRITICAL_FIX_EXECUTION.md) - Step dependencies, token/CSP policy, CI gates
 - [Migration Guide](docs/MIGRATION_GUIDE.md) - Breaking changes and upgrade steps
 
@@ -718,6 +718,6 @@ By using this plugin, you acknowledge:
 ### Disclaimer
 
 - Not affiliated with Google. This is an independent open-source project.
-- "Antigravity", "Gemini", "Google Cloud", and "Google" are trademarks of Google LLC.
+- "Sovereign AI", "Gemini", "Google Cloud", and "Google" are trademarks of Google LLC.
 
 </details>

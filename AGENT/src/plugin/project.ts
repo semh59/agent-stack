@@ -1,8 +1,8 @@
-import {
-  ANTIGRAVITY_HEADERS,
-  ANTIGRAVITY_ENDPOINT_FALLBACKS,
-  ANTIGRAVITY_LOAD_ENDPOINTS,
-  ANTIGRAVITY_DEFAULT_PROJECT_ID,
+﻿import {
+  SOVEREIGN_HEADERS,
+  SOVEREIGN_ENDPOINT_FALLBACKS,
+  SOVEREIGN_LOAD_ENDPOINTS,
+  SOVEREIGN_DEFAULT_PROJECT_ID,
 } from "../constants";
 import { formatRefreshParts, parseRefreshParts } from "./auth";
 import { createLogger } from "./logger";
@@ -19,7 +19,7 @@ const CODE_ASSIST_METADATA = {
   pluginType: "GEMINI",
 } as const;
 
-interface AntigravityUserTier {
+interface SovereignUserTier {
   id?: string;
   isDefault?: boolean;
   userDefinedCloudaicompanionProject?: boolean;
@@ -30,7 +30,7 @@ interface LoadCodeAssistPayload {
   currentTier?: {
     id?: string;
   };
-  allowedTiers?: AntigravityUserTier[];
+  allowedTiers?: SovereignUserTier[];
 }
 
 interface OnboardUserPayload {
@@ -57,7 +57,7 @@ function buildMetadata(projectId?: string): Record<string, string> {
 /**
  * Selects the default tier ID from the allowed tiers list.
  */
-function getDefaultTierId(allowedTiers?: AntigravityUserTier[]): string | undefined {
+function getDefaultTierId(allowedTiers?: SovereignUserTier[]): string | undefined {
   if (!allowedTiers || allowedTiers.length === 0) {
     return undefined;
   }
@@ -130,11 +130,11 @@ export async function loadManagedProject(
     Authorization: `Bearer ${accessToken}`,
     "User-Agent": "google-api-nodejs-client/9.15.1",
     "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
-    "Client-Metadata": ANTIGRAVITY_HEADERS["Client-Metadata"],
+    "Client-Metadata": SOVEREIGN_HEADERS["Client-Metadata"],
   };
 
   const loadEndpoints = Array.from(
-    new Set<string>([...ANTIGRAVITY_LOAD_ENDPOINTS, ...ANTIGRAVITY_ENDPOINT_FALLBACKS]),
+    new Set<string>([...SOVEREIGN_LOAD_ENDPOINTS, ...SOVEREIGN_ENDPOINT_FALLBACKS]),
   );
 
   for (const baseEndpoint of loadEndpoints) {
@@ -179,7 +179,7 @@ export async function onboardManagedProject(
     metadata,
   };
 
-  for (const baseEndpoint of ANTIGRAVITY_ENDPOINT_FALLBACKS) {
+  for (const baseEndpoint of SOVEREIGN_ENDPOINT_FALLBACKS) {
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       try {
         const response = await fetch(
@@ -189,7 +189,7 @@ export async function onboardManagedProject(
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
-              ...ANTIGRAVITY_HEADERS,
+              ...SOVEREIGN_HEADERS,
             },
             body: JSON.stringify(requestBody),
           },
@@ -246,7 +246,7 @@ export async function ensureProjectContext(auth: OAuthAuthDetails): Promise<Proj
       return { auth, effectiveProjectId: parts.managedProjectId };
     }
 
-    const fallbackProjectId = ANTIGRAVITY_DEFAULT_PROJECT_ID;
+    const fallbackProjectId = SOVEREIGN_DEFAULT_PROJECT_ID;
     const persistManagedProject = async (managedProjectId: string): Promise<ProjectContextResult> => {
       const updatedAuth: OAuthAuthDetails = {
         ...auth,
@@ -260,7 +260,7 @@ export async function ensureProjectContext(auth: OAuthAuthDetails): Promise<Proj
       return { auth: updatedAuth, effectiveProjectId: managedProjectId };
     };
 
-    // Try to resolve a managed project from Antigravity if possible.
+    // Try to resolve a managed project from Sovereign if possible.
     const loadPayload = await loadManagedProject(accessToken, parts.projectId ?? fallbackProjectId);
     const resolvedManagedProjectId = extractManagedProjectId(loadPayload);
 

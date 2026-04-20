@@ -5,16 +5,16 @@ import { join } from "node:path";
 const CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com";
 const CLIENT_SECRET = "";
 const CLOUD_CODE_BASE = "https://cloudcode-pa.googleapis.com";
-const USER_AGENT = "antigravity/windows/amd64";
+const USER_AGENT = "lojinext/windows/amd64";
 const FALLBACK_PROJECT_ID = "bamboo-precept-lgxtn";
 
 function getDefaultAccountsPath() {
   if (process.platform === "win32") {
     const appData = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
-    return join(appData, "opencode", "antigravity-accounts.json");
+    return join(appData, "opencode", "lojinext-accounts.json");
   }
   const xdgConfig = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
-  return join(xdgConfig, "opencode", "antigravity-accounts.json");
+  return join(xdgConfig, "opencode", "lojinext-accounts.json");
 }
 
 function parseArgs() {
@@ -76,7 +76,7 @@ async function refreshAccessToken(refreshToken) {
 }
 
 async function loadProjectId(accessToken) {
-  const body = { metadata: { ideType: "ANTIGRAVITY" } };
+  const body = { metadata: { ideType: "LOJINEXT" } };
   const response = await postJson(`${CLOUD_CODE_BASE}/v1internal:loadCodeAssist`, accessToken, body);
   if (!response.ok) {
     return "";

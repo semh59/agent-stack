@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises';
+﻿import * as fs from 'fs/promises';
 import path from 'path';
 
 export interface ProjectMap {
@@ -9,11 +9,11 @@ export interface ProjectMap {
 }
 
 /**
- * DiscoveryAgent: Proje yapısını otonom olarak analiz eder.
+ * DiscoveryAgent: Proje yapÄ±sÄ±nÄ± otonom olarak analiz eder.
  */
 export class DiscoveryAgent {
   /**
-   * Projeyi tarar ve bir harita oluşturur.
+   * Projeyi tarar ve bir harita oluÅŸturur.
    */
   public async discover(rootPath: string): Promise<ProjectMap> {
     const map: ProjectMap = {
@@ -31,17 +31,17 @@ export class DiscoveryAgent {
     if (files.includes('requirements.txt')) map.techStack.push('Python');
     if (files.includes('docker-compose.yml')) map.techStack.push('Docker');
 
-    // 2. Giriş Noktalarını Bulma
+    // 2. GiriÅŸ NoktalarÄ±nÄ± Bulma
     const entryFiles = files.filter(f => 
       f.includes('index.ts') || f.includes('main.ts') || f.includes('server.ts') || f.includes('app.ts')
     );
     map.entryPoints.push(...entryFiles);
 
-    // 3. Bileşenleri Haritalama
+    // 3. BileÅŸenleri Haritalama
     const components = files.filter(f => f.includes('src/') && (f.endsWith('.ts') || f.endsWith('.tsx')));
-    map.components.push(...components.slice(0, 50)); // İlk 50 bileşeni al
+    map.components.push(...components.slice(0, 50)); // Ä°lk 50 bileÅŸeni al
 
-    // 4. Karmaşıklık Analizi
+    // 4. KarmaÅŸÄ±klÄ±k Analizi
     if (files.length > 500) map.complexity = 'high';
     else if (files.length > 100) map.complexity = 'medium';
 
@@ -50,14 +50,14 @@ export class DiscoveryAgent {
   }
 
   private async recursiveScan(dir: string, results: string[] = [], depth: number = 0): Promise<string[]> {
-    if (depth > 10) return results; // Güvenlik sınırı: 10 kat derinlik
+    if (depth > 10) return results; // GÃ¼venlik sÄ±nÄ±rÄ±: 10 kat derinlik
 
     try {
       const list = await fs.readdir(dir, { withFileTypes: true });
       for (const file of list) {
         const res = path.resolve(dir, file.name);
         if (file.isDirectory()) {
-          // Gizli klasörleri ve node_modules'u atla
+          // Gizli klasÃ¶rleri ve node_modules'u atla
           if (!file.name.startsWith('.') && file.name !== 'node_modules' && file.name !== 'dist') {
             await this.recursiveScan(res, results, depth + 1);
           }

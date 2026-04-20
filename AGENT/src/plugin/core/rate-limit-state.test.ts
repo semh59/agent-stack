@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for rate limit state tracking.
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -16,7 +16,7 @@ import {
   resetAccountFailureState,
 } from "./rate-limit-state";
 
-// ── formatWaitTime ───────────────────────────────────────────────────
+// â”€â”€ formatWaitTime â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("formatWaitTime", () => {
   it("should format milliseconds", () => {
@@ -44,7 +44,7 @@ describe("formatWaitTime", () => {
   });
 });
 
-// ── extractRateLimitBodyInfo ─────────────────────────────────────────
+// â”€â”€ extractRateLimitBodyInfo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("extractRateLimitBodyInfo", () => {
   it("should handle null body", () => {
@@ -115,7 +115,7 @@ describe("extractRateLimitBodyInfo", () => {
   });
 });
 
-// ── Empty Response Attempts ──────────────────────────────────────────
+// â”€â”€ Empty Response Attempts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("empty response attempts", () => {
   beforeEach(() => {
@@ -141,7 +141,7 @@ describe("empty response attempts", () => {
   });
 });
 
-// ── getRateLimitBackoff ──────────────────────────────────────────────
+// â”€â”€ getRateLimitBackoff â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("getRateLimitBackoff", () => {
   beforeEach(() => {
@@ -190,7 +190,7 @@ describe("getRateLimitBackoff", () => {
   });
 });
 
-// ── resetAllRateLimitStateForAccount ─────────────────────────────────
+// â”€â”€ resetAllRateLimitStateForAccount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("resetAllRateLimitStateForAccount", () => {
   it("should reset all quotas for an account", () => {
@@ -204,15 +204,15 @@ describe("resetAllRateLimitStateForAccount", () => {
   });
 });
 
-// ── headerStyleToQuotaKey ────────────────────────────────────────────
+// â”€â”€ headerStyleToQuotaKey â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("headerStyleToQuotaKey", () => {
   it("should return claude for claude family", () => {
-    expect(headerStyleToQuotaKey("antigravity", "claude")).toBe("claude");
+    expect(headerStyleToQuotaKey("Sovereign", "claude")).toBe("claude");
   });
 
-  it("should return gemini-antigravity for antigravity style", () => {
-    expect(headerStyleToQuotaKey("antigravity", "gemini")).toBe("gemini-antigravity");
+  it("should return gemini-Sovereign for Sovereign style", () => {
+    expect(headerStyleToQuotaKey("Sovereign", "gemini")).toBe("gemini-Sovereign");
   });
 
   it("should return gemini-cli for gemini-cli style", () => {
@@ -220,7 +220,7 @@ describe("headerStyleToQuotaKey", () => {
   });
 });
 
-// ── trackAccountFailure ──────────────────────────────────────────────
+// â”€â”€ trackAccountFailure â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("trackAccountFailure", () => {
   beforeEach(() => {

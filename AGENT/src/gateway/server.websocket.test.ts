@@ -1,4 +1,4 @@
-import * as net from "node:net";
+﻿import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -292,7 +292,7 @@ describe("GatewayServer mission websocket routes", () => {
   let port = 0;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(path.join(os.tmpdir(), "lojinext-gateway-ws-"));
+    tmpDir = await mkdtemp(path.join(os.tmpdir(), "sovereign-gateway-ws-"));
     port = await getFreePort();
     repository = new InMemoryMissionRepository();
     gateway = new GatewayServer({

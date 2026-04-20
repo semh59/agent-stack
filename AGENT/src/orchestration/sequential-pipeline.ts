@@ -7,7 +7,7 @@ import { RARVEngine } from './rarv-engine';
 import { SkillMapper } from './skill-mapper';
 import { TerminalExecutor, type CommandResult } from './terminal-executor';
 import { SkillGenerator } from './skill-generator';
-import { AntigravityClient } from './antigravity-client';
+import { SovereignGatewayClient } from './gateway-client';
 import { VerificationEngine, type VerificationResult, type CommandVerificationResult } from './verification-engine';
 import { CheckpointManager } from './checkpoint-manager';
 import { AGENT_SCHEMAS, sanitizeOutput } from './schemas';
@@ -122,7 +122,7 @@ export interface PipelineResult {
 }
 
 /**
- * SequentialPipeline — The core orchestration engine for LojiNext.
+ * SequentialPipeline â€” The core orchestration engine for Sovereign AI.
  * Coordinates 18 agents in a staged, bulletproof flow.
  */
 export class SequentialPipeline {
@@ -138,7 +138,7 @@ export class SequentialPipeline {
   private paused: boolean = false;
   private running: boolean = false;
   private abortController: AbortController | null = null;
-  private antigravityClient?: AntigravityClient;
+  private sovereignClient?: SovereignGatewayClient;
   private temperature: number = 0.2;
   private maxOutputTokens: number = 4096;
   private sessionId: string;
@@ -160,9 +160,9 @@ export class SequentialPipeline {
   private errorListeners: Set<(agent: AgentDefinition, error: Error) => void | Promise<void>> = new Set();
   private verifyListeners: Set<(agent: AgentDefinition, result: CommandVerificationResult) => void | Promise<void>> = new Set();
 
-  constructor(projectRoot: string, antigravityClient?: AntigravityClient, overrides: { memory?: SharedMemory, terminal?: TerminalExecutor, toolEngine?: IToolExecutionEngine, optimizer?: PipelineOptimizer } = {}) {
+  constructor(projectRoot: string, sovereignClient?: SovereignGatewayClient, overrides: { memory?: SharedMemory, terminal?: TerminalExecutor, toolEngine?: IToolExecutionEngine, optimizer?: PipelineOptimizer } = {}) {
     this.projectRoot = projectRoot;
-    this.antigravityClient = antigravityClient;
+    this.sovereignClient = sovereignClient;
     this.memory = overrides.memory ?? new SharedMemory(projectRoot);
     this.rarv = new RARVEngine(this.memory);
     this.terminal = overrides.terminal ?? new TerminalExecutor(projectRoot);
@@ -300,7 +300,7 @@ export class SequentialPipeline {
       // Process settled results
       const results = settled.map((s, i) => {
         if (s.status === 'fulfilled') return s.value;
-        // Rejected — treat as failed
+        // Rejected â€” treat as failed
         const agent = agentsToExecute[i]!;
         const failResult: AgentResult = { agent, status: 'failed', durationMs: 0, outputFile: null, error: s.reason?.message ?? 'Unknown error' };
         agentResults.push(failResult);
@@ -370,7 +370,7 @@ export class SequentialPipeline {
         // Longer backoff for rate limits
         const multiplier = errorCat === 'rate_limit' ? 4 : 1;
         const delayMs = BASE_DELAY_MS * Math.pow(2, attempt - 1) * multiplier;
-        console.log(`[Pipeline] Retry ${attempt}/${MAX_ATTEMPTS} for ${agent.role} in ${delayMs}ms (category: ${errorCat})`);
+        console.log(`[Sovereign:Pipeline] Retry ${attempt}/${MAX_ATTEMPTS} for ${agent.role} in ${delayMs}ms (category: ${errorCat})`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
 
@@ -452,7 +452,7 @@ export class SequentialPipeline {
       // Use improved sanitizeOutput from schemas.ts
       const schemaResult = sanitizeOutput(agent.role, llmOutput);
       if (!schemaResult.success) {
-        console.warn(`[Pipeline] Schema validation warning for ${agent.role}: ${schemaResult.errors?.join(', ') ?? 'unknown'}`);
+        console.warn(`[Sovereign:Pipeline] Schema validation warning for ${agent.role}: ${schemaResult.errors?.join(', ') ?? 'unknown'}`);
       }
 
       const written = await this.memory.writeAgentOutput(agent.role, defaultFile, llmOutput);
@@ -488,7 +488,7 @@ export class SequentialPipeline {
 
       // Log structured error
       const category = this.categorizeError(error);
-      await this.memory.appendLog('system', `❌ Agent ${agent.role} failed [${category}]: ${error.message?.slice(0, 200) ?? 'Unknown'}`);
+      await this.memory.appendLog('system', `â Œ Agent ${agent.role} failed [${category}]: ${error.message?.slice(0, 200) ?? 'Unknown'}`);
 
       await this._emitError(agent, error, options);
       return { agent, status: 'failed', durationMs: Date.now() - start, outputFile: null, error: error.message };
@@ -523,7 +523,7 @@ export class SequentialPipeline {
     const history = state.backtrackHistory ?? [];
     history.push({ from, to, reason: reason.slice(0, 500), timestamp: new Date().toISOString() });
     await this.memory.updateState({ backtrackHistory: history } as any);
-    await this.memory.appendLog('system', `🛑 BACKTRACK TRIGGERED: ${from} → ${to} (${reason.slice(0, 200)})`);
+    await this.memory.appendLog('system', `ğŸ›‘ BACKTRACK TRIGGERED: ${from} â†’ ${to} (${reason.slice(0, 200)})`);
   }
 
   private async gatherAgentContext(agent: AgentDefinition, userTask: string) {
@@ -568,7 +568,7 @@ export class SequentialPipeline {
     if (!cb || !cb.isOpen) return;
     if (Date.now() >= cb.nextRetryAt) {
       // Half-open: allow one attempt
-      console.log(`[CircuitBreaker] Half-open for ${provider}, allowing attempt`);
+      console.log(`[Sovereign:Breaker] Half-open for ${provider}, allowing attempt`);
       return;
     }
     throw new Error(`Circuit breaker is OPEN for ${provider}. Next retry at ${new Date(cb.nextRetryAt).toISOString()}`);
@@ -589,12 +589,17 @@ export class SequentialPipeline {
     if (cb.failures >= 5) {
       cb.isOpen = true;
       cb.nextRetryAt = Date.now() + 60_000; // 1 minute cooldown
-      console.warn(`[CircuitBreaker] OPENED for ${provider} after ${cb.failures} failures`);
+      console.warn(`[Sovereign:Breaker] OPENED for ${provider} after ${cb.failures} failures`);
+      
+      // Phase 4.2: Health Telemetry
+      this.memory.updateState({ 
+        knownIssues: [`Circuit breaker OPEN for ${provider}`]
+      }).catch(() => {});
     }
   }
 
   /**
-   * Record a success — reset the circuit breaker.
+   * Record a success â€” reset the circuit breaker.
    */
   private recordCircuitSuccess(provider: string): void {
     this.circuitBreakers.delete(provider);
@@ -646,7 +651,7 @@ export class SequentialPipeline {
     timeoutMs: number = 180_000,
   ): Promise<{ output: string; tokenUsage: TokenUsage }> {
     const provider = this.detectProvider(model);
-    const fetchFn = this.antigravityClient ? this.antigravityClient.fetch.bind(this.antigravityClient) : fetch;
+    const fetchFn = this.sovereignClient ? this.sovereignClient.fetch.bind(this.sovereignClient) : fetch;
 
     let output: string;
     let tokenUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0, estimatedCostUsd: 0 };
@@ -699,7 +704,7 @@ export class SequentialPipeline {
       throw new Error(`Gemini API Error ${res.status}: ${body.slice(0, 500)}`);
     }
 
-    const data = await res.json() as any;
+    const data = (await res.json()) as any;
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     const usage = data.usageMetadata;
     const tokenUsage: TokenUsage = {
@@ -816,7 +821,7 @@ export class SequentialPipeline {
     const state = await this.memory.getState();
     if (state.completedAgents.includes('devops')) {
        const r = await this.terminal.runFullVerification();
-       await this.memory.writeAgentOutput('pipeline', 'verification-result.md', `# Final Verification\nBuild: ${r.build.success ? '🏆 OK' : '❌ FAIL'}\nTest: ${r.test.success ? '🏆 OK' : '❌ FAIL'}`);
+       await this.memory.writeAgentOutput('pipeline', 'verification-result.md', `# Final Verification\nBuild: ${r.build.success ? 'ğŸ† OK' : 'âŒ FAIL'}\nTest: ${r.test.success ? 'ğŸ† OK' : 'âŒ FAIL'}`);
     }
   }
 
@@ -837,7 +842,7 @@ export class SequentialPipeline {
     };
     await fs.mkdir(path.dirname(workflowPath), { recursive: true });
     await fs.writeFile(workflowPath, JSON.stringify(workflow, null, 2), 'utf-8');
-    console.log(`[Pipeline] Workflow saved to ${workflowPath}`);
+    console.log(`[Sovereign:Pipeline] Workflow saved to ${workflowPath}`);
   }
 
   /**

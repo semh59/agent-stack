@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+﻿import { describe, expect, it, vi } from "vitest";
 import { InMemoryMissionRepository } from "../../repositories/mission.repository";
 import { StartupRecoveryCoordinator } from "./StartupRecovery";
 import type { MissionModel } from "../../models/mission.model";

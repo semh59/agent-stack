@@ -1,13 +1,13 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { AntigravityConfigSchema } from "../src/plugin/config/schema.js";
+import { SovereignGatewayConfigSchema } from "../src/plugin/config/schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const outputPath = join(__dirname, "../assets/antigravity.schema.json");
+const outputPath = join(__dirname, "../assets/sovereign.schema.json");
 
 // Use zod v4's built-in toJSONSchema method
-const rawSchema = AntigravityConfigSchema.toJSONSchema({
+const rawSchema = SovereignGatewayConfigSchema.toJSONSchema({
   unrepresentable: "any",
   override: (_ctx) => undefined // Use default handling
 }) as Record<string, unknown>;
@@ -18,21 +18,21 @@ delete rawSchema.required;
 
 const envVarDescriptions: Record<string, string> = {
   quiet_mode:
-    "Suppress most toast notifications (rate limit, account switching). Recovery toasts always shown. Env: OPENCODE_ANTIGRAVITY_QUIET=1",
+    "Suppress most toast notifications (rate limit, account switching). Recovery toasts always shown. Env: OPENCODE_SOVEREIGN_QUIET=1",
   debug:
-    "Enable debug logging to file. Env: OPENCODE_ANTIGRAVITY_DEBUG=1 (or =2 for verbose)",
+    "Enable debug logging to file. Env: OPENCODE_SOVEREIGN_DEBUG=1 (or =2 for verbose)",
   log_dir:
-    "Custom directory for debug logs. Env: OPENCODE_ANTIGRAVITY_LOG_DIR=/path/to/logs",
+    "Custom directory for debug logs. Env: OPENCODE_SOVEREIGN_LOG_DIR=/path/to/logs",
   keep_thinking:
-    "Preserve thinking blocks for Claude models using signature caching. May cause signature errors. Env: OPENCODE_ANTIGRAVITY_KEEP_THINKING=1",
+    "Preserve thinking blocks for Claude models using signature caching. May cause signature errors. Env: OPENCODE_SOVEREIGN_KEEP_THINKING=1",
   session_recovery:
-    "Enable automatic session recovery from tool_result_missing errors. Env: OPENCODE_ANTIGRAVITY_SESSION_RECOVERY=1",
+    "Enable automatic session recovery from tool_result_missing errors. Env: OPENCODE_SOVEREIGN_SESSION_RECOVERY=1",
   auto_resume:
-    "Automatically send resume prompt after successful recovery. Env: OPENCODE_ANTIGRAVITY_AUTO_RESUME=1",
+    "Automatically send resume prompt after successful recovery. Env: OPENCODE_SOVEREIGN_AUTO_RESUME=1",
   resume_text:
-    "Custom text to send when auto-resuming after recovery. Env: OPENCODE_ANTIGRAVITY_RESUME_TEXT=continue",
+    "Custom text to send when auto-resuming after recovery. Env: OPENCODE_SOVEREIGN_RESUME_TEXT=continue",
   empty_response_max_attempts:
-    "Maximum retry attempts when Antigravity returns an empty response (no candidates).",
+    "Maximum retry attempts when Sovereign AI returns an empty response (no candidates).",
   empty_response_retry_delay_ms:
     "Delay in milliseconds between empty response retries.",
   tool_id_recovery:
@@ -45,7 +45,7 @@ const envVarDescriptions: Record<string, string> = {
     "Seconds before token expiry to trigger proactive refresh.",
   proactive_refresh_check_interval_seconds:
     "Interval between proactive refresh checks in seconds.",
-  auto_update: "Enable automatic plugin updates. Env: OPENCODE_ANTIGRAVITY_AUTO_UPDATE=1",
+  auto_update: "Enable automatic plugin updates. Env: OPENCODE_SOVEREIGN_AUTO_UPDATE=1",
 };
 
 const signatureCacheDescriptions: Record<string, string> = {
@@ -77,8 +77,8 @@ function addDescriptions(schema: Record<string, unknown>): void {
 }
 
 const definitions = rawSchema.definitions as Record<string, Record<string, unknown>> | undefined;
-if (definitions?.AntigravityConfig) {
-  addDescriptions(definitions.AntigravityConfig);
+if (definitions?.SovereignGatewayConfig) {
+  addDescriptions(definitions.SovereignGatewayConfig);
 } else {
   addDescriptions(rawSchema);
 }

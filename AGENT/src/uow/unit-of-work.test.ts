@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -87,7 +87,7 @@ describe("UnitOfWork", () => {
   });
 
   it("provides a SQLite-backed repository when given a database", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "lojinext-uow-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sovereign-uow-"));
     cleanupDirs.add(dir);
 
     const database = new MissionDatabase({ dbPath: path.join(dir, "missions.db") });
@@ -110,7 +110,7 @@ describe("UnitOfWork", () => {
     await expect(memory.rollback()).resolves.toBeUndefined();
     await expect(memory.rollback()).resolves.toBeUndefined();
 
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "lojinext-uow-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sovereign-uow-"));
     cleanupDirs.add(dir);
 
     const database = new MissionDatabase({ dbPath: path.join(dir, "missions.db") });

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import { GearEngine } from "./GearEngine";
 import type { AutonomySession, SessionOpLogEntry } from "./autonomy-types";
 
@@ -79,7 +79,7 @@ describe("GearEngine", () => {
       expect(engine.squeezeHistory(session)).toBe("No prior history in this mission.");
     });
 
-    it("shows all entries when ≤5", () => {
+    it("shows all entries when â‰¤5", () => {
       const session = mockSession([
         { cycle: 1, taskType: "analysis", status: "completed", summary: "Analyzed code" },
         { cycle: 2, taskType: "implementation", status: "completed", summary: "Wrote feature" },

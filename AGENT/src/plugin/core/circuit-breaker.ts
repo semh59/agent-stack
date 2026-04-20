@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Endpoint Circuit Breaker
  * 
  * Prevents "thundering herd" and wasted requests to failing endpoints.

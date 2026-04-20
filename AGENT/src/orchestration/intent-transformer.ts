@@ -1,4 +1,4 @@
-import { pipeline } from '@xenova/transformers';
+﻿import { pipeline } from '@xenova/transformers';
 import { join } from 'node:path';
 import { getConfigDir } from '../plugin/storage';
 
@@ -25,7 +25,7 @@ export class IntentTransformer {
   }
 
   /**
-   * Modeli yükler (Eğer yüklenmemişse). İlk yükleme vakit alabilir (indirilir).
+   * Modeli yÃ¼kler (EÄŸer yÃ¼klenmemiÅŸse). Ä°lk yÃ¼kleme vakit alabilir (indirilir).
    *
    * Thread-safe initialization using Promise memoization:
    * - First call starts model loading and saves the Promise
@@ -62,7 +62,7 @@ export class IntentTransformer {
   private async _loadModel(): Promise<any> {
     const cacheDir = join(getConfigDir(), 'models');
 
-    // Transformers.js local cache ve WASM ayarları
+    // Transformers.js local cache ve WASM ayarlarÄ±
     const options = {
       // @ts-ignore - transformers.js types can be tricky
       cache_dir: cacheDir,

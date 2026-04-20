@@ -1,6 +1,6 @@
-# Contributing to LojiNext Sovereign Factory
+# Contributing to Sovereign Sovereign Factory
 
-Welcome to the LojiNext elite orchestration layer. This document outlines the standards and patterns for contributing to this system.
+Welcome to the Sovereign elite orchestration layer. This document outlines the standards and patterns for contributing to this system.
 
 ## Architectural Principles
 
@@ -36,4 +36,4 @@ The core of the system is the **SequentialPipeline**. It manages 18 specialized 
 
 ---
 
-_LojiNext — Elite Global Agent Standards enforced._
+_Sovereign — Elite Global Agent Standards enforced._

@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from "vitest";
+﻿import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -32,14 +32,14 @@ describe("updateOpencodeConfig", () => {
     // Verify written config has correct structure
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     expect(writtenConfig.$schema).toBe("https://opencode.ai/config.json");
-    expect(writtenConfig.plugin).toContain("lojinext-ai@latest");
+    expect(writtenConfig.plugin).toContain("sovereign-ai@latest");
     expect(writtenConfig.provider?.google?.models).toBeDefined();
   });
 
   test("replaces existing google models with plugin models", async () => {
     const existingConfig = {
       $schema: "https://opencode.ai/config.json",
-      plugin: ["lojinext-ai@latest"],
+      plugin: ["sovereign-ai@latest"],
       provider: {
         google: {
           models: {
@@ -58,14 +58,14 @@ describe("updateOpencodeConfig", () => {
     // Old model should be replaced
     expect(writtenConfig.provider.google.models["old-model"]).toBeUndefined();
     // New models should be present
-    expect(writtenConfig.provider.google.models["antigravity-gemini-3-pro"]).toBeDefined();
-    expect(writtenConfig.provider.google.models["antigravity-claude-sonnet-4-5"]).toBeDefined();
+    expect(writtenConfig.provider.google.models["Sovereign-gemini-3-pro"]).toBeDefined();
+    expect(writtenConfig.provider.google.models["Sovereign-claude-sonnet-4-5"]).toBeDefined();
   });
 
   test("preserves non-google provider sections", async () => {
     const existingConfig = {
       $schema: "https://opencode.ai/config.json",
-      plugin: ["lojinext-ai@latest"],
+      plugin: ["sovereign-ai@latest"],
       provider: {
         google: {
           models: { "old-model": {} },
@@ -94,7 +94,7 @@ describe("updateOpencodeConfig", () => {
   test("preserves $schema and other top-level config keys", async () => {
     const existingConfig = {
       $schema: "https://opencode.ai/config.json",
-      plugin: ["lojinext-ai@latest", "other-plugin"],
+      plugin: ["sovereign-ai@latest", "other-plugin"],
       theme: "dark",
       customSetting: { nested: true },
       provider: {
@@ -126,13 +126,13 @@ describe("updateOpencodeConfig", () => {
     expect(result.success).toBe(true);
 
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    expect(writtenConfig.plugin).toContain("lojinext-ai@latest");
+    expect(writtenConfig.plugin).toContain("sovereign-ai@latest");
     expect(writtenConfig.plugin).toContain("other-plugin");
   });
 
   test("does not duplicate plugin if already present", async () => {
     const existingConfig = {
-      plugin: ["lojinext-ai@latest", "other-plugin"],
+      plugin: ["sovereign-ai@latest", "other-plugin"],
       provider: {},
     };
     fs.writeFileSync(configPath, JSON.stringify(existingConfig));
@@ -143,14 +143,14 @@ describe("updateOpencodeConfig", () => {
 
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     const pluginCount = writtenConfig.plugin.filter(
-      (p: string) => p.includes("lojinext-ai")
+      (p: string) => p.includes("sovereign-ai")
     ).length;
     expect(pluginCount).toBe(1);
   });
 
   test("does not duplicate plugin if different version present", async () => {
     const existingConfig = {
-      plugin: ["lojinext-ai@beta", "other-plugin"],
+      plugin: ["sovereign-ai@beta", "other-plugin"],
       provider: {},
     };
     fs.writeFileSync(configPath, JSON.stringify(existingConfig));
@@ -161,12 +161,12 @@ describe("updateOpencodeConfig", () => {
 
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     const pluginCount = writtenConfig.plugin.filter(
-      (p: string) => p.includes("lojinext-ai")
+      (p: string) => p.includes("sovereign-ai")
     ).length;
     // Should not add another version if one exists
     expect(pluginCount).toBe(1);
     // Should preserve the existing version
-    expect(writtenConfig.plugin).toContain("lojinext-ai@beta");
+    expect(writtenConfig.plugin).toContain("sovereign-ai@beta");
   });
 
   test("writes config with proper JSON formatting (2-space indent)", async () => {
@@ -214,7 +214,7 @@ describe("updateOpencodeConfig", () => {
 
   test("adds $schema if missing from existing config", async () => {
     const existingConfig = {
-      plugin: ["lojinext-ai@latest"],
+      plugin: ["sovereign-ai@latest"],
       provider: { google: {} },
     };
     fs.writeFileSync(configPath, JSON.stringify(existingConfig));
@@ -229,7 +229,7 @@ describe("updateOpencodeConfig", () => {
 
   test("preserves other google provider settings besides models", async () => {
     const existingConfig = {
-      plugin: ["lojinext-ai@latest"],
+      plugin: ["sovereign-ai@latest"],
       provider: {
         google: {
           apiKey: "test-key",

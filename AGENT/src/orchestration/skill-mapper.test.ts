@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+﻿import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SkillMapper, getSkillMap } from './skill-mapper';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
@@ -115,7 +115,7 @@ describe('SkillMapper', () => {
   describe('buildEnrichedPrompt', () => {
     it('should return base prompt when no skills exist on disk', async () => {
       const agent = {
-        order: 1, role: 'ceo', name: 'CEO', emoji: '👔',
+        order: 1, role: 'ceo', name: 'CEO', emoji: 'ğŸ‘”',
         layer: 'management' as const, preferredModel: 'test' as any,
         inputFiles: [], outputFiles: ['ceo-brief.md'],
         estimatedMinutes: 5, systemPrompt: 'You are the CEO.',
@@ -131,7 +131,7 @@ describe('SkillMapper', () => {
       await fs.writeFile(path.join(skillDir, 'SKILL.md'), '# Architecture Guide\nBest practices.', 'utf-8');
 
       const agent = {
-        order: 1, role: 'ceo', name: 'CEO', emoji: '👔',
+        order: 1, role: 'ceo', name: 'CEO', emoji: 'ğŸ‘”',
         layer: 'management' as const, preferredModel: 'test' as any,
         inputFiles: [], outputFiles: ['ceo-brief.md'],
         estimatedMinutes: 5, systemPrompt: 'You are the CEO.',

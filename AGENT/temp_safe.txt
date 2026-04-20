@@ -1,1 +1,0 @@
-const key = 'SAFE_STRING';

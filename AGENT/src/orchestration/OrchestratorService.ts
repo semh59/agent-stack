@@ -1,4 +1,4 @@
-import { eventBus } from "./event-bus";
+﻿import { eventBus } from "./event-bus";
 import { AutonomousLoopEngine } from "./autonomous-loop-engine";
 import { SequentialPipeline } from "./sequential-pipeline";
 import type { 
@@ -8,12 +8,12 @@ import type {
 } from "./autonomy-types";
 
 /**
- * OrchestratorService: The central coordinator for LojiNext autonomous missions and pipelines.
+ * OrchestratorService: The central coordinator for Sovereign autonomous missions and pipelines.
  * 
  * Implements the "Global State Controller" pattern, ensuring synchronization between
  * autonomous missions, task pipelines, and the frontend store.
  * 
- * Pattern: router → service → engine/manager
+ * Pattern: router â†’ service â†’ engine/manager
  */
 export class OrchestratorService {
   private static instance: OrchestratorService;
@@ -24,7 +24,7 @@ export class OrchestratorService {
 
   private constructor(
     projectRoot: string, 
-    client?: import("./antigravity-client").AntigravityClient
+    client?: import("./gateway-client").SovereignGatewayClient
   ) {
     this.autonomyEngine = new AutonomousLoopEngine({ projectRoot, client });
     
@@ -43,7 +43,7 @@ export class OrchestratorService {
 
   public static getInstance(
     projectRoot: string, 
-    client?: import("./antigravity-client").AntigravityClient
+    client?: import("./gateway-client").SovereignGatewayClient
   ): OrchestratorService {
     if (!OrchestratorService.instance) {
       OrchestratorService.instance = new OrchestratorService(projectRoot, client);
@@ -88,7 +88,7 @@ export class OrchestratorService {
   }
 
   /**
-   * Handle gate failure events — halt affected pipelines.
+   * Handle gate failure events â€” halt affected pipelines.
    */
   private handleGateEvent(event: AutonomyEvent): void {
     if (event.payload.passed === false) {
@@ -98,7 +98,7 @@ export class OrchestratorService {
   }
 
   /**
-   * Handle budget limit events — emit warning notifications and leave hard-stop
+   * Handle budget limit events â€” emit warning notifications and leave hard-stop
    * ownership to the engine so missions fail instead of being marked as stopped.
    */
   private handleBudgetLimit(event: AutonomyEvent): void {
@@ -128,5 +128,5 @@ export class OrchestratorService {
 
 export const orchestratorService = (
   projectRoot: string, 
-  client?: import("./antigravity-client").AntigravityClient
+  client?: import("./gateway-client").SovereignGatewayClient
 ) => OrchestratorService.getInstance(projectRoot, client);

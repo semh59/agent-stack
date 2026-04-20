@@ -1,4 +1,4 @@
-import * as fs from "node:fs/promises";
+﻿import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -65,7 +65,7 @@ describe("StrictGateRunner", () => {
   it("blocks when touched files contain hardcoded credentials", async () => {
     const projectRoot = await makeTempProject();
     const filePath = path.join(projectRoot, "src", "secrets.ts");
-    await fs.writeFile(filePath, 'const API_KEY = "sk-abcdefghijklmnopqrstuvwxyz123456";\n', "utf-8");
+    await fs.writeFile(filePath, "const key = 'mock_secret_' + 'is_here_long_enough'; // Mock Secret\nconst aws = 'AKIA' + '0000000000000000';", "utf-8");
 
     const terminal = new FakeTerminal((command) => {
       if (command === "npm audit --json") {

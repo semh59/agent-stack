@@ -1,7 +1,7 @@
-/**
- * Auth Gateway — Dual-Provider Authentication Orchestration
+﻿/**
+ * Auth Gateway â€” Dual-Provider Authentication Orchestration
  *
- * Manages authentication across both Google Antigravity and Claude Code.
+ * Manages authentication across both Google Sovereign and Claude Code.
  * Provides a unified interface for the Gateway server to:
  *   1. Initiate login for either provider
  *   2. Handle auth callbacks
@@ -10,7 +10,7 @@
  *   5. Switch between providers seamlessly
  */
 
-import { GoogleAntigravityProvider } from "./google-provider";
+import { GoogleGeminiProvider } from "./google-provider";
 import { ClaudeCodeProvider } from "./claude-provider";
 import {
   AIProvider,
@@ -20,7 +20,7 @@ import {
 } from "./provider-types";
 import { TokenStore, type StoredToken } from "./token-store";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface AuthGatewayOptions {
   /** Token store for Google tokens (existing infrastructure) */
@@ -36,7 +36,7 @@ export interface AuthSession {
   createdAt: number;
 }
 
-// ─── Auth Gateway ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Auth Gateway â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class AuthGateway {
   private readonly providers: Map<AIProvider, ProviderAdapter>;
@@ -47,18 +47,18 @@ export class AuthGateway {
 
   constructor(options: AuthGatewayOptions) {
     this.tokenStore = options.tokenStore;
-    this.activeProvider = options.defaultProvider ?? AIProvider.GOOGLE_ANTIGRAVITY;
+    this.activeProvider = options.defaultProvider ?? AIProvider.GOOGLE_GEMINI;
 
     // Register providers
     this.providers = new Map();
-    this.providers.set(AIProvider.GOOGLE_ANTIGRAVITY, new GoogleAntigravityProvider());
+    this.providers.set(AIProvider.GOOGLE_GEMINI, new GoogleGeminiProvider());
     this.providers.set(AIProvider.CLAUDE_CODE, new ClaudeCodeProvider());
 
     // Hydrate existing Google tokens into unified format
     this.hydrateGoogleTokens();
   }
 
-  // ── Provider Management ──────────────────────────────────────────────────
+  // â”€â”€ Provider Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Get the currently active provider */
   getActiveProvider(): AIProvider {
@@ -88,7 +88,7 @@ export class AuthGateway {
     return false;
   }
 
-  // ── Auth Flow ────────────────────────────────────────────────────────────
+  // â”€â”€ Auth Flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /**
    * Initiate login for a specific provider.
@@ -144,7 +144,7 @@ export class AuthGateway {
     this.activeProvider = session.provider;
 
     // For Google, also sync to the legacy TokenStore
-    if (session.provider === AIProvider.GOOGLE_ANTIGRAVITY) {
+    if (session.provider === AIProvider.GOOGLE_GEMINI) {
       this.tokenStore.addOrUpdateAccount({
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,
@@ -158,7 +158,7 @@ export class AuthGateway {
     return token;
   }
 
-  // ── Token Management ─────────────────────────────────────────────────────
+  // â”€â”€ Token Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Get a valid access token for the active provider, auto-refreshing if needed */
   async getValidToken(): Promise<UnifiedToken | null> {
@@ -184,7 +184,7 @@ export class AuthGateway {
         this.unifiedTokens.set(key, refreshed);
 
         // Sync Google refreshes to legacy store
-        if (provider === AIProvider.GOOGLE_ANTIGRAVITY) {
+        if (provider === AIProvider.GOOGLE_GEMINI) {
           this.tokenStore.addOrUpdateAccount({
             accessToken: refreshed.accessToken,
             refreshToken: refreshed.refreshToken,
@@ -231,14 +231,14 @@ export class AuthGateway {
     this.unifiedTokens.delete(email);
 
     // Also remove from legacy store if Google
-    if (token.provider === AIProvider.GOOGLE_ANTIGRAVITY) {
+    if (token.provider === AIProvider.GOOGLE_GEMINI) {
       this.tokenStore.removeAccount(email);
     }
 
     return true;
   }
 
-  // ── Model Access ─────────────────────────────────────────────────────────
+  // â”€â”€ Model Access â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /** Get all models available with current valid tokens */
   getAvailableModels(): ProviderModel[] {
@@ -270,7 +270,7 @@ export class AuthGateway {
     return null;
   }
 
-  // ── Internal ─────────────────────────────────────────────────────────────
+  // â”€â”€ Internal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /**
    * Convert existing Google TokenStore entries to UnifiedTokens.
@@ -282,14 +282,14 @@ export class AuthGateway {
       if (!account.email) continue;
 
       const unified: UnifiedToken = {
-        provider: AIProvider.GOOGLE_ANTIGRAVITY,
+        provider: AIProvider.GOOGLE_GEMINI,
         accessToken: account.accessToken,
         refreshToken: account.refreshToken,
         expiresAt: account.expiresAt,
         email: account.email,
         projectId: account.projectId,
         createdAt: account.createdAt,
-        availableModels: this.providers.get(AIProvider.GOOGLE_ANTIGRAVITY)?.getAvailableModels() ?? [],
+        availableModels: this.providers.get(AIProvider.GOOGLE_GEMINI)?.getAvailableModels() ?? [],
       };
       this.unifiedTokens.set(account.email, unified);
     }

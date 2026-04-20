@@ -1,17 +1,17 @@
 export {
-  AntigravityCLIOAuthPlugin,
+  SovereignCLIOAuthPlugin,
   GoogleOAuthPlugin,
 } from "./src/plugin";
 
 export {
-  authorizeAntigravity,
-  exchangeAntigravity,
-} from "./src/antigravity/oauth";
+  authorizeGoogleGemini,
+  exchangeGoogleGemini,
+} from "./src/google-gemini/oauth";
 
 export type {
-  AntigravityAuthorization,
-  AntigravityTokenExchangeResult,
-} from "./src/antigravity/oauth";
+  SovereignAuthorization,
+  SovereignTokenExchangeResult,
+} from "./src/google-gemini/oauth";
 
 // Sequential Pipeline (Seçenek A)
 export { SequentialPipeline, PlanMode } from './src/orchestration/sequential-pipeline';
@@ -30,7 +30,7 @@ export type { ProposedSkill } from './src/orchestration/skill-generator';
 
 export { PipelineTools } from './src/orchestration/pipeline-tools';
 
-// Phase 3: Auth Gateway (Google Antigravity OAuth → Otonom Agent Handoff)
+// Phase 3: Auth Gateway (Google Sovereign AI OAuth → Otonom Agent Handoff)
 export { startGateway, type GatewayOptions } from './src/gateway/gateway';
 export { AuthServer, type AuthServerOptions, type AuthResult, type AuthErrorCode } from './src/gateway/auth-server';
 export { TokenStore, type StoredToken, type TokenStoreData } from './src/gateway/token-store';

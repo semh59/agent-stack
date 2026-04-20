@@ -70,7 +70,7 @@ const PROVIDERS: ProviderDef[] = [
   {
     id: "google",
     label: "Google",
-    blurb: "Gemini via OAuth. Uses the Antigravity credentials in Accounts.",
+    blurb: "Gemini via OAuth. Uses the Sovereign AI credentials in Accounts.",
     kind: "hosted",
     hasApiKey: false,
   },

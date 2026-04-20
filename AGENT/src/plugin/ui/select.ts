@@ -1,4 +1,4 @@
-import { ANSI, isTTY, parseKey } from './ansi';
+﻿import { ANSI, isTTY, parseKey } from './ansi';
 
 export interface MenuItem<T = string> {
   label: string;
@@ -69,11 +69,11 @@ export async function select<T>(
     }
     isFirstRender = false;
 
-    stdout.write(`${ANSI.clearLine}${ANSI.dim}┌  ${ANSI.reset}${message}\n`);
+    stdout.write(`${ANSI.clearLine}${ANSI.dim}â”Œ  ${ANSI.reset}${message}\n`);
     
     if (subtitle) {
-      stdout.write(`${ANSI.clearLine}${ANSI.dim}│${ANSI.reset}\n`);
-      stdout.write(`${ANSI.clearLine}${ANSI.cyan}◆${ANSI.reset}  ${subtitle}\n`);
+      stdout.write(`${ANSI.clearLine}${ANSI.dim}â”‚${ANSI.reset}\n`);
+      stdout.write(`${ANSI.clearLine}${ANSI.cyan}â—†${ANSI.reset}  ${subtitle}\n`);
       stdout.write(`${ANSI.clearLine}\n`);
     }
 
@@ -82,7 +82,7 @@ export async function select<T>(
       if (!item) continue;
 
       if (item.separator) {
-        stdout.write(`${ANSI.clearLine}${ANSI.dim}│${ANSI.reset}\n`);
+        stdout.write(`${ANSI.clearLine}${ANSI.dim}â”‚${ANSI.reset}\n`);
         continue;
       }
 
@@ -103,14 +103,14 @@ export async function select<T>(
       }
 
       if (isSelected) {
-        stdout.write(`${ANSI.clearLine}${ANSI.cyan}│${ANSI.reset}  ${ANSI.green}●${ANSI.reset} ${labelText}\n`);
+        stdout.write(`${ANSI.clearLine}${ANSI.cyan}â”‚${ANSI.reset}  ${ANSI.green}â—${ANSI.reset} ${labelText}\n`);
       } else {
-        stdout.write(`${ANSI.clearLine}${ANSI.cyan}│${ANSI.reset}  ${ANSI.dim}○${ANSI.reset} ${labelText}\n`);
+        stdout.write(`${ANSI.clearLine}${ANSI.cyan}â”‚${ANSI.reset}  ${ANSI.dim}â—‹${ANSI.reset} ${labelText}\n`);
       }
     }
 
-    stdout.write(`${ANSI.clearLine}${ANSI.cyan}│${ANSI.reset}  ${ANSI.dim}↑/↓ to select • Enter: confirm${ANSI.reset}\n`);
-    stdout.write(`${ANSI.clearLine}${ANSI.cyan}└${ANSI.reset}\n`);
+    stdout.write(`${ANSI.clearLine}${ANSI.cyan}â”‚${ANSI.reset}  ${ANSI.dim}â†‘/â†“ to select â€¢ Enter: confirm${ANSI.reset}\n`);
+    stdout.write(`${ANSI.clearLine}${ANSI.cyan}â””${ANSI.reset}\n`);
   };
 
   return new Promise((resolve) => {

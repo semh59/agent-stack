@@ -48,8 +48,8 @@ services:
     environment:
       NODE_ENV: production
       APP_ENV: "${APP_ENV:-production}"
-      LOJINEXT_GATEWAY_PORT: "3000"
-      LOJINEXT_GATEWAY_HOST: "0.0.0.0"
+      SOVEREIGN_GATEWAY_PORT: "3000"
+      SOVEREIGN_GATEWAY_HOST: "0.0.0.0"
       LOJINEXT_GATEWAY_TOKEN: "${GATEWAY_AUTH_TOKEN:?Set GATEWAY_AUTH_TOKEN}"
       AI_STACK_BRIDGE_HOST: "optimization-bridge"
       AI_STACK_BRIDGE_PORT: "9100"

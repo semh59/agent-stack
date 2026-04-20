@@ -1,13 +1,18 @@
+# ────────────────────────────────────────────────────────────────────────
+# Sovereign — repo ignore rules (single source of truth)
+# ────────────────────────────────────────────────────────────────────────
+
 # IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
+Thumbs.db
 
 # Dependencies
 node_modules/
 .venv/
-env/
 venv/
 ENV/
 bin/
@@ -15,8 +20,14 @@ include/
 lib/
 share/
 pyvenv.cfg
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Build/Dist
+# Build / dist
 **/dist/
 **/build/
 **/out/
@@ -27,39 +38,74 @@ pyvenv.cfg
 *.dll
 *.so
 *.dylib
+*.tgz
+*.tar.gz
+**/*.tsbuildinfo
 
-# Environment / Secrets
+# Secrets / environment
 .env
 .env.*
 !.env.example
+!env/.env.development
+!env/.env.staging
+!env/.env.production
 *.pem
 *.key
+*.crt
+*.p12
 
-# Logs and Temporary files
+# Explicit secret fixtures (never commit these paths again)
+**/temp_*.txt
+**/temp_*.env
+**/temp_encoded_exec.*
+**/gateway_token.txt
+**/token-store.json
+**/.tmp/
+**/.tmp_*/
+
+# Test artifacts & rotations
+**/*.db
+**/*.db-journal
+**/*.db.corrupt.*
+**/*.sqlite
+**/*.sqlite3
+**/test-workspace*/
+**/test-missions-*.db*
+**/test-results.txt
+**/final_test_report.txt
+**/test-errors.log
+**/test-out.txt
+**/test-report.txt
+**/test-file.ts
+**/test_e2e_pipeline.ts
+**/*.lcov
+**/coverage/
+
+# VS Code extension packages
+**/*.vsix
+
+# Logs
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-.tmp/
-temp/
-tmp/
+antigravity-debug-*.log
+tsc-errors.log
+tsc-errors.txt
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+.eslintcache
 
-# Project Specific Ignored Files
-*.db
-*.db-journal
-*.sqlite
-shared_memory.bin
-test_output.txt
-test_result.txt
-test-results.txt
-tsc_errors.txt
-tsc_output.txt
-tsc_output_utf8.txt
-tsc_verify.txt
-*.logolder.env
-.tmp_stress_test_new/
+# Agent session artefacts
+**/.ai-company/
+**/.opencode_test/
+**/.agent/
+**/tmpclaude-*
 
-# OS files
-.DS_Store
-Thumbs.db
+# Windows-path accidents
+**/d:/
+
+# Benchmark scratch dirs (should live in separate repos)
+sovereign-benchmark-api/
+ultimate-integrity-benchmark/

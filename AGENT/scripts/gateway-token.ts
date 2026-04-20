@@ -8,7 +8,7 @@ function parseMode(input: string | undefined): Mode {
 }
 
 function generateToken(): string {
-  return `lojinext_${crypto.randomBytes(32).toString('base64url')}`;
+  return `sovereign_${crypto.randomBytes(32).toString('base64url')}`;
 }
 
 function maskToken(token: string): string {

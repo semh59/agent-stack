@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -143,7 +143,7 @@ describe("SQLiteMissionRepository", () => {
   });
 
   async function createSubject() {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "lojinext-sqlite-repo-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sovereign-sqlite-repo-"));
     const dbPath = path.join(dir, "missions.db");
     cleanupPaths.add(dbPath);
     const database = new MissionDatabase({ dbPath });

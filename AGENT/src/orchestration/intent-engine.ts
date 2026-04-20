@@ -1,4 +1,4 @@
-import { IntentClassifier, type TrainingExample } from './intent-classifier';
+﻿import { IntentClassifier, type TrainingExample } from './intent-classifier';
 import { IntentTransformer } from './intent-transformer';
 import { join } from 'node:path';
 import { getConfigDir } from '../plugin/storage';
@@ -32,22 +32,22 @@ export class IntentEngine {
   private transformerEnabled = false;
   private keywordMap = {
     backend: ['api', 'endpoint', 'database', 'db', 'model', 'migration', 'service', 'python', 'auth', 'oauth', 'backend'],
-    frontend: ['component', 'sayfa', 'page', 'ui', 'style', 'react', 'state', 'form', 'frontend', 'css', 'html', 'health', 'kalori', 'calorie', 'takip', 'timer', 'sayaç', 'sayacı', 'countdown'],
+    frontend: ['component', 'sayfa', 'page', 'ui', 'style', 'react', 'state', 'form', 'frontend', 'css', 'html', 'health', 'kalori', 'calorie', 'takip', 'timer', 'sayaÃ§', 'sayacÄ±', 'countdown'],
     qa: ['test', 'coverage', 'bug', 'edge case', 'regression', 'qa', 'vitest', 'jest', 'playwright', 'kalite', 'analizi', 'kod inceleme'],
     devops: ['deploy', 'production', 'release', 'ci', 'cd', 'docker', 'server', 'aws', 'cloud'],
-    security: ['security', 'vulnerability', 'exploit', 'audit', 'pentest', 'aes', 'gcm', 'güvenlik', 'sql injection', 'xss', 'firewall', 'sandbox'],
+    security: ['security', 'vulnerability', 'exploit', 'audit', 'pentest', 'aes', 'gcm', 'gÃ¼venlik', 'sql injection', 'xss', 'firewall', 'sandbox'],
     lead_architect: ['architecture', 'flow', 'design', 'structure', 'explain', 'diagram', 'pattern', 'hierarchy']
   };
 
   private trainingExamples: TrainingExample[] = [
-    { text: 'JWT token doğrulama açığı var mı kontrol et', label: 'security' },
-    { text: 'Login sayfasındaki buton rengini değiştir', label: 'frontend' },
-    { text: 'PostgreSQL sorgusu yavaş, optimize et', label: 'backend' },
+    { text: 'JWT token doÄŸrulama aÃ§Ä±ÄŸÄ± var mÄ± kontrol et', label: 'security' },
+    { text: 'Login sayfasÄ±ndaki buton rengini deÄŸiÅŸtir', label: 'frontend' },
+    { text: 'PostgreSQL sorgusu yavaÅŸ, optimize et', label: 'backend' },
     { text: 'React component testlerini yaz', label: 'qa' },
-    { text: 'Yeni kullanıcı kaydı feature’ını deploy et', label: 'devops' },
-    { text: 'API endpoint dökümantasyonu güncelle', label: 'lead_architect' },
-    { text: 'Güvenlik değil, sadece UI testi yap', label: 'qa' },
-    { text: 'frontend bug’ı değil backend’deki null pointer’ı düzelt', label: 'backend' },
+    { text: 'Yeni kullanÄ±cÄ± kaydÄ± featureâ€™Ä±nÄ± deploy et', label: 'devops' },
+    { text: 'API endpoint dÃ¶kÃ¼mantasyonu gÃ¼ncelle', label: 'lead_architect' },
+    { text: 'GÃ¼venlik deÄŸil, sadece UI testi yap', label: 'qa' },
+    { text: 'frontend bugâ€™Ä± deÄŸil backendâ€™deki null pointerâ€™Ä± dÃ¼zelt', label: 'backend' },
     { text: 'security analysis for the auth module', label: 'security' },
     { text: 'fix the css layout for mobile view', label: 'frontend' },
     { text: 'create a new database migration for users', label: 'backend' },
@@ -57,7 +57,7 @@ export class IntentEngine {
     { text: 'how does the data flow between modules?', label: 'lead_architect' },
     { text: 'check for sql injection vulnerabilities', label: 'security' },
     { text: 'is there a cross-site scripting flaw?', label: 'security' },
-    { text: 'Güvenlik açığı değil, sadece kod kalitesi analizi yap', label: 'qa' },
+    { text: 'GÃ¼venlik aÃ§Ä±ÄŸÄ± deÄŸil, sadece kod kalitesi analizi yap', label: 'qa' },
     { text: 'not a security audit, just refactoring and code review', label: 'qa' },
     { text: 'explain the encryption component hierarchy', label: 'lead_architect' }
   ];
@@ -107,7 +107,7 @@ export class IntentEngine {
   }
 
   /**
-   * Kullanıcı prompt'unu analiz eder ve en uygun pipeline'ı/uzmanı döner.
+   * KullanÄ±cÄ± prompt'unu analiz eder ve en uygun pipeline'Ä±/uzmanÄ± dÃ¶ner.
    */
   public async analyze(prompt: string): Promise<IntentResult> {
     const lowerPrompt = prompt.toLowerCase();
@@ -117,9 +117,9 @@ export class IntentEngine {
     let pipeline: PipelineType = PipelineType.NEW_FEATURE;
     if (lowerPrompt.includes('bug') || lowerPrompt.includes('hata') || lowerPrompt.includes('fix')) {
       pipeline = PipelineType.BUG_FIX;
-    } else if (lowerPrompt.includes('refactor') || lowerPrompt.includes('düzenle') || lowerPrompt.includes('optimize')) {
+    } else if (lowerPrompt.includes('refactor') || lowerPrompt.includes('dÃ¼zenle') || lowerPrompt.includes('optimize')) {
       pipeline = PipelineType.REFACTOR;
-    } else if (lowerPrompt.includes('araştır') || lowerPrompt.includes('incele') || lowerPrompt.includes('research')) {
+    } else if (lowerPrompt.includes('araÅŸtÄ±r') || lowerPrompt.includes('incele') || lowerPrompt.includes('research')) {
       pipeline = PipelineType.RESEARCH;
     }
 

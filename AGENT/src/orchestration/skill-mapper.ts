@@ -1,9 +1,9 @@
-import * as fs from 'node:fs/promises';
+﻿import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import type { AgentDefinition } from './agents';
 
 /**
- * Static mapping: agent role → relevant skill names from .agent/skills/.
+ * Static mapping: agent role â†’ relevant skill names from .agent/skills/.
  * Max 3 skills per agent to stay within token budget (~15K extra tokens).
  */
 const SKILL_MAP: Record<string, string[]> = {
@@ -111,7 +111,7 @@ export class SkillMapper {
       this.skillCache.set(skillName, content);
       return content;
     } catch {
-      // Skill file doesn't exist — not an error, just missing
+      // Skill file doesn't exist â€” not an error, just missing
       return null;
     }
   }
@@ -182,7 +182,7 @@ export class SkillMapper {
 
     if (loadedSkills.length > 0) {
       console.log(
-        `[SkillMapper] ${agent.role}: Injected ${loadedSkills.length} skills → ${loadedSkills.join(', ')}`
+        `[SkillMapper] ${agent.role}: Injected ${loadedSkills.length} skills â†’ ${loadedSkills.join(', ')}`
       );
     }
 

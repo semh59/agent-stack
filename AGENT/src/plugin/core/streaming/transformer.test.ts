@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tests for SSE streaming transformer.
  * Covers: SSE parsing, thinking dedup, signature caching, synthetic usageMetadata, image handling.
  */
@@ -13,7 +13,7 @@ import {
 } from "./transformer";
 import type { SignatureStore, StreamingCallbacks, StreamingOptions } from "./types";
 
-// ── Helpers ──────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function makeSignatureStore(): SignatureStore {
   const map = new Map<string, { text: string; signature: string }>();
@@ -38,7 +38,7 @@ function sseDataLine(payload: unknown): string {
   return `data: ${JSON.stringify(payload)}`;
 }
 
-// ── createThoughtBuffer ──────────────────────────────────────────────
+// â”€â”€ createThoughtBuffer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("createThoughtBuffer", () => {
   it("should store and retrieve text by index", () => {
@@ -65,7 +65,7 @@ describe("createThoughtBuffer", () => {
   });
 });
 
-// ── transformStreamingPayload ────────────────────────────────────────
+// â”€â”€ transformStreamingPayload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("transformStreamingPayload", () => {
   it("should pass through non-data lines unchanged", () => {
@@ -89,7 +89,7 @@ describe("transformStreamingPayload", () => {
       const resp = r as Record<string, unknown>;
       return { ...resp, transformed: true };
     };
-    const result = transformStreamingPayload(input, transform);
+    const result = transformStreamingPayload(input, transform as any);
     const parsed = JSON.parse(result.replace("data: ", ""));
     expect(parsed.transformed).toBe(true);
   });
@@ -101,12 +101,12 @@ describe("transformStreamingPayload", () => {
   });
 });
 
-// ── deduplicateThinkingText ──────────────────────────────────────────
+// â”€â”€ deduplicateThinkingText â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("deduplicateThinkingText", () => {
   it("should return non-object responses unchanged", () => {
     expect(deduplicateThinkingText(null, createThoughtBuffer())).toBeNull();
-    expect(deduplicateThinkingText("string", createThoughtBuffer())).toBe("string");
+    expect(deduplicateThinkingText("string" as any, createThoughtBuffer())).toBe("string");
   });
 
   it("should deduplicate Gemini-style thinking parts", () => {
@@ -136,7 +136,7 @@ describe("deduplicateThinkingText", () => {
         },
       }],
     };
-    const result2 = deduplicateThinkingText(response2, sent) as typeof response;
+    const result2 = deduplicateThinkingText(response2 as any, sent) as any;
     const thinkingPart = result2.candidates[0]!.content.parts[0] as Record<string, unknown>;
     expect(thinkingPart.text).toBe(" extended");
   });
@@ -158,7 +158,7 @@ describe("deduplicateThinkingText", () => {
         { type: "thinking", thinking: "Hello world" },
       ],
     };
-    const result2 = deduplicateThinkingText(response2, sent) as typeof response;
+    const result2 = deduplicateThinkingText(response2 as any, sent) as any;
     const thinkingBlock = result2.content[0] as Record<string, unknown>;
     expect(thinkingBlock.thinking).toBe(" world");
   });
@@ -177,9 +177,9 @@ describe("deduplicateThinkingText", () => {
     };
 
     // First call adds hash
-    deduplicateThinkingText(response, sent, hashes);
+    deduplicateThinkingText(response as any, sent, hashes);
     // Second call with same text should produce null
-    const result = deduplicateThinkingText(response, sent, hashes) as typeof response;
+    const result = deduplicateThinkingText(response as any, sent, hashes) as any;
     expect(result.candidates[0]!.content.parts).toHaveLength(0);
   });
 
@@ -194,14 +194,14 @@ describe("deduplicateThinkingText", () => {
         },
       }],
     };
-    // processImageData is mocked — if it returns null, part stays
-    const result = deduplicateThinkingText(response, sent) as typeof response;
+    // processImageData is mocked â€” if it returns null, part stays
+    const result = deduplicateThinkingText(response as any, sent) as any;
     // The part should be transformed or kept as-is depending on processImageData
     expect(result.candidates[0]!.content.parts).toHaveLength(1);
   });
 });
 
-// ── transformSseLine ─────────────────────────────────────────────────
+// â”€â”€ transformSseLine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("transformSseLine", () => {
   let store: SignatureStore;
@@ -284,7 +284,7 @@ describe("transformSseLine", () => {
   });
 });
 
-// ── cacheThinkingSignaturesFromResponse ──────────────────────────────
+// â”€â”€ cacheThinkingSignaturesFromResponse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("cacheThinkingSignaturesFromResponse", () => {
   let store: SignatureStore;
@@ -308,7 +308,7 @@ describe("cacheThinkingSignaturesFromResponse", () => {
         },
       }],
     };
-    cacheThinkingSignaturesFromResponse(response, "s1", store, thoughtBuffer, onCacheSignature);
+    cacheThinkingSignaturesFromResponse(response as any, "s1", store, thoughtBuffer, onCacheSignature);
     expect(store.get("s1")).toEqual({ text: "think", signature: "sig1" });
     expect(onCacheSignature).toHaveBeenCalledWith("s1", "think", "sig1");
   });
@@ -321,7 +321,7 @@ describe("cacheThinkingSignaturesFromResponse", () => {
         { signature: "sig-claude" },
       ],
     };
-    cacheThinkingSignaturesFromResponse(response, "s2", store, thoughtBuffer, onCacheSignature);
+    cacheThinkingSignaturesFromResponse(response as any, "s2", store, thoughtBuffer, onCacheSignature);
     expect(store.get("s2")).toEqual({ text: "thought text", signature: "sig-claude" });
   });
 
@@ -336,8 +336,8 @@ describe("cacheThinkingSignaturesFromResponse", () => {
         content: { parts: [{ thought: true, text: "part2" }, { thoughtSignature: "sig-acc" }] },
       }],
     };
-    cacheThinkingSignaturesFromResponse(response1, "s3", store, thoughtBuffer, onCacheSignature);
-    cacheThinkingSignaturesFromResponse(response2, "s3", store, thoughtBuffer, onCacheSignature);
+    cacheThinkingSignaturesFromResponse(response1 as any, "s3", store, thoughtBuffer, onCacheSignature);
+    cacheThinkingSignaturesFromResponse(response2 as any, "s3", store, thoughtBuffer, onCacheSignature);
     expect(store.get("s3")).toEqual({ text: "part1 part2", signature: "sig-acc" });
   });
 
@@ -347,7 +347,7 @@ describe("cacheThinkingSignaturesFromResponse", () => {
   });
 });
 
-// ── createStreamingTransformer ────────────────────────────────────────
+// â”€â”€ createStreamingTransformer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 describe("createStreamingTransformer", () => {
   it("should transform SSE chunks and produce output", async () => {

@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
+﻿import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
 import pkg from 'node-machine-id';
 const { machineIdSync } = pkg;
 
@@ -24,11 +24,11 @@ export class KeyManager {
 
   constructor() {
     this.currentMachineId = this.deriveMachineId();
-    const appSalt = process.env.ANTIGRAVITY_SALT ?? 'ag-default-salt-v3';
+    const appSalt = process.env.SOVEREIGN_SALT ?? 'ag-default-salt-v3';
     
     // Support CI environment or manual master key override
-    if (process.env.ANTIGRAVITY_MASTER_KEY) {
-      this.masterKey = Buffer.from(process.env.ANTIGRAVITY_MASTER_KEY, 'hex');
+    if (process.env.SOVEREIGN_MASTER_KEY) {
+      this.masterKey = Buffer.from(process.env.SOVEREIGN_MASTER_KEY, 'hex');
     } else {
       this.masterKey = scryptSync(this.currentMachineId, appSalt, 32);
     }
@@ -126,7 +126,7 @@ export class KeyManager {
     const tag = cipher.getAuthTag();
 
     const bundle = {
-      type: 'antigravity-export-bundle',
+      type: 'Sovereign-export-bundle',
       version: 1,
       salt: salt.toString('base64'),
       iv: iv.toString('base64'),
@@ -142,7 +142,7 @@ export class KeyManager {
    */
   async importBundle(bundleJson: string, passphrase: string): Promise<object> {
     const bundle = JSON.parse(bundleJson);
-    if (bundle.type !== 'antigravity-export-bundle') {
+    if (bundle.type !== 'Sovereign-export-bundle') {
       throw new Error('Invalid export bundle type');
     }
 

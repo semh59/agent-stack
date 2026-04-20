@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises';
+﻿import * as fs from 'fs/promises';
 import path from 'path';
 
 export interface WorkingMemory {
@@ -10,7 +10,7 @@ export interface WorkingMemory {
 }
 
 /**
- * ContinuityManager: Agent'ın 'Working Memory'sini kalıcı hale getirir.
+ * ContinuityManager: Agent'Ä±n 'Working Memory'sini kalÄ±cÄ± hale getirir.
  */
 export class ContinuityManager {
   private memoryPath: string;
@@ -20,7 +20,7 @@ export class ContinuityManager {
   }
 
   /**
-   * Belleği yükler. Dosya yoksa default değerler döner.
+   * BelleÄŸi yÃ¼kler. Dosya yoksa default deÄŸerler dÃ¶ner.
    */
   public async loadMemory(): Promise<WorkingMemory> {
     try {
@@ -38,12 +38,12 @@ export class ContinuityManager {
   }
 
   /**
-   * Belleği günceller.
+   * BelleÄŸi gÃ¼nceller.
    */
   public async updateMemory(update: Partial<WorkingMemory>): Promise<void> {
     const current = await this.loadMemory();
     
-    // Dizileri birleştir, diğerlerini güncelle
+    // Dizileri birleÅŸtir, diÄŸerlerini gÃ¼ncelle
     const updated: WorkingMemory = {
       currentFeature: update.currentFeature ?? current.currentFeature,
       filesModified: Array.from(new Set([...current.filesModified, ...(update.filesModified ?? [])])),
@@ -52,7 +52,7 @@ export class ContinuityManager {
       mistakesAndLearnings: current.mistakesAndLearnings
     };
     
-    // Klasörün varlığından emin ol
+    // KlasÃ¶rÃ¼n varlÄ±ÄŸÄ±ndan emin ol
     const dir = path.dirname(this.memoryPath);
     await fs.mkdir(dir, { recursive: true });
 
@@ -61,12 +61,12 @@ export class ContinuityManager {
   }
 
   /**
-   * Yeni bir hata/öğrenim ekler.
+   * Yeni bir hata/Ã¶ÄŸrenim ekler.
    */
   public async addLearning(learning: string): Promise<void> {
     const memory = await this.loadMemory();
     memory.mistakesAndLearnings.push(learning);
-    // Maksimum 100 öğrenim tut
+    // Maksimum 100 Ã¶ÄŸrenim tut
     if (memory.mistakesAndLearnings.length > 100) memory.mistakesAndLearnings.shift();
     await this.updateMemory({ mistakesAndLearnings: memory.mistakesAndLearnings });
   }

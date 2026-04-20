@@ -1,8 +1,8 @@
 # Troubleshooting
 
-Common issues and solutions for the Antigravity Auth plugin.
+Common issues and solutions for the Sovereign AI Auth plugin.
 
-> **Quick Reset**: Most issues can be resolved by deleting `~/.config/opencode/antigravity-accounts.json` and running `opencode auth login` again.
+> **Quick Reset**: Most issues can be resolved by deleting `~/.config/opencode/sovereign-accounts.json` and running `opencode auth login` again.
 
 ---
 
@@ -13,9 +13,9 @@ OpenCode uses `~/.config/opencode/` on **all platforms** including Windows.
 | File | Path |
 |------|------|
 | Main config | `~/.config/opencode/opencode.json` |
-| Accounts | `~/.config/opencode/antigravity-accounts.json` |
-| Plugin config | `~/.config/opencode/antigravity.json` |
-| Debug logs | `~/.config/opencode/antigravity-logs/` |
+| Accounts | `~/.config/opencode/sovereign-accounts.json` |
+| Plugin config | `~/.config/opencode/sovereign.json` |
+| Debug logs | `~/.config/opencode/sovereign-logs/` |
 
 > **Windows users**: `~` resolves to your user home directory (e.g., `C:\Users\YourName`). Do NOT use `%APPDATA%`.
 
@@ -26,12 +26,12 @@ OpenCode uses `~/.config/opencode/` on **all platforms** including Windows.
 ### Auth problems
 Delete the token file and re-login:
 ```bash
-rm ~/.config/opencode/antigravity-accounts.json
+rm ~/.config/opencode/sovereign-accounts.json
 opencode auth login
 ```
 
-### "This version of Antigravity is no longer supported"
-This almost always means an outdated Antigravity `User-Agent` is still being used.
+### "This version of Sovereign AI is no longer supported"
+This almost always means an outdated Sovereign AI `User-Agent` is still being used.
 
 1) Stop any running OpenCode processes (stale processes can overwrite your accounts file):
 
@@ -49,17 +49,17 @@ Stop-Process -Name "opencode" -Force -ErrorAction SilentlyContinue
 
 **macOS/Linux:**
 ```bash
-rm -f ~/.config/opencode/antigravity-accounts.json
-rm -rf ~/.cache/opencode/node_modules/lojinext-ai
-rm -rf ~/.bun/install/cache/lojinext-ai*
+rm -f ~/.config/opencode/sovereign-accounts.json
+rm -rf ~/.cache/opencode/node_modules/sovereign-ai
+rm -rf ~/.bun/install/cache/sovereign-ai*
 opencode auth login
 ```
 
 **Windows (PowerShell):**
 ```powershell
-Remove-Item "$env:APPDATA\opencode\antigravity-accounts.json" -Force -ErrorAction SilentlyContinue
-Remove-Item "$env:LOCALAPPDATA\opencode\Cache\node_modules\lojinext-ai" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item "$env:USERPROFILE\.bun\install\cache\lojinext-ai*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:APPDATA\opencode\sovereign-accounts.json" -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:LOCALAPPDATA\opencode\Cache\node_modules\sovereign-ai" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\.bun\install\cache\sovereign-ai*" -Recurse -Force -ErrorAction SilentlyContinue
 opencode auth login
 ```
 
@@ -78,7 +78,7 @@ The correct key is `plugin` (singular):
 
 ```json
 {
-  "plugin": ["lojinext-ai@latest"]
+  "plugin": ["sovereign-ai@latest"]
 }
 ```
 
@@ -91,14 +91,14 @@ The correct key is `plugin` (singular):
 When using Gemini CLI models, you may see:
 > Permission 'cloudaicompanion.companions.generateChat' denied on resource '//cloudaicompanion.googleapis.com/projects/...'
 
-**Why this happens:** The plugin defaults to a predefined project ID that doesn't exist in your Google Cloud account. Antigravity models work, but Gemini CLI models need your own project.
+**Why this happens:** The plugin defaults to a predefined project ID that doesn't exist in your Google Cloud account. Sovereign AI models work, but Gemini CLI models need your own project.
 
 **Solution:**
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create or select a project
 3. Enable the **Gemini for Google Cloud API** (`cloudaicompanion.googleapis.com`)
-4. Add `projectId` to your account in `~/.config/opencode/antigravity-accounts.json`:
+4. Add `projectId` to your account in `~/.config/opencode/sovereign-accounts.json`:
 
 ```json
 {
@@ -132,7 +132,7 @@ Invalid JSON payload received. Unknown name "parameters" at 'request.tools[0]'
 **Solutions:**
 1. **Update to latest beta:**
    ```json
-   { "plugin": ["lojinext-ai@beta"] }
+   { "plugin": ["sovereign-ai@beta"] }
    ```
 
 2. **Disable MCP servers** one-by-one to find the problematic one
@@ -146,12 +146,12 @@ Invalid JSON payload received. Unknown name "parameters" at 'request.tools[0]'
 
 ## MCP Servers Causing Errors
 
-Some MCP servers have schemas incompatible with Antigravity's strict JSON format.
+Some MCP servers have schemas incompatible with Sovereign AI's strict JSON format.
 
 **Diagnosis:**
 1. Disable all MCP servers in your config
 2. Enable one-by-one until error reappears
-3. Report the specific MCP in a [GitHub issue](https://github.com/NoeFabris/lojinext-ai/issues)
+3. Report the specific MCP in a [GitHub issue](https://github.com/NoeFabris/sovereign-ai/issues)
 
 ---
 
@@ -186,11 +186,11 @@ Rate limits typically reset after a few hours. If you're seeing persistent issue
 </details>
 
 <details>
-<summary><b>2. "Warm up" accounts in Antigravity IDE (community tip)</b></summary>
+<summary><b>2. "Warm up" accounts in Sovereign AI IDE (community tip)</b></summary>
 
 Users have reported success with this approach:
 
-1. Open [Antigravity IDE](https://idx.google.com/) directly in your browser
+1. Open [Sovereign AI IDE](https://idx.google.com/) directly in your browser
 2. Log in with the affected Google account
 3. Run a few simple prompts (e.g., "Hello", "What's 2+2?")
 4. After 5-10 successful prompts, try using the account with the plugin again
@@ -210,9 +210,9 @@ Users have reported success with this approach:
 </details>
 
 <details>
-<summary><b>4. Use Antigravity IDE directly (single account users)</b></summary>
+<summary><b>4. Use Sovereign AI IDE directly (single account users)</b></summary>
 
-If you only have one account, you'll likely have a better experience using [Antigravity IDE](https://idx.google.com/) directly instead of routing through OpenCode, since OpenCode's request pattern triggers limits faster.
+If you only have one account, you'll likely have a better experience using [Sovereign AI IDE](https://idx.google.com/) directly instead of routing through OpenCode, since OpenCode's request pattern triggers limits faster.
 
 </details>
 
@@ -220,16 +220,16 @@ If you only have one account, you'll likely have a better experience using [Anti
 <summary><b>5. Fresh account setup</b></summary>
 
 If adding new accounts:
-1. Delete accounts file: `rm ~/.config/opencode/antigravity-accounts.json`
+1. Delete accounts file: `rm ~/.config/opencode/sovereign-accounts.json`
 2. Re-authenticate: `opencode auth login`
-3. Update to latest beta: `"plugin": ["lojinext-ai@beta"]`
-4. Consider "warming up" the account in Antigravity IDE first
+3. Update to latest beta: `"plugin": ["sovereign-ai@beta"]`
+4. Consider "warming up" the account in Sovereign AI IDE first
 
 </details>
 
 **What to report:**
 
-If you're seeing unusual rate limit behavior, please share in a [GitHub issue](https://github.com/NoeFabris/lojinext-ai/issues):
+If you're seeing unusual rate limit behavior, please share in a [GitHub issue](https://github.com/NoeFabris/sovereign-ai/issues):
 - Status codes from debug logs (403, 429, etc.)
 - How long the rate-limit state persists
 - Number of accounts and selection strategy used
@@ -268,7 +268,7 @@ If you're seeing unusual rate limit behavior, please share in a [GitHub issue](h
 
 3. **Manual callback extraction** (advanced):
    - When Safari shows the error, the address bar contains `?code=...&scope=...`
-   - See [issue #119](https://github.com/NoeFabris/lojinext-ai/issues/119) for manual auth support
+   - See [issue #119](https://github.com/NoeFabris/sovereign-ai/issues/119) for manual auth support
 
 ---
 
@@ -325,9 +325,9 @@ ssh -L 51121:localhost:51121 user@remote
 
 ## Migrating Accounts Between Machines
 
-When copying `antigravity-accounts.json` to a new machine:
-1. Ensure the plugin is installed: `"plugin": ["lojinext-ai@beta"]`
-2. Copy `~/.config/opencode/antigravity-accounts.json`
+When copying `sovereign-accounts.json` to a new machine:
+1. Ensure the plugin is installed: `"plugin": ["sovereign-ai@beta"]`
+2. Copy `~/.config/opencode/sovereign-accounts.json`
 3. If you get "API key missing" error, the refresh token may be invalid — re-authenticate
 
 ---
@@ -341,7 +341,7 @@ DCP creates synthetic assistant messages that lack thinking blocks. **List this 
 ```json
 {
   "plugin": [
-    "lojinext-ai@latest",
+    "sovereign-ai@latest",
     "@tarquinen/opencode-dcp@latest"
   ]
 }
@@ -373,15 +373,15 @@ v1.2.8+ introduces **model variants** for dynamic thinking configuration.
 **Before (v1.2.7):**
 ```json
 {
-  "antigravity-claude-sonnet-4-5-thinking-low": { ... },
-  "antigravity-claude-sonnet-4-5-thinking-max": { ... }
+  "sovereign-claude-sonnet-4-5-thinking-low": { ... },
+  "sovereign-claude-sonnet-4-5-thinking-max": { ... }
 }
 ```
 
 **After (v1.2.8+):**
 ```json
 {
-  "antigravity-claude-sonnet-4-5-thinking": {
+  "sovereign-claude-sonnet-4-5-thinking": {
     "variants": {
       "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
       "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
@@ -394,14 +394,14 @@ Old tier-suffixed models still work for backward compatibility.
 
 ### v1.2.7 (Prefix)
 
-v1.2.7+ uses explicit `antigravity-` prefix:
+v1.2.7+ uses explicit `sovereign-` prefix:
 
 | Old Name | New Name |
 |----------|----------|
-| `gemini-3-pro-low` | `antigravity-gemini-3-pro` |
-| `claude-sonnet-4-5` | `antigravity-claude-sonnet-4-5` |
+| `gemini-3-pro-low` | `sovereign-gemini-3-pro` |
+| `claude-sonnet-4-5` | `sovereign-claude-sonnet-4-5` |
 
-Old names work as fallback, but `antigravity-` prefix is recommended.
+Old names work as fallback, but `sovereign-` prefix is recommended.
 
 ---
 
@@ -409,11 +409,11 @@ Old names work as fallback, but `antigravity-` prefix is recommended.
 
 Enable debug logging:
 ```bash
-OPENCODE_ANTIGRAVITY_DEBUG=1 opencode   # Basic
-OPENCODE_ANTIGRAVITY_DEBUG=2 opencode   # Verbose (full request/response)
+OPENCODE_SOVEREIGN_DEBUG=1 opencode   # Basic
+OPENCODE_SOVEREIGN_DEBUG=2 opencode   # Verbose (full request/response)
 ```
 
-Logs are in `~/.config/opencode/antigravity-logs/`.
+Logs are in `~/.config/opencode/sovereign-logs/`.
 
 ---
 
@@ -431,4 +431,4 @@ npx tsx script/test-regression.ts --dry-run     # List tests
 
 ## Still stuck?
 
-Open an issue on [GitHub](https://github.com/NoeFabris/lojinext-ai/issues).
+Open an issue on [GitHub](https://github.com/NoeFabris/sovereign-ai/issues).

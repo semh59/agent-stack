@@ -83,7 +83,7 @@ Providers shipped at v1:
 | OpenRouter    | `api_key` 🔒, `default_model`, `http_referer`         | `GET /api/v1/models` |
 | Claude (Anthropic) | `api_key` 🔒, `default_model`                    | `GET /v1/models` or a 1-token ping |
 | OpenAI        | `api_key` 🔒, `base_url`, `default_model`, `org_id`   | `GET /v1/models` |
-| Google (Antigravity OAuth) | OAuth button — no raw key                 | Round-trip through the OAuth server |
+| Google (Sovereign AI OAuth) | OAuth button — no raw key                 | Round-trip through the OAuth server |
 | LM Studio     | `base_url`, `default_model`                           | `GET /v1/models` |
 | Azure OpenAI  | `endpoint`, `api_key` 🔒, `api_version`, `deployment` | `GET /openai/deployments?api-version=…` |
 

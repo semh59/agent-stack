@@ -1,8 +1,8 @@
-import crypto from "node:crypto";
+﻿import crypto from "node:crypto";
 import {
-  ANTIGRAVITY_HEADERS,
+  SOVEREIGN_HEADERS,
   GEMINI_CLI_HEADERS,
-  ANTIGRAVITY_ENDPOINT,
+  SOVEREIGN_ENDPOINT,
   GEMINI_CLI_ENDPOINT,
   EMPTY_SCHEMA_PLACEHOLDER_NAME,
   EMPTY_SCHEMA_PLACEHOLDER_DESCRIPTION,
@@ -21,13 +21,13 @@ import { defaultSignatureStore } from "./stores/signature-store";
 import {
   DEBUG_MESSAGE_PREFIX,
   isDebugEnabled,
-  logAntigravityDebugResponse,
+  logSovereignDebugResponse,
   logCacheStats,
-  type AntigravityDebugContext,
+  type SovereignDebugContext,
 } from "./debug";
 import { createLogger } from "./logger";
 import {
-  cleanJSONSchemaForAntigravity,
+  cleanJSONSchemaForSovereign,
   DEFAULT_THINKING_BUDGET,
   deepFilterThinkingBlocks,
   extractThinkingConfig,
@@ -41,16 +41,16 @@ import {
   injectToolHardeningInstruction,
   isThinkingCapableModel,
   normalizeThinkingConfig,
-  parseAntigravityApiBody,
+  parseSovereignApiBody,
   resolveThinkingConfig,
-  rewriteAntigravityPreviewAccessError,
+  rewriteSovereignPreviewAccessError,
   transformThinkingParts,
-  type AntigravityApiBody,
+  type SovereignApiBody,
 } from "./request-helpers";
 import {
   CLAUDE_TOOL_SYSTEM_INSTRUCTION,
   CLAUDE_DESCRIPTION_PROMPT,
-  ANTIGRAVITY_SYSTEM_INSTRUCTION,
+  SOVEREIGN_SYSTEM_INSTRUCTION,
 } from "../constants";
 import {
   analyzeConversationState,
@@ -610,13 +610,13 @@ export interface PrepareRequestOptions {
   fingerprint?: Fingerprint;
 }
 
-export function prepareAntigravityRequest(
+export function prepareSovereignRequest(
   input: RequestInfo,
   init: RequestInit | undefined,
   accessToken: string,
   projectId: string,
   endpointOverride?: string,
-  headerStyle: HeaderStyle = "antigravity",
+  headerStyle: HeaderStyle = "Sovereign",
   forceThinkingRecovery = false,
   options?: PrepareRequestOptions,
 ): {
@@ -674,7 +674,7 @@ export function prepareAntigravityRequest(
   const effectiveModel = resolved.actualModel;
 
   const streaming = rawAction === STREAM_ACTION;
-  const defaultEndpoint = headerStyle === "gemini-cli" ? GEMINI_CLI_ENDPOINT : ANTIGRAVITY_ENDPOINT;
+  const defaultEndpoint = headerStyle === "gemini-cli" ? GEMINI_CLI_ENDPOINT : SOVEREIGN_ENDPOINT;
   const baseEndpoint = endpointOverride ?? defaultEndpoint;
   const transformedUrl = `${baseEndpoint}/v1internal:${rawAction}${streaming ? "?alt=sse" : ""}`;
 
@@ -703,7 +703,7 @@ export function prepareAntigravityRequest(
           model: effectiveModel,
         } as Record<string, unknown>;
 
-        // Some callers may already send an Antigravity-wrapped body.
+        // Some callers may already send an Sovereign-wrapped body.
         // We still need to sanitize Claude thinking blocks (remove cache_control)
         // and attach a stable sessionId so multi-turn signature caching works.
         const requestRoot = wrappedBody.request;
@@ -1026,7 +1026,7 @@ export function prepareAntigravityRequest(
                 return createPlaceholderSchema();
               }
 
-              const cleaned = cleanJSONSchemaForAntigravity(schema);
+              const cleaned = cleanJSONSchemaForSovereign(schema);
 
               if (!cleaned || typeof cleaned !== "object" || Array.isArray(cleaned)) {
                 toolDebugMissing += 1;
@@ -1248,7 +1248,7 @@ export function prepareAntigravityRequest(
                   const queue = pendingCallIdsByName.get(resp.name);
                   if (queue && queue.length > 0) {
                     // Consume the first pending ID (FIFO order)
-                    // 🔧 FIX: Use defensive pattern - separate shift from assignment
+                    // ğŸ”§ FIX: Use defensive pattern - separate shift from assignment
                     const id = queue.shift();
                     if (id !== undefined) {
                       resp.id = id;
@@ -1318,9 +1318,9 @@ export function prepareAntigravityRequest(
         const effectiveProjectId = projectId?.trim() || generateSyntheticProjectId();
         resolvedProjectId = effectiveProjectId;
 
-        // Inject Antigravity system instruction with role "user" (CLIProxyAPI v6.6.89 compatibility)
+        // Inject Sovereign system instruction with role "user" (CLIProxyAPI v6.6.89 compatibility)
         // This sets request.systemInstruction.role = "user" and request.systemInstruction.parts[0].text
-        if (headerStyle === "antigravity") {
+        if (headerStyle === "Sovereign") {
           const existingSystemInstruction = requestPayload.systemInstruction;
           if (existingSystemInstruction && typeof existingSystemInstruction === "object") {
             const sys = existingSystemInstruction as Record<string, unknown>;
@@ -1328,22 +1328,22 @@ export function prepareAntigravityRequest(
             if (Array.isArray(sys.parts) && sys.parts.length > 0) {
               const firstPart = sys.parts[0] as Record<string, unknown>;
               if (firstPart && typeof firstPart.text === "string") {
-                firstPart.text = ANTIGRAVITY_SYSTEM_INSTRUCTION + "\n\n" + firstPart.text;
+                firstPart.text = SOVEREIGN_SYSTEM_INSTRUCTION + "\n\n" + firstPart.text;
               } else {
-                sys.parts = [{ text: ANTIGRAVITY_SYSTEM_INSTRUCTION }, ...sys.parts];
+                sys.parts = [{ text: SOVEREIGN_SYSTEM_INSTRUCTION }, ...sys.parts];
               }
             } else {
-              sys.parts = [{ text: ANTIGRAVITY_SYSTEM_INSTRUCTION }];
+              sys.parts = [{ text: SOVEREIGN_SYSTEM_INSTRUCTION }];
             }
           } else if (typeof existingSystemInstruction === "string") {
             requestPayload.systemInstruction = {
               role: "user",
-              parts: [{ text: ANTIGRAVITY_SYSTEM_INSTRUCTION + "\n\n" + existingSystemInstruction }],
+              parts: [{ text: SOVEREIGN_SYSTEM_INSTRUCTION + "\n\n" + existingSystemInstruction }],
             };
           } else {
             requestPayload.systemInstruction = {
               role: "user",
-              parts: [{ text: ANTIGRAVITY_SYSTEM_INSTRUCTION }],
+              parts: [{ text: SOVEREIGN_SYSTEM_INSTRUCTION }],
             };
           }
         }
@@ -1356,7 +1356,7 @@ export function prepareAntigravityRequest(
         };
 
         Object.assign(wrappedBody, {
-          userAgent: "antigravity",
+          userAgent: "Sovereign",
           requestId: "agent-" + crypto.randomUUID(),
         });
         if (wrappedBody.request && typeof wrappedBody.request === 'object') {
@@ -1394,8 +1394,8 @@ export function prepareAntigravityRequest(
   // Use randomized headers as the fallback pool
   const selectedHeaders = getRandomizedHeaders(headerStyle);
 
-  if (headerStyle === "antigravity") {
-    // Antigravity mode: Use fingerprint headers for device identity and quota tracking
+  if (headerStyle === "Sovereign") {
+    // Sovereign mode: Use fingerprint headers for device identity and quota tracking
     // Fingerprint headers override randomized headers for User-Agent, X-Goog-Api-Client, Client-Metadata
     // and add X-Goog-QuotaUser, X-Client-Device-Id for unique device identity
     const fingerprint = options?.fingerprint ?? getSessionFingerprint();
@@ -1406,7 +1406,7 @@ export function prepareAntigravityRequest(
     headers.set("X-Goog-Api-Client", fingerprintHeaders["X-Goog-Api-Client"] || selectedHeaders["X-Goog-Api-Client"]);
     headers.set("Client-Metadata", fingerprintHeaders["Client-Metadata"] || selectedHeaders["Client-Metadata"]);
 
-    // Add fingerprint-specific headers for device identity (Antigravity only)
+    // Add fingerprint-specific headers for device identity (Sovereign only)
     if (fingerprintHeaders["X-Goog-QuotaUser"]) {
       headers.set("X-Goog-QuotaUser", fingerprintHeaders["X-Goog-QuotaUser"]);
     }
@@ -1493,16 +1493,16 @@ export function buildThinkingWarmupBody(
 }
 
 /**
- * Normalizes Antigravity responses: applies retry headers, extracts cache usage into headers,
+ * Normalizes Sovereign responses: applies retry headers, extracts cache usage into headers,
  * rewrites preview errors, flattens streaming payloads, and logs debug metadata.
  *
  * For streaming SSE responses, uses TransformStream for true real-time incremental streaming.
  * Thinking/reasoning tokens are transformed and forwarded immediately as they arrive.
  */
-export async function transformAntigravityResponse(
+export async function transformSovereignResponse(
   response: Response,
   streaming: boolean,
-  debugContext?: AntigravityDebugContext | null,
+  debugContext?: SovereignDebugContext | null,
   requestedModel?: string,
   projectId?: string,
   endpoint?: string,
@@ -1530,7 +1530,7 @@ export async function transformAntigravityResponse(
   const cacheSignatures = shouldCacheThinkingSignatures(effectiveModel);
 
   if (!isJsonResponse && !isEventStreamResponse) {
-    logAntigravityDebugResponse(debugContext, response, {
+    logSovereignDebugResponse(debugContext, response, {
       note: "Non-JSON response (body omitted)",
     });
     return response;
@@ -1542,7 +1542,7 @@ export async function transformAntigravityResponse(
   if (streaming && response.ok && isEventStreamResponse && response.body) {
     const headers = new Headers(response.headers);
 
-    logAntigravityDebugResponse(debugContext, response, {
+    logSovereignDebugResponse(debugContext, response, {
       note: "Streaming SSE response (real-time transform)",
     });
 
@@ -1605,7 +1605,7 @@ export async function transformAntigravityResponse(
           errorMessage.includes("context_length_exceeded") ||
           errorMessage.includes("maximum context length")
         ) {
-          headers.set("x-antigravity-context-error", "prompt_too_long");
+          headers.set("x-Sovereign-context-error", "prompt_too_long");
         }
 
         // Detect tool pairing errors - signal to caller for toast
@@ -1614,7 +1614,7 @@ export async function transformAntigravityResponse(
           errorMessage.includes("tool_result") &&
           (errorMessage.includes("without") || errorMessage.includes("immediately after"))
         ) {
-          headers.set("x-antigravity-context-error", "tool_pairing");
+          headers.set("x-Sovereign-context-error", "tool_pairing");
         }
 
         return new Response(JSON.stringify(errorBody), {
@@ -1651,8 +1651,8 @@ export async function transformAntigravityResponse(
     };
 
     const usageFromSse = streaming && isEventStreamResponse ? extractUsageFromSsePayload(text) : null;
-    const parsed: AntigravityApiBody | null = !streaming || !isEventStreamResponse ? parseAntigravityApiBody(text) : null;
-    const patched = parsed ? rewriteAntigravityPreviewAccessError(parsed, response.status, requestedModel) : null;
+    const parsed: SovereignApiBody | null = !streaming || !isEventStreamResponse ? parseSovereignApiBody(text) : null;
+    const patched = parsed ? rewriteSovereignPreviewAccessError(parsed, response.status, requestedModel) : null;
     const effectiveBody = patched ?? parsed ?? undefined;
 
     const usage = usageFromSse ?? (effectiveBody ? extractUsageMetadata(effectiveBody) : null);
@@ -1668,19 +1668,19 @@ export async function transformAntigravityResponse(
     }
     
     if (usage?.cachedContentTokenCount !== undefined) {
-      headers.set("x-antigravity-cached-content-token-count", String(usage.cachedContentTokenCount));
+      headers.set("x-LojiNext-cached-content-token-count", String(usage.cachedContentTokenCount));
       if (usage.totalTokenCount !== undefined) {
-        headers.set("x-antigravity-total-token-count", String(usage.totalTokenCount));
+        headers.set("x-LojiNext-total-token-count", String(usage.totalTokenCount));
       }
       if (usage.promptTokenCount !== undefined) {
-        headers.set("x-antigravity-prompt-token-count", String(usage.promptTokenCount));
+        headers.set("x-LojiNext-prompt-token-count", String(usage.promptTokenCount));
       }
       if (usage.candidatesTokenCount !== undefined) {
-        headers.set("x-antigravity-candidates-token-count", String(usage.candidatesTokenCount));
+        headers.set("x-LojiNext-candidates-token-count", String(usage.candidatesTokenCount));
       }
     }
 
-    logAntigravityDebugResponse(debugContext, response, {
+    logSovereignDebugResponse(debugContext, response, {
       body: text,
       note: streaming ? "Streaming SSE payload (buffered fallback)" : undefined,
       headersOverride: headers,
@@ -1710,9 +1710,9 @@ export async function transformAntigravityResponse(
 
     return new Response(text, init);
   } catch (error) {
-    logAntigravityDebugResponse(debugContext, response, {
+    logSovereignDebugResponse(debugContext, response, {
       error,
-      note: "Failed to transform Antigravity response",
+      note: "Failed to transform Sovereign response",
     });
     return response;
   }

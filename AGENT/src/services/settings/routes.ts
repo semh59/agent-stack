@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Fastify routes for the Sovereign settings service.
  *
- *   GET    /api/settings                — redacted view (safe for UI)
- *   PUT    /api/settings                — validate + persist full payload
- *   PATCH  /api/settings                — deep-merge partial payload
- *   GET    /api/settings/schema         — JSON Schema for form rendering
- *   POST   /api/settings/reset          — wipe to defaults
- *   POST   /api/settings/test/:provider — probe a provider's connectivity
- *   GET    /api/settings/export         — non-secret backup (JSON)
+ *   GET    /api/settings                â€” redacted view (safe for UI)
+ *   PUT    /api/settings                â€” validate + persist full payload
+ *   PATCH  /api/settings                â€” deep-merge partial payload
+ *   GET    /api/settings/schema         â€” JSON Schema for form rendering
+ *   POST   /api/settings/reset          â€” wipe to defaults
+ *   POST   /api/settings/test/:provider â€” probe a provider's connectivity
+ *   GET    /api/settings/export         â€” non-secret backup (JSON)
  *
  * The redacted view is what the UI consumes. Secrets are never returned in
  * plaintext; the UI sees `{ set: boolean, updated_at?: number }` per key.
@@ -17,7 +17,7 @@
  *   - For secret fields, an explicit `""` or `null` clears the secret;
  *     `undefined` / absent means "leave as-is".
  *   - For array fields (mcp.servers, rules.slash_commands, rag.sources)
- *     PATCH REPLACES the array — partial-array patching invites bugs.
+ *     PATCH REPLACES the array â€” partial-array patching invites bugs.
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
@@ -33,9 +33,9 @@ import {
   probeProvider,
 } from "./index.js";
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function getRequestId(request: FastifyRequest, reply: FastifyReply): string {
   const existing =
@@ -48,7 +48,7 @@ function getRequestId(request: FastifyRequest, reply: FastifyReply): string {
 }
 
 /**
- * Deep-merge — arrays and nulls replace; objects merge recursively.
+ * Deep-merge â€” arrays and nulls replace; objects merge recursively.
  * Tight scope so this can live in this file without pulling in lodash.
  */
 function deepMerge<T>(base: T, patch: unknown): T {
@@ -95,19 +95,19 @@ function currentSecrets(): {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Route registration
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function registerSettingsRoutes(app: FastifyInstance): void {
-  // ── GET /api/settings ──────────────────────────────────────────────────
+  // â”€â”€ GET /api/settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/settings", async (request, reply) => {
     getRequestId(request, reply);
     const store = getSettingsStore();
     return apiResponse(store.getSettingsRedacted());
   });
 
-  // ── PUT /api/settings — full replacement ───────────────────────────────
+  // â”€â”€ PUT /api/settings â€” full replacement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.put<{ Body: SettingsInput }>("/api/settings", async (request, reply) => {
     getRequestId(request, reply);
     try {
@@ -128,7 +128,7 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
     }
   });
 
-  // ── PATCH /api/settings — deep-merge ───────────────────────────────────
+  // â”€â”€ PATCH /api/settings â€” deep-merge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.patch<{ Body: Record<string, unknown> }>(
     "/api/settings",
     async (request, reply) => {
@@ -154,11 +154,11 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
     },
   );
 
-  // ── GET /api/settings/schema — JSON Schema for form generation ─────────
+  // â”€â”€ GET /api/settings/schema â€” JSON Schema for form generation â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/settings/schema", async (request, reply) => {
     getRequestId(request, reply);
     // `zod-to-json-schema@3` types target Zod v3; we're on v4. Runtime works
-    // fine, but the compiler can't bridge the generics — hence the cast.
+    // fine, but the compiler can't bridge the generics â€” hence the cast.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const jsonSchema = zodToJsonSchema(settingsSchema as unknown as any, {
       name: "Settings",
@@ -170,7 +170,7 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
     });
   });
 
-  // ── POST /api/settings/reset ───────────────────────────────────────────
+  // â”€â”€ POST /api/settings/reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.post("/api/settings/reset", async (request, reply) => {
     getRequestId(request, reply);
     const store = getSettingsStore();
@@ -179,7 +179,7 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
     return apiResponse(redacted);
   });
 
-  // ── POST /api/settings/test/:provider — connectivity probe ─────────────
+  // â”€â”€ POST /api/settings/test/:provider â€” connectivity probe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.post<{ Params: { provider: string } }>(
     "/api/settings/test/:provider",
     async (request, reply) => {
@@ -211,7 +211,7 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
     },
   );
 
-  // ── GET /api/settings/export — non-secret backup ───────────────────────
+  // â”€â”€ GET /api/settings/export â€” non-secret backup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/settings/export", async (request, reply) => {
     getRequestId(request, reply);
     const store = getSettingsStore();
