@@ -8,117 +8,87 @@
 import clsx from "clsx";
 import { MessageSquare, Plus, Trash2 } from "lucide-react";
 import { useAlloyStore } from "../../../../store/alloyStore";
-import { Button } from "../../../../components/alloy/primitives";
-
-function relativeTime(ms: number): string {
-  const delta = Date.now() - ms;
-  const seconds = Math.max(1, Math.round(delta / 1000));
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  if (days < 30) return `${days}d`;
-  return new Date(ms).toLocaleDateString();
-}
+import { Button } from "../../../../components/sovereign/primitives";
 
 export function ConversationList() {
   const {
     conversations,
-    conversationOrder,
     activeConversationId,
-    newConversation,
+    startNewChat,
     selectConversation,
-    deleteConversation,
+    clearHistory
   } = useAlloyStore();
 
   return (
-    <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/50">
-      <div className="flex items-center justify-between border-b border-[var(--color-alloy-border)] px-3 py-3">
-        <span className="font-ui text-[11px] font-bold uppercase tracking-widest text-[var(--color-alloy-text-sec)]">
+    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/30 backdrop-blur-md">
+      <div className="flex items-center justify-between border-b border-[var(--color-alloy-border)] px-4 py-3">
+        <span className="font-ui text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-text-sec)]">
           Conversations
         </span>
         <Button
           variant="ghost"
           size="sm"
+          className="h-7 px-2 text-xs"
           icon={<Plus size={14} />}
-          onClick={() => newConversation()}
-          title="New chat"
+          onClick={() => startNewChat()}
         >
           New
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
-        {conversationOrder.length === 0 ? (
-          <div className="px-3 py-10 text-center text-xs text-[var(--color-alloy-text-sec)]">
-            No conversations yet.
-            <br />
-            Hit <span className="text-white">New</span> to start one.
+      <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+        {conversations.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <MessageSquare size={24} className="mx-auto mb-3 text-[var(--color-alloy-border)]" />
+            <p className="text-xs text-[var(--color-alloy-text-sec)]">
+              No history found.
+            </p>
           </div>
         ) : (
-          <ul className="space-y-1">
-            {conversationOrder.map((id) => {
-              const convo = conversations[id];
-              if (!convo) return null;
-              const isActive = activeConversationId === id;
-              const last = convo.messages[convo.messages.length - 1];
-              const preview =
-                last?.content?.replace(/\s+/g, " ").slice(0, 60) ??
-                "Empty conversation";
+          <ul className="p-2 space-y-1">
+            {conversations.map((convo) => {
+              const isActive = activeConversationId === convo.id;
               return (
-                <li key={id}>
+                <li key={convo.id}>
                   <div
                     className={clsx(
-                      "group relative flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 transition-colors",
+                      "group relative flex cursor-pointer flex-col gap-1 rounded-xl border p-3 transition-all duration-200",
                       isActive
-                        ? "border-[var(--color-alloy-accent)]/40 bg-[var(--color-alloy-accent)]/10"
-                        : "border-transparent hover:border-[var(--color-alloy-border)] hover:bg-[var(--color-alloy-surface-hover)]",
+                        ? "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent)]/5 shadow-sm"
+                        : "border-transparent hover:bg-[var(--color-alloy-surface-hover)] hover:border-[var(--color-alloy-border)]"
                     )}
-                    onClick={() => selectConversation(id)}
+                    onClick={() => selectConversation(convo.id)}
                   >
-                    <MessageSquare
-                      size={14}
-                      className={clsx(
-                        "mt-0.5 shrink-0",
-                        isActive
-                          ? "text-[var(--color-alloy-accent)]"
-                          : "text-[var(--color-alloy-text-sec)]",
-                      )}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-sm font-medium text-white">
-                          {convo.title}
-                        </span>
-                        <span className="shrink-0 text-[10px] text-[var(--color-alloy-text-sec)]">
-                          {relativeTime(convo.updated_at)}
-                        </span>
-                      </div>
-                      <div className="truncate text-[11px] text-[var(--color-alloy-text-sec)]">
-                        {preview}
-                      </div>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className={clsx(
+                        "truncate text-sm font-medium",
+                        isActive ? "text-[var(--color-alloy-accent)]" : "text-white/90"
+                      )}>
+                        {convo.title}
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (window.confirm("Delete this conversation?")) {
-                          deleteConversation(id);
-                        }
-                      }}
-                      className="absolute right-1.5 top-1.5 hidden rounded p-1 text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-border)] hover:text-red-300 group-hover:block"
-                      aria-label="Delete conversation"
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-[10px] text-[var(--color-alloy-text-sec)]">
+                         {new Date(convo.updatedAt).toLocaleDateString()}
+                      </span>
+                      {isActive && <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-accent)] shadow-[0_0_8px_var(--color-alloy-accent)]" />}
+                    </div>
                   </div>
                 </li>
               );
             })}
           </ul>
         )}
+      </div>
+
+      <div className="p-3 border-t border-[var(--color-alloy-border)]">
+        <button 
+          onClick={clearHistory}
+          className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-[10px] uppercase tracking-wider text-[var(--color-alloy-text-sec)] transition hover:bg-red-500/10 hover:text-red-400"
+        >
+          <Trash2 size={12} />
+          Wipe Cache
+        </button>
       </div>
     </aside>
   );

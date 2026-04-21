@@ -14,12 +14,13 @@ import {
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "../store/appStore";
+import { useAlloyStore } from "../store/alloyStore";
 
 const navItems = [
   { icon: MessageSquare, label: "Chat", path: "/chat" },
   { icon: Zap, label: "New Mission", path: "/dashboard" },
   { icon: History, label: "Mission History", path: "/pipeline/history" },
-  { icon: Settings, label: "Ayarlar", path: "/settings" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 /**
@@ -29,7 +30,7 @@ const navItems = [
 const FULL_BLEED_PREFIXES = ["/chat", "/settings"];
 
 export function AppLayout() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     sidebarOpen,
     toggleSidebar,
@@ -72,6 +73,18 @@ export function AppLayout() {
     const { initializeWebSocket, fetchAccounts } = useAppStore.getState();
     initializeWebSocket();
     void fetchAccounts();
+
+    // Store Bridge: Sync alloyStore settings if account changes
+    const unsub = useAppStore.subscribe(
+      (state) => state.activeAccount,
+      (activeAccount) => {
+        if (activeAccount) {
+          void useAlloyStore.getState().loadSettings();
+        }
+      },
+      { fireImmediately: true }
+    );
+    return unsub;
   }, []);
 
   const toggleLanguage = () => {
@@ -95,7 +108,7 @@ export function AppLayout() {
           >
             <Menu size={20} />
           </button>
-          {sidebarOpen ? <span className="ml-3 font-display text-lg tracking-wider text-white">SOVEREIGN</span> : null}
+          {sidebarOpen ? <span className="ml-3 font-display text-lg tracking-wider text-white">ALLOY</span> : null}
         </div>
 
         <nav className="flex-1 space-y-1 overflow-x-hidden overflow-y-auto px-2 py-4">
@@ -115,7 +128,7 @@ export function AppLayout() {
                 aria-label={item.label}
               >
                 <item.icon size={18} className="shrink-0" />
-                {sidebarOpen ? <span className="ml-3 whitespace-nowrap text-sm font-ui">{item.label}</span> : null}
+                {sidebarOpen ? <span className="ml-3 whitespace-nowrap text-sm font-ui">{t(item.label)}</span> : null}
               </Link>
             );
           })}
@@ -124,12 +137,12 @@ export function AppLayout() {
         <div className="shrink-0 border-t border-[var(--color-alloy-border)] p-4">
           {sidebarOpen ? (
             <div className="flex flex-col">
-              <span className="truncate text-sm font-medium text-white" title={activeAccount || "No account"}>
-                {activeAccount || "No account"}
+              <span className="truncate text-sm font-medium text-white" title={activeAccount || t("No account")}>
+                {activeAccount || t("No account")}
               </span>
               {stats?.accounts ? (
                 <span className="mt-1 text-xs tracking-wider text-[var(--color-alloy-success)]">
-                   Sistem Hazır
+                   {t("System Ready")}
                 </span>
               ) : null}
             </div>
@@ -145,13 +158,13 @@ export function AppLayout() {
         <header className="flex h-[60px] items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/50 px-6 backdrop-blur-sm">
           <h1 className="font-display text-lg tracking-wide text-white underline decoration-[var(--color-alloy-accent)]/30 decoration-2 underline-offset-8">
             {location.pathname.includes("/pipeline/") && location.pathname.endsWith("/plan")
-              ? "Plan Onayi"
-              : navItems.find((n) => location.pathname.startsWith(n.path))?.label || "Workspace"}
+              ? t("Plan Approval")
+              : t(navItems.find((n) => location.pathname.startsWith(n.path))?.label || "Workspace")}
           </h1>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-2 rounded-full border border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] px-3 py-1 text-xs text-[var(--color-alloy-text-sec)]">
               <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-alloy-success)]" />
-              SYSTEM ONLINE
+              {t("SYSTEM ONLINE")}
             </span>
             <button
               onClick={toggleLanguage}
@@ -186,13 +199,13 @@ export function AppLayout() {
             <>
           {snapshotMeta?.truncated ? (
             <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              Snapshot sinirlandirildi. En son durum gosteriliyor; bazi eski log veya artifact alanlari atilmis olabilir.
+              {t("Snapshot limited. Showing latest state; some older logs or artifacts might have been pruned.")}
             </div>
           ) : null}
 
           {wsTransportState === "fatal" && wsFatalError ? (
             <div className="mb-6 rounded-2xl border border-red-500/40 bg-red-950/60 p-6 text-white shadow-[0_20px_80px_rgba(120,0,0,0.25)]">
-              <h2 className="text-lg font-semibold tracking-tight">Transport Failure</h2>
+              <h2 className="text-lg font-semibold tracking-tight">{t("Transport Failure")}</h2>
               <p className="mt-2 text-sm text-red-100/90">
                 {wsFatalError.message}
               </p>
@@ -202,14 +215,14 @@ export function AppLayout() {
                   onClick={retryAutonomyTransport}
                   className="rounded-lg border border-red-300/30 bg-red-500/20 px-4 py-2 text-sm text-white transition hover:bg-red-500/30"
                 >
-                  Retry Connection
+                  {t("Retry Connection")}
                 </button>
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
                   className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10"
                 >
-                  Reload UI
+                  {t("Reload UI")}
                 </button>
               </div>
             </div>

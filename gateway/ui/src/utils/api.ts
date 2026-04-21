@@ -13,7 +13,7 @@ const TOKEN_STORAGE_KEY = "gateway_auth_token";
 
 function readToken(): string | null {
   if (typeof window === "undefined") return import.meta.env.VITE_GATEWAY_TOKEN ?? null;
-  return sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? import.meta.env.VITE_GATEWAY_TOKEN ?? null;
+  return localStorage.getItem(TOKEN_STORAGE_KEY) ?? import.meta.env.VITE_GATEWAY_TOKEN ?? null;
 }
 
 function authHeaders(token: string, init?: HeadersInit): Headers {
@@ -22,7 +22,7 @@ function authHeaders(token: string, init?: HeadersInit): Headers {
   return headers;
 }
 
-async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<LegacyApiEnvelope<T>> {
+export async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<LegacyApiEnvelope<T>> {
   const token = readToken();
   if (!token) {
     return {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Terminal, Loader2, Activity } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/appStore';
@@ -22,7 +23,6 @@ export function DashboardView() {
     activeAccount,
     activeSessionId,
     fetchQuota,
-    fetchModels,
     stopAutonomySession
   } = useAppStore(useShallow(state => ({
     pipelineStatus: state.pipelineStatus, 
@@ -31,30 +31,29 @@ export function DashboardView() {
     activeAccount: state.activeAccount,
     activeSessionId: state.activeSessionId,
     fetchQuota: state.fetchQuota,
-    fetchModels: state.fetchModels,
     stopAutonomySession: state.stopAutonomySession
   })));
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const [inputVal, setInputVal] = useState('');
   const [isStopping, setIsStopping] = useState(false);
 
   // Initial data fetch and Visibility-Aware Polling
   useEffect(() => {
-    fetchModels();
     fetchQuota();
     
-    let interval: NodeJS.Timeout | null = null;
+    let interval: number | null = null;
 
     const startPolling = () => {
       if (!interval) {
-        interval = setInterval(fetchQuota, 30000);
+        interval = window.setInterval(fetchQuota, 30000);
       }
     };
 
     const stopPolling = () => {
       if (interval) {
-        clearInterval(interval);
+        window.clearInterval(interval);
         interval = null;
       }
     };
@@ -79,7 +78,7 @@ export function DashboardView() {
       stopPolling();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchModels, fetchQuota, activeAccount]);
+  }, [fetchQuota, activeAccount]);
 
   const isRunning = autonomySession
     ? !['done', 'failed', 'stopped'].includes(autonomySession.state)
@@ -142,11 +141,11 @@ export function DashboardView() {
                   className="flex items-center justify-between rounded-2xl border border-amber-400/20 bg-amber-500/5 px-5 py-4 text-left shadow-lg transition-colors hover:bg-amber-500/10"
                 >
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300">Plan Review Pending</div>
-                    <p className="mt-2 text-sm font-semibold text-white">Plan checkpoint active. Review the plan and approve or reject.</p>
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300">{t('Plan Review Pending')}</div>
+                    <p className="mt-2 text-sm font-semibold text-white">{t('Plan checkpoint active. Review the plan and approve or reject.')}</p>
                   </div>
                   <span className="rounded-full border border-amber-400/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                    Incele
+                    {t('Review')}
                   </span>
                 </button>
               ) : null}
@@ -160,21 +159,21 @@ export function DashboardView() {
                 <div className="w-14 h-14 rounded-2xl bg-[var(--color-alloy-accent)]/10 flex items-center justify-center border border-[var(--color-alloy-accent)]/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
                   <Activity size={28} className="text-[var(--color-alloy-accent)]" />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-[var(--color-alloy-accent)]/10 border border-[var(--color-alloy-accent)]/20 rounded text-[9px] text-[var(--color-alloy-accent)] font-black uppercase">Active Mission</span>
-                    <h3 className="text-white font-bold text-lg tracking-tight">OPERASYON: {activeSessionId?.slice(0, 8).toUpperCase()}</h3>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-[var(--color-alloy-accent)]/10 border border-[var(--color-alloy-accent)]/20 rounded text-[9px] text-[var(--color-alloy-accent)] font-black uppercase">{t('Active Mission')}</span>
+                      <h3 className="text-white font-bold text-lg tracking-tight">{t('OPERASYON')}: {activeSessionId?.slice(0, 8).toUpperCase()}</h3>
+                    </div>
+                    <p className="text-[var(--color-alloy-text-sec)] text-xs font-mono tracking-tight line-clamp-1 border-l-2 border-[var(--color-alloy-accent)]/30 pl-3">
+                      {autonomySession?.objective || pipelineStatus?.state?.userTask || t('Autonomous process operating towards system objectives.')}
+                    </p>
                   </div>
-                  <p className="text-[var(--color-alloy-text-sec)] text-xs font-mono tracking-tight line-clamp-1 border-l-2 border-[var(--color-alloy-accent)]/30 pl-3">
-                    {autonomySession?.objective || pipelineStatus?.state?.userTask || "Autonomous process operating towards system objectives."}
-                  </p>
-                </div>
               </div>
 
               <div className="flex flex-col items-end gap-3 relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="text-[9px] text-gray-600 font-black uppercase tracking-[0.2em] mb-1">Cycle Efficiency</div>
+                    <div className="text-[9px] text-gray-600 font-black uppercase tracking-[0.2em] mb-1">{t('Cycle Efficiency')}</div>
                     <div className="text-sm font-bold text-white font-mono tracking-widest">
                       {pipelineStatus?.completedCount || 0}/{pipelineStatus?.totalAgents || "∞"}
                     </div>
@@ -202,7 +201,7 @@ export function DashboardView() {
                     type="text"
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
-                    placeholder="Send additional instructions or code snippet..."
+                    placeholder={t("Send additional instructions or code snippet...")}
                     className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-sm text-white focus:outline-none focus:border-[var(--color-alloy-accent)]/30 focus:bg-white/[0.08] transition-all font-mono placeholder-gray-700 shadow-2xl"
                   />
                </div>
@@ -221,7 +220,7 @@ export function DashboardView() {
                   ) : (
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   )}
-                  {isStopping ? 'Stopping...' : 'Stop (ESC)'}
+                  {isStopping ? t('Stopping...') : `${t('Stop')} (ESC)`}
                 </button>
                </div>
             </div>

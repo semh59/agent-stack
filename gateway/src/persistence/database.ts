@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import Database from "better-sqlite3";
@@ -14,6 +14,7 @@ const MIGRATIONS = [
   { version: 1, fileName: "001_initial.sql" },
   { version: 2, fileName: "002_indexes.sql" },
   { version: 3, fileName: "003_quota_runtime.sql" },
+  { version: 4, fileName: "004_chat_persistence.sql" },
 ] as const;
 
 export const LATEST_MISSION_DB_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

@@ -23,7 +23,7 @@ function autoResize(el: HTMLTextAreaElement) {
 }
 
 export function Composer() {
-  const { sendingMessage, sendError, sendMessage } = useAlloyStore();
+  const { isGenerating, error: sendError, sendMessage } = useAlloyStore();
   const [value, setValue] = useState("");
   const [model, setModel] = useState<string | undefined>(undefined);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -38,14 +38,14 @@ export function Composer() {
 
   const submit = useCallback(async () => {
     const text = value.trim();
-    if (!text || sendingMessage) return;
+    if (!text || isGenerating) return;
     setValue("");
     try {
-      await sendMessage(text, { model });
+      await sendMessage(text, model);
     } catch {
       /* errors surface through store */
     }
-  }, [value, model, sendingMessage, sendMessage]);
+  }, [value, model, isGenerating, sendMessage]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -66,7 +66,7 @@ export function Composer() {
         <div
           className={clsx(
             "relative rounded-2xl border bg-[var(--color-alloy-bg)] shadow-[0_10px_40px_-20px_rgba(0,0,0,0.8)] transition-colors",
-            sendingMessage
+            isGenerating
               ? "border-[var(--color-alloy-accent)]/40"
               : "border-[var(--color-alloy-border)] focus-within:border-[var(--color-alloy-accent)]/40",
           )}
@@ -77,7 +77,7 @@ export function Composer() {
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Ask Alloy anything — it will route through the optimization pipeline first."
-            disabled={sendingMessage}
+            disabled={isGenerating}
             rows={MIN_ROWS}
             className="block w-full resize-none bg-transparent px-4 pt-3 pb-2 font-body text-sm text-white placeholder:text-[var(--color-alloy-text-sec)] focus:outline-none"
           />
@@ -92,16 +92,16 @@ export function Composer() {
             <button
               type="button"
               onClick={submit}
-              disabled={sendingMessage || value.trim().length === 0}
+              disabled={isGenerating || value.trim().length === 0}
               className={clsx(
                 "inline-flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                 "bg-[var(--color-alloy-accent)] text-black hover:bg-[var(--color-alloy-accent)]/90",
               )}
             >
-              {sendingMessage ? (
+              {isGenerating ? (
                 <>
                   <Loader2 size={12} className="animate-spin" />
-                  Optimizing
+                  Generating
                 </>
               ) : (
                 <>

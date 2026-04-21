@@ -8,7 +8,7 @@ export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
   build: {
-    outDir: '../vscode-extension/ui/dist',
+    outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
       output: {

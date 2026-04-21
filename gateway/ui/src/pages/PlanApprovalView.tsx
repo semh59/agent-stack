@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useAppStore } from "../store/appStore";
+import { useTranslation } from "react-i18next";
 import { GearStatusCard, PhaseStatusCard } from "../components/autonomy/StatusCards";
 
 const REQUIRED_PLAN_SECTIONS = [
@@ -46,11 +47,12 @@ function formatBudgetSummary(
     | null
     | undefined,
 ): string {
-  if (!budget) return "Budget verisi bekleniyor.";
+  if (!budget) return "Budget data pending...";
   return `Cycle ${budget.usage.cyclesUsed}/${budget.limits.maxCycles} • TPM ${budget.usage.currentTPM.toLocaleString()}/${budget.limits.maxTPM.toLocaleString()} • RPD ${budget.usage.requestsUsed.toLocaleString()}/${budget.limits.maxRPD.toLocaleString()}`;
 }
 
 export function PlanApprovalView() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
@@ -150,7 +152,7 @@ export function PlanApprovalView() {
   if (authMissing) {
     return (
       <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-sm text-red-200">
-        Gateway token veya aktif hesap bulunamadi. Plan onay ekranı auth olmadan kullanilamaz.
+        {t("Gateway token or active account not found. Plan approval screen cannot be used without auth.")}
       </div>
     );
   }
@@ -160,7 +162,7 @@ export function PlanApprovalView() {
       <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-white/10 bg-black/20">
         <div className="flex items-center gap-3 text-sm text-[var(--color-alloy-text-sec)]">
           <Loader2 className="animate-spin" size={18} />
-          Plan verisi yukleniyor...
+          {t("Loading plan data...")}
         </div>
       </div>
     );
@@ -169,14 +171,14 @@ export function PlanApprovalView() {
   if (screenError) {
     return (
       <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
-        <div className="text-sm font-semibold text-red-200">Plan ekrani yuklenemedi</div>
+        <div className="text-sm font-semibold text-red-200">{t("Plan screen failed to load")}</div>
         <p className="mt-2 text-sm text-red-100/80">{screenError}</p>
         <button
           type="button"
           onClick={() => sessionId && void Promise.all([fetchAutonomySessionDetail(sessionId), fetchAutonomyArtifacts(sessionId)])}
           className="mt-4 rounded-xl border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-white"
         >
-          Tekrar Dene
+          {t("Try Again")}
         </button>
       </div>
     );
@@ -185,7 +187,7 @@ export function PlanApprovalView() {
   if (!session) {
     return (
       <div className="rounded-2xl border border-white/10 bg-black/20 p-6 text-sm text-[var(--color-alloy-text-sec)]">
-        Session detayi bulunamadi.
+        {t("Session details not found.")}
       </div>
     );
   }
@@ -196,9 +198,9 @@ export function PlanApprovalView() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--color-alloy-text-sec)]">
-              Plan Onay Ekrani
+              {t("Plan Approval Screen")}
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-white">{session.objective || "Mission objective bekleniyor"}</h2>
+            <h2 className="mt-2 text-2xl font-bold text-white">{session.objective || t("Waiting for mission objective")}</h2>
             <p className="mt-2 text-sm text-[var(--color-alloy-text-sec)]">
               Session: {session.id} • Account: {session.account || "N/A"} • Review: {session.reviewStatus}
             </p>
@@ -236,7 +238,7 @@ export function PlanApprovalView() {
 
         {readOnlyReview ? (
           <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
-            Bu session review beklemiyor. Mevcut durum: <strong>{session.reviewStatus}</strong>
+            {t("This session is not awaiting review. Current status:")} <strong>{session.reviewStatus}</strong>
           </div>
         ) : null}
       </section>
@@ -254,7 +256,7 @@ export function PlanApprovalView() {
             </div>
             {!hasPlan ? (
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-[var(--color-alloy-text-sec)]">
-                Plan artifact bulunamadi. Approve aksiyonu bu durumda kapali kalir.
+                {t("Plan artifact not found. Approval action is disabled in this state.")}
               </div>
             ) : structuredPlan ? (
               <div className="space-y-4">

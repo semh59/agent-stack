@@ -1,57 +1,110 @@
-/**
- * Chat API — transport for the Alloy chat surface.
- *
- * v1 ships with a local-only, in-memory conversation store (no gateway
- * endpoints) plus a streaming-optimize helper that calls /api/optimize.
- * Persistence arrives in a follow-up once we wire the gateway's chat
- * service. Keeping this boundary explicit makes that swap painless.
- */
+import { fetchJson } from "../utils/api";
 
 export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  /** Unix ms */
-  created_at: number;
-  model?: string;
-  tokens?: { input?: number; output?: number };
-  cost_usd?: number;
-  /** True while the assistant is still streaming. */
-  pending?: boolean;
+  role: "user" | "model" | "system";
+  parts: { text: string }[];
+}
+
+export interface ChatUsage {
+  prompt: number;
+  completion: number;
+  total: number;
+}
+
+export interface ChatResponse {
+  text: string;
+  model: string;
+  usage: ChatUsage;
 }
 
 export interface Conversation {
   id: string;
   title: string;
   mode: string;
-  messages: ChatMessage[];
-  /** Unix ms */
-  updated_at: number;
+  updatedAt: string;
 }
 
-export interface OptimizeResult {
-  optimized: string;
-  savings_percent: number;
-  cache_hit: boolean;
-  layers: string[];
-  model: string;
-  tokens: { original: number; sent: number };
-  metadata: Record<string, unknown>;
-}
-
-export async function optimizeMessage(
+/**
+ * Send a chat message with optional streaming.
+ */
+export async function sendChatMessage(
   message: string,
-  contextMessages: string[] = [],
-): Promise<OptimizeResult> {
-  const res = await fetch("/api/optimize", {
+  conversationId: string,
+  model?: string,
+  onChunk?: (chunk: string) => void
+): Promise<ChatResponse> {
+  if (onChunk) {
+    // Note: fetchJson doesn't support streaming easily, use raw fetch for SSE
+    const GATEWAY_BASE_URL = import.meta.env.VITE_GATEWAY_URL ?? "http://127.0.0.1:51122";
+    const token = localStorage.getItem("gateway_auth_token") ?? import.meta.env.VITE_GATEWAY_TOKEN;
+    
+    const response = await fetch(`${GATEWAY_BASE_URL}/api/chat`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ message, conversationId, model, stream: true }),
+    });
+
+    if (!response.ok) throw new Error("Streaming request failed");
+    
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("No reader available");
+
+    let fullText = "";
+    const decoder = new TextDecoder();
+
+    let done = false;
+    while (!done) {
+      const result = await reader.read();
+      done = result.done;
+      if (result.value) {
+        const chunk = decoder.decode(result.value, { stream: true });
+        fullText += chunk;
+        onChunk(chunk);
+      }
+    }
+
+    return {
+      text: fullText,
+      model: model || "gemini-1.5-pro",
+      usage: { prompt: 0, completion: 0, total: 0 }
+    };
+  }
+
+  const res = await fetchJson<ChatResponse>("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ message, context_messages: contextMessages }),
+    body: JSON.stringify({ message, conversationId, model, stream: false }),
   });
-  const body = (await res.json()) as { data: OptimizeResult | null; errors: Array<{ message: string }> };
-  if (!res.ok || (body.errors && body.errors.length > 0)) {
-    throw new Error(body.errors?.[0]?.message ?? `HTTP ${res.status}`);
-  }
-  return body.data as OptimizeResult;
+  
+  if (res.errors) throw new Error(res.errors[0].message);
+  return res.data;
+}
+
+export async function fetchConversations(): Promise<Conversation[]> {
+  const res = await fetchJson<Conversation[]>("/api/chat/conversations");
+  if (res.errors) throw new Error(res.errors[0].message);
+  return res.data;
+}
+
+export async function fetchChatHistory(id: string): Promise<ChatMessage[]> {
+  const res = await fetchJson<any>(`/api/chat/conversations/${id}`);
+  if (res.errors) throw new Error(res.errors[0].message);
+  const data = res.data as { role: "user" | "model" | "system"; content: string }[];
+  return data.map((m) => ({
+    role: m.role,
+    parts: [{ text: m.content }]
+  }));
+}
+
+export async function createConversation(title: string, mode: string): Promise<{ id: string }> {
+  const res = await fetchJson<{ id: string }>("/api/chat/conversations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, mode }),
+  });
+  if (res.errors) throw new Error(res.errors[0].message);
+  return res.data;
 }

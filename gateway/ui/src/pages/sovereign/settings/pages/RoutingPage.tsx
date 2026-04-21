@@ -10,16 +10,18 @@
  * We don't force a dropdown because the user may configure a provider we
  * don't know about — the input is free-form with autocomplete hints.
  */
-import { Trash2, Plus, Network, ListOrdered } from "lucide-react";
+import { Trash2, Plus, Network, ListOrdered, AlertCircle } from "lucide-react";
+import { useMemo } from "react";
 import { useEffectiveSettings, getAtPath } from "../useEffectiveSettings";
 import { useAlloyStore } from "../../../../store/alloyStore";
 import {
   Button,
   Field,
-  Input,
   Row,
   Section,
-} from "../../../../components/alloy/primitives";
+  Select,
+} from "../../../../components/sovereign/primitives";
+import { useTranslation } from "react-i18next";
 
 const ROLES: Array<{ key: string; label: string; hint: string }> = [
   { key: "chat", label: "Chat", hint: "Interactive conversations." },
@@ -38,15 +40,50 @@ const COMPLEXITY: Array<{ key: string; label: string; hint: string }> = [
 export function RoutingPage() {
   const effective = useEffectiveSettings();
   const { updateSettingsPath } = useAlloyStore();
+  const { t } = useTranslation();
   const fallback = getAtPath<string[]>(effective, "routing.fallback_chain", []);
 
-  const strField = (dotted: string, placeholder?: string) => (
-    <Input
-      value={getAtPath<string>(effective, dotted, "") ?? ""}
-      onChange={(e) => updateSettingsPath(dotted, e.target.value)}
-      placeholder={placeholder ?? "provider:model"}
-    />
+  // Build model choices from enabled providers
+  const modelChoices = useMemo(() => {
+    const choices: string[] = [];
+    const provs = (effective.providers as Record<string, { enabled: boolean; default_model: string }>) || {};
+    Object.entries(provs).forEach(([pid, p]) => {
+      if (p?.enabled && p?.default_model) {
+        choices.push(`${pid}:${p.default_model}`);
+      }
+    });
+    return choices;
+  }, [effective.providers]);
+
+  const ModelSelector = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) => (
+    <div className="relative group">
+       <Select 
+         value={value} 
+         onChange={(e) => onChange(e.target.value)}
+       >
+         <option value="">{placeholder || t("Select a model...")}</option>
+         {modelChoices.map(m => (
+           <option key={m} value={m}>{m}</option>
+         ))}
+       </Select>
+       {!modelChoices.includes(value) && value !== "" && (
+         <div className="mt-1 text-[10px] text-amber-400 flex items-center gap-1">
+           <AlertCircle size={10} /> {t("Custom/Manual model active")}
+         </div>
+       )}
+    </div>
   );
+
+  const strField = (dotted: string, placeholder?: string) => {
+    const val = getAtPath<string>(effective, dotted, "") ?? "";
+    return (
+      <ModelSelector 
+        value={val} 
+        onChange={(v) => updateSettingsPath(dotted, v)}
+        placeholder={placeholder}
+      />
+    );
+  };
 
   return (
     <div className="space-y-10">
@@ -85,12 +122,12 @@ export function RoutingPage() {
         <div className="space-y-2">
           {(fallback ?? []).map((modelRef, i) => (
             <div key={i} className="flex gap-2">
-              <Field label={`Position ${i + 1}`} className="flex-1">
-                <Input
+              <Field label={`${t('Position')} ${i + 1}`} className="flex-1">
+                <ModelSelector
                   value={modelRef}
-                  onChange={(e) => {
+                  onChange={(v) => {
                     const next = [...fallback];
-                    next[i] = e.target.value;
+                    next[i] = v;
                     updateSettingsPath("routing.fallback_chain", next);
                   }}
                 />
@@ -118,7 +155,7 @@ export function RoutingPage() {
               updateSettingsPath("routing.fallback_chain", [...(fallback ?? []), ""])
             }
           >
-            Add fallback
+            {t('Add fallback')}
           </Button>
         </div>
       </Section>

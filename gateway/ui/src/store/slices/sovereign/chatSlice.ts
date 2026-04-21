@@ -1,221 +1,148 @@
-/**
- * Alloy chat slice — conversation list + active session + streaming state.
- *
- * This is local-only today: messages live in memory (and persist via
- * Zustand's persist wrapper if someone opts-in). A follow-up will point
- * `createConversation` and `appendMessage` at a real `/api/conversations`
- * endpoint once the gateway chat service lands. The rest of the slice is
- * shaped to make that a non-event.
- */
 import type { StateCreator } from "zustand";
-import type { ChatMessage, Conversation } from "../../../services/chat-api";
-import { optimizeMessage } from "../../../services/chat-api";
+import type { AlloyState } from "../../alloyStore";
+import { 
+  createConversation, 
+  fetchChatHistory, 
+  fetchConversations, 
+  sendChatMessage,
+} from "../../../services/chat-api";
 
-function newId(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+export interface ChatMessage {
+  id: string;
+  role: "user" | "model" | "system";
+  content: string;
+  timestamp: string;
+  isStreaming?: boolean;
 }
 
-function firstLineTitle(input: string): string {
-  const line = input.split("\n")[0]?.trim() ?? "";
-  if (line.length === 0) return "New chat";
-  return line.length > 48 ? `${line.slice(0, 45)}…` : line;
+export interface Conversation {
+  id: string;
+  title: string;
+  mode: string;
+  updatedAt: string;
 }
 
 export interface AlloyChatSlice {
-  conversations: Record<string, Conversation>;
-  conversationOrder: string[]; // most-recent first
+  messages: ChatMessage[];
+  conversations: Conversation[];
   activeConversationId: string | null;
-  sendingMessage: boolean;
-  sendError: string | null;
-  /** Aggregate session cost in USD — updated on every assistant turn. */
-  sessionCostUsd: number;
-  sessionTokens: { input: number; output: number };
-
-  // actions
-  newConversation: (mode?: string) => string;
-  selectConversation: (id: string | null) => void;
-  deleteConversation: (id: string) => void;
-  sendMessage: (input: string, opts?: { model?: string }) => Promise<void>;
-  renameConversation: (id: string, title: string) => void;
-  clearSessionCost: () => void;
+  isGenerating: boolean;
+  error: string | null;
+  
+  loadConversations: () => Promise<void>;
+  selectConversation: (id: string) => Promise<void>;
+  startNewChat: (title?: string) => Promise<void>;
+  sendMessage: (content: string, model?: string) => Promise<void>;
+  clearHistory: () => void;
 }
 
 export const createAlloyChatSlice: StateCreator<
-  AlloyChatSlice,
+  AlloyState,
   [],
   [],
   AlloyChatSlice
 > = (set, get) => ({
-  conversations: {},
-  conversationOrder: [],
+  messages: [],
+  conversations: [],
   activeConversationId: null,
-  sendingMessage: false,
-  sendError: null,
-  sessionCostUsd: 0,
-  sessionTokens: { input: 0, output: 0 },
+  isGenerating: false,
+  error: null,
 
-  newConversation(mode = "code") {
-    const id = newId("conv");
-    const now = Date.now();
-    set((s) => ({
-      conversations: {
-        ...s.conversations,
-        [id]: {
-          id,
-          title: "New chat",
-          mode,
-          messages: [],
-          updated_at: now,
-        },
-      },
-      conversationOrder: [id, ...s.conversationOrder],
-      activeConversationId: id,
-    }));
-    return id;
+  loadConversations: async () => {
+    try {
+      const conversations = await fetchConversations();
+      set({ conversations });
+    } catch {
+      set({ error: "Sohbetler yüklenemedi" });
+    }
   },
 
-  selectConversation(id) {
-    set({ activeConversationId: id });
+  selectConversation: async (id: string) => {
+    try {
+      const history = await fetchChatHistory(id);
+      const messages: ChatMessage[] = history.map((m, i) => ({
+        id: `${id}_${i}_${Date.now()}`,
+        role: m.role,
+        content: m.parts[0].text,
+        timestamp: new Date().toISOString(),
+      }));
+      set({ activeConversationId: id, messages, error: null });
+    } catch {
+      set({ error: "Geçmiş yüklenemedi" });
+    }
   },
 
-  deleteConversation(id) {
-    set((s) => {
-      const nextConvs = { ...s.conversations };
-      delete nextConvs[id];
-      const nextOrder = s.conversationOrder.filter((c) => c !== id);
-      return {
-        conversations: nextConvs,
-        conversationOrder: nextOrder,
-        activeConversationId: s.activeConversationId === id ? nextOrder[0] ?? null : s.activeConversationId,
-      };
-    });
+  startNewChat: async (title: string = "Yeni Sohbet") => {
+    try {
+      const { id } = await createConversation(title, "code");
+      await get().loadConversations();
+      await get().selectConversation(id);
+    } catch {
+      set({ error: "Yeni sohbet başlatılamadı" });
+    }
   },
 
-  renameConversation(id, title) {
-    set((s) => {
-      const existing = s.conversations[id];
-      if (!existing) return s;
-      return {
-        conversations: { ...s.conversations, [id]: { ...existing, title } },
-      };
-    });
-  },
+  sendMessage: async (content: string, model: string = "gemini-1.5-pro") => {
+    let convId = get().activeConversationId;
 
-  async sendMessage(input, opts) {
-    const trimmed = input.trim();
-    if (!trimmed) return;
-
-    // Ensure we have an active conversation.
-    let id = get().activeConversationId;
-    if (!id) id = get().newConversation();
-
-    const convo = get().conversations[id];
-    if (!convo) return;
+    if (!convId) {
+      try {
+        const { id } = await createConversation(content.slice(0, 30) + "...", "code");
+        convId = id;
+        await get().loadConversations();
+      } catch {
+        set({ error: "Sohbet başlatılamadı" });
+        return;
+      }
+    }
 
     const userMsg: ChatMessage = {
-      id: newId("msg"),
+      id: `u_${Date.now()}`,
       role: "user",
-      content: trimmed,
-      created_at: Date.now(),
+      content,
+      timestamp: new Date().toISOString(),
     };
 
-    const assistantId = newId("msg");
-    const assistantPlaceholder: ChatMessage = {
-      id: assistantId,
-      role: "assistant",
+    const assistantMsg: ChatMessage = {
+      id: `a_${Date.now()}`,
+      role: "model",
       content: "",
-      created_at: Date.now(),
-      model: opts?.model,
-      pending: true,
+      timestamp: new Date().toISOString(),
+      isStreaming: true,
     };
 
-    const isFirstTurn = convo.messages.length === 0;
-
-    set((s) => ({
-      sendingMessage: true,
-      sendError: null,
-      conversations: {
-        ...s.conversations,
-        [id!]: {
-          ...convo,
-          title: isFirstTurn ? firstLineTitle(trimmed) : convo.title,
-          messages: [...convo.messages, userMsg, assistantPlaceholder],
-          updated_at: Date.now(),
-        },
-      },
-      conversationOrder: [id!, ...s.conversationOrder.filter((c) => c !== id)],
+    set((state) => ({
+      messages: [...state.messages, userMsg, assistantMsg],
+      isGenerating: true,
+      error: null,
+      activeConversationId: convId
     }));
 
     try {
-      const context = convo.messages
-        .filter((m) => m.role !== "system")
-        .slice(-10)
-        .map((m) => m.content);
-
-      const res = await optimizeMessage(trimmed, context);
-
-      // The bridge returns an optimized prompt — we surface savings info as
-      // the assistant reply until the LLM client step is wired in.
-      const savingsLabel =
-        res.cache_hit
-          ? "cache hit"
-          : `${Math.round((res.savings_percent ?? 0) * 100) / 100}% saved`;
-      const reply =
-        `**Optimized prompt** (${savingsLabel}, layers: ${res.layers.join(" → ") || "none"})\n\n` +
-        "```\n" +
-        res.optimized +
-        "\n```";
-
-      set((s) => {
-        const c = s.conversations[id!];
-        if (!c) return s;
-        const msgs = c.messages.map((m) =>
-          m.id === assistantId
-            ? {
-                ...m,
-                content: reply,
-                pending: false,
-                model: res.model,
-                tokens: {
-                  input: res.tokens?.original,
-                  output: res.tokens?.sent,
-                },
-              }
-            : m,
-        );
-        return {
-          sendingMessage: false,
-          conversations: { ...s.conversations, [id!]: { ...c, messages: msgs, updated_at: Date.now() } },
-          sessionTokens: {
-            input: s.sessionTokens.input + (res.tokens?.original ?? 0),
-            output: s.sessionTokens.output + (res.tokens?.sent ?? 0),
-          },
-        };
+      await sendChatMessage(content, convId!, model, (chunk: string) => {
+        set((state: AlloyState) => {
+          const newMsgs = [...state.messages];
+          const idx = newMsgs.findIndex((m: ChatMessage) => m.id === assistantMsg.id);
+          if (idx !== -1) {
+            newMsgs[idx] = { ...newMsgs[idx], content: newMsgs[idx].content + chunk };
+          }
+          return { messages: newMsgs };
+        });
       });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      set((s) => {
-        const c = s.conversations[id!];
-        if (!c) return { sendingMessage: false, sendError: message };
-        const msgs = c.messages.map((m) =>
-          m.id === assistantId
-            ? {
-                ...m,
-                content: `_Error:_ ${message}`,
-                pending: false,
-              }
-            : m,
-        );
-        return {
-          sendingMessage: false,
-          sendError: message,
-          conversations: { ...s.conversations, [id!]: { ...c, messages: msgs } },
-        };
+
+      set((state) => ({
+        isGenerating: false,
+        messages: state.messages.map((m) =>
+          m.id === assistantMsg.id ? { ...m, isStreaming: false } : m
+        ),
+      }));
+    } catch (err: any) {
+      set({
+        isGenerating: false,
+        error: err.message || "Gönderim hatalı",
       });
     }
   },
 
-  clearSessionCost() {
-    set({ sessionCostUsd: 0, sessionTokens: { input: 0, output: 0 } });
-  },
+  clearHistory: () => set({ messages: [], activeConversationId: null }),
 });

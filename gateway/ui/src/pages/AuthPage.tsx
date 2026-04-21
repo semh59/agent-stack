@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store/appStore';
 import { LogIn, AlertCircle, CheckCircle } from 'lucide-react';
-import { validateAuthCredentials, PasswordSchema, EmailSchema } from '../../../src/validators/auth';
+import { validateAuthCredentials, PasswordSchema, EmailSchema } from '../utils/auth-validation';
 
 export function AuthPage() {
   const navigate = useNavigate();
   const { selectAccount } = useAppStore();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -136,10 +138,10 @@ export function AuthPage() {
       <div className="z-10 w-full max-w-md p-8 rounded-xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/80 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center">
 
         <h1 className="text-4xl font-display tracking-widest text-white mb-2">
-          SOVEREIGN
+          {t('ALLOY')}
         </h1>
         <p className="text-[var(--color-alloy-text-sec)] text-sm tracking-wide font-ui mb-10">
-          Alloy Software Factory
+          {t('Alloy Software Factory')}
         </p>
 
         {/* API Error Alert */}
@@ -158,7 +160,7 @@ export function AuthPage() {
           <div className="space-y-1 text-left">
             <div className="flex items-center justify-between">
               <label className="text-xs text-[var(--color-alloy-text-sec)] font-ui">
-                Google Email Adresi
+                {t('Google Email Address')}
               </label>
               {!errors.email && email && EmailSchema.safeParse(email).success && (
                 <CheckCircle size={14} className="text-green-500" />
@@ -189,7 +191,7 @@ export function AuthPage() {
           {/* Password Field */}
           <div className="space-y-1 text-left">
             <label className="text-xs text-[var(--color-alloy-text-sec)] font-ui">
-              App Password
+              {t('App Password')}
             </label>
             <input
               name="password"
@@ -223,14 +225,14 @@ export function AuthPage() {
                     />
                   </div>
                   <span className="text-xs text-[var(--color-alloy-text-sec)]">
-                    {strength.level === 'weak' && 'Weak'}
-                    {strength.level === 'fair' && 'Fair'}
-                    {strength.level === 'good' && 'Good'}
-                    {strength.level === 'strong' && 'Strong'}
+                    {strength.level === 'weak' && t('Weak')}
+                    {strength.level === 'fair' && t('Fair')}
+                    {strength.level === 'good' && t('Good')}
+                    {strength.level === 'strong' && t('Strong')}
                   </span>
                 </div>
                 <p className="text-xs text-[var(--color-alloy-text-sec)]">
-                  Requirements: 8+ chars, uppercase, lowercase, number, special char
+                  {t('Requirements: 8+ chars, uppercase, lowercase, number, special char')}
                 </p>
               </div>
             )}
@@ -243,13 +245,13 @@ export function AuthPage() {
             className="w-full flex items-center justify-center gap-3 bg-white text-black py-3 px-6 rounded-md hover:bg-gray-100 transition-colors font-medium text-sm mt-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
           >
             <LogIn size={18} />
-            {isSubmitting ? 'Signing in...' : 'Connect & Login'}
+            {isSubmitting ? t('Signing in...') : t('Connect & Login')}
           </button>
         </form>
 
         <div className="mt-8 text-xs text-[var(--color-alloy-text-sec)] space-y-2 border-t border-[var(--color-alloy-border)] pt-6 w-full">
-          <p>İlk hesap fabrika hesabı olur.</p>
-          <p>You can add more accounts later for quota rotation.</p>
+          <p>{t('The first account becomes the factory account.')}</p>
+          <p>{t('You can add more accounts later for quota rotation.')}</p>
         </div>
       </div>
     </div>

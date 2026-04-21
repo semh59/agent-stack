@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FastForward, Pause, Play, Terminal, XCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { useAppStore } from "../store/appStore";
@@ -26,6 +27,7 @@ export function ActivePipelineView() {
     resumeAutonomySession,
     stopAutonomySession,
   } = useAppStore();
+  const { t } = useTranslation();
 
   const [isPaused, setIsPaused] = useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -84,7 +86,7 @@ export function ActivePipelineView() {
       <div className="h-16 border-b border-[var(--color-alloy-border)] flex items-center justify-between px-6 bg-[var(--color-alloy-surface)]">
         <div>
           <h2 className="text-lg font-display text-white flex items-center gap-3">
-            <span>{pipelineStatus?.state?.userTask || autonomySession?.id || "Aktif Oturum"}</span>
+            <span>{pipelineStatus?.state?.userTask || autonomySession?.id || t("Active Session")}</span>
             <span className="text-xs text-[var(--color-alloy-text-sec)]">
               {autonomySession ? `Autonomy: ${autonomySession.state}` : pipelineStatus?.state?.pipelineStatus ?? "idle"}
             </span>
@@ -97,7 +99,7 @@ export function ActivePipelineView() {
               onClick={() => navigate(`/pipeline/${autonomySession.id}/plan`)}
               className="flex items-center gap-2 text-xs bg-amber-500/5 border border-amber-400/30 text-amber-300 px-3 py-1.5 rounded-md"
             >
-              Plan Onayi
+              {t("Plan Approval")}
             </button>
           ) : null}
           <button
@@ -109,25 +111,25 @@ export function ActivePipelineView() {
             ) : (
               <Pause size={14} className="text-[var(--color-alloy-warning)]" />
             )}
-            {isPaused || autonomySession?.state === "paused" ? "Devam" : "Duraklat"}
+            {isPaused || autonomySession?.state === "paused" ? t("Resume") : t("Pause")}
           </button>
           <button className="flex items-center gap-2 text-xs bg-[var(--color-alloy-bg)] border border-[var(--color-alloy-border)] px-3 py-1.5 rounded-md">
-            <FastForward size={14} /> Atla
+            <FastForward size={14} /> {t("Skip")}
           </button>
           <button
             onClick={handleStop}
             className="flex items-center gap-2 text-xs bg-[var(--color-alloy-bg)] border border-red-900/50 text-red-400 px-3 py-1.5 rounded-md"
           >
-            <XCircle size={14} /> Iptal
+            <XCircle size={14} /> {t("Cancel")}
           </button>
-          <span className="text-xs text-[var(--color-alloy-text-sec)]">{activeAccount || "Hesap yok"}</span>
+          <span className="text-xs text-[var(--color-alloy-text-sec)]">{activeAccount || t("No account")}</span>
         </div>
       </div>
 
       <div className="flex-1 min-h-0 grid grid-cols-[2fr_1fr]">
         <div className="min-h-0 bg-[#0a0a0c] flex flex-col">
           <div className="p-3 border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] text-xs text-[var(--color-alloy-text-sec)] flex items-center gap-2">
-            <Terminal size={12} /> CANLI AKIS
+            <Terminal size={12} /> {t("LIVE STREAM")}
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto font-body text-xs space-y-1.5">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Clock, FileText, Search, Terminal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { clsx } from "clsx";
 import { useAppStore } from "../store/appStore";
 
@@ -14,6 +15,7 @@ export function PipelineHistoryView() {
     gateBySession,
     fetchAutonomySessions,
   } = useAppStore();
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<"logs" | "artifacts">("logs");
   const [query, setQuery] = useState("");
@@ -50,11 +52,11 @@ export function PipelineHistoryView() {
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search sessions..."
+              placeholder={t("Search sessions...")}
               className="w-full bg-[var(--color-alloy-bg)] border border-[var(--color-alloy-border)] rounded-md pl-9 pr-3 py-2 text-sm text-white"
             />
           </div>
-          <p className="mt-3 text-xs text-[var(--color-alloy-text-sec)]">{sessions.length} sessions</p>
+          <p className="mt-3 text-xs text-[var(--color-alloy-text-sec)]">{sessions.length} {t("sessions")}</p>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -86,9 +88,9 @@ export function PipelineHistoryView() {
       <div className="flex-1 bg-[var(--color-alloy-surface)] border border-[var(--color-alloy-border)] rounded-lg flex flex-col min-h-0">
         <div className="h-16 border-b border-[var(--color-alloy-border)] px-6 flex items-center justify-between">
           <div>
-            <h2 className="text-lg text-white">{selected?.objective || "Select a session"}</h2>
+            <h2 className="text-lg text-white">{selected?.objective || t("No session selected")}</h2>
             <p className="text-xs text-[var(--color-alloy-text-sec)]">
-              {selected ? `${selected.state} • ${selected.account}` : "No session selected"}
+              {selected ? `${selected.state} • ${selected.account}` : t("No session selected")}
             </p>
           </div>
         </div>
@@ -104,7 +106,7 @@ export function PipelineHistoryView() {
                 : "border-transparent text-[var(--color-alloy-text-sec)]",
             )}
           >
-            Logs
+            {t("History")}
           </button>
           <button
             type="button"
@@ -116,7 +118,7 @@ export function PipelineHistoryView() {
                 : "border-transparent text-[var(--color-alloy-text-sec)]",
             )}
           >
-            Artifacts
+            {t("Artifacts")}
           </button>
         </div>
 
@@ -126,7 +128,7 @@ export function PipelineHistoryView() {
               {timeline.length === 0 ? (
                 <div className="h-32 flex flex-col items-center justify-center text-[var(--color-alloy-text-sec)]">
                   <Terminal size={24} />
-                  <p className="mt-2">No timeline events yet.</p>
+                  <p className="mt-2">{t("No timeline events yet.")}</p>
                 </div>
               ) : (
                 timeline.map((entry) => (
@@ -143,8 +145,8 @@ export function PipelineHistoryView() {
           ) : (
             <div className="space-y-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-[var(--color-alloy-text-sec)] mb-2">Touched Files</p>
-                {touchedFiles.length === 0 ? <p className="text-sm text-white">No diff payload.</p> : null}
+                <p className="text-xs uppercase tracking-wide text-[var(--color-alloy-text-sec)] mb-2">{t("Touched Files")}</p>
+                {touchedFiles.length === 0 ? <p className="text-sm text-white">{t("No diff payload.")}</p> : null}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                   {touchedFiles.map((file) => (
                     <div key={file} className="bg-[var(--color-alloy-surface)] border border-[var(--color-alloy-border)] rounded p-2 flex items-center gap-2 text-xs text-white">
@@ -159,13 +161,13 @@ export function PipelineHistoryView() {
                 <p className="text-xs uppercase tracking-wide text-[var(--color-alloy-text-sec)] mb-2">Gate</p>
                 {gate ? (
                   <div className={clsx("rounded border p-3 text-xs", gate.passed ? "border-green-800/40 text-green-300" : "border-red-800/40 text-red-300")}>
-                    <p>{gate.passed ? "Passed" : "Blocked"}</p>
+                    <p>{gate.passed ? t("Passed") : t("Blocked")}</p>
                     {gate.blockingIssues.map((issue) => (
                       <p key={issue} className="mt-1">{issue}</p>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-white">No gate payload.</p>
+                  <p className="text-sm text-white">{t("No gate payload.")}</p>
                 )}
               </div>
             </div>

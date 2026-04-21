@@ -31,11 +31,13 @@ import {
   RotateCcw,
   Save,
   AlertCircle,
+  Users,
 } from "lucide-react";
 
 import { useAlloyStore } from "../../../store/alloyStore";
-import { useToast } from "../../../components/alloy/Toast";
-import { Button, Card } from "../../../components/alloy/primitives";
+import { useToast } from "../../../components/sovereign/Toast";
+import { Button, Card } from "../../../components/sovereign/primitives";
+import { useTranslation } from "react-i18next";
 
 import { ProvidersPage } from "./pages/ProvidersPage";
 import { RoutingPage } from "./pages/RoutingPage";
@@ -45,6 +47,7 @@ import { RulesPage } from "./pages/RulesPage";
 import { ObservabilityPage } from "./pages/ObservabilityPage";
 import { DataPage } from "./pages/DataPage";
 import { AppearancePage } from "./pages/AppearancePage";
+import { AccountsPage } from "./pages/AccountsPage";
 
 type PageId =
   | "providers"
@@ -54,7 +57,8 @@ type PageId =
   | "rules"
   | "observability"
   | "data"
-  | "appearance";
+  | "appearance"
+  | "accounts";
 
 const NAV: Array<{ id: PageId; label: string; icon: ReactNode; sub: string }> = [
   { id: "providers", label: "Providers", icon: <Cloud size={16} />, sub: "Models & API keys" },
@@ -65,10 +69,13 @@ const NAV: Array<{ id: PageId; label: string; icon: ReactNode; sub: string }> = 
   { id: "observability", label: "Observability", icon: <Gauge size={16} />, sub: "Logs, metrics, traces" },
   { id: "data", label: "Data", icon: <Database size={16} />, sub: "Storage paths" },
   { id: "appearance", label: "Appearance", icon: <Palette size={16} />, sub: "Theme, language, density" },
+  { id: "accounts", label: "Accounts", icon: <Users size={16} />, sub: "Authorized credentials" },
 ];
 
 export function AlloySettingsShell() {
+  const { t } = useTranslation();
   const [active, setActive] = useState<PageId>("providers");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { notify } = useToast();
   const {
     settings,
@@ -105,14 +112,14 @@ export function AlloySettingsShell() {
   };
 
   const onReset = async () => {
-    if (!window.confirm("Reset ALL settings to defaults? This clears saved API keys and routing.")) return;
+    setShowResetConfirm(false);
     try {
       await resetAllSettings();
-      notify({ tone: "warning", title: "Reset to defaults", description: "Re-enter provider API keys to continue." });
+      notify({ tone: "warning", title: t("Reset to defaults"), description: t("Re-enter provider API keys to continue.") });
     } catch (err) {
       notify({
         tone: "error",
-        title: "Reset failed",
+        title: t("Reset failed"),
         description: err instanceof Error ? err.message : String(err),
       });
     }
@@ -122,17 +129,17 @@ export function AlloySettingsShell() {
     <div className="flex h-full flex-col">
       <header className="flex items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/50 px-6 py-4 backdrop-blur-sm">
         <div>
-          <h1 className="font-display text-lg tracking-wide text-white">Alloy Settings</h1>
+          <h1 className="font-display text-lg tracking-wide text-white">{t("Alloy Settings")}</h1>
           <p className="text-xs text-[var(--color-alloy-text-sec)]">
-            Every knob the console exposes — live-validated, encrypted at rest.
+            {t("Every knob the console exposes — live-validated, encrypted at rest.")}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" icon={<RotateCcw size={14} />} onClick={onReset} disabled={settingsSaving}>
-            Reset
+          <Button variant="ghost" size="sm" icon={<RotateCcw size={14} />} onClick={() => setShowResetConfirm(true)} disabled={settingsSaving}>
+            {t("Reset")}
           </Button>
           <Button variant="ghost" size="sm" onClick={clearSettingsDraft} disabled={!isDirty || settingsSaving}>
-            Discard
+            {t("Discard")}
           </Button>
           <Button
             variant="primary"
@@ -142,7 +149,7 @@ export function AlloySettingsShell() {
             disabled={!isDirty}
             loading={settingsSaving}
           >
-            {isDirty ? `Save (${Object.keys(settingsDraftPatch).length})` : "Saved"}
+            {isDirty ? `${t("Save")} (${Object.keys(settingsDraftPatch).length})` : t("Saved")}
           </Button>
         </div>
       </header>
@@ -172,8 +179,8 @@ export function AlloySettingsShell() {
                 {item.icon}
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-medium">{item.label}</span>
-                <span className="block text-[11px] text-[var(--color-alloy-text-sec)]">{item.sub}</span>
+                <span className="block text-sm font-medium">{t(item.label)}</span>
+                <span className="block text-[11px] text-[var(--color-alloy-text-sec)]">{t(item.sub)}</span>
               </span>
             </button>
           ))}
@@ -181,16 +188,23 @@ export function AlloySettingsShell() {
 
         <div className="min-w-0 flex-1 overflow-y-auto p-6">
           {settingsLoading && !settings ? (
-            <Card className="text-sm text-[var(--color-alloy-text-sec)]">Loading settings…</Card>
+            <Card className="text-sm text-[var(--color-alloy-text-sec)]">{t("Loading settings…")}</Card>
           ) : !settings ? (
             <Card tone="warning" className="text-sm text-amber-200">
-              Settings unavailable. The gateway may be starting up.
+              {t("Settings unavailable. The gateway may be starting up.")}
             </Card>
           ) : (
             <ActivePage id={active} />
           )}
         </div>
       </div>
+
+      {showResetConfirm && (
+        <ResetConfirmation 
+          onConfirm={onReset} 
+          onCancel={() => setShowResetConfirm(false)} 
+        />
+      )}
     </div>
   );
 }
@@ -213,9 +227,34 @@ function ActivePage({ id }: { id: PageId }) {
       return <DataPage />;
     case "appearance":
       return <AppearancePage />;
+    case "accounts":
+      return <AccountsPage />;
     default: {
       const exhaustive: never = id;
       return <>{exhaustive}</>;
     }
   }
+}
+
+function ResetConfirmation({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <Card className="max-w-sm border-red-500/40 shadow-2xl animate-in zoom-in-95 duration-200" tone="danger">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2">
+            <RotateCcw size={24} />
+          </div>
+          <h3 className="text-lg font-display text-white tracking-wide uppercase">{t("Reset All Settings?")}</h3>
+          <p className="text-sm text-red-200/70">
+            {t("This clears ALL saved API keys, routing rules, and provider configurations. This action cannot be undone.")}
+          </p>
+          <div className="flex gap-3 w-full pt-4">
+            <Button variant="ghost" className="flex-1" onClick={onCancel}>{t("Cancel")}</Button>
+            <Button variant="danger" className="flex-1" onClick={onConfirm}>{t("Reset Everything")}</Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
 }

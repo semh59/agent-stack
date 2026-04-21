@@ -99,7 +99,7 @@ function renderInline(escaped: string, keyPrefix: string): ReactNode[] {
 
 export interface FormattedMessageProps {
   content: string;
-  role: "user" | "assistant" | "system";
+  role: "user" | "model" | "system";
 }
 
 export function FormattedMessage({ content, role }: FormattedMessageProps) {

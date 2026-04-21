@@ -21,27 +21,33 @@ import { Composer } from "./components/Composer";
 import { CostFooter } from "./components/CostFooter";
 
 export function AlloyChatShell() {
-  const { settings, loadSettings, conversationOrder, newConversation } =
-    useAlloyStore();
+  const { 
+    settings, 
+    loadSettings, 
+    conversations, 
+    loadConversations, 
+    startNewChat,
+    activeConversationId 
+  } = useAlloyStore();
 
-  // Settings drive the ModelPicker — fetch them once so the picker has data.
   useEffect(() => {
     if (!settings) void loadSettings();
   }, [settings, loadSettings]);
 
-  // If the persisted store hydrated with zero conversations, start a fresh
-  // one so the user never stares at an empty screen on first load.
   useEffect(() => {
-    if (conversationOrder.length === 0) {
-      newConversation();
+    void loadConversations();
+  }, [loadConversations]);
+
+  useEffect(() => {
+    if (conversations.length === 0 && !activeConversationId) {
+      void startNewChat();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [conversations, activeConversationId, startNewChat]);
 
   return (
-    <div className="flex h-full min-h-0 w-full">
+    <div className="flex h-full min-h-0 w-full overflow-hidden bg-[var(--color-alloy-bg)]">
       <ConversationList />
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main className="flex min-w-0 flex-1 flex-col border-l border-[var(--color-alloy-border)]">
         <MessageList />
         <Composer />
         <CostFooter />

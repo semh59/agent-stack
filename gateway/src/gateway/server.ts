@@ -28,6 +28,7 @@ import {
 } from "./gateway-auth-manager";
 import { getMissionDatabase, resetMissionDatabase, type MissionDatabase } from "../persistence/database";
 import { SQLiteMissionRepository } from "../persistence/SQLiteMissionRepository";
+import { SQLiteChatRepository } from "../persistence/SQLiteChatRepository";
 import { MissionPersistenceSubscriber } from "../persistence/MissionPersistenceSubscriber";
 import { StartupRecoveryCoordinator } from "../persistence/recovery/StartupRecovery";
 import type { RecoveryNotifier } from "../persistence/recovery/RecoveryNotifier";
@@ -46,6 +47,7 @@ import { apiError, apiResponse, parsePagination } from "./rest-response";
 import { registerMissionRoutes } from "../api/routers/mission.router";
 import { registerSettingsRoutes } from "../services/settings/routes";
 import { registerOptimizeRoutes } from "./routes/optimize";
+import { registerChatRoutes } from "../api/routers/chat.router";
 import { registerSystemRoutes } from "../api/routers/system.router";
 import { registerAuthRoutes } from "../api/routers/auth.router";
 import { registerAccountsRoutes } from "../api/routers/accounts.router";
@@ -56,9 +58,9 @@ import { MissionService, MissionServiceError } from "../services/mission.service
 import { AutonomyMissionRuntime } from "../services/mission-runtime";
 import { SQLiteUnitOfWork } from "../uow/unit-of-work";
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——————————————————————————————————————————————————————————————————————————————————————————————————
 
-/** Mask email for PII safety: "user@gmail.com" â†’ "u***@gmail.com" */
+/** Mask email for PII safety: "user@gmail.com" → "u***@gmail.com" */
 function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return "***";
@@ -91,9 +93,9 @@ function normalizeOAuthConsentUrl(rawUrl: string): string {
   }
 }
 
-// â”€â”€â”€ Rate Limit Tracking (in-memory, per-IP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ————————————————————————————————— Rate Limit Tracking (in-memory, per-IP) —————————————————————————————————
 
-// â”€â”€â”€ Allowed Plan Modes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ————————————————————————————————— Allowed Plan Modes ——————————————————————————————————————————————————————
 
 const VALID_PLAN_MODES = new Set([
   "full",
@@ -104,7 +106,7 @@ const VALID_PLAN_MODES = new Set([
 ]);
 const MAX_USER_TASK_LENGTH = 10_000;
 
-// â”€â”€â”€ CORS Whitelist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ————————————————————————————————— CORS Whitelist ——————————————————————————————————————————————————————————
 
 const CORS_ALLOWED_ORIGINS = [
   /^http:\/\/localhost:\d+$/,
@@ -120,7 +122,7 @@ function isOriginAllowed(origin: string | undefined): boolean {
   });
 }
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ————————————————————————————————— Types ———————————————————————————————————————————————————————————————————
 
 export interface GatewayServerOptions {
   port: number;
@@ -232,7 +234,7 @@ interface MissionWsTicketRequestBody {
   generation?: WsSocketGeneration | null;
 }
 
-// â”€â”€â”€ Server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ————————————————————————————————— Server ——————————————————————————————————————————————————————————————————
 
 export class GatewayServer {
   private app = fastify({
@@ -284,6 +286,7 @@ export class GatewayServer {
   private quotaStateReady = false;
   private readonly missionService: MissionService;
   private readonly missionPersistence: MissionPersistenceSubscriber;
+  private readonly chatRepository: SQLiteChatRepository;
   private readonly startupRecovery: StartupRecoveryCoordinator;
   private readonly recoveryNotifier: RecoveryNotifier;
   private readonly autonomyEventSubscription: { dispose: () => void };
@@ -325,6 +328,7 @@ export class GatewayServer {
       new AutonomyMissionRuntime(this.autonomyManager),
       this.app.log,
     );
+    this.chatRepository = new SQLiteChatRepository(this.missionDatabase ?? getMissionDatabase());
     this.missionPersistence = new MissionPersistenceSubscriber(this.missionRepository, {
       getSession: (sessionId) => this.autonomyManager.getSession(sessionId),
       logger: this.app.log,
@@ -632,6 +636,11 @@ export class GatewayServer {
 
     registerSettingsRoutes(this.app);
     registerOptimizeRoutes(this.app);
+    registerChatRoutes(this.app, {
+      tokenStore: this.tokenStore,
+      getAccountManager: () => this.accountManager,
+      chatRepository: this.chatRepository,
+    });
 
     registerSystemRoutes(this.app, {
       tokenStore: this.tokenStore,

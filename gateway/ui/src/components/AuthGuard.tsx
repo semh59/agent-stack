@@ -36,18 +36,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }, [activeAccountData?.expiresAt]);
 
   if (!hasActive) {
-    // K8 FIX: Allow bypassing AuthGuard in standalone browser mode or development
-    // so the user can navigate the UI to debug without being trapped.
-    // @ts-expect-error - VSCode webview API
-    const isStandalone = typeof acquireVsCodeApi === 'undefined';
     const isDev = import.meta.env?.DEV;
     
-    if (isStandalone || isDev) {
-      // Just warn, don't trap
-      console.warn('[AuthGuard] Bypassed because isStandalone/isDev. Active account is missing or invalid.');
+    if (isDev) {
+      // In development, only warn to avoid trapping the developer
+      console.warn('[AuthGuard] Account invalid. Warning only because isDev.');
     } else {
-      // Strict mode for VSCode production
-      // Allow access to the accounts page itself
+      // Strict mode for Production
       if (location.pathname === '/accounts') {
         return <>{children}</>;
       }
