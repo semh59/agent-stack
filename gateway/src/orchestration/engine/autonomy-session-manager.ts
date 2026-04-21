@@ -53,73 +53,68 @@ export class AutonomySessionManager {
     }
   }
 
-  public async saveSession(session: AutonomySession): Promise<void> {
-    await this.persistence.saveSession(session).catch(err => {
-      console.error(`[Persistence] Failed to save state for session ${session.id}: ${err.message}`);
-    });
-  }
-
   public async transition(
     session: AutonomySession,
     state: AutonomyState,
     task: TaskNode | null,
-    note: string,
+    reason: string | null = null,
   ): Promise<void> {
     let lockAttempts = 0;
-    const MAX_LOCK_ATTEMPTS = 20;
+    const MAX_LOCK_ATTEMPTS = 50;
+
     while (this.sessionLocks.has(session.id) && lockAttempts < MAX_LOCK_ATTEMPTS) {
       lockAttempts++;
       const delay = 50 * Math.pow(1.5, lockAttempts);
       await sleep(delay);
     }
 
-    if (this.sessionLocks.has(session.id)) {
-      throw new Error(`[PhaseGuard] Failed to acquire lock for session ${session.id} after ${MAX_LOCK_ATTEMPTS} attempts.`);
-    }
     this.sessionLocks.add(session.id);
-
     try {
-      if (session.state === state && state !== "failed") return;
-
-      if (["failed", "done", "stopped"].includes(session.state)) {
-        if (!["failed", "done", "stopped"].includes(state)) {
-          console.warn(`[PhaseGuard] Blocked transition from terminal ${session.state} to ${state}`);
-          return;
-        }
-      }
-
-      phaseEngine.validateTransition(session, state, task);
+      const resolvedNextState = phaseEngine.validateTransition(
+        session,
+        state,
+        task,
+      );
 
       const now = new Date().toISOString();
-      session.state = state;
+      const previousState = session.state;
+      session.state = resolvedNextState;
       session.updatedAt = now;
       session.lastProgressAt = now;
-      
-      session.timeline.push({
-        cycle: session.cycleCount,
-        state,
-        taskId: task?.id ?? null,
-        note,
-        timestamp: now,
-      });
+
+      if (reason) {
+        session.timeline.push({
+          cycle: session.cycleCount,
+          state: resolvedNextState,
+          note: reason,
+          timestamp: now,
+          taskId: task?.id ?? null,
+        });
+      }
 
       await this.saveSession(session);
+      this.sessions.set(session.id, session);
 
       this.options.emit("state", session, {
-        state,
-        taskId: task?.id ?? null,
+        state: resolvedNextState,
+        previousState,
+        reason,
         cycle: session.cycleCount,
-        note,
       });
+
       this.options.emit("step", session, {
-        state,
+        state: resolvedNextState,
         taskId: task?.id ?? null,
         cycle: session.cycleCount,
-        note,
+        note: reason ?? "",
       });
     } finally {
       this.sessionLocks.delete(session.id);
     }
+  }
+
+  public async saveSession(session: AutonomySession): Promise<void> {
+    await this.persistence.saveSession(session);
   }
 
   public async failSession(session: AutonomySession, errorMessage: string): Promise<void> {

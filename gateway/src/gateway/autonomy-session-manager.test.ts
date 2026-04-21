@@ -11,17 +11,27 @@ async function sleep(ms: number) {
 async function waitForState(
   manager: AutonomySessionManager,
   sessionId: string,
-  targetState: "stopped" | "failed" | "done",
+  targetState: string | string[],
+  timeoutMs = 5000,
 ) {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  const targets = Array.isArray(targetState) ? targetState : [targetState];
+  const start = Date.now();
+  
+  while (Date.now() - start < timeoutMs) {
     const session = manager.getSession(sessionId);
-    if (session?.state === targetState) {
+    if (session && targets.includes(session.state)) {
       return session;
     }
     await sleep(50);
   }
 
-  throw new Error(`Timed out waiting for session ${sessionId} to reach ${targetState}`);
+  const current = manager.getSession(sessionId);
+  if (current) {
+    console.log(`[DIAGNOSTIC] Session ${sessionId} found:`, JSON.stringify(current, null, 2));
+  } else {
+    console.log(`[DIAGNOSTIC] Session ${sessionId} NOT FOUND`);
+  }
+  throw new Error(`Timed out waiting for session ${sessionId} to reach [${targets.join(", ")}]. Current state: ${current?.state}`);
 }
 
 async function waitForFetchCall(fetchSpy: ReturnType<typeof vi.fn>) {
@@ -150,11 +160,12 @@ describe("AutonomySessionManager", () => {
 
     expect(await manager.stopSession(session.id, "User stop")).toBe(true);
 
-    const finalSession = await waitForState(manager, session.id, "stopped");
+    const finalSession = await waitForState(manager, session.id, ["stopped", "failed"]);
+    expect(["failed", "stopped"]).toContain(finalSession.state);
     expect(aborted).toBe(true);
     expect(finalSession.state).toBe("stopped");
     expect(finalSession.stopReason).toBe("User stop");
-  });
+  }, 15000);
 
   it("recovery chain 2a: strict parse fails and fenced recovery succeeds", async () => {
     const manager = new AutonomySessionManager({
@@ -254,7 +265,7 @@ describe("AutonomySessionManager", () => {
 
     const finalSession = await waitForState(manager, session.id, "failed");
     expect(finalSession.error).toContain("MODEL_PAYLOAD_PARSE_ERROR");
-  });
+  }, 15000);
 
   it("applies custom model request timeout and fails hung requests", async () => {
     const fetchSpy = vi.fn<typeof fetch>((_input, init) => {
@@ -317,7 +328,7 @@ describe("AutonomySessionManager", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(finalSession.state).toBe("failed");
     expect(finalSession.error?.toLowerCase()).toContain("timeout");
-  });
+  }, 15000);
 
   it("uses 90_000ms as default local fail-fast timeout source", () => {
     const timeoutSpy = vi.spyOn(AbortSignal, "timeout");

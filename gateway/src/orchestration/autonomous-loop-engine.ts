@@ -123,8 +123,19 @@ export class AutonomousLoopEngine {
 
   public runExistingInBackground(sessionId: string): boolean {
     const session = this.sessionManager.getSession(sessionId);
-    if (!session || this.runningSessions.has(sessionId)) return false;
-    if (["done", "failed", "stopped"].includes(session.state)) return false;
+    if (!session) {
+      process.stderr.write(`[AUTONOMY] runExistingInBackground ${sessionId} failed: session not found\n`);
+      return false;
+    }
+    if (this.runningSessions.has(sessionId)) {
+      process.stderr.write(`[AUTONOMY] runExistingInBackground ${sessionId} failed: already running\n`);
+      return false;
+    }
+    if (["done", "failed", "stopped"].includes(session.state)) {
+      process.stderr.write(`[AUTONOMY] runExistingInBackground ${sessionId} failed: terminal state ${session.state}\n`);
+      return false;
+    }
+    process.stderr.write(`[AUTONOMY] runExistingInBackground ${sessionId} starting runSession\n`);
     void this.runSession(sessionId);
     return true;
   }
@@ -201,6 +212,7 @@ export class AutonomousLoopEngine {
     if (this.runningSessions.has(sessionId)) return structuredClone(session);
 
     this.runningSessions.add(sessionId);
+    process.stderr.write(`[AUTONOMY] Starting session ${sessionId} loop. Loop count: ${this.runningSessions.size}\n`);
     try {
       if (session.state === "queued") {
         session.queuePosition = null;
@@ -242,7 +254,7 @@ export class AutonomousLoopEngine {
         const reviewDecision = await this.interruptHandler.awaitPlanReviewDecision(session, task);
         if (reviewDecision !== "continue") break;
 
-        const executionResult = await this.cycleRunner.executeCycle(session, task, modelDecision, () => this.stop(session!.id), this.budgetTracker);
+        const executionResult = await this.cycleRunner.executeCycle(session, task, modelDecision, () => this.interruptHandler.isStopRequested(session.id), this.budgetTracker);
         if (executionResult.success) {
           taskGraphManager.completeTask(session.taskGraph, task.type);
         }
