@@ -84,7 +84,7 @@ process.on("SIGTERM", () => shutdown(0));
 
 // ---- Bridge ----
 if (process.env.SKIP_BRIDGE !== "1") {
-  const bridgeDir = path.join(root, "ai-stack-mcp");
+  const bridgeDir = path.join(root, "bridge");
   if (!existsSync(path.join(bridgeDir, "bridge.py"))) {
     console.error(`[dev] bridge.py not found at ${bridgeDir}`);
     process.exit(1);
@@ -97,20 +97,20 @@ if (process.env.SKIP_BRIDGE !== "1") {
 
 // ---- Gateway ----
 if (process.env.SKIP_GATEWAY !== "1") {
-  const agentDir = path.join(root, "AGENT");
+  const agentDir = path.join(root, "gateway");
   if (!existsSync(path.join(agentDir, "package.json"))) {
-    console.error(`[dev] AGENT/package.json not found`);
+    console.error(`[dev] gateway/package.json not found`);
     process.exit(1);
   }
   launch("gateway", "green", "npx", ["tsx", "src/main.ts"], {
     cwd: agentDir,
     env: {
-      SOVEREIGN_GATEWAY_PORT: GATEWAY_PORT,
-      SOVEREIGN_GATEWAY_HOST: "127.0.0.1",
+      ALLOY_GATEWAY_PORT: GATEWAY_PORT,
+      ALLOY_GATEWAY_HOST: "127.0.0.1",
       AI_STACK_BRIDGE_HOST: "127.0.0.1",
       AI_STACK_BRIDGE_PORT: BRIDGE_PORT,
-      LOJINEXT_GATEWAY_TOKEN: process.env.SOVEREIGN_GATEWAY_TOKEN || process.env.LOJINEXT_GATEWAY_TOKEN || "dev-local-token",
-      SOVEREIGN_GATEWAY_TOKEN: process.env.SOVEREIGN_GATEWAY_TOKEN || process.env.LOJINEXT_GATEWAY_TOKEN || "dev-local-token",
+      ALLOY_GATEWAY_TOKEN: process.env.ALLOY_GATEWAY_TOKEN || process.env.ALLOY_GATEWAY_TOKEN || "dev-local-token",
+      ALLOY_GATEWAY_TOKEN: process.env.ALLOY_GATEWAY_TOKEN || process.env.ALLOY_GATEWAY_TOKEN || "dev-local-token",
       AI_STACK_BRIDGE_SECRET: process.env.AI_STACK_BRIDGE_SECRET || "dev-local-bridge-secret",
     },
   });

@@ -1,6 +1,6 @@
-# Sovereign UI Architecture
+# Alloy UI Architecture
 
-The Sovereign console is a Vite + React 19 + Tailwind 4 SPA, served by the
+The Alloy console is a Vite + React 19 + Tailwind 4 SPA, served by the
 gateway in production and by `vite dev` in development. This document is the
 map for anyone who needs to touch the UI — what lives where, what state is
 owned by whom, and the two or three rules that keep the console coherent.
@@ -9,10 +9,10 @@ owned by whom, and the two or three rules that keep the console coherent.
 
 ```
 AppLayout (persistent sidebar + header)
-├── /chat         → SovereignChatShell         (full-bleed)
+├── /chat         → AlloyChatShell         (full-bleed)
 ├── /dashboard    → DashboardView              (padded)
 ├── /pipeline/*   → PipelineHistoryView, ActivePipelineView, PlanApprovalView
-├── /settings     → SovereignSettingsShell     (full-bleed)
+├── /settings     → AlloySettingsShell     (full-bleed)
 ├── /settings/accounts → SettingsView          (legacy accounts panel)
 └── /auth         → AuthPage                   (no layout)
 ```
@@ -28,7 +28,7 @@ Two Zustand stores run side-by-side:
 | Store               | Purpose                                                      |
 | ------------------- | ------------------------------------------------------------ |
 | `useAppStore`       | **Legacy.** Mission/pipeline/accounts/websocket. Existing UI keeps reading from this while we migrate. |
-| `useSovereignStore` | **New.** Settings + chat. Persisted (chat) to localStorage.  |
+| `useAlloyStore` | **New.** Settings + chat. Persisted (chat) to localStorage.  |
 
 Keeping them separate prevents the masterpiece UI from having to extend a
 brittle legacy `AppState` interface. The two never cross-reference — anything
@@ -36,7 +36,7 @@ that needs data from both reads from them independently at the component layer.
 
 ### Settings slice
 
-Lives in `store/slices/sovereign/settingsSlice.ts`. Key ideas:
+Lives in `store/slices/alloy/settingsSlice.ts`. Key ideas:
 
 - `settings` — the server's redacted view, the canonical read model.
 - `settingsDraftPatch` — in-memory diff the user is building. Deep-merged on
@@ -47,7 +47,7 @@ Lives in `store/slices/sovereign/settingsSlice.ts`. Key ideas:
 
 ### Chat slice
 
-Lives in `store/slices/sovereign/chatSlice.ts`. Key ideas:
+Lives in `store/slices/alloy/chatSlice.ts`. Key ideas:
 
 - `conversations` — keyed by id, newest updates bubble to the top of
   `conversationOrder`.
@@ -60,11 +60,11 @@ Lives in `store/slices/sovereign/chatSlice.ts`. Key ideas:
 ## Component taxonomy
 
 ```
-components/sovereign/primitives.tsx   ← design-system atoms (Card, Row, Input,
+components/alloy/primitives.tsx   ← design-system atoms (Card, Row, Input,
                                          Switch, SecretInput, Badge, Button…)
-components/sovereign/Toast.tsx        ← ToastProvider + useToast hook
-pages/sovereign/settings/             ← Settings pages + shell
-pages/sovereign/chat/                 ← Chat shell + composer / list / picker
+components/alloy/Toast.tsx        ← ToastProvider + useToast hook
+pages/alloy/settings/             ← Settings pages + shell
+pages/alloy/chat/                 ← Chat shell + composer / list / picker
 ```
 
 Rules that keep it coherent:
@@ -104,7 +104,7 @@ reachable from the sidebar under their existing labels.
 
 Adding a new full-bleed page:
 
-1. Create `pages/sovereign/<thing>/<Thing>Shell.tsx` that returns
+1. Create `pages/alloy/<thing>/<Thing>Shell.tsx` that returns
    `<div className="flex h-full min-h-0 flex-col">`.
 2. Add the route in `App.tsx` wrapped in `<PageErrorBoundary>`.
 3. Append the path prefix to `FULL_BLEED_PREFIXES` in `AppLayout.tsx`.
@@ -112,9 +112,9 @@ Adding a new full-bleed page:
 
 Adding a new settings page:
 
-1. Add the page under `pages/sovereign/settings/pages/<Thing>Page.tsx` using
+1. Add the page under `pages/alloy/settings/pages/<Thing>Page.tsx` using
    `Section` + `Card` + `Row` + primitives.
-2. Register the `PageId`, nav icon, and route in `SovereignSettingsShell.tsx`.
+2. Register the `PageId`, nav icon, and route in `AlloySettingsShell.tsx`.
 
 ## Development loop
 

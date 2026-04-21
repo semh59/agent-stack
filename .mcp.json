@@ -3,9 +3,9 @@
     "ai-stack": {
       "command": "python",
       "args": ["server.py"],
-      "cwd": "./ai-stack-mcp",
+      "cwd": "./bridge",
       "env": {
-        "PYTHONPATH": "./ai-stack-mcp"
+        "PYTHONPATH": "./bridge"
       }
     }
   }

@@ -25,7 +25,7 @@ jobs:
           node-version: "20"
       - name: Run secret scan
         run: |
-          cd AGENT
+          cd gateway
           npx ts-node --esm scripts/secret-scan.ts
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ai-stack-mcp
+        working-directory: bridge
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: ai-stack-mcp/requirements*.txt
+          cache-dependency-path: bridge/requirements*.txt
 
       - name: Install dependencies
         run: |
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: AGENT
+        working-directory: gateway
     steps:
       - uses: actions/checkout@v4
 
@@ -85,7 +85,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: AGENT/package-lock.json
+          cache-dependency-path: gateway/package-lock.json
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -114,19 +114,19 @@ jobs:
       - name: Build gateway image
         uses: docker/build-push-action@v5
         with:
-          context: ./AGENT
+          context: ./gateway
           push: false
-          tags: sovereign-gateway:ci
+          tags: alloy-gateway:ci
           cache-from: type=gha,scope=gateway
           cache-to: type=gha,scope=gateway,mode=max
 
       - name: Build optimization-bridge image
         uses: docker/build-push-action@v5
         with:
-          context: ./ai-stack-mcp
+          context: ./bridge
           target: runtime
           push: false
-          tags: sovereign-bridge:ci
+          tags: alloy-bridge:ci
           cache-from: type=gha,scope=bridge
           cache-to: type=gha,scope=bridge,mode=max
 
@@ -139,8 +139,8 @@ jobs:
           docker compose -f docker-compose.unified.yml up -d gateway optimization-bridge
           # Wait for gateway & bridge healthy (max 90s)
           for i in $(seq 1 30); do
-            if docker inspect --format='{{.State.Health.Status}}' sovereign-gateway 2>/dev/null | grep -q healthy \
-               && docker inspect --format='{{.State.Health.Status}}' sovereign-optimization 2>/dev/null | grep -q healthy; then
+            if docker inspect --format='{{.State.Health.Status}}' alloy-gateway 2>/dev/null | grep -q healthy \
+               && docker inspect --format='{{.State.Health.Status}}' alloy-bridge 2>/dev/null | grep -q healthy; then
               echo "stack healthy"
               break
             fi

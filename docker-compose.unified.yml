@@ -1,4 +1,4 @@
-# Sovereign AI Platform — Unified Docker Compose
+# Alloy AI Platform — Unified Docker Compose
 #
 # Services:
 #   gateway              — TypeScript Fastify Gateway (port 3000)
@@ -18,7 +18,7 @@
 version: "3.9"
 
 networks:
-  sovereign-net:
+  alloy-net:
     driver: bridge
 
 volumes:
@@ -32,12 +32,12 @@ services:
   # ── Gateway (TypeScript) ──────────────────────────────────────────────────
   gateway:
     build:
-      context: ./AGENT
+      context: ./gateway
       dockerfile: Dockerfile
-    container_name: sovereign-gateway
+    container_name: alloy-gateway
     restart: unless-stopped
     networks:
-      - sovereign-net
+      - alloy-net
     ports:
       - "${GATEWAY_PORT:-3000}:3000"
     depends_on:
@@ -48,9 +48,9 @@ services:
     environment:
       NODE_ENV: production
       APP_ENV: "${APP_ENV:-production}"
-      SOVEREIGN_GATEWAY_PORT: "3000"
-      SOVEREIGN_GATEWAY_HOST: "0.0.0.0"
-      SOVEREIGN_GATEWAY_TOKEN: "${GATEWAY_AUTH_TOKEN:?Set GATEWAY_AUTH_TOKEN}"
+      ALLOY_GATEWAY_PORT: "3000"
+      ALLOY_GATEWAY_HOST: "0.0.0.0"
+      ALLOY_GATEWAY_TOKEN: "${GATEWAY_AUTH_TOKEN:?Set GATEWAY_AUTH_TOKEN}"
       AI_STACK_BRIDGE_HOST: "optimization-bridge"
       AI_STACK_BRIDGE_PORT: "9100"
       AI_STACK_BRIDGE_SECRET: "${BRIDGE_SECRET:?Set BRIDGE_SECRET}"
@@ -71,12 +71,12 @@ services:
   # ── Optimization Bridge (Python) ──────────────────────────────────────────
   optimization-bridge:
     build:
-      context: ./ai-stack-mcp
+      context: ./bridge
       dockerfile: Dockerfile
-    container_name: sovereign-optimization
+    container_name: alloy-optimization
     restart: unless-stopped
     networks:
-      - sovereign-net
+      - alloy-net
     ports:
       - "${BRIDGE_PORT:-9100}:9100"
     volumes:
@@ -88,7 +88,7 @@ services:
       AI_STACK_OLLAMA_URL: "http://ollama:11434"
       AI_STACK_OPENROUTER_API_KEY: "${AI_STACK_OPENROUTER_API_KEY:-}"
       AI_STACK_BRIDGE_SECRET: "${BRIDGE_SECRET:?Set BRIDGE_SECRET}"
-      BRIDGE_CORS_ORIGIN: "${BRIDGE_CORS_ORIGIN:-https://sovereign.example.com}"
+      BRIDGE_CORS_ORIGIN: "${BRIDGE_CORS_ORIGIN:-https://alloy.example.com}"
       PYTHONPATH: "/app"
       LOG_LEVEL: "${LOG_LEVEL:-INFO}"
     # Override default CMD to run bridge instead of MCP server
@@ -103,17 +103,17 @@ services:
   # ── Ollama (Full profile only) ────────────────────────────────────────────
   ollama:
     image: ollama/ollama:latest
-    container_name: sovereign-ollama
+    container_name: alloy-ollama
     restart: unless-stopped
     profiles:
       - full
     networks:
-      - sovereign-net
+      - alloy-net
     ports:
       - "11434:11434"
     volumes:
       - ollama-data:/root/.ollama
-      - ./ai-stack-mcp/scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
+      - ./bridge/scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
     entrypoint: ["/bin/bash", "/entrypoint.sh"]
     environment:
       OLLAMA_HOST: "0.0.0.0"
@@ -128,14 +128,14 @@ services:
   # ── Caveman Service (Full profile only) ───────────────────────────────────
   caveman-service:
     build:
-      context: ./ai-stack-mcp
+      context: ./bridge
       dockerfile: Dockerfile.caveman
-    container_name: sovereign-caveman
+    container_name: alloy-caveman
     restart: unless-stopped
     profiles:
       - full
     networks:
-      - sovereign-net
+      - alloy-net
     ports:
       - "5000:5000"
     depends_on:

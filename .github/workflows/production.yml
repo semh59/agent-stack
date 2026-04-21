@@ -4,7 +4,7 @@
 #
 # Keeping the file as a stub so any protected-branch rules that reference it
 # don't block merges. All real CI runs in .github/workflows/ci.yml.
-name: Sovereign AI - Production Deployment Matrix (deprecated)
+name: Alloy AI - Production Deployment Matrix (deprecated)
 
 on:
   workflow_dispatch:

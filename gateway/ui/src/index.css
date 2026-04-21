@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  /* Sovereign Elite Palette */
+  --color-alloy-bg: #050505;
+  --color-alloy-surface: #0f0f0f;
+  --color-alloy-surface-hover: #161616;
+  --color-alloy-border: rgba(255, 255, 255, 0.08);
+  --color-alloy-border-bright: rgba(0, 240, 255, 0.2);
+  --color-alloy-accent: #00f0ff;
+  --color-alloy-accent-rgb: 0, 240, 255;
+  --color-alloy-text: #f0f0f0;
+  --color-alloy-text-sec: rgba(240, 240, 240, 0.6);
+  --color-alloy-success: #00ff94;
+  --color-alloy-warning: #ffb800;
+  --color-alloy-error: #ff4d4d;
+  
+  --font-display: "DM Mono", "Bebas Neue", monospace;
+  --font-body: "JetBrains Mono", monospace;
+  --font-ui: "IBM Plex Sans Condensed", sans-serif;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+}
+
+@layer base {
+  :root {
+    /* Glassmorphism */
+    --glass-bg: rgba(15, 15, 15, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  }
+
+  [data-theme="light"] {
+    --color-alloy-bg: #f8fafc;
+    --color-alloy-surface: #ffffff;
+    --color-alloy-border: #e2e8f0;
+    --color-alloy-text: #0f172a;
+    --color-alloy-text-sec: #64748b;
+  }
+
+  body {
+    background-color: var(--color-alloy-bg);
+    color: var(--color-alloy-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 500;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  .border-glass {
+    border: 1px solid var(--color-alloy-border);
+    background: rgba(15, 17, 23, 0.7);
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}

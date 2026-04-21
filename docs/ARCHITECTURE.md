@@ -2,7 +2,7 @@
 
 ## System overview
 
-The Sovereign AI Platform is a two-process system connected over HTTP:
+The Alloy AI Platform is a two-process system connected over HTTP:
 
 1. **Gateway** — a TypeScript Fastify service that clients talk to. It owns authentication, the mission/session model, and the public HTTP surface. It speaks to the bridge internally.
 2. **Optimization bridge** — a Python aiohttp service that runs the prompt-optimization pipeline. It is never exposed publicly; only the gateway (and in some deployments, internal operators) should reach it.
@@ -29,10 +29,10 @@ client → [ALB:443] → gateway (ECS task, 2 tasks)
 - Entry point: `AGENT/src/main.ts`
 - Framework: Fastify 4
 - Runtime: `tsx` (we do not pre-compile; `tsconfig.json` uses `module: "Preserve"` + `allowImportingTsExtensions`)
-- Auth: Google Sovereign AI OAuth, Claude OAuth, shared-secret bearer for the bridge
+- Auth: Google Alloy AI OAuth, Claude OAuth, shared-secret bearer for the bridge
 
 Request path for `/api/optimize`:
-1. Fastify CORS + auth plugin checks `SOVEREIGN_GATEWAY_TOKEN`.
+1. Fastify CORS + auth plugin checks `ALLOY_GATEWAY_TOKEN`.
 2. Route handler (`src/gateway/routes/optimize.ts`) forwards the body to the bridge.
 3. Forwarded request includes `X-Bridge-Secret` and `X-Request-ID` (generated if absent).
 4. Response is relayed back with status translation:
@@ -44,7 +44,7 @@ Shutdown is SIGTERM-aware: the server closes its connection pool, then `process.
 
 ## Optimization bridge (Python)
 
-- Entry point: `ai-stack-mcp/bridge.py`
+- Entry point: `bridge/bridge.py`
 - Framework: aiohttp
 - Middleware: `correlation_and_error_middleware` — generates/propagates `X-Request-ID`, converts uncaught exceptions into structured JSON 500s
 
@@ -64,7 +64,7 @@ Authentication is a single header: `X-Bridge-Secret: <shared-secret>`. Compared 
 
 ### Pipeline orchestrator
 
-`ai-stack-mcp/pipeline/orchestrator.py → PipelineOrchestrator.optimize(...)`
+`bridge/pipeline/orchestrator.py → PipelineOrchestrator.optimize(...)`
 
 Stages, in order:
 1. **Cache lookup** — L1 exact match → L2 semantic match.
@@ -112,7 +112,7 @@ All stores are keyed by `AI_STACK_DATA_DIR`. In containers that's `/data` (mount
 - Bridge auth uses `hmac.compare_digest` (constant-time).
 - CORS on the bridge is pinned to `BRIDGE_CORS_ORIGIN`.
 - Secrets are read from AWS Secrets Manager at task-start time (via `secrets = [...]` on the task definition); they are never in the image or in Terraform state.
-- Gateway rejects requests without `SOVEREIGN_GATEWAY_TOKEN`.
+- Gateway rejects requests without `ALLOY_GATEWAY_TOKEN`.
 - Both services run as non-root (UID 10001) inside the container.
 
 ## What this monorepo does NOT include

@@ -1,10 +1,10 @@
-# Sovereign AI Platform
+# Alloy AI Platform
 
 A polyglot monorepo that packages an AI gateway, a prompt-optimization bridge, and supporting services into a single deployable stack.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                           Sovereign AI Platform                      │
+│                           Alloy AI Platform                      │
 │                                                                      │
 │  ┌────────────────┐     HTTP     ┌──────────────────────────────┐    │
 │  │    Clients     │ ───────────► │   Gateway (TypeScript)        │    │
@@ -42,7 +42,7 @@ A polyglot monorepo that packages an AI gateway, a prompt-optimization bridge, a
 | `AGENT/`             | TypeScript (Node) | Fastify gateway, OAuth, mission orchestration, WebSocket UI bridge  |
 | `AGENT/ui/`          | React + Vite      | Dashboard webview                                                   |
 | `AGENT/vscode-extension/` | TypeScript   | VS Code extension host (packaging target)                           |
-| `ai-stack-mcp/`      | Python 3.11       | MCP server + HTTP optimization bridge + all pipeline stages         |
+| `bridge/`      | Python 3.11       | MCP server + HTTP optimization bridge + all pipeline stages         |
 | `terraform/`         | HCL               | AWS ECS Fargate IaC, split into reusable modules + per-env entries  |
 | `scripts/`           | Shell + Python    | `dev-runner.js`, `smoke.sh`, `smoke_test.py`                        |
 | `env/`               | dotenv            | Per-env config templates (`.env.development`, `staging`, `production`) |
@@ -62,7 +62,7 @@ export $(cat .env | grep -v '^#' | xargs)
 cd AGENT && npm ci && cd ..
 
 # 3. Install bridge deps
-cd ai-stack-mcp && pip install -e . && cd ..
+cd bridge && pip install -e . && cd ..
 
 # 4. Boot the whole stack (bridge + gateway, labelled logs)
 node scripts/dev-runner.js
@@ -89,7 +89,7 @@ docker compose -f docker-compose.unified.yml --profile full up -d
 
 ```bash
 # Python — unit + contract tests (skips integration that need Ollama)
-cd ai-stack-mcp && python3 -m pytest -q -m "not integration"
+cd bridge && python3 -m pytest -q -m "not integration"
 
 # End-to-end smoke against a locally booted bridge
 bash scripts/smoke.sh
@@ -113,7 +113,7 @@ Environment variables are grouped by layer. Templates live in `env/`:
 
 | Name | Owner | Required in | Purpose |
 |------|-------|-------------|---------|
-| `SOVEREIGN_GATEWAY_TOKEN` | gateway | always | Bearer token clients must present |
+| `ALLOY_GATEWAY_TOKEN` | gateway | always | Bearer token clients must present |
 | `AI_STACK_BRIDGE_SECRET` | bridge + gateway | **staging/prod** | Shared secret for bridge auth |
 | `APP_ENV` | both | always | `development`/`staging`/`production` — gates dev-only fallbacks |
 | `BRIDGE_CORS_ORIGIN` | bridge | prod | Allowed origin for CORS |
@@ -136,7 +136,7 @@ terraform apply
 
 See [terraform/README.md](terraform/README.md) for the full layout and the ARNs you need to pre-create in Secrets Manager.
 
-## The Sovereign Console
+## The Alloy Console
 
 The React console under `AGENT/ui/` is the primary interface for operators.
 It exposes every environment variable, provider, route, MCP server, and
@@ -150,7 +150,7 @@ first-class chat surface wired to the optimization bridge.
 
 Secrets (API keys, OAuth tokens, webhook secrets) are stored in SQLite using
 AES-256-GCM envelope encryption. The master key comes from
-`SOVEREIGN_MASTER_KEY` (32 bytes base64 or 64-char hex). In development, the
+`ALLOY_MASTER_KEY` (32 bytes base64 or 64-char hex). In development, the
 gateway synthesizes an ephemeral key so the dev loop isn't blocked; staging
 and production refuse to start without one.
 
@@ -166,7 +166,7 @@ playbook that keeps the console coherent.
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — deploy, rollback, incident response
 - [docs/SETTINGS.md](docs/SETTINGS.md) — settings service contract and PATCH semantics
 - [docs/UI_ARCHITECTURE.md](docs/UI_ARCHITECTURE.md) — console architecture map
-- [docs/CONSOLE_UX.md](docs/CONSOLE_UX.md) — UX playbook for the Sovereign console
+- [docs/CONSOLE_UX.md](docs/CONSOLE_UX.md) — UX playbook for the Alloy console
 - [docs/PLATFORM_PLAN.md](docs/PLATFORM_PLAN.md) — CTO-level UX/architecture plan
 - [PRODUCTION_GAP_ANALYSIS.md](PRODUCTION_GAP_ANALYSIS.md) — initial gap audit
 - [PRODUCTION_TASK_PLAN.md](PRODUCTION_TASK_PLAN.md) — remediation plan driving this work

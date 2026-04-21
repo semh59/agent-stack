@@ -1,6 +1,6 @@
-# Sovereign Settings
+# Alloy Settings
 
-This document explains how the Sovereign Settings service — the backbone that
+This document explains how the Alloy Settings service — the backbone that
 lets the UI configure every environment variable, provider, route, MCP server,
 and pipeline layer — actually works.
 
@@ -21,7 +21,7 @@ and pipeline layer — actually works.
 
 ## Storage layout
 
-Settings live in SQLite under `xdgConfig/sovereign/settings.db`:
+Settings live in SQLite under `xdgConfig/alloy/settings.db`:
 
 | Table              | Purpose                                                  |
 | ------------------ | -------------------------------------------------------- |
@@ -29,7 +29,7 @@ Settings live in SQLite under `xdgConfig/sovereign/settings.db`:
 | `settings_secrets` | Encrypted envelopes keyed by `path` (dotted notation).   |
 
 Secret envelopes carry `ciphertext`, `iv`, `auth_tag`, `created_at`,
-`updated_at`. The master key comes from `SOVEREIGN_MASTER_KEY` (32 bytes
+`updated_at`. The master key comes from `ALLOY_MASTER_KEY` (32 bytes
 base64 or 64-char hex). In development, if the env var is missing, the service
 logs a one-time warning and synthesizes an ephemeral in-memory key so the dev
 loop isn't blocked. Staging and production refuse to start without the key.
@@ -66,7 +66,7 @@ All responses follow the gateway's `{ data, errors }` envelope.
 2. If it's a dotted path that must hit the secret table, add it to
    `SECRET_PATHS` in `schema.ts`.
 3. Wire the UI in the relevant settings page — the primitives in
-   `components/sovereign/primitives.tsx` cover ~95% of input shapes (Input,
+   `components/alloy/primitives.tsx` cover ~95% of input shapes (Input,
    Textarea, Select, Switch, SecretInput, Row).
 4. Settings that affect routing or the pipeline don't need a gateway restart —
    the optimization service reads settings on each request. Settings that

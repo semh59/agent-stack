@@ -1,1 +1,0 @@
-CEO: Build a REST API with Express. Success criteria: Functional /health endpoint.

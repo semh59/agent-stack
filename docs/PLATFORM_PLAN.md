@@ -1,4 +1,4 @@
-# Platform plan — Sovereign Console
+# Platform plan — Alloy Console
 
 **Status:** in-flight
 **Owner:** CTO
@@ -9,7 +9,7 @@
 
 ## 1. Positioning
 
-Sovereign is a multi-provider LLM gateway with a live prompt-optimization pipeline. It runs wherever code runs — on a developer laptop, in a VS Code extension, or on a fleet of ECS tasks — and it treats prompt tokens like dollars.
+Alloy is a multi-provider LLM gateway with a live prompt-optimization pipeline. It runs wherever code runs — on a developer laptop, in a VS Code extension, or on a fleet of ECS tasks — and it treats prompt tokens like dollars.
 
 Competitors that shape user expectations:
 
@@ -26,16 +26,16 @@ Our **console** (the web + VS Code webview surface) is the first touch point for
 
 ## 2. Brand & naming
 
-Product name: **Sovereign**. Console surface: **Sovereign Console**. CLI: **`sovereign`**. VS Code extension display name: **Sovereign for VS Code**.
+Product name: **Alloy**. Console surface: **Alloy Console**. CLI: **`alloy`**. VS Code extension display name: **Alloy for VS Code**.
 
 Internal package names (aligned to the product):
 
 | Package                    | Role                                               |
 |----------------------------|----------------------------------------------------|
-| `@sovereign/gateway`       | TS Fastify gateway (was `AGENT/`)                  |
-| `@sovereign/console`       | React console (was `AGENT/ui/`)                    |
-| `@sovereign/extension`     | VS Code extension (was `AGENT/vscode-extension/`)  |
-| `sovereign-bridge` (py)    | Python optimization bridge (was `ai-stack-mcp/`)   |
+| `@alloy/gateway`       | TS Fastify gateway (was `AGENT/`)                  |
+| `@alloy/console`       | React console (was `AGENT/ui/`)                    |
+| `@alloy/extension`     | VS Code extension (was `AGENT/vscode-extension/`)  |
+| `alloy-bridge` (py)    | Python optimization bridge (was `bridge/`)   |
 
 Renaming the npm packages is a mechanical follow-up; the product-facing name and file structure are what change in this pass.
 
@@ -83,7 +83,7 @@ Providers shipped at v1:
 | OpenRouter    | `api_key` 🔒, `default_model`, `http_referer`         | `GET /api/v1/models` |
 | Claude (Anthropic) | `api_key` 🔒, `default_model`                    | `GET /v1/models` or a 1-token ping |
 | OpenAI        | `api_key` 🔒, `base_url`, `default_model`, `org_id`   | `GET /v1/models` |
-| Google (Sovereign AI OAuth) | OAuth button — no raw key                 | Round-trip through the OAuth server |
+| Google (Alloy AI OAuth) | OAuth button — no raw key                 | Round-trip through the OAuth server |
 | LM Studio     | `base_url`, `default_model`                           | `GET /v1/models` |
 | Azure OpenAI  | `endpoint`, `api_key` 🔒, `api_version`, `deployment` | `GET /openai/deployments?api-version=…` |
 
@@ -116,7 +116,7 @@ All optimization-layer knobs. These are what the bridge actually reads.
 
 - Global system prompt (free text).
 - Per-mode prompts (code / architect / debug / ask / autonomous).
-- `.sovereignrules` file editor (workspace-local + user-global, precedence documented).
+- `.alloyrules` file editor (workspace-local + user-global, precedence documented).
 - Slash-command definitions.
 
 ### 4.6 Observability
@@ -181,11 +181,11 @@ Keyboard shortcuts are first-class:
 
 Secrets (API keys, OAuth client secrets, bridge shared-secret) are the highest-risk piece of this surface. Rules:
 
-1. **Storage** — SQLite table `settings_secrets` with AES-256-GCM envelope encryption. Master key is `SOVEREIGN_MASTER_KEY` (32 bytes, base64 env var); we never ship a default.
+1. **Storage** — SQLite table `settings_secrets` with AES-256-GCM envelope encryption. Master key is `ALLOY_MASTER_KEY` (32 bytes, base64 env var); we never ship a default.
 2. **Transport** — secrets are only written to the server via `PUT /api/settings/secrets/:key`. They never leave the server in GET responses; the UI shows `••••••••` + "Replace".
 3. **UI UX** — `SecretInput` component: empty = "set a new value"; filled with mask = "secret present, click to replace". No "show" button ever — if you need to see the actual value, read the DB.
 4. **Export** — default export strips secrets. "Include secrets" requires passphrase; export is encrypted.
-5. **Key rotation** — master-key rotation is a CLI-only operation (`sovereign keys rotate`). Re-encrypts all rows atomically.
+5. **Key rotation** — master-key rotation is a CLI-only operation (`alloy keys rotate`). Re-encrypts all rows atomically.
 
 ---
 
@@ -213,7 +213,7 @@ CREATE TABLE settings_secrets (
 - Secrets live in their own table so a stolen SQL dump without the master key is useless.
 - No migrations table — schema is additive and shapes are validated by Zod at read time.
 
-Validation layer is **one Zod schema** (`@sovereign/gateway/src/services/settings/schema.ts`). The schema is the contract: it generates TS types for the server, JSON Schema for the UI form renderer, and the public docs. Adding a field = adding one Zod entry, nothing else.
+Validation layer is **one Zod schema** (`@alloy/gateway/src/services/settings/schema.ts`). The schema is the contract: it generates TS types for the server, JSON Schema for the UI form renderer, and the public docs. Adding a field = adding one Zod entry, nothing else.
 
 ---
 
@@ -242,9 +242,9 @@ Every endpoint emits the same `X-Request-ID` contract we use elsewhere.
 The extension hosts the same React console inside a webview. Two differences from the web build:
 
 1. **Messaging** — the extension proxies `/api/settings` calls through `vscode.postMessage`, so the webview never needs a live gateway. In "bring-your-own-gateway" mode the extension just forwards to the configured gateway URL.
-2. **Editor bridge commands** — palette commands (`Sovereign: New chat`, `Sovereign: Explain selection`, `Sovereign: Apply last diff`) marshal editor state into API calls and render results in the webview.
+2. **Editor bridge commands** — palette commands (`Alloy: New chat`, `Alloy: Explain selection`, `Alloy: Apply last diff`) marshal editor state into API calls and render results in the webview.
 
-Per-workspace settings live in `.vscode/settings.json` under `sovereign.*`, and override the gateway defaults. Conflict resolution is: workspace overrides user overrides global.
+Per-workspace settings live in `.vscode/settings.json` under `alloy.*`, and override the gateway defaults. Conflict resolution is: workspace overrides user overrides global.
 
 ---
 

@@ -6,11 +6,11 @@ subnet_ids        = ["subnet-aaaa", "subnet-bbbb"]
 public_subnet_ids = ["subnet-pub-1", "subnet-pub-2"]
 
 # Required: ECR images (build + push via CI, then bump tag here)
-gateway_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sovereign-gateway:v1.0.0"
-bridge_image  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sovereign-bridge:v1.0.0"
+gateway_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/alloy-gateway:v1.0.0"
+bridge_image  = "123456789012.dkr.ecr.us-east-1.amazonaws.com/alloy-bridge:v1.0.0"
 
 # Required: Secrets Manager ARNs (create these out-of-band)
-gateway_auth_token_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sovereign/prod/gateway_auth_token-XXXX"
-bridge_secret_arn      = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sovereign/prod/bridge_secret-XXXX"
-claude_api_key_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sovereign/prod/claude_api_key-XXXX"
-openrouter_key_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sovereign/prod/openrouter_api_key-XXXX"
+gateway_auth_token_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:alloy/prod/gateway_auth_token-XXXX"
+bridge_secret_arn      = "arn:aws:secretsmanager:us-east-1:123456789012:secret:alloy/prod/bridge_secret-XXXX"
+claude_api_key_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:alloy/prod/claude_api_key-XXXX"
+openrouter_key_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:alloy/prod/openrouter_api_key-XXXX"

@@ -1,1 +1,0 @@
-PM: Planning the REST API project. No issues detected.

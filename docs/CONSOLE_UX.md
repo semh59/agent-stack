@@ -1,4 +1,4 @@
-# Sovereign Console — UX Playbook
+# Alloy Console — UX Playbook
 
 This is the short document that keeps the console feeling like a single
 product instead of a pile of screens. Read it before you add a new view.

@@ -142,7 +142,7 @@ Response:
 
 ## Gateway — `https://<public-host>`
 
-Auth: `Authorization: Bearer <SOVEREIGN_GATEWAY_TOKEN>` on all `/api/*` routes except `/api/health`.
+Auth: `Authorization: Bearer <ALLOY_GATEWAY_TOKEN>` on all `/api/*` routes except `/api/health`.
 
 ### GET `/api/health`
 

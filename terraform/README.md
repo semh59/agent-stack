@@ -1,4 +1,4 @@
-# Terraform — Sovereign AI infrastructure
+# Terraform — Alloy AI infrastructure
 
 Single-region AWS deployment targeting ECS Fargate. Two environments (staging / production) share the same module definitions; their backends, VPCs, and secrets are isolated.
 

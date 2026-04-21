@@ -19,7 +19,7 @@ locals {
   env = "production"
   common_tags = {
     Environment = local.env
-    System      = "sovereign-ai"
+    System      = "alloy-platform"
     ManagedBy   = "terraform"
   }
 }
@@ -29,7 +29,7 @@ locals {
 # ─────────────────────────────────────────────────────────────────────────────
 
 resource "aws_ecs_cluster" "this" {
-  name = "sovereign-${local.env}"
+  name = "alloy-${local.env}"
 
   setting {
     name  = "containerInsights"
@@ -48,7 +48,7 @@ data "aws_iam_policy_document" "ecs_task_assume" {
 }
 
 resource "aws_iam_role" "execution" {
-  name               = "sovereign-${local.env}-exec"
+  name               = "alloy-${local.env}-exec"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume.json
 }
 
@@ -77,7 +77,7 @@ resource "aws_iam_role_policy" "secrets_read" {
 }
 
 resource "aws_iam_role" "task" {
-  name               = "sovereign-${local.env}-task"
+  name               = "alloy-${local.env}-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume.json
 }
 
@@ -86,7 +86,7 @@ resource "aws_iam_role" "task" {
 # ─────────────────────────────────────────────────────────────────────────────
 
 resource "aws_security_group" "alb" {
-  name        = "sovereign-${local.env}-alb"
+  name        = "alloy-${local.env}-alb"
   description = "Public ALB for gateway"
   vpc_id      = var.vpc_id
 
@@ -107,7 +107,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "gateway_task" {
-  name        = "sovereign-${local.env}-gateway-task"
+  name        = "alloy-${local.env}-gateway-task"
   description = "Gateway Fargate tasks"
   vpc_id      = var.vpc_id
 
@@ -128,7 +128,7 @@ resource "aws_security_group" "gateway_task" {
 }
 
 resource "aws_security_group" "bridge_task" {
-  name        = "sovereign-${local.env}-bridge-task"
+  name        = "alloy-${local.env}-bridge-task"
   description = "Optimization bridge Fargate tasks"
   vpc_id      = var.vpc_id
 
@@ -149,7 +149,7 @@ resource "aws_security_group" "bridge_task" {
 }
 
 resource "aws_lb" "public" {
-  name               = "sovereign-${local.env}"
+  name               = "alloy-${local.env}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -157,7 +157,7 @@ resource "aws_lb" "public" {
 }
 
 resource "aws_lb_target_group" "gateway" {
-  name        = "sovereign-${local.env}-gw"
+  name        = "alloy-${local.env}-gw"
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -212,14 +212,14 @@ module "gateway" {
   environment = {
     NODE_ENV              = "production"
     APP_ENV               = "production"
-    SOVEREIGN_GATEWAY_PORT = "3000"
-    SOVEREIGN_GATEWAY_HOST = "0.0.0.0"
+    ALLOY_GATEWAY_PORT = "3000"
+    ALLOY_GATEWAY_HOST = "0.0.0.0"
     AI_STACK_BRIDGE_HOST  = "optimization-bridge.prod.internal"
     AI_STACK_BRIDGE_PORT  = "9100"
   }
 
   secrets = {
-    SOVEREIGN_GATEWAY_TOKEN  = var.gateway_auth_token_arn
+    ALLOY_GATEWAY_TOKEN  = var.gateway_auth_token_arn
     AI_STACK_BRIDGE_SECRET  = var.bridge_secret_arn
     CLAUDE_API_KEY          = var.claude_api_key_arn
   }

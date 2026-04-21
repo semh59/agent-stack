@@ -4,12 +4,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT/ai-stack-mcp"
+cd "$ROOT/bridge"
 
 : "${AI_STACK_BRIDGE_SECRET:=smoke-test-$(openssl rand -hex 16 2>/dev/null || echo "smoke-static")}"
 export AI_STACK_BRIDGE_SECRET
 export APP_ENV=development
-export PYTHONPATH="$ROOT/ai-stack-mcp"
+export PYTHONPATH="$ROOT/bridge"
 
 echo "[smoke] starting bridge on 127.0.0.1:9100..."
 python3 bridge.py --port 9100 --host 127.0.0.1 >/tmp/bridge.log 2>&1 &

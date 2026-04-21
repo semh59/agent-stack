@@ -1,1 +1,0 @@
-Database: No DB required, will use native filesystem logging.

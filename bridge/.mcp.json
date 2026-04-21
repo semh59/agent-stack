@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ai-stack": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "d:/PROJECT/bridge",
+      "env": {
+        "PYTHONPATH": "d:/PROJECT/bridge"
+      }
+    }
+  }
+}
