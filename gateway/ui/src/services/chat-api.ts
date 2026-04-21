@@ -54,16 +54,35 @@ export async function sendChatMessage(
 
     let fullText = "";
     const decoder = new TextDecoder();
+    let buffer = "";
 
-    let done = false;
-    while (!done) {
-      const result = await reader.read();
-      done = result.done;
-      if (result.value) {
-        const chunk = decoder.decode(result.value, { stream: true });
-        fullText += chunk;
-        onChunk(chunk);
+    try {
+      while (true) {
+        const result = await reader.read();
+        if (result.done) break;
+
+        buffer += decoder.decode(result.value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+          try {
+            const json = JSON.parse(trimmed.slice(6));
+            const text = json.text || "";
+            if (text) {
+              fullText += text;
+              onChunk(text);
+            }
+          } catch {
+            // Ignore partial lines
+          }
+        }
       }
+    } finally {
+      reader.releaseLock();
     }
 
     return {
@@ -90,7 +109,7 @@ export async function fetchConversations(): Promise<Conversation[]> {
 }
 
 export async function fetchChatHistory(id: string): Promise<ChatMessage[]> {
-  const res = await fetchJson<any>(`/api/chat/conversations/${id}`);
+  const res = await fetchJson<{ role: "user" | "model" | "system"; content: string }[]>(`/api/chat/conversations/${id}`);
   if (res.errors) throw new Error(res.errors[0].message);
   const data = res.data as { role: "user" | "model" | "system"; content: string }[];
   return data.map((m) => ({

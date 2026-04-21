@@ -108,28 +108,54 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
          const reader = res.body?.getReader();
          if (!reader) return reply.status(500).send(apiError("No response body"));
 
-         let done = false;
          const decoder = new TextDecoder();
-         while (!done) {
-            const result = await reader.read();
-            done = result.done;
-            if (result.value) {
-               const chunk = decoder.decode(result.value, { stream: true });
-               fullResponse += chunk;
-               reply.raw.write(chunk);
+         let buffer = "";
+
+         try {
+            let isDone = false;
+            while (!isDone) {
+               const { done, value } = await reader.read();
+               if (done) {
+                  isDone = true;
+                  break;
+               }
+
+               buffer += decoder.decode(value, { stream: true });
+               const lines = buffer.split("\n");
+               buffer = lines.pop() || "";
+
+               for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+                  const dataStr = trimmed.slice(6);
+                  if (dataStr === "[DONE]") continue;
+
+                  try {
+                     const json = JSON.parse(dataStr);
+                     const deltaText = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                     if (deltaText) {
+                        fullResponse += deltaText;
+                        reply.raw.write(`data: ${JSON.stringify({ text: deltaText })}\n\n`);
+                     }
+                  } catch (_e) {
+                     // Ignore partial or malformed lines
+                  }
+               }
             }
+
+            // Save Assistant Response to DB after stream completion
+            await chatRepository.saveMessage({
+               conversationId,
+               role: "model",
+               content: fullResponse, 
+               model: selectedModel,
+               createdAt: new Date().toISOString()
+            });
+         } finally {
+            reply.raw.end();
+            reader.releaseLock();
          }
-
-         // Save Assistant Response to DB after stream completion
-         await chatRepository.saveMessage({
-            conversationId,
-            role: "model",
-            content: fullResponse, 
-            model: selectedModel,
-            createdAt: new Date().toISOString()
-         });
-
-         reply.raw.end();
          return;
       }
 
