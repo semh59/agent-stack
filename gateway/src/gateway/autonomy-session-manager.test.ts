@@ -1,4 +1,4 @@
-﻿import fs from "node:fs/promises";
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -148,7 +148,7 @@ describe("AutonomySessionManager", () => {
     await waitForFetchCall(fetchSpy);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
-    expect(manager.stopSession(session.id, "User stop")).toBe(true);
+    expect(await manager.stopSession(session.id, "User stop")).toBe(true);
 
     const finalSession = await waitForState(manager, session.id, "stopped");
     expect(aborted).toBe(true);

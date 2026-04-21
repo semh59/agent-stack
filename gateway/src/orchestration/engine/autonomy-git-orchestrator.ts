@@ -1,5 +1,5 @@
 import type { AutonomySession } from "../autonomy-types";
-import { AutonomyGitManager } from "../autonomy-git-manager";
+import type { AutonomyGitManager } from "../autonomy-git-manager";
 
 export class AutonomyGitOrchestrator {
   constructor(private readonly gitManager: AutonomyGitManager) {}
@@ -63,7 +63,7 @@ export class AutonomyGitOrchestrator {
 
     session.commitHash = commit.commitHash;
     return {
-      commitHash: commit.commitHash,
+      commitHash: commit.commitHash ?? undefined,
       message: commit.commitHash
         ? `Committed session changes: ${commit.commitHash}`
         : "No commit created (no file changes)",

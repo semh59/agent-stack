@@ -24,12 +24,12 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
   app.get("/api/chat/conversations", async (request, reply) => {
      const activeAccount = tokenStore.getActiveToken();
      if (!activeAccount) return reply.status(401).send(apiError("Unauthorized"));
-     const list = await chatRepository.listConversations(activeAccount.email);
+     const list = await chatRepository.listConversations(activeAccount.email || "");
      return apiResponse(list);
   });
 
   // 2. Get history
-  app.get<{ Params: { id: string } }>("/api/chat/conversations/:id", async (request, reply) => {
+  app.get<{ Params: { id: string } }>("/api/chat/conversations/:id", async (request, _reply) => {
      const history = await chatRepository.getHistory(request.params.id);
      return apiResponse(history);
   });
@@ -44,7 +44,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
         id,
         title: request.body.title || "New Chat",
         mode: request.body.mode || "code",
-        ownerAccount: activeAccount.email,
+        ownerAccount: activeAccount.email || "",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
      });
@@ -147,7 +147,10 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
           return reply.status(res.status).send(apiError(`LLM Error: ${errBody}`));
         }
 
-        const data = await res.json() as any;
+        const data = await res.json() as {
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+          usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number };
+        };
         const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
         await chatRepository.saveMessage({
