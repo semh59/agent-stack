@@ -1,4 +1,4 @@
-﻿import * as net from "node:net";
+import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -452,7 +452,7 @@ describe("GatewayServer mission websocket routes", () => {
     firstSocket.close();
     await waitForClose(firstSocket);
 
-    const liveSession = manager.engine.sessions.get("mission-1");
+    const liveSession = (manager.engine as any).sessionManager.sessions.get("mission-1");
     liveSession.state = "verify";
     liveSession.currentModel = "claude-opus-4-5-thinking";
     liveSession.currentGear = "elite";

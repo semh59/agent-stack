@@ -20,8 +20,8 @@ import type {
   AutonomyState,
   CreateAutonomySessionRequest,
 } from "../orchestration/autonomy-types";
-import { TokenStore } from "./token-store";
-import { AccountManager } from "../plugin/accounts";
+import type { TokenStore } from "./token-store";
+import type { AccountManager } from "../plugin/accounts";
 
 interface ModelPayload {
   summary?: unknown;
@@ -105,13 +105,17 @@ export class AutonomySessionManager {
     const startMode = request.startMode ?? "queued";
 
     if (startMode === "immediate" && !this.activeSessionId && this.queue.length === 0) {
+      process.stderr.write(`[GATEWAY] Starting immediate session ${request.objective}\n`);
       const immediate = this.engine.create({ ...request, startMode: "immediate" }, "init");
       this.emitCreatedEvent(immediate);
       this.activeSessionId = immediate.id;
+      process.stderr.write(`[GATEWAY] Calling engine.runExistingInBackground for ${immediate.id}\n`);
       this.engine.runExistingInBackground(immediate.id);
       this.emitQueueEvent("start_immediate", immediate.id);
       return this.engine.getSession(immediate.id) ?? immediate;
     }
+    process.stderr.write(`[GATEWAY] Queuing session ${request.objective}. activeSessionId: ${this.activeSessionId}, queue: ${this.queue.length}\n`);
+    throw new Error(`[BRANCH_B] Queued branch. startMode: ${startMode}, ActiveSession: ${this.activeSessionId}, QueueLen: ${this.queue.length}`);
 
     const session = this.engine.create({ ...request, startMode: "queued" }, "queued");
     this.emitCreatedEvent(session);
@@ -422,7 +426,7 @@ export class AutonomySessionManager {
 
       if (error === "Task interrupted by autonomy engine" || normalizedMessage.includes("abort")) {
         await this.budgetTracker.releaseAllForSession(context.session.id, "abort");
-        throw new Error("TASK_INTERRUPTED: Otonom dÃ¶ngÃ¼ tarafÄ±ndan kesildi.");
+        throw new Error("TASK_INTERRUPTED: Otonom döngü tarafından kesildi.");
       }
 
       await this.budgetTracker.releaseAllForSession(context.session.id, "task_failure");
@@ -629,7 +633,7 @@ export class AutonomySessionManager {
     return controller.signal;
   }
 
-  private async resolveClient(session: AutonomySession): Promise<AlloyGatewayClient> {
+  private async resolveClient(_session: AutonomySession): Promise<AlloyGatewayClient> {
     const token = await this.tokenStore.getValidAccessToken();
     const active = this.tokenStore.getActiveToken();
 

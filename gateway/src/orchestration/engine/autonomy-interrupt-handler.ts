@@ -22,6 +22,10 @@ export class AutonomyInterruptHandler {
     return true;
   }
 
+  public isStopRequested(sessionId: string): boolean {
+    return this.stopRequests.has(sessionId);
+  }
+
   public pause(sessionId: string, reason = "Paused by user"): boolean {
     this.pauseRequests.set(sessionId, reason);
     return true;

@@ -1,4 +1,4 @@
-﻿import * as fs from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
 export interface Skill {
@@ -30,7 +30,7 @@ export class SkillEngine {
    */
   public async initialize(): Promise<void> {
     if (this.initialized) return;
-
+    process.stderr.write(`[SKILLS] Initializing SkillEngine in ${this.skillsDir}\n`);
     try {
       const entries = await fs.readdir(this.skillsDir, { withFileTypes: true });
       for (const entry of entries) {

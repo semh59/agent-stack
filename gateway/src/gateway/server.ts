@@ -355,7 +355,7 @@ export class GatewayServer {
   }
 
   public async start(): Promise<void> {
-    // 1. CORS â€” whitelist based (fixes CORS origin: '*' vulnerability)
+    // 1. CORS — whitelist based (fixes CORS origin: '*' vulnerability)
     const extraOrigins = this.options.corsOrigins ?? [];
     await this.app.register(cors, {
       origin: (origin, callback) => {
@@ -534,7 +534,7 @@ export class GatewayServer {
     try {
       await this.app.listen({ port: this.options.port, host: this.host });
       console.log(
-        `ğŸš€ Gateway Server running at http://${this.host}:${this.options.port}`,
+        `🚀 Gateway Server running at http://${this.host}:${this.options.port}`,
       );
       if (this.missionDatabase?.lastCorruptionNotice) {
         this.app.log.warn(this.missionDatabase.lastCorruptionNotice);
@@ -580,7 +580,7 @@ export class GatewayServer {
     const issueMissionWsTicket = async (
       sessionId: string,
       reply: any,
-      body?: import("./gateway-auth-manager").ConsumedWsTicket,
+      body?: MissionWsTicketRequestBody,
     ) => {
       try {
         const mission = await this.missionService.getById(sessionId);
@@ -633,6 +633,11 @@ export class GatewayServer {
       approveAuth: createApproveAuthMiddleware(this.authManager),
       isQuotaStateReady: () => this.quotaStateReady,
     });
+
+    this.app.post<{ Params: { id: string }; Body: MissionWsTicketRequestBody }>(
+      "/api/missions/:id/ws-ticket",
+      async (request, reply) => issueMissionWsTicket(request.params.id, reply, request.body as any),
+    );
 
     registerSettingsRoutes(this.app);
     registerOptimizeRoutes(this.app);
