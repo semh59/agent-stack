@@ -1,0 +1,236 @@
+﻿
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90mD:/PROJECT/alloy-core/gateway[39m
+
+node.exe : [AUTONOMY] Starting session aut_20260421185053_fe0f42 loop. Loop count: 1
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([AUTONOMY] Star.... Loop count: 1:Stri 
+   ng) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185053_fe0f42 cycle 0 state init
+[AUTONOMY] Session aut_20260421185053_fe0f42 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185053_fe0f42 cycle 2 state verify
+[AUTONOMY] Session aut_20260421185053_fe0f42 cycle 3 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mcompletes session when executor and gates pass[33m 570[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185054_1ef828 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185054_1ef828 cycle 0 state init
+[AUTONOMY] Session aut_20260421185054_1ef828 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185054_1ef828 cycle 2 state retry
+[AUTONOMY] Session aut_20260421185054_1ef828 cycle 3 state retry
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails after repeated gate failures (3-strike rule)[32m 156[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421185054_125b7e starting runSession
+[AUTONOMY] Starting session aut_20260421185054_125b7e loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185054_125b7e cycle 0 state init
+[AUTONOMY] Session aut_20260421185054_125b7e cycle 1 state verify
+[AUTONOMY] Session aut_20260421185054_125b7e cycle 2 state verify
+[AUTONOMY] Session aut_20260421185054_125b7e cycle 3 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mdowngrades model and emits budget warning when TPM approaches the limit[33m 731[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421185055_0052da starting runSession
+[AUTONOMY] Starting session aut_20260421185055_0052da loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185055_0052da cycle 0 state init
+[AUTONOMY] runExistingInBackground aut_20260421185055_31f384 starting runSession
+[AUTONOMY] Starting session aut_20260421185055_31f384 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185055_31f384 cycle 0 state init
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails the mission when the TPM limit is exceeded[32m 110[2mms[22m[39m
+[AUTONOMY] Session aut_20260421185055_31f384 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185055_31f384 cycle 2 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails a rapid-fire mission when repeated requests exhaust the TPM window[32m 217[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185055_33602f loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185055_33602f cycle 0 state init
+[AUTONOMY] Starting session aut_20260421185055_13d0a9 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails when maxCycles is reached[32m 151[2mms[22m[39m
+[AUTONOMY] Session aut_20260421185055_13d0a9 cycle 0 state init
+[90mstderr[2m | src/orchestration/autonomous-loop-engine.test.ts[2m > [22m[2mAu
+tonomousLoopEngine[2m > [22m[2mfails immediately on Node OOM signature (FATAL ERR
+OR: Reached heap limit Allocation failed - JavaScript heap out of memory) without en
+tering retry
+[22m[39m[Alloy:Breaker] Tripped model gemini-3-pro-high for session aut_2026042118
+5055_13d0a9 due to recurring failure.
+
+[AUTONOMY] Starting session aut_20260421185055_68c743 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185055_68c743 cycle 0 state init
+[90mstderr[2m | src/orchestration/autonomous-loop-engine.test.ts[2m > [22m[2mAu
+tonomousLoopEngine[2m > [22m[2mfails immediately on Node OOM signature (FATAL ERR
+OR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory) without e
+ntering retry
+[22m[39m[Alloy:Breaker] Tripped model gemini-3-pro-high for session aut_2026042118
+5055_68c743 due to recurring failure.
+
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails immediately on Node OOM signature (FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory) without entering retry[32m 169[2mms[22m[39m
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails immediately on Node OOM signature (FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory) without entering retry[32m 92[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185055_5efc27 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185055_5efc27 cycle 0 state init
+[AUTONOMY] Session aut_20260421185055_5efc27 cycle 1 state retry
+[AUTONOMY] Session aut_20260421185055_5efc27 cycle 2 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mkeeps spent token cost after gate-failure retry (no refund on backtrack)[33m 509[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185056_b1dc9b loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185056_b1dc9b cycle 0 state init
+[AUTONOMY] Session aut_20260421185056_b1dc9b cycle 1 state retry
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mapplies TPM budget cumulatively across retries (no sunk-cost refund)[32m 100[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185056_703fcc loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185056_703fcc cycle 0 state init
+[AUTONOMY] Session aut_20260421185056_703fcc cycle 1 state verify
+[AUTONOMY] Session aut_20260421185056_703fcc cycle 2 state verify
+[AUTONOMY] Session aut_20260421185056_703fcc cycle 3 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mrevalidates touchedFiles against git dirty tree and prunes stale entries[32m 4[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185058_030ea4 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185058_030ea4 cycle 0 state init
+ [31m├ù[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mstops session immediately when stop() is called[33m 1657[2mms[22m[39m
+[31m   ÔåÆ expected 'done' to be 'stopped' // Object.is equality[39m
+[AUTONOMY] Session aut_20260421185058_030ea4 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185058_030ea4 cycle 2 state verify
+[AUTONOMY] Session aut_20260421185058_030ea4 cycle 3 state verify
+[AUTONOMY] runExistingInBackground aut_20260421185104_c8c13b starting runSession
+[AUTONOMY] Starting session aut_20260421185104_c8c13b loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185104_c8c13b cycle 0 state init
+ [31m├ù[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mpauses and resumes correctly[33m 6610[2mms[22m[39m
+[31m   ÔåÆ Timed out waiting for session aut_20260421185058_030ea4 to reach paused[39m
+[AUTONOMY] Session aut_20260421185104_c8c13b cycle 1 state verify
+[AUTONOMY] Session aut_20260421185104_c8c13b no more tasks, checking interrupts befo
+re completion. Current state: verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mwaits at the real plan review checkpoint and resumes the same cycle after approval[32m 296[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421185105_a741b1 starting runSession
+[AUTONOMY] Starting session aut_20260421185105_a741b1 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185105_a741b1 cycle 0 state init
+[AUTONOMY] Starting session aut_20260421185105_bdc40b loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185105_bdc40b cycle 0 state init
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mmarks review as rejected when the mission is stopped during plan approval[32m 188[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185105_88537d loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22memits correct sequence of events[32m 157[2mms[22m[39m
+[AUTONOMY] Session aut_20260421185105_88537d cycle 0 state init
+[90mstderr[2m | src/orchestration/autonomous-loop-engine.test.ts[2m > [22m[2mAu
+tonomousLoopEngine[2m > [22m[2mswitches model context on execution error
+[22m[39m[Alloy:Breaker] Tripped model gemini-3-pro-high for session aut_2026042118
+5105_88537d due to recurring failure.
+
+[AUTONOMY] Session aut_20260421185105_88537d cycle 1 state retry
+[AUTONOMY] Session aut_20260421185105_88537d cycle 2 state verify
+[AUTONOMY] Session aut_20260421185105_88537d cycle 3 state verify
+[AUTONOMY] Session aut_20260421185105_88537d cycle 4 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mswitches model context on execution error[33m 736[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185106_ceefec loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 0 state init
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 1 state verify
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 2 state retry
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 3 state verify
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 4 state verify
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 5 state verify
+[AUTONOMY] Session aut_20260421185106_ceefec cycle 6 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mactivates fix-cycle tasks on gate failure[33m 482[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421185106_34a510 starting runSession
+[AUTONOMY] Starting session aut_20260421185106_34a510 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185106_34a510 cycle 0 state init
+[AUTONOMY] Session aut_20260421185106_34a510 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185106_34a510 cycle 2 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mskips already completed tasks in the graph[32m 218[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185106_b57680 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185106_b57680 cycle 0 state init
+[AUTONOMY] Session aut_20260421185106_b57680 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185106_b57680 cycle 2 state verify
+[AUTONOMY] Session aut_20260421185106_b57680 cycle 3 state verify
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mbypasses gate for research/analysis tasks[32m 233[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421185107_75a809 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[AUTONOMY] Session aut_20260421185107_75a809 cycle 0 state init
+[AUTONOMY] Session aut_20260421185107_75a809 cycle 1 state verify
+[AUTONOMY] Session aut_20260421185107_75a809 cycle 2 state verify
+[AUTONOMY] Session aut_20260421185107_75a809 cycle 3 state verify
+ [31m├ù[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22msets state to 'stopped' (interrupted) when stop() is called during bypassed cycle[33m 1444[2mms[22m[39m
+[31m   ÔåÆ expected 'done' to be 'stopped' // Object.is equality[39m
+
+[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[39m[1m[41m Failed Tests 3 [49m[22m[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»Ô
+Ä»ÔÄ»ÔÄ»[39m
+
+[41m[1m FAIL [22m[49m src/orchestration/autonomous-loop-engine.test.ts[2m > [2
+2mAutonomousLoopEngine[2m > [22mstops session immediately when stop() is called
+[31m[1mAssertionError[22m: expected 'done' to be 'stopped' // Object.is equality
+[39m
+
+Expected: [32m"stopped"[39m
+Received: [31m"done"[39m
+
+[36m [2mÔØ»[22m src/orchestration/autonomous-loop-engine.test.ts:[2m501:27[22m
+[39m
+    [90m499|[39m
+    [90m500|[39m     [35mconst[39m session [33m=[39m [35mawait[39m sessionPr
+omise[33m;[39m
+    [90m501|[39m     [34mexpect[39m(session[33m.[39mstate)[33m.[39m[34mtoBe
+[39m([32m"stopped"[39m)[33m;[39m
+    [90m   |[39m                           [31m^[39m
+    [90m502|[39m     [34mexpect[39m(session[33m.[39mstopReason)[33m.[39m[34
+mtoBe[39m([32m"User request"[39m)[33m;[39m
+    [90m503|[39m   })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/
+3]ÔÄ»[22m[39m
+
+[41m[1m FAIL [22m[49m src/orchestration/autonomous-loop-engine.test.ts[2m > [2
+2mAutonomousLoopEngine[2m > [22mpauses and resumes correctly
+[31m[1mError[22m: Timed out waiting for session aut_20260421185058_030ea4 to reac
+h paused[39m
+[36m [2mÔØ»[22m waitForSessionState src/orchestration/autonomous-loop-engine.test
+.ts:[2m47:9[22m[39m
+    [90m 45|[39m   }
+    [90m 46|[39m
+    [90m 47|[39m   throw new Error(`Timed out waiting for session ${sessionId} to 
+reachÔÇĞ
+    [90m   |[39m         [31m^[39m
+    [90m 48|[39m }
+    [90m 49|[39m
+[90m [2mÔØ»[22m src/orchestration/autonomous-loop-engine.test.ts:[2m542:27[22m
+[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/
+3]ÔÄ»[22m[39m
+
+[41m[1m FAIL [22m[49m src/orchestration/autonomous-loop-engine.test.ts[2m > [2
+2mAutonomousLoopEngine[2m > [22msets state to 'stopped' (interrupted) when stop() 
+is called during bypassed cycle
+[31m[1mAssertionError[22m: expected 'done' to be 'stopped' // Object.is equality
+[39m
+
+Expected: [32m"stopped"[39m
+Received: [31m"done"[39m
+
+[36m [2mÔØ»[22m src/orchestration/autonomous-loop-engine.test.ts:[2m852:27[22m
+[39m
+    [90m850|[39m
+    [90m851|[39m     [35mconst[39m session [33m=[39m [35mawait[39m sessionPr
+omise[33m;[39m
+    [90m852|[39m     [34mexpect[39m(session[33m.[39mstate)[33m.[39m[34mtoBe
+[39m([32m"stopped"[39m)[33m;[39m
+    [90m   |[39m                           [31m^[39m
+    [90m853|[39m     [34mexpect[39m(session[33m.[39mstopReason)[33m.[39m[34
+mtoBe[39m([32m"Immediate stop"[39m)[33m;[39m
+    [90m854|[39m   })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3/
+3]ÔÄ»[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m18 passed[39m[22m[90m (21)[39m
+[2m   Start at [22m 21:50:51
+[2m   Duration [22m 16.89s[2m (transform 704ms, setup 0ms, import 1.29s, tests 14.84s, environment 0ms)[22m
+

@@ -133,7 +133,20 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
 
                   try {
                      const json = JSON.parse(dataStr);
-                     const deltaText = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                     let deltaText = "";
+                     
+                     // Provider-agnostic extraction logic
+                     if (json.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        // Google Gemini format
+                        deltaText = json.candidates[0].content.parts[0].text;
+                     } else if (json.choices?.[0]?.delta?.content) {
+                        // OpenAI / Anthropic-compatibility format
+                        deltaText = json.choices[0].delta.content;
+                     } else if (json.type === "content_block_delta" && json.delta?.text) {
+                        // Native Anthropic format
+                        deltaText = json.delta.text;
+                     }
+
                      if (deltaText) {
                         fullResponse += deltaText;
                         reply.raw.write(`data: ${JSON.stringify({ text: deltaText })}\n\n`);

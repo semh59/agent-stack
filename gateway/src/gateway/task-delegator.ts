@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Task Delegation API â€” Independent Agent Assignment
  *
  * Enables the user to assign work to specific agent groups independently:
@@ -24,7 +24,7 @@
  *   }
  */
 
-import { AGENTS, AgentLayer, type AgentDefinition } from "../orchestration/agents";
+import { AGENTS, type AgentDefinition } from "../orchestration/agents";
 import { PlanMode } from "../orchestration/sequential-pipeline";
 import type { AIProvider } from "./provider-types";
 

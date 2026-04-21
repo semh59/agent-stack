@@ -2,11 +2,13 @@ import type {
   AutonomySession, 
   AutonomyState, 
   TaskNode,
-  AutonomyEvent
+  AutonomyEvent,
+  SessionOpLogEntry
 } from "../autonomy-types";
 import { phaseEngine } from "../PhaseEngine";
 import { SessionPersistenceManager } from "../SessionPersistenceManager";
-import { BudgetTracker } from "../BudgetTracker";
+import type { BudgetTracker } from "../BudgetTracker";
+import AsyncLock from "async-lock";
 
 interface SessionManagerOptions {
   projectRoot: string;
@@ -15,11 +17,10 @@ interface SessionManagerOptions {
   emit: (type: AutonomyEvent["type"], session: AutonomySession, payload: Record<string, unknown>) => void;
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class AutonomySessionManager {
   private readonly sessions = new Map<string, AutonomySession>();
-  private readonly sessionLocks = new Set<string>();
+  private readonly lock = new AsyncLock();
   private readonly persistence: SessionPersistenceManager;
 
   constructor(private readonly options: SessionManagerOptions) {
@@ -27,8 +28,7 @@ export class AutonomySessionManager {
   }
 
   public getSession(id: string): AutonomySession | null {
-    const session = this.sessions.get(id);
-    return session ? (global as any).structuredClone(session) : null;
+    return this.sessions.get(id) || null;
   }
 
   public addSession(session: AutonomySession): void {
@@ -41,7 +41,7 @@ export class AutonomySessionManager {
   }
 
   public getAllSessions(): AutonomySession[] {
-    return [...this.sessions.values()].map(s => (global as any).structuredClone(s));
+    return [...this.sessions.values()];
   }
 
   public async hydrateFromDisk(): Promise<void> {
@@ -59,17 +59,11 @@ export class AutonomySessionManager {
     task: TaskNode | null,
     reason: string | null = null,
   ): Promise<void> {
-    let lockAttempts = 0;
-    const MAX_LOCK_ATTEMPTS = 50;
-
-    while (this.sessionLocks.has(session.id) && lockAttempts < MAX_LOCK_ATTEMPTS) {
-      lockAttempts++;
-      const delay = 50 * Math.pow(1.5, lockAttempts);
-      await sleep(delay);
-    }
-
-    this.sessionLocks.add(session.id);
-    try {
+    return this.lock.acquire(session.id, async () => {
+      if (["done", "failed", "stopped"].includes(session.state)) {
+         return; 
+      }
+      
       const resolvedNextState = phaseEngine.validateTransition(
         session,
         state,
@@ -108,9 +102,7 @@ export class AutonomySessionManager {
         cycle: session.cycleCount,
         note: reason ?? "",
       });
-    } finally {
-      this.sessionLocks.delete(session.id);
-    }
+    });
   }
 
   public async saveSession(session: AutonomySession): Promise<void> {
@@ -130,7 +122,7 @@ export class AutonomySessionManager {
     await this.persistence.loadOpLog(session);
   }
 
-  public async appendOpLog(session: AutonomySession, entry: any): Promise<void> {
+  public async appendOpLog(session: AutonomySession, entry: SessionOpLogEntry): Promise<void> {
     await this.persistence.appendOpLog(session, entry);
   }
 }

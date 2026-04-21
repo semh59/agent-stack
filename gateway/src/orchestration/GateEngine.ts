@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import * as fs from "node:fs/promises";
 import type { 
   AutonomousGate, 
@@ -8,9 +8,10 @@ import type {
   AuditSummary,
   GateMetadata
 } from "./autonomy-types";
-import { TerminalExecutor } from "./terminal-executor";
+import type { TerminalExecutor } from "./terminal-executor";
+import type { AlloyGatewayClient } from "./gateway-client";
 
-import { log, toUrlString } from "./gateway-utils";
+import { log } from "./gateway-utils";
 
 /**
  * GateEngine: Orchestrates multiple quality gates for otonom missions.
@@ -20,7 +21,7 @@ export class GateEngine {
 
   constructor(
     private terminal?: TerminalExecutor,
-    private client?: import("./gateway-client").AlloyGatewayClient
+    private client?: AlloyGatewayClient
   ) {}
 
   public registerGate(gate: AutonomousGate): void {
@@ -34,7 +35,7 @@ export class GateEngine {
   public async runAll(context: GateContext): Promise<GateResult> {
     const blockingIssues: string[] = [];
     const commandResults: GateCommandResult[] = [];
-    let auditSummary = this.emptyAuditSummary();
+    const auditSummary = this.emptyAuditSummary();
     const impactedScopes: Array<"root" | "ui" | "vscode-extension"> = [];
 
     // Phase 4C: Parallel Gate Runner with Timeout
@@ -45,9 +46,10 @@ export class GateEngine {
       );
       try {
         return await Promise.race([gate.run(context), timeoutPromise]);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
         log.error(`Gate ${gate.name} execution error`, { err });
-        return { passed: false, issues: [err.message], metadata: {} as GateMetadata };
+        return { passed: false, issues: [errorMessage], metadata: {} as GateMetadata };
       }
     };
 
@@ -105,7 +107,7 @@ export class GateEngine {
    */
   public static createDefaultGateEngine(
     terminal: TerminalExecutor, 
-    client?: import("./gateway-client").AlloyGatewayClient
+    client?: AlloyGatewayClient
   ): GateEngine {
     const engine = new GateEngine(terminal, client);
     engine.registerGate(new LintGate(terminal));
@@ -307,7 +309,7 @@ export class SecretGate implements AutonomousGate {
 export class ArchitectGate implements AutonomousGate {
   name = "ArchitectGate";
   
-  constructor(private client?: import("./gateway-client").AlloyGatewayClient) {}
+  constructor(private client?: AlloyGatewayClient) {}
 
   async run(context: GateContext) {
     if (context.touchedFiles.length === 0) {
@@ -337,11 +339,12 @@ export class ArchitectGate implements AutonomousGate {
     }
 
     try {
-      const response = await activeClient.fetch("https://api.Alloy.ai/v1/chat/completions", {
+      // Use the standard client fetch which handles auth and routing
+      const response = await activeClient.fetch("/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-3-sonnet",
+          model: "balanced", // Use a generic tier name or let the client resolve
           messages: [
             { role: "system", content: "You are the Alloy Architecture Inspector. Your job is to verify if code changes comply with the project's ARCHITECTURE.md rules. Return JSON: { \"passed\": boolean, \"issues\": string[] }" },
             { role: "user", content: prompt }

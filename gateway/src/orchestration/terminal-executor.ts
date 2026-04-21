@@ -1,4 +1,4 @@
-﻿import { spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 
 /**
  * Commands that are allowed to execute.
@@ -438,5 +438,11 @@ export class TerminalExecutor {
 }
 
 function escapeCmdToken(token: string): string {
-  return token.replace(/(["^&|<>!%])/g, '^$1');
+  // 1. If the token contains problematic characters or spaces, we must quote it and escape existing quotes.
+  // Windows cmd /c "..." parsing is complex. Quoting each token is safer than simple caret escaping.
+  if (/[&|<>^% ]/.test(token) || token.includes('"')) {
+    const escaped = token.replace(/"/g, '""'); // cmd.exe escapes " as "" inside a quoted string
+    return `"${escaped}"`;
+  }
+  return token;
 }

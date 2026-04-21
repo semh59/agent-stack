@@ -1,0 +1,617 @@
+﻿
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90mD:/PROJECT/alloy-core/gateway[39m
+
+node.exe : [AUTONOMY] Starting session aut_20260421200818_77928b loop. Loop count: 1
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([AUTONOMY] Star.... Loop count: 1:Stri 
+   ng) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:18.564Z] transition() called for aut_20260421200818_77928b
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:18.577Z] transition() called for aut_20260421200818_77928b
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:18.599Z] transition() called for aut_20260421200818_77928b
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:18.613Z] transition() called for aut_20260421200818_77928b
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:18.623Z] transition() called for aut_20260421200818_77928b
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:18.729Z] transition() called for aut_20260421200818_77928b
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:18.751Z] transition() called for aut_20260421200818_77928b
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:18.756Z] transition() called for aut_20260421200818_77928b
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:18.775Z] transition() called for aut_20260421200818_77928b
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:18.779Z] transition() called for aut_20260421200818_77928b
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:18.796Z] transition() called for aut_20260421200818_77928b
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:18.815Z] transition() called for aut_20260421200818_77928b
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:19.113Z] transition() called for aut_20260421200818_77928b
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mcompletes session when executor and gates pass[33m 592[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200819_d7b13b loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:19.164Z] transition() called for aut_20260421200819_d7b13b
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:19.167Z] transition() called for aut_20260421200819_d7b13b
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:19.177Z] transition() called for aut_20260421200819_d7b13b
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:19.180Z] transition() called for aut_20260421200819_d7b13b
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:19.182Z] transition() called for aut_20260421200819_d7b13b
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:19.193Z] transition() called for aut_20260421200819_d7b13b
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:19.196Z] transition() called for aut_20260421200819_d7b13b
+: verify -> retry (reason: Gate fail 1/3: FAIL)
+[TRACE] [2026-04-21T20:08:19.200Z] transition() called for aut_20260421200819_d7b13b
+: retry -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:19.210Z] transition() called for aut_20260421200819_d7b13b
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:19.224Z] transition() called for aut_20260421200819_d7b13b
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:19.228Z] transition() called for aut_20260421200819_d7b13b
+: verify -> retry (reason: Gate fail 2/3: FAIL)
+[TRACE] [2026-04-21T20:08:19.231Z] transition() called for aut_20260421200819_d7b13b
+: retry -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:19.234Z] transition() called for aut_20260421200819_d7b13b
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:19.245Z] transition() called for aut_20260421200819_d7b13b
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:19.248Z] transition() called for aut_20260421200819_d7b13b
+: verify -> retry (reason: Gate fail 3/3: FAIL)
+[TRACE] [2026-04-21T20:08:19.252Z] transition() called for aut_20260421200819_d7b13b
+: retry -> failed (reason: Gate failed three consecutive cycles: FAIL)
+[AUTONOMY] runExistingInBackground aut_20260421200819_13283e starting runSession
+[AUTONOMY] Starting session aut_20260421200819_13283e loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:19.302Z] transition() called for aut_20260421200819_13283e
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:19.308Z] transition() called for aut_20260421200819_13283e
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:19.322Z] transition() called for aut_20260421200819_13283e
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:19.325Z] transition() called for aut_20260421200819_13283e
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:19.329Z] transition() called for aut_20260421200819_13283e
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:19.339Z] transition() called for aut_20260421200819_13283e
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:19.343Z] transition() called for aut_20260421200819_13283e
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:19.346Z] transition() called for aut_20260421200819_13283e
+: plan -> execute (reason: Executing verification)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails after repeated gate failures (3-strike rule)[32m 134[2mms[22m[39m
+[TRACE] [2026-04-21T20:08:19.365Z] transition() called for aut_20260421200819_13283e
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:19.375Z] transition() called for aut_20260421200819_13283e
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:19.384Z] transition() called for aut_20260421200819_13283e
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:19.421Z] transition() called for aut_20260421200819_13283e
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:19.868Z] transition() called for aut_20260421200819_13283e
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mdowngrades model and emits budget warning when TPM approaches the limit[33m 650[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421200819_e779c3 starting runSession
+[AUTONOMY] Starting session aut_20260421200819_e779c3 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:19.940Z] transition() called for aut_20260421200819_e779c3
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:19.945Z] transition() called for aut_20260421200819_e779c3
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:19.957Z] transition() called for aut_20260421200819_e779c3
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:19.959Z] transition() called for aut_20260421200819_e779c3
+: verify -> failed (reason: BUDGET_EXCEEDED: tpm 1200/1000)
+[AUTONOMY] runExistingInBackground aut_20260421200820_bc3017 starting runSession
+[AUTONOMY] Starting session aut_20260421200820_bc3017 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.050Z] transition() called for aut_20260421200820_bc3017
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:20.054Z] transition() called for aut_20260421200820_bc3017
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:20.063Z] transition() called for aut_20260421200820_bc3017
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:20.066Z] transition() called for aut_20260421200820_bc3017
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.072Z] transition() called for aut_20260421200820_bc3017
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.083Z] transition() called for aut_20260421200820_bc3017
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:20.091Z] transition() called for aut_20260421200820_bc3017
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:20.099Z] transition() called for aut_20260421200820_bc3017
+: plan -> execute (reason: Executing verification)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails the mission when the TPM limit is exceeded[32m 109[2mms[22m[39m
+[TRACE] [2026-04-21T20:08:20.117Z] transition() called for aut_20260421200820_bc3017
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:20.121Z] transition() called for aut_20260421200820_bc3017
+: verify -> failed (reason: BUDGET_EXCEEDED: tpm 1200/1000)
+[AUTONOMY] Starting session aut_20260421200820_808168 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.200Z] transition() called for aut_20260421200820_808168
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:20.207Z] transition() called for aut_20260421200820_808168
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:20.215Z] transition() called for aut_20260421200820_808168
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:20.218Z] transition() called for aut_20260421200820_808168
+: verify -> failed (reason: BUDGET_EXCEEDED: cycles budget exhausted (1/1))
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails a rapid-fire mission when repeated requests exhaust the TPM window[32m 155[2mms[22m[39m
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails when maxCycles is reached[32m 55[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200820_af308c loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.258Z] transition() called for aut_20260421200820_af308c
+: init -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.262Z] transition() called for aut_20260421200820_af308c
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.273Z] transition() called for aut_20260421200820_af308c
+: execute -> failed (reason: Task implementation failed with unrecoverable runtime e
+rror: FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of mem
+ory)
+[90mstderr[2m | src/orchestration/autonomous-loop-engine.test.ts[2m > [22m[2mAu
+tonomousLoopEngine[2m > [22m[2mfails immediately on Node OOM signature (FATAL ERR
+OR: Reached heap limit Allocation failed - JavaScript heap out of memory) without en
+tering retry
+[22m[39m[Alloy:Breaker] Tripped model gemini-3-pro-high for session aut_2026042120
+0820_af308c due to recurring failure.
+
+[AUTONOMY] Starting session aut_20260421200820_ca7b64 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.318Z] transition() called for aut_20260421200820_ca7b64
+: init -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.323Z] transition() called for aut_20260421200820_ca7b64
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.335Z] transition() called for aut_20260421200820_ca7b64
+: execute -> failed (reason: Task implementation failed with unrecoverable runtime e
+rror: FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of me
+mory)
+[90mstderr[2m | src/orchestration/autonomous-loop-engine.test.ts[2m > [22m[2mAu
+tonomousLoopEngine[2m > [22m[2mfails immediately on Node OOM signature (FATAL ERR
+OR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory) without e
+ntering retry
+[22m[39m[Alloy:Breaker] Tripped model gemini-3-pro-high for session aut_2026042120
+0820_ca7b64 due to recurring failure.
+
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails immediately on Node OOM signature (FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory) without entering retry[32m 52[2mms[22m[39m
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mfails immediately on Node OOM signature (FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory) without entering retry[32m 62[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200820_4f64dc loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.368Z] transition() called for aut_20260421200820_4f64dc
+: init -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.372Z] transition() called for aut_20260421200820_4f64dc
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.380Z] transition() called for aut_20260421200820_4f64dc
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:20.383Z] transition() called for aut_20260421200820_4f64dc
+: verify -> retry (reason: Gate fail 1/3: Deterministic verify failure)
+[TRACE] [2026-04-21T20:08:20.391Z] transition() called for aut_20260421200820_4f64dc
+: retry -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.396Z] transition() called for aut_20260421200820_4f64dc
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.406Z] transition() called for aut_20260421200820_4f64dc
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:20.409Z] transition() called for aut_20260421200820_4f64dc
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:20.412Z] transition() called for aut_20260421200820_4f64dc
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:20.422Z] transition() called for aut_20260421200820_4f64dc
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:20.740Z] transition() called for aut_20260421200820_4f64dc
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mkeeps spent token cost after gate-failure retry (no refund on backtrack)[33m 407[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200820_7b37d1 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.778Z] transition() called for aut_20260421200820_7b37d1
+: init -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.782Z] transition() called for aut_20260421200820_7b37d1
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.792Z] transition() called for aut_20260421200820_7b37d1
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:20.796Z] transition() called for aut_20260421200820_7b37d1
+: verify -> retry (reason: Gate fail 1/3: Force retry once)
+[TRACE] [2026-04-21T20:08:20.799Z] transition() called for aut_20260421200820_7b37d1
+: retry -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:20.806Z] transition() called for aut_20260421200820_7b37d1
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:20.824Z] transition() called for aut_20260421200820_7b37d1
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:20.828Z] transition() called for aut_20260421200820_7b37d1
+: verify -> failed (reason: BUDGET_EXCEEDED: tpm 1200/1000)
+[AUTONOMY] Starting session aut_20260421200820_32c68e loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:20.904Z] transition() called for aut_20260421200820_32c68e
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:20.909Z] transition() called for aut_20260421200820_32c68e
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:21.023Z] transition() called for aut_20260421200820_32c68e
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:21.029Z] transition() called for aut_20260421200820_32c68e
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:21.032Z] transition() called for aut_20260421200820_32c68e
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:21.151Z] transition() called for aut_20260421200820_32c68e
+: execute -> verify (reason: Bypassing quality gates for implementation (No files ch
+anged))
+[TRACE] [2026-04-21T20:08:21.161Z] transition() called for aut_20260421200820_32c68e
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:21.168Z] transition() called for aut_20260421200820_32c68e
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:21.326Z] transition() called for aut_20260421200820_32c68e
+: execute -> verify (reason: Bypassing quality gates for verification (No files chan
+ged))
+[TRACE] [2026-04-21T20:08:21.330Z] transition() called for aut_20260421200820_32c68e
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:21.335Z] transition() called for aut_20260421200820_32c68e
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:21.454Z] transition() called for aut_20260421200820_32c68e
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:21.550Z] transition() called for aut_20260421200820_32c68e
+: verify -> done (reason: Autonomy completed)
+[TRACE] [2026-04-21T20:08:22.654Z] stop() called for aut_20260421200820_32c68e: User
+ request
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mapplies TPM budget cumulatively across retries (no sunk-cost refund)[32m 85[2mms[22m[39m
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mrevalidates touchedFiles against git dirty tree and prunes stale entries[32m 3[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200822_7fb276 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:22.730Z] transition() called for aut_20260421200822_7fb276
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:22.748Z] transition() called for aut_20260421200822_7fb276
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:22.987Z] transition() called for aut_20260421200822_7fb276
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:23.005Z] transition() called for aut_20260421200822_7fb276
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:23.009Z] transition() called for aut_20260421200822_7fb276
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:23.243Z] transition() called for aut_20260421200822_7fb276
+: execute -> verify (reason: Bypassing quality gates for implementation (No files ch
+anged))
+[TRACE] [2026-04-21T20:08:23.249Z] transition() called for aut_20260421200822_7fb276
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:23.263Z] transition() called for aut_20260421200822_7fb276
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:23.485Z] transition() called for aut_20260421200822_7fb276
+: execute -> verify (reason: Bypassing quality gates for verification (No files chan
+ged))
+[TRACE] [2026-04-21T20:08:23.493Z] transition() called for aut_20260421200822_7fb276
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:23.503Z] transition() called for aut_20260421200822_7fb276
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:23.721Z] transition() called for aut_20260421200822_7fb276
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:23.854Z] transition() called for aut_20260421200822_7fb276
+: verify -> done (reason: Autonomy completed)
+ [31m├ù[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mstops session immediately when stop() is called[33m 1837[2mms[22m[39m
+[31m   ÔåÆ expected 'done' to be 'stopped' // Object.is equality[39m
+[AUTONOMY] runExistingInBackground aut_20260421200829_b13ff2 starting runSession
+[AUTONOMY] Starting session aut_20260421200829_b13ff2 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:29.533Z] transition() called for aut_20260421200829_b13ff2
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:29.542Z] transition() called for aut_20260421200829_b13ff2
+: plan -> paused (reason: Awaiting plan approval)
+ [31m├ù[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mpauses and resumes correctly[33m 6840[2mms[22m[39m
+[31m   ÔåÆ Timed out waiting for session aut_20260421200822_7fb276 to reach paused[39m
+[TRACE] [2026-04-21T20:08:29.650Z] transition() called for aut_20260421200829_b13ff2
+: paused -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:29.666Z] transition() called for aut_20260421200829_b13ff2
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:29.752Z] transition() called for aut_20260421200829_b13ff2
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mwaits at the real plan review checkpoint and resumes the same cycle after approval[32m 293[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421200829_e57c86 starting runSession
+[AUTONOMY] Starting session aut_20260421200829_e57c86 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:29.833Z] transition() called for aut_20260421200829_e57c86
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:29.839Z] transition() called for aut_20260421200829_e57c86
+: plan -> paused (reason: Awaiting plan approval)
+[TRACE] [2026-04-21T20:08:29.865Z] stop() called for aut_20260421200829_e57c86: Plan
+ rejected
+[TRACE] [2026-04-21T20:08:29.943Z] transition() called for aut_20260421200829_e57c86
+: paused -> stopped (reason: Plan rejected)
+[AUTONOMY] Starting session aut_20260421200829_b04294 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:30.041Z] transition() called for aut_20260421200829_b04294
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:30.050Z] transition() called for aut_20260421200829_b04294
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:30.067Z] transition() called for aut_20260421200829_b04294
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:30.074Z] transition() called for aut_20260421200829_b04294
+: verify -> failed (reason: BUDGET_EXCEEDED: cycles budget exhausted (1/1))
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mmarks review as rejected when the mission is stopped during plan approval[32m 170[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200830_fe0f77 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:30.113Z] transition() called for aut_20260421200830_fe0f77
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:30.116Z] transition() called for aut_20260421200830_fe0f77
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:30.127Z] transition() called for aut_20260421200830_fe0f77
+: execute -> retry (reason: Rate limit exceeded 429)
+[90mstderr[2m | src/orchestration/autonomous-loop-engine.test.ts[2m > [22m[2mAu
+tonomousLoopEngine[2m > [22m[2mswitches model context on execution error
+[22m[39m[Alloy:Breaker] Tripped model gemini-3-pro-high for session aut_2026042120
+0830_fe0f77 due to recurring failure.
+
+[TRACE] [2026-04-21T20:08:30.129Z] transition() called for aut_20260421200830_fe0f77
+: retry -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:30.133Z] transition() called for aut_20260421200830_fe0f77
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:30.141Z] transition() called for aut_20260421200830_fe0f77
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:30.144Z] transition() called for aut_20260421200830_fe0f77
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:30.148Z] transition() called for aut_20260421200830_fe0f77
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:30.157Z] transition() called for aut_20260421200830_fe0f77
+: execute -> verify (reason: Bypassing quality gates for implementation (No files ch
+anged))
+[TRACE] [2026-04-21T20:08:30.163Z] transition() called for aut_20260421200830_fe0f77
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:30.171Z] transition() called for aut_20260421200830_fe0f77
+: plan -> execute (reason: Executing verification)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22memits correct sequence of events[32m 105[2mms[22m[39m
+[TRACE] [2026-04-21T20:08:30.189Z] transition() called for aut_20260421200830_fe0f77
+: execute -> verify (reason: Bypassing quality gates for verification (No files chan
+ged))
+[TRACE] [2026-04-21T20:08:30.194Z] transition() called for aut_20260421200830_fe0f77
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:30.197Z] transition() called for aut_20260421200830_fe0f77
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:30.210Z] transition() called for aut_20260421200830_fe0f77
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:30.316Z] transition() called for aut_20260421200830_fe0f77
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mswitches model context on execution error[32m 241[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200830_edab03 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:30.349Z] transition() called for aut_20260421200830_edab03
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:30.352Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:30.360Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:30.363Z] transition() called for aut_20260421200830_edab03
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:30.366Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:30.375Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:30.378Z] transition() called for aut_20260421200830_edab03
+: verify -> retry (reason: Gate fail 1/3: Lint error)
+[TRACE] [2026-04-21T20:08:30.381Z] transition() called for aut_20260421200830_edab03
+: retry -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:30.384Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:30.397Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:30.399Z] transition() called for aut_20260421200830_edab03
+: verify -> plan (reason: Planning refactor task)
+[TRACE] [2026-04-21T20:08:30.406Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing refactor)
+[TRACE] [2026-04-21T20:08:30.416Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:30.418Z] transition() called for aut_20260421200830_edab03
+: verify -> plan (reason: Planning test-fix task)
+[TRACE] [2026-04-21T20:08:30.421Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing test-fix)
+[TRACE] [2026-04-21T20:08:30.431Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:30.435Z] transition() called for aut_20260421200830_edab03
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:30.445Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:30.458Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Running modular quality gates)
+[TRACE] [2026-04-21T20:08:30.464Z] transition() called for aut_20260421200830_edab03
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:30.467Z] transition() called for aut_20260421200830_edab03
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:30.479Z] transition() called for aut_20260421200830_edab03
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:30.779Z] transition() called for aut_20260421200830_edab03
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mactivates fix-cycle tasks on gate failure[33m 465[2mms[22m[39m
+[AUTONOMY] runExistingInBackground aut_20260421200830_5e16b4 starting runSession
+[AUTONOMY] Starting session aut_20260421200830_5e16b4 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:30.816Z] transition() called for aut_20260421200830_5e16b4
+: init -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:30.821Z] transition() called for aut_20260421200830_5e16b4
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:30.829Z] transition() called for aut_20260421200830_5e16b4
+: execute -> verify (reason: Bypassing quality gates for implementation (No files ch
+anged))
+[TRACE] [2026-04-21T20:08:30.832Z] transition() called for aut_20260421200830_5e16b4
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:30.835Z] transition() called for aut_20260421200830_5e16b4
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:30.844Z] transition() called for aut_20260421200830_5e16b4
+: execute -> verify (reason: Bypassing quality gates for verification (No files chan
+ged))
+[TRACE] [2026-04-21T20:08:30.847Z] transition() called for aut_20260421200830_5e16b4
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:30.850Z] transition() called for aut_20260421200830_5e16b4
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:30.858Z] transition() called for aut_20260421200830_5e16b4
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:30.947Z] transition() called for aut_20260421200830_5e16b4
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mskips already completed tasks in the graph[32m 214[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200831_cad439 loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:31.052Z] transition() called for aut_20260421200831_cad439
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:31.057Z] transition() called for aut_20260421200831_cad439
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:31.071Z] transition() called for aut_20260421200831_cad439
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:31.074Z] transition() called for aut_20260421200831_cad439
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:31.077Z] transition() called for aut_20260421200831_cad439
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:31.095Z] transition() called for aut_20260421200831_cad439
+: execute -> verify (reason: Bypassing quality gates for implementation (No files ch
+anged))
+[TRACE] [2026-04-21T20:08:31.099Z] transition() called for aut_20260421200831_cad439
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:31.105Z] transition() called for aut_20260421200831_cad439
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:31.128Z] transition() called for aut_20260421200831_cad439
+: execute -> verify (reason: Bypassing quality gates for verification (No files chan
+ged))
+[TRACE] [2026-04-21T20:08:31.133Z] transition() called for aut_20260421200831_cad439
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:31.145Z] transition() called for aut_20260421200831_cad439
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:31.163Z] transition() called for aut_20260421200831_cad439
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:31.283Z] transition() called for aut_20260421200831_cad439
+: verify -> done (reason: Autonomy completed)
+ [32mÔ£ô[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22mbypasses gate for research/analysis tasks[32m 288[2mms[22m[39m
+[AUTONOMY] Starting session aut_20260421200831_d4bdcd loop. Loop count: 1
+[SKILLS] Initializing SkillEngine in D:\PROJECT\alloy-core\gateway\.agent\skills
+[TRACE] [2026-04-21T20:08:31.331Z] transition() called for aut_20260421200831_d4bdcd
+: init -> plan (reason: Planning analysis task)
+[TRACE] [2026-04-21T20:08:31.335Z] transition() called for aut_20260421200831_d4bdcd
+: plan -> execute (reason: Executing analysis)
+[TRACE] [2026-04-21T20:08:31.529Z] transition() called for aut_20260421200831_d4bdcd
+: execute -> verify (reason: Bypassing quality gates for analysis (No files changed)
+)
+[TRACE] [2026-04-21T20:08:31.544Z] transition() called for aut_20260421200831_d4bdcd
+: verify -> plan (reason: Planning implementation task)
+[TRACE] [2026-04-21T20:08:31.558Z] transition() called for aut_20260421200831_d4bdcd
+: plan -> execute (reason: Executing implementation)
+[TRACE] [2026-04-21T20:08:31.731Z] transition() called for aut_20260421200831_d4bdcd
+: execute -> verify (reason: Bypassing quality gates for implementation (No files ch
+anged))
+[TRACE] [2026-04-21T20:08:31.737Z] transition() called for aut_20260421200831_d4bdcd
+: verify -> plan (reason: Planning verification task)
+[TRACE] [2026-04-21T20:08:31.743Z] transition() called for aut_20260421200831_d4bdcd
+: plan -> execute (reason: Executing verification)
+[TRACE] [2026-04-21T20:08:31.917Z] transition() called for aut_20260421200831_d4bdcd
+: execute -> verify (reason: Bypassing quality gates for verification (No files chan
+ged))
+[TRACE] [2026-04-21T20:08:31.923Z] transition() called for aut_20260421200831_d4bdcd
+: verify -> plan (reason: Planning finalize task)
+[TRACE] [2026-04-21T20:08:31.927Z] transition() called for aut_20260421200831_d4bdcd
+: plan -> execute (reason: Executing finalize)
+[TRACE] [2026-04-21T20:08:32.100Z] transition() called for aut_20260421200831_d4bdcd
+: execute -> verify (reason: Bypassing quality gates for finalize (No files changed)
+)
+[TRACE] [2026-04-21T20:08:32.190Z] transition() called for aut_20260421200831_d4bdcd
+: verify -> done (reason: Autonomy completed)
+[TRACE] [2026-04-21T20:08:32.970Z] stop() called for aut_20260421200831_d4bdcd: Imme
+diate stop
+ [31m├ù[39m src/orchestration/autonomous-loop-engine.test.ts[2m > [22mAutonomousLoopEngine[2m > [22msets state to 'stopped' (interrupted) when stop() is called during bypassed cycle[33m 1683[2mms[22m[39m
+[31m   ÔåÆ expected 'done' to be 'stopped' // Object.is equality[39m
+
+[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[39m[1m[41m Failed Tests 3 [49m[22m[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»Ô
+Ä»ÔÄ»ÔÄ»[39m
+
+[41m[1m FAIL [22m[49m src/orchestration/autonomous-loop-engine.test.ts[2m > [2
+2mAutonomousLoopEngine[2m > [22mstops session immediately when stop() is called
+[31m[1mAssertionError[22m: expected 'done' to be 'stopped' // Object.is equality
+[39m
+
+Expected: [32m"stopped"[39m
+Received: [31m"done"[39m
+
+[36m [2mÔØ»[22m src/orchestration/autonomous-loop-engine.test.ts:[2m497:27[22m
+[39m
+    [90m495|[39m
+    [90m496|[39m     [35mconst[39m session [33m=[39m [35mawait[39m sessionPr
+omise[33m;[39m
+    [90m497|[39m     [34mexpect[39m(session[33m.[39mstate)[33m.[39m[34mtoBe
+[39m([32m"stopped"[39m)[33m;[39m
+    [90m   |[39m                           [31m^[39m
+    [90m498|[39m     [34mexpect[39m(session[33m.[39mstopReason)[33m.[39m[34
+mtoBe[39m([32m"User request"[39m)[33m;[39m
+    [90m499|[39m   })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/
+3]ÔÄ»[22m[39m
+
+[41m[1m FAIL [22m[49m src/orchestration/autonomous-loop-engine.test.ts[2m > [2
+2mAutonomousLoopEngine[2m > [22mpauses and resumes correctly
+[31m[1mError[22m: Timed out waiting for session aut_20260421200822_7fb276 to reac
+h paused[39m
+[36m [2mÔØ»[22m waitForSessionState src/orchestration/autonomous-loop-engine.test
+.ts:[2m49:9[22m[39m
+    [90m 47|[39m   }
+    [90m 48|[39m
+    [90m 49|[39m   throw new Error(`Timed out waiting for session ${sessionId} to 
+reachÔÇĞ
+    [90m   |[39m         [31m^[39m
+    [90m 50|[39m }
+    [90m 51|[39m
+[90m [2mÔØ»[22m src/orchestration/autonomous-loop-engine.test.ts:[2m538:27[22m
+[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/
+3]ÔÄ»[22m[39m
+
+[41m[1m FAIL [22m[49m src/orchestration/autonomous-loop-engine.test.ts[2m > [2
+2mAutonomousLoopEngine[2m > [22msets state to 'stopped' (interrupted) when stop() 
+is called during bypassed cycle
+[31m[1mAssertionError[22m: expected 'done' to be 'stopped' // Object.is equality
+[39m
+
+Expected: [32m"stopped"[39m
+Received: [31m"done"[39m
+
+[36m [2mÔØ»[22m src/orchestration/autonomous-loop-engine.test.ts:[2m848:27[22m
+[39m
+    [90m846|[39m
+    [90m847|[39m     [35mconst[39m session [33m=[39m [35mawait[39m sessionPr
+omise[33m;[39m
+    [90m848|[39m     [34mexpect[39m(session[33m.[39mstate)[33m.[39m[34mtoBe
+[39m([32m"stopped"[39m)[33m;[39m
+    [90m   |[39m                           [31m^[39m
+    [90m849|[39m     [34mexpect[39m(session[33m.[39mstopReason)[33m.[39m[34
+mtoBe[39m([32m"Immediate stop"[39m)[33m;[39m
+    [90m850|[39m   })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3/
+3]ÔÄ»[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m18 passed[39m[22m[90m (21)[39m
+[2m   Start at [22m 23:08:17
+[2m   Duration [22m 15.77s[2m (transform 587ms, setup 0ms, import 980ms, tests 14.45s, environment 0ms)[22m
+

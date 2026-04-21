@@ -1,14 +1,16 @@
 import type { AutonomySession, AutonomyEvent, TaskNode } from "../autonomy-types";
 import { LoopGuard } from "../LoopGuard";
-import { AutonomySessionManager } from "./autonomy-session-manager";
+import type { AutonomySessionManager } from "./autonomy-session-manager";
+import type { BudgetTracker } from "../BudgetTracker";
 
 interface InterruptHandlerOptions {
   sessionManager: AutonomySessionManager;
+  budgetTracker: BudgetTracker;
   emit: (type: AutonomyEvent["type"], session: AutonomySession, payload: Record<string, unknown>) => void;
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-const PAUSE_POLL_INTERVAL_MS = 500;
+const PAUSE_POLL_INTERVAL_MS = 100;
 
 export class AutonomyInterruptHandler {
   private readonly stopRequests = new Map<string, string>();
@@ -59,7 +61,7 @@ export class AutonomyInterruptHandler {
       return true;
     }
 
-    if (!skipBudget && (session.budgets as any).exceeded) {
+    if (!skipBudget && this.options.budgetTracker.checkExceeded(session)) {
        await this.options.sessionManager.failSession(session, session.budgets.exceedReason ?? "Budget exceeded");
        return true;
     }

@@ -68,6 +68,11 @@ export class SkillEngine {
    * Instead of naive full-string matching, tokenizes the objective into keywords
    * and checks overlap with each skill's keyword set.
    */
+  private static readonly STOP_WORDS = new Set([
+    "the", "and", "for", "use", "when", "this", "that", "with", "from",
+    "are", "has", "have", "not", "but", "level", "expert", "knowledge",
+  ]);
+
   public findRelevantSkills(taskType: string, objectives: string): Skill[] {
     const queryTokens = this.tokenize(`${taskType} ${objectives}`);
     if (queryTokens.length === 0) return [];
@@ -77,7 +82,7 @@ export class SkillEngine {
     for (const skill of this.skills.values()) {
       let score = 0;
       for (const token of queryTokens) {
-        if (skill.keywords.some(kw => kw.includes(token) || token.includes(kw))) {
+        if (skill.keywords.some(kw => kw === token)) {
           score++;
         }
       }
@@ -134,8 +139,7 @@ export class SkillEngine {
   private extractKeywords(name: string, description: string): string[] {
     const combined = `${name} ${description}`.toLowerCase();
     const tokens = combined.split(/[\s\-_.,;:!?()\[\]{}'"\/\\]+/).filter(t => t.length > 2);
-    const noise = new Set(["the", "and", "for", "use", "when", "this", "that", "with", "from", "are", "has", "have", "not", "but", "level", "expert", "knowledge"]);
-    return [...new Set(tokens.filter(t => !noise.has(t)))];
+    return [...new Set(tokens.filter(t => !SkillEngine.STOP_WORDS.has(t)))];
   }
 
   public async saveSkill(data: { name: string; description: string; content: string; tags: string[] }): Promise<void> {
@@ -169,7 +173,6 @@ export class SkillEngine {
 
   private tokenize(input: string): string[] {
     const tokens = input.toLowerCase().split(/[\s\-_.,;:!?()\[\]{}'"\/\\]+/).filter(t => t.length > 2);
-    const noise = new Set(["the", "and", "for", "use", "when", "this", "that", "with", "from", "are"]);
-    return [...new Set(tokens.filter(t => !noise.has(t)))];
+    return [...new Set(tokens.filter(t => !SkillEngine.STOP_WORDS.has(t)))];
   }
 }

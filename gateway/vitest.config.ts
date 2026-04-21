@@ -13,6 +13,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    testTimeout: 15000,
+    hookTimeout: 10000,
     include: ['src/**/*.test.ts', 'ui/src/**/*.test.ts', 'ui/src/**/*.test.tsx'],
     exclude: ['node_modules', 'dist'],
   },

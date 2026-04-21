@@ -1,32 +1,34 @@
-import * as fs from 'node:fs/promises';
-import path from 'node:path';
-import AsyncLock from 'async-lock';
-import { AGENTS, getNextAgent, type AgentDefinition, AgentLayer } from './agents';
-import { SharedMemory, type PipelineState } from './shared-memory';
-import { RARVEngine } from './rarv-engine';
-import { SkillMapper } from './skill-mapper';
-import { TerminalExecutor, type CommandResult } from './terminal-executor';
-import { SkillGenerator } from './skill-generator';
-import { AlloyGatewayClient } from './gateway-client';
-import { VerificationEngine, type VerificationResult, type CommandVerificationResult } from './verification-engine';
-import { CheckpointManager } from './checkpoint-manager';
-import { AGENT_SCHEMAS, sanitizeOutput } from './schemas';
-import { eventBus } from './event-bus';
-import type { IToolExecutionEngine } from './tool-execution-engine';
-import type { PipelineOptimizer } from '../gateway/pipeline-optimizer';
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import AsyncLock from "async-lock";
+import { AGENTS, getNextAgent, type AgentDefinition, AgentLayer } from "./agents";
+import { SharedMemory } from "./shared-memory";
+import { RARVEngine } from "./rarv-engine";
+import { SkillMapper } from "./skill-mapper";
+import { TerminalExecutor } from "./terminal-executor";
+import { SkillGenerator } from "./skill-generator";
+import type { AlloyGatewayClient } from "./gateway-client";
+import { VerificationEngine } from "./verification-engine";
+import type { CommandVerificationResult } from "./verification-engine";
+import { CheckpointManager } from "./checkpoint-manager";
+// import { sanitizeOutput } from "./schemas"; // Keep commented or remove if unused
+import { eventBus } from "./event-bus";
+import type { IToolExecutionEngine } from "./tool-execution-engine";
+import type { PipelineOptimizer } from "../gateway/pipeline-optimizer";
 
-/**
- * Plan modes: control which agents run.
- */
-export const PlanMode = {
-  FULL: 'full',
-  MANAGEMENT_ONLY: 'management_only',
-  DEV_ONLY: 'dev_only',
-  QUALITY_ONLY: 'quality_only',
-  CUSTOM: 'custom',
-} as const;
-
-export type PlanMode = (typeof PlanMode)[keyof typeof PlanMode];
+import {
+  PlanMode,
+  type AgentResult,
+  type PipelineResult,
+  type ErrorCategory,
+  type TokenUsage,
+} from "./pipeline/pipeline-types";
+export { PlanMode };
+export type { AgentResult, PipelineResult };
+import { CircuitBreaker } from "./pipeline/CircuitBreaker";
+import { GeminiProvider, AnthropicProvider, OpenAIProvider } from "./pipeline/LLMProviders";
+import type { ILLMProvider } from "./pipeline/ILLMProvider";
+import { AgentExecutor } from "./pipeline/AgentExecutor";
 
 /** Map plan modes to agent order ranges. */
 const PLAN_MODE_RANGES: Record<string, { start: number; end: number }> = {
@@ -36,38 +38,6 @@ const PLAN_MODE_RANGES: Record<string, { start: number; end: number }> = {
   quality_only: { start: 11, end: 15 },
   custom: { start: 1, end: 18 },
 };
-
-/**
- * Error categories for structured error handling.
- */
-export type ErrorCategory =
-  | 'network'
-  | 'timeout'
-  | 'validation'
-  | 'llm_error'
-  | 'rate_limit'
-  | 'auth'
-  | 'unknown';
-
-/**
- * Token usage tracking per agent.
- */
-export interface TokenUsage {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-  estimatedCostUsd: number;
-}
-
-/**
- * Circuit breaker state for a single LLM provider.
- */
-interface CircuitBreakerState {
-  failures: number;
-  lastFailureAt: number | null;
-  isOpen: boolean;
-  nextRetryAt: number;
-}
 
 /**
  * Pipeline execution options.
@@ -93,36 +63,7 @@ export interface PipelineOptions {
 }
 
 /**
- * Result of a single agent execution.
- */
-export interface AgentResult {
-  agent: AgentDefinition;
-  status: 'completed' | 'skipped' | 'failed' | 'halted';
-  durationMs: number;
-  outputFile: string | null;
-  error?: string;
-  verification?: VerificationResult;
-  tokenUsage?: TokenUsage;
-  attempts?: number;
-}
-
-/**
- * Result of the full pipeline run.
- */
-export interface PipelineResult {
-  status: 'completed' | 'failed' | 'paused' | 'halted';
-  agentResults: AgentResult[];
-  totalDurationMs: number;
-  completedCount: number;
-  failedCount: number;
-  skippedCount: number;
-  haltedCount: number;
-  totalTokenUsage?: TokenUsage;
-  totalEstimatedCostUsd?: number;
-}
-
-/**
- * SequentialPipeline â€” The core orchestration engine for Alloy AI.
+ * SequentialPipeline — The core orchestration engine for Alloy AI.
  * Coordinates 18 agents in a staged, bulletproof flow.
  */
 export class SequentialPipeline {
@@ -144,23 +85,40 @@ export class SequentialPipeline {
   private sessionId: string;
   private checkpointIds: Map<string, string> = new Map();
   private backtrackLock = new AsyncLock();
+  private epoch: number = 0;
 
   private isDisposed = false;
   private pipelineOptimizer: PipelineOptimizer | null = null;
 
-  // Token & cost tracking
-  private cumulativeTokens: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0, estimatedCostUsd: 0 };
+  // Delegated Services
+  private circuitBreaker: CircuitBreaker;
+  private agentExecutor: AgentExecutor;
+  private providers: Map<string, ILLMProvider> = new Map();
 
-  // Circuit breaker per provider
-  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  // Token & cost tracking
+  private cumulativeTokens: TokenUsage = {
+    promptTokens: 0,
+    completionTokens: 0,
+    totalTokens: 0,
+    estimatedCostUsd: 0,
+  };
 
   private rarvListeners: Set<(phase: string) => void | Promise<void>> = new Set();
   private agentStartListeners: Set<(agent: AgentDefinition) => void | Promise<void>> = new Set();
   private agentCompleteListeners: Set<(agent: AgentDefinition, output: string) => void | Promise<void>> = new Set();
-  private errorListeners: Set<(agent: AgentDefinition, error: Error) => void | Promise<void>> = new Set();
   private verifyListeners: Set<(agent: AgentDefinition, result: CommandVerificationResult) => void | Promise<void>> = new Set();
+  private errorListeners: Set<(agent: AgentDefinition, error: Error) => void | Promise<void>> = new Set();
 
-  constructor(projectRoot: string, alloyClient?: AlloyGatewayClient, overrides: { memory?: SharedMemory, terminal?: TerminalExecutor, toolEngine?: IToolExecutionEngine, optimizer?: PipelineOptimizer } = {}) {
+  constructor(
+    projectRoot: string,
+    alloyClient?: AlloyGatewayClient,
+    overrides: {
+      memory?: SharedMemory;
+      terminal?: TerminalExecutor;
+      toolEngine?: IToolExecutionEngine;
+      optimizer?: PipelineOptimizer;
+    } = {}
+  ) {
     this.projectRoot = projectRoot;
     this.alloyClient = alloyClient;
     this.memory = overrides.memory ?? new SharedMemory(projectRoot);
@@ -172,6 +130,26 @@ export class SequentialPipeline {
     this.checkpointManager = new CheckpointManager(projectRoot, this.terminal);
     this.pipelineOptimizer = overrides.optimizer ?? null;
     this.sessionId = Math.random().toString(36).slice(2, 10);
+
+    // Initialize Delegated Services
+    this.circuitBreaker = new CircuitBreaker({
+      failureThreshold: 3,
+      cooldownMs: 60000,
+      onTrip: (provider, state) => {
+        console.warn(`Circuit breaker OPEN for ${provider}. Failures: ${state.failures}`);
+      },
+    });
+
+    this.agentExecutor = new AgentExecutor({
+      projectRoot,
+      memory: this.memory,
+      skillMapper: this.skillMapper,
+    });
+
+    // Strategy registration
+    this.providers.set("gemini", new GeminiProvider());
+    this.providers.set("anthropic", new AnthropicProvider());
+    this.providers.set("openai", new OpenAIProvider());
   }
 
   public dispose() {
@@ -217,9 +195,9 @@ export class SequentialPipeline {
     eventBus.publish('rarv_phase', { phase });
   }
 
-  private async _emitVerify(agent: AgentDefinition, result: CommandVerificationResult, options: PipelineOptions) {
+  private async _emitVerify(agent: AgentDefinition, result: CommandVerificationResult, _options: PipelineOptions) {
     await Promise.all(Array.from(this.verifyListeners).map(async cb => { try { await cb(agent, result); } catch (e) { console.error(e); } }));
-    await options.onVerify?.(agent, result);
+    await _options.onVerify?.(agent, result);
     eventBus.publish('verify', { agent, result });
   }
 
@@ -242,6 +220,7 @@ export class SequentialPipeline {
     this.temperature = options.temperature ?? 0.2;
     this.maxOutputTokens = options.maxOutputTokens ?? 4096;
     this.cumulativeTokens = { promptTokens: 0, completionTokens: 0, totalTokens: 0, estimatedCostUsd: 0 };
+    this.epoch++;
 
     if (options.skillsDir) {
       this.skillMapper = new SkillMapper(options.skillsDir);
@@ -250,6 +229,15 @@ export class SequentialPipeline {
     const startTime = Date.now();
     const skipSet = new Set(options.skipAgents ?? []);
     const agentResults: AgentResult[] = [];
+
+    // Ensure agentExecutor has access to the latest skillMapper
+    if (this.skillMapper) {
+       this.agentExecutor = new AgentExecutor({
+         projectRoot: this.projectRoot,
+         memory: this.memory,
+         skillMapper: this.skillMapper,
+       });
+    }
 
     const planMode = options.planMode ?? PlanMode.FULL;
     const range = PLAN_MODE_RANGES[planMode]!;
@@ -300,7 +288,7 @@ export class SequentialPipeline {
       // Process settled results
       const results = settled.map((s, i) => {
         if (s.status === 'fulfilled') return s.value;
-        // Rejected â€” treat as failed
+        // Rejected
         const agent = agentsToExecute[i]!;
         const failResult: AgentResult = { agent, status: 'failed', durationMs: 0, outputFile: null, error: s.reason?.message ?? 'Unknown error' };
         agentResults.push(failResult);
@@ -353,7 +341,9 @@ export class SequentialPipeline {
     const BASE_DELAY_MS = 1000;
     let lastResult: AgentResult | undefined;
 
+    const startEpoch = this.epoch;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      if (this.epoch !== startEpoch) return { status: 'failed', result: lastResult };
       const result = await this.executeAgent(agent, userTask, options);
       lastResult = result;
 
@@ -380,14 +370,13 @@ export class SequentialPipeline {
         if (target) {
           const { targetAgent } = target;
           return await this.backtrackLock.acquire('backtrack', async (): Promise<{ status: AgentResult['status']; result: AgentResult; backtrack?: { targetIndex: number; targetAgent: AgentDefinition } }> => {
-            // Re-verify if we still need to backtrack (idempotency)
             const freshResults = agentResults.filter(r => r.agent.order >= targetAgent.order);
             if (freshResults.length === 0 && attempt === MAX_ATTEMPTS) {
-               // Already backtracked or handled by another worker
                return { status: 'failed', result: lastResult! };
             }
 
             await this.recordBacktrack(agent.role, targetAgent.role, result.error ?? 'Max retries exceeded');
+            this.epoch++; // Trigger epoch change
             for (let i = agentResults.length - 1; i >= 0; i--) {
               if (agentResults[i]!.agent.order >= targetAgent.order) agentResults.splice(i, 1);
             }
@@ -415,48 +404,34 @@ export class SequentialPipeline {
       await this.memory.updateState({ currentAgent: agent.role });
       await this.rarv.startCycle(agent.order, agent.order);
       
-      const context = await this.gatherAgentContext(agent, userTask);
-      let prompt = await this.buildAgentPrompt(agent, context, userTask, options);
+      const context = await this.agentExecutor.gatherContext(agent, userTask);
+      const prompt = await this.agentExecutor.buildPrompt(agent, context, userTask, options.extraSkills);
 
-      let model = options.modelOverride ?? agent.preferredModel;
-      let llmOutput: string;
-      let tokenUsage: TokenUsage | undefined;
+      const providerKey = this.detectProvider(options.modelOverride ?? agent.preferredModel);
+      const provider = this.providers.get(providerKey) || this.providers.get("gemini")!;
 
-      if (this.pipelineOptimizer) {
-        const opt = await this.pipelineOptimizer.optimize(agent, prompt);
-        model = opt.model.id;
-        if (opt.cacheHit && opt.cachedResponse) {
-          llmOutput = opt.cachedResponse;
-        } else {
-          const llmResult = await this.executeLlmCallWithTimeout(agent, opt.optimizedPrompt ?? prompt, userTask, model);
-          llmOutput = llmResult.output;
-          tokenUsage = llmResult.tokenUsage;
+      this.circuitBreaker.check(providerKey);
+
+      const response = await provider.execute(
+        agent,
+        agent.systemPrompt,
+        prompt,
+        options.modelOverride || agent.preferredModel,
+        {
+          temperature: options.temperature ?? this.temperature,
+          maxOutputTokens: options.maxOutputTokens ?? this.maxOutputTokens,
+          timeoutMs: Math.min((agent.estimatedMinutes + 2) * 60_000, 600_000),
         }
-      } else {
-        const llmResult = await this.executeLlmCallWithTimeout(agent, prompt, userTask, model);
-        llmOutput = llmResult.output;
-        tokenUsage = llmResult.tokenUsage;
-      }
+      );
 
-      // Accumulate token usage
-      if (tokenUsage) {
-        this.cumulativeTokens.promptTokens += tokenUsage.promptTokens;
-        this.cumulativeTokens.completionTokens += tokenUsage.completionTokens;
-        this.cumulativeTokens.totalTokens += tokenUsage.totalTokens;
-        this.cumulativeTokens.estimatedCostUsd += tokenUsage.estimatedCostUsd;
-      }
+      this.trackTokens(response.tokenUsage);
+      this.circuitBreaker.recordSuccess(providerKey);
 
       await this._emitRarvPhase(`VERIFY for ${agent.role}`, options);
       const defaultFile = agent.outputFiles[0] ?? `${agent.role}-output.md`;
       
-      // Use improved sanitizeOutput from schemas.ts
-      const schemaResult = sanitizeOutput(agent.role, llmOutput);
-      if (!schemaResult.success) {
-        console.warn(`[Alloy:Pipeline] Schema validation warning for ${agent.role}: ${schemaResult.errors?.join(', ') ?? 'unknown'}`);
-      }
-
-      const written = await this.memory.writeAgentOutput(agent.role, defaultFile, llmOutput);
-      const verifyResult = await this.verifier.verify(agent, llmOutput);
+      const written = await this.memory.writeAgentOutput(agent.role, defaultFile, response.output);
+      const verifyResult = await this.verifier.verify(agent, response.output);
       for (const cmd of verifyResult.commands) await this._emitVerify(agent, cmd, options);
       
       const state = await this.memory.getState();
@@ -473,25 +448,31 @@ export class SequentialPipeline {
 
       if (!verifyResult.passed) throw new Error(`Verification failed for ${agent.role}`);
 
-      this.rarv.finishCycle(agent.order);
-      await this._emitAgentComplete(agent, llmOutput, options);
-      return { agent, status: 'completed', durationMs: Date.now() - start, outputFile: written[0] ?? defaultFile, verification: verifyResult, tokenUsage, attempts: 1 };
+      await this.rarv.finishCycle(agent.order);
+      await this._emitAgentComplete(agent, response.output, options);
+      return { agent, status: 'completed', durationMs: Date.now() - start, outputFile: written[0] ?? defaultFile, verification: verifyResult, tokenUsage: response.tokenUsage, attempts: 1 };
 
-    } catch (error: any) {
-      this.rarv.finishCycle(agent.order);
+    } catch (error: unknown) {
+      await this.rarv.finishCycle(agent.order);
+      // Already handled rollback in backtrack logic if needed, but for individual agent failure:
       const checkpointId = this.checkpointIds.get(agent.role);
-      if (checkpointId) await this.checkpointManager.rollback(checkpointId);
+      // If epoch changed, we are in a backtrack, don't rollback locally
+      // but if it's a simple failure, we might want to rollback to pre-agent state
+      // Actually, executeAgentWithRetry handles backtrack rollback.
+      // We only rollback here if it WASN'T a backtrack.
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isCircuitOpen = errorMessage.includes('Circuit breaker is OPEN');
 
-      // Update circuit breaker
-      const provider = this.detectProvider(options.modelOverride ?? agent.preferredModel);
-      this.recordCircuitFailure(provider);
+      if (!isCircuitOpen) {
+        const provider = this.detectProvider(options.modelOverride ?? agent.preferredModel);
+        this.circuitBreaker.recordFailure(provider);
+        if (checkpointId) await this.checkpointManager.rollback(checkpointId);
+      }
+      await this.memory.appendLog('system', `❌ Agent ${agent.role} failed: ${errorMessage.slice(0, 200)}`);
 
-      // Log structured error
-      const category = this.categorizeError(error);
-      await this.memory.appendLog('system', `â Œ Agent ${agent.role} failed [${category}]: ${error.message?.slice(0, 200) ?? 'Unknown'}`);
-
-      await this._emitError(agent, error, options);
-      return { agent, status: 'failed', durationMs: Date.now() - start, outputFile: null, error: error.message };
+      await this._emitError(agent, error as Error, options);
+      return { agent, status: 'failed', durationMs: Date.now() - start, outputFile: null, error: errorMessage };
     }
   }
 
@@ -522,92 +503,25 @@ export class SequentialPipeline {
     const state = await this.memory.getState();
     const history = state.backtrackHistory ?? [];
     history.push({ from, to, reason: reason.slice(0, 500), timestamp: new Date().toISOString() });
-    await this.memory.updateState({ backtrackHistory: history } as any);
-    await this.memory.appendLog('system', `ğŸ›‘ BACKTRACK TRIGGERED: ${from} â†’ ${to} (${reason.slice(0, 200)})`);
+    await this.memory.updateState({ backtrackHistory: history });
+    await this.memory.appendLog('system', `🛑 BACKTRACK TRIGGERED: ${from} → ${to} (${reason.slice(0, 200)})`);
   }
 
-  private async gatherAgentContext(agent: AgentDefinition, userTask: string) {
-    const context: Record<string, string> = { _userTask: userTask };
-    if (agent.inputFiles.length > 0) Object.assign(context, await this.memory.readMultipleOutputs(agent.inputFiles));
-    return context;
+  private async autoVerifyPipeline(_options: PipelineOptions) {
+    const state = await this.memory.getState();
+    if (state.completedAgents.includes('devops')) {
+       const r = await this.terminal.runFullVerification();
+       await this.memory.writeAgentOutput('pipeline', 'verification-result.md', `# Final Verification\nBuild: ${r.build.success ? '🏆 OK' : '❌ FAIL'}\nTest: ${r.test.success ? '🏆 OK' : '❌ FAIL'}`);
+    }
   }
 
-  private async buildAgentPrompt(agent: AgentDefinition, context: Record<string, string>, userTask: string, options: PipelineOptions) {
-    let system = agent.systemPrompt;
-    if (this.skillMapper) system = await this.skillMapper.buildEnrichedPrompt(agent, options.extraSkills).catch(() => system);
-    const logs = await this.memory.readLogTail(30);
-    const workflow = await this.loadWorkflow(agent);
-    
-    return [
-      `# ${agent.emoji} ROLE: ${agent.name} (${agent.role})`,
-      '## REAL-WORLD TERMINAL LOGS\n```text\n' + (logs || '(Empty)') + '\n```',
-      '## CORE INSTRUCTIONS\n' + system,
-      agent.outputValidation ? `## REQUIRED SECTIONS\n${agent.outputValidation.map(s => `- [ ] ${s}`).join('\n')}` : '',
-      workflow ? `## STANDARD WORKFLOW\n${workflow}` : '',
-      '## USER OBJECTIVE\n' + userTask,
-      '## SOURCE DOCUMENTS\n' + Object.keys(context).filter(k => !k.startsWith('_')).map(k => `### ${k}\n\`\`\`\n${context[k]}\n\`\`\``).join('\n\n')
-    ].join('\n\n');
-  }
-
-  /**
-   * Detect which LLM provider a model string refers to.
-   */
   private detectProvider(model: string): string {
     const lower = model.toLowerCase();
     if (lower.includes('claude') || lower.includes('opus') || lower.includes('sonnet') || lower.includes('anthropic')) return 'anthropic';
     if (lower.includes('gpt') || lower.includes('o1') || lower.includes('o3') || lower.includes('openai')) return 'openai';
-    return 'google'; // default: gemini
+    return 'gemini'; // default: gemini
   }
 
-  /**
-   * Check if the circuit breaker is open for a provider.
-   * If open, throw an error to prevent calls.
-   */
-  private checkCircuitBreaker(provider: string): void {
-    const cb = this.circuitBreakers.get(provider);
-    if (!cb || !cb.isOpen) return;
-    if (Date.now() >= cb.nextRetryAt) {
-      // Half-open: allow one attempt
-      console.log(`[Alloy:Breaker] Half-open for ${provider}, allowing attempt`);
-      return;
-    }
-    throw new Error(`Circuit breaker is OPEN for ${provider}. Next retry at ${new Date(cb.nextRetryAt).toISOString()}`);
-  }
-
-  /**
-   * Record a failure in the circuit breaker for a provider.
-   */
-  private recordCircuitFailure(provider: string): void {
-    let cb = this.circuitBreakers.get(provider);
-    if (!cb) {
-      cb = { failures: 0, lastFailureAt: null, isOpen: false, nextRetryAt: 0 };
-      this.circuitBreakers.set(provider, cb);
-    }
-    cb.failures++;
-    cb.lastFailureAt = Date.now();
-    // Open circuit after 5 consecutive failures
-    if (cb.failures >= 5) {
-      cb.isOpen = true;
-      cb.nextRetryAt = Date.now() + 60_000; // 1 minute cooldown
-      console.warn(`[Alloy:Breaker] OPENED for ${provider} after ${cb.failures} failures`);
-      
-      // Phase 4.2: Health Telemetry
-      this.memory.updateState({ 
-        knownIssues: [`Circuit breaker OPEN for ${provider}`]
-      }).catch(() => {});
-    }
-  }
-
-  /**
-   * Record a success â€” reset the circuit breaker.
-   */
-  private recordCircuitSuccess(provider: string): void {
-    this.circuitBreakers.delete(provider);
-  }
-
-  /**
-   * Categorize an error for structured handling.
-   */
   private categorizeError(error: Error): ErrorCategory {
     const msg = (error.message ?? '').toLowerCase();
     if (msg.includes('timeout') || msg.includes('abort') || msg.includes('timed out')) return 'timeout';
@@ -619,210 +533,16 @@ export class SequentialPipeline {
     return 'unknown';
   }
 
-  /**
-   * Execute an LLM call with agent-specific timeout based on estimatedMinutes.
-   */
-  private async executeLlmCallWithTimeout(
-    agent: AgentDefinition,
-    systemPrompt: string,
-    userPrompt: string,
-    model: string,
-  ): Promise<{ output: string; tokenUsage: TokenUsage }> {
-    const provider = this.detectProvider(model);
-    this.checkCircuitBreaker(provider);
-
-    // Agent timeout: estimatedMinutes + 2 minute buffer, max 10 minutes
-    const timeoutMs = Math.min((agent.estimatedMinutes + 2) * 60_000, 600_000);
-
-    const result = await this.executeLlmCall(agent, systemPrompt, userPrompt, model, timeoutMs);
-    this.recordCircuitSuccess(provider);
-    return result;
-  }
-
-  /**
-   * Core LLM API call. Supports Gemini, Anthropic, and OpenAI providers.
-   * Returns the text output and estimated token usage.
-   */
-  private async executeLlmCall(
-    agent: AgentDefinition,
-    systemPrompt: string,
-    userPrompt: string,
-    model: string,
-    timeoutMs: number = 180_000,
-  ): Promise<{ output: string; tokenUsage: TokenUsage }> {
-    const provider = this.detectProvider(model);
-    const fetchFn = this.alloyClient ? this.alloyClient.fetch.bind(this.alloyClient) : fetch;
-
-    let output: string;
-    let tokenUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0, estimatedCostUsd: 0 };
-
-    if (provider === 'anthropic') {
-      const result = await this.executeAnthropicCall(fetchFn, model, systemPrompt, userPrompt, timeoutMs);
-      output = result.output;
-      tokenUsage = result.tokenUsage;
-    } else if (provider === 'openai') {
-      const result = await this.executeOpenAICall(fetchFn, model, systemPrompt, userPrompt, timeoutMs);
-      output = result.output;
-      tokenUsage = result.tokenUsage;
-    } else {
-      // Default: Google Gemini
-      const result = await this.executeGeminiCall(fetchFn, model, systemPrompt, userPrompt, timeoutMs);
-      output = result.output;
-      tokenUsage = result.tokenUsage;
-    }
-
-    if (!output) throw new Error(`Empty response from ${agent.role} (${model})`);
-    return { output, tokenUsage };
-  }
-
-  /**
-   * Google Gemini API call.
-   */
-  private async executeGeminiCall(
-    fetchFn: typeof fetch,
-    model: string,
-    systemPrompt: string,
-    userPrompt: string,
-    timeoutMs: number,
-  ): Promise<{ output: string; tokenUsage: TokenUsage }> {
-    const cleanModel = model.includes('/') ? model.split('/')[1]! : model;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent`;
-
-    const res = await fetchFn(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-        generationConfig: { temperature: this.temperature, maxOutputTokens: this.maxOutputTokens },
-      }),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`Gemini API Error ${res.status}: ${body.slice(0, 500)}`);
-    }
-
-    const data = (await res.json()) as any;
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    const usage = data.usageMetadata;
-    const tokenUsage: TokenUsage = {
-      promptTokens: usage?.promptTokenCount ?? 0,
-      completionTokens: usage?.candidatesTokenCount ?? 0,
-      totalTokens: usage?.totalTokenCount ?? 0,
-      estimatedCostUsd: (usage?.totalTokenCount ?? 0) * 0.000_000_1,
-    };
-    return { output: text, tokenUsage };
-  }
-
-  /**
-   * Anthropic Claude API call.
-   */
-  private async executeAnthropicCall(
-    fetchFn: typeof fetch,
-    model: string,
-    systemPrompt: string,
-    userPrompt: string,
-    timeoutMs: number,
-  ): Promise<{ output: string; tokenUsage: TokenUsage }> {
-    // Map short names to full model IDs
-    const modelMap: Record<string, string> = {
-      'opus': 'claude-opus-4-0-20250514',
-      'sonnet': 'claude-sonnet-4-20250514',
-      'haiku': 'claude-haiku-4-20250514',
-    };
-    const fullModel = modelMap[model.toLowerCase()] ?? model;
-
-    const res = await fetchFn('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: fullModel,
-        max_tokens: this.maxOutputTokens,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-        temperature: this.temperature,
-      }),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`Anthropic API Error ${res.status}: ${body.slice(0, 500)}`);
-    }
-
-    const data = await res.json() as any;
-    const text = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n') ?? '';
-    const usage = data.usage;
-    const tokenUsage: TokenUsage = {
-      promptTokens: usage?.input_tokens ?? 0,
-      completionTokens: usage?.output_tokens ?? 0,
-      totalTokens: (usage?.input_tokens ?? 0) + (usage?.output_tokens ?? 0),
-      estimatedCostUsd: ((usage?.input_tokens ?? 0) * 0.000_015) + ((usage?.output_tokens ?? 0) * 0.000_075),
-    };
-    return { output: text, tokenUsage };
-  }
-
-  /**
-   * OpenAI API call.
-   */
-  private async executeOpenAICall(
-    fetchFn: typeof fetch,
-    model: string,
-    systemPrompt: string,
-    userPrompt: string,
-    timeoutMs: number,
-  ): Promise<{ output: string; tokenUsage: TokenUsage }> {
-    const res = await fetchFn('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: this.temperature,
-        max_tokens: this.maxOutputTokens,
-      }),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`OpenAI API Error ${res.status}: ${body.slice(0, 500)}`);
-    }
-
-    const data = await res.json() as any;
-    const text = data.choices?.[0]?.message?.content ?? '';
-    const usage = data.usage;
-    const tokenUsage: TokenUsage = {
-      promptTokens: usage?.prompt_tokens ?? 0,
-      completionTokens: usage?.completion_tokens ?? 0,
-      totalTokens: usage?.total_tokens ?? 0,
-      estimatedCostUsd: (usage?.total_tokens ?? 0) * 0.000_005,
-    };
-    return { output: text, tokenUsage };
-  }
-
-  private async loadWorkflow(agent: AgentDefinition) {
-    const workflowMap: Record<string, string> = { 'ceo': '1_gereksinim_analizi.md', 'pm': '1_gereksinim_analizi.md', 'architect': '2_mimari_tasarim.md', 'ui_ux': '10_ui_ux_refinement.md', 'database': '3_veritabani_sema.md', 'api_designer': '4_api_spec.md', 'backend': '7_backend_gelistirme.md', 'frontend': '8_frontend_gelistirme.md', 'auth': '5_guvenlik_uyum.md', 'integration': '9_entegrasyon_testi.md', 'unit_test': '6_birim_test.md', 'integration_test': '9_entegrasyon_testi.md', 'security': '5_guvenlik_uyum.md', 'performance': '11_performans_opt.md', 'code_review': '14_proje_teslim.md', 'docs': '12_dokumantasyon.md', 'tech_writer': '12_dokumantasyon.md', 'devops': '13_devops_deployment.md' };
-    const file = workflowMap[agent.role];
-    if (!file) return null;
-    return fs.readFile(path.join(this.projectRoot, '.agent', 'workflows', file), 'utf-8').catch(() => null);
-  }
-
-  private async autoVerifyPipeline(options: PipelineOptions) {
-    const state = await this.memory.getState();
-    if (state.completedAgents.includes('devops')) {
-       const r = await this.terminal.runFullVerification();
-       await this.memory.writeAgentOutput('pipeline', 'verification-result.md', `# Final Verification\nBuild: ${r.build.success ? 'ğŸ† OK' : 'âŒ FAIL'}\nTest: ${r.test.success ? 'ğŸ† OK' : 'âŒ FAIL'}`);
-    }
+  private trackTokens(usage: TokenUsage) {
+    this.cumulativeTokens.promptTokens += usage.promptTokens;
+    this.cumulativeTokens.completionTokens += usage.completionTokens;
+    this.cumulativeTokens.totalTokens += usage.totalTokens;
+    this.cumulativeTokens.estimatedCostUsd += usage.estimatedCostUsd;
+    
+    // Persist to SharedMemory incrementally
+    this.memory.updateState({ cumulativeTokens: usage }).catch(() => {});
+    
+    eventBus.publish('token_usage', usage);
   }
 
   /**
@@ -838,7 +558,7 @@ export class SequentialPipeline {
       completedRoles: agentResults.filter(r => r.status === 'completed').map(r => r.agent.role),
       failedRoles: agentResults.filter(r => r.status === 'failed').map(r => ({ role: r.agent.role, error: r.error })),
       cumulativeTokens: { ...this.cumulativeTokens },
-      circuitBreakers: Object.fromEntries(this.circuitBreakers),
+      circuitBreakers: Object.fromEntries(this.circuitBreaker.getStates()),
     };
     await fs.mkdir(path.dirname(workflowPath), { recursive: true });
     await fs.writeFile(workflowPath, JSON.stringify(workflow, null, 2), 'utf-8');
@@ -895,16 +615,16 @@ export class SequentialPipeline {
      return this.start(task || state.userTask, { ...opts, startFromOrder: next });
   }
 
-  private handleHalt(agent: AgentDefinition, result: AgentResult, startTime: number, results: AgentResult[], options: PipelineOptions) {
+  private async handleHalt(agent: AgentDefinition, result: AgentResult, startTime: number, results: AgentResult[], options: PipelineOptions) {
     results.push(result);
-    this.memory.updateState({ pipelineStatus: 'halted', currentAgent: agent.role });
+    await this.memory.updateState({ pipelineStatus: 'halted', currentAgent: agent.role });
     this.running = false;
     options.onHalt?.(agent, result.error ?? 'Halt');
     return this.buildResult(results, startTime, 'halted');
   }
 
-  private handleFailure(agent: AgentDefinition, result: AgentResult, startTime: number, results: AgentResult[]) {
-    this.memory.updateState({ pipelineStatus: 'failed' });
+  private async handleFailure(agent: AgentDefinition, result: AgentResult, startTime: number, results: AgentResult[]) {
+    await this.memory.updateState({ pipelineStatus: 'failed' });
     this.running = false;
     return this.buildResult(results, startTime, 'failed');
   }

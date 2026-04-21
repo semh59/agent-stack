@@ -1,4 +1,4 @@
-﻿import * as fs from 'node:fs/promises';
+import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import lockfile from 'proper-lockfile';
 import AsyncLock from 'async-lock';
@@ -50,7 +50,7 @@ export interface PipelineState {
   }>;
 
   /** RARV engine state per task */
-  rarvState?: Record<number, any>;
+  rarvState?: Record<number, unknown>;
   
   /** RARV aggregate metrics */
   rarvMetrics?: {
@@ -59,6 +59,14 @@ export interface PipelineState {
     failedCycles: number;
     averageRefinements: number;
     averageDurationMs: number;
+  };
+  
+  /** Persistent cumulative token usage */
+  cumulativeTokens?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    estimatedCostUsd: number;
   };
 }
 
@@ -162,8 +170,8 @@ export class SharedMemory {
       // 2. Ensure state file exists before locking (otherwise lockfile fails)
       try {
         await fs.access(this.stateFile);
-      } catch (e: any) {
-        if (e.code === 'ENOENT') {
+      } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 'ENOENT') {
           await this.writeState(DEFAULT_STATE);
         } else {
           throw e;
@@ -188,8 +196,8 @@ export class SharedMemory {
         try {
           const raw = await fs.readFile(this.stateFile, 'utf-8');
           current = { ...DEFAULT_STATE, ...JSON.parse(raw) };
-        } catch (err: any) {
-          if (err.code === 'ENOENT') {
+        } catch (err: unknown) {
+          if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
             current = { ...DEFAULT_STATE };
             await this.writeState(current);
           } else {
@@ -231,6 +239,14 @@ export class SharedMemory {
           backtrackHistory: partial.backtrackHistory 
             ? [...(current.backtrackHistory ?? []), ...partial.backtrackHistory]
             : current.backtrackHistory,
+          cumulativeTokens: partial.cumulativeTokens
+            ? {
+                promptTokens: (current.cumulativeTokens?.promptTokens ?? 0) + (partial.cumulativeTokens.promptTokens ?? 0),
+                completionTokens: (current.cumulativeTokens?.completionTokens ?? 0) + (partial.cumulativeTokens.completionTokens ?? 0),
+                totalTokens: (current.cumulativeTokens?.totalTokens ?? 0) + (partial.cumulativeTokens.totalTokens ?? 0),
+                estimatedCostUsd: (current.cumulativeTokens?.estimatedCostUsd ?? 0) + (partial.cumulativeTokens.estimatedCostUsd ?? 0),
+              }
+            : current.cumulativeTokens,
         };
 
         await this.writeState(updated);

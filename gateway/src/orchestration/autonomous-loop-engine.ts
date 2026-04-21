@@ -11,7 +11,7 @@ import type {
   AutonomousClientResolver,
   AutonomousTaskExecutor,
 } from "./autonomy-types";
-import { AlloyGatewayClient } from "./gateway-client";
+import type { AlloyGatewayClient } from "./gateway-client";
 import { SmartMultiModelRouter } from "./autonomy-model-router";
 import { AutonomyGitManager } from "./autonomy-git-manager";
 import { GateEngine } from "./GateEngine";
@@ -82,6 +82,7 @@ export class AutonomousLoopEngine {
 
     this.interruptHandler = new AutonomyInterruptHandler({
       sessionManager: this.sessionManager,
+      budgetTracker: this.budgetTracker,
       emit,
     });
 
@@ -186,6 +187,8 @@ export class AutonomousLoopEngine {
     const session = this.sessionManager.getSession(sessionId);
     if (!session || this.runningSessions.has(sessionId) || session.state !== "queued") return false;
     
+    // StopQueued means the session will never run, so detachment is correct here.
+    // However, if we ever allow "unstopping", we need to re-attach.
     this.budgetTracker.detachSession(session);
     session.stopReason = reason;
     await this.sessionManager.transition(session, "stopped", null, reason);
@@ -209,7 +212,7 @@ export class AutonomousLoopEngine {
     }
     if (!session) throw new Error(`Autonomy session not found: ${sessionId}`);
     
-    if (this.runningSessions.has(sessionId)) return structuredClone(session);
+    if (this.runningSessions.has(sessionId)) return session!;
 
     this.runningSessions.add(sessionId);
     process.stderr.write(`[AUTONOMY] Starting session ${sessionId} loop. Loop count: ${this.runningSessions.size}\n`);
@@ -235,6 +238,7 @@ export class AutonomousLoopEngine {
 
         const task = taskGraphManager.findNextTask(session.taskGraph);
         if (!task) {
+          if (await this.interruptHandler.checkInterrupts(session)) break;
           await this.completeSession(session);
           break;
         }
@@ -290,13 +294,13 @@ export class AutonomousLoopEngine {
         await this.sessionManager.failSession(session, `Cycles budget exhausted (${session.maxCycles})`);
       }
 
-      return structuredClone(session);
+      return session;
     } catch (err: unknown) {
       const error = err as Error;
       if (!["failed", "stopped"].includes(session!.state)) {
         await this.sessionManager.failSession(session!, error.message);
       }
-      return structuredClone(session!);
+      return session!;
     } finally {
       if (session!.state === "failed") {
         await this.gitOrchestrator.cleanupFailedSessionBranch(session!).catch(() => {});
@@ -307,8 +311,13 @@ export class AutonomousLoopEngine {
 
   private async completeSession(session: AutonomySession): Promise<void> {
     if (["done", "failed", "stopped"].includes(session.state)) return;
+    if (this.interruptHandler.isStopRequested(session.id)) {
+        await this.interruptHandler.applyStopIfRequested(session);
+        return;
+    }
 
     if (session.state === "init") {
+      if (await this.interruptHandler.applyStopIfRequested(session)) return;
       await this.sessionManager.transition(session, "done", null, "Session completed (no tasks)");
       return;
     }
@@ -328,6 +337,7 @@ export class AutonomousLoopEngine {
       }
     }
 
+    if (await this.interruptHandler.applyStopIfRequested(session)) return;
     await this.sessionManager.transition(session, "done", null, "Autonomy completed");
     this.budgetTracker.detachSession(session);
     this.emit("done", session, {
@@ -342,7 +352,10 @@ export class AutonomousLoopEngine {
     if (task.type === "analysis") taskGraphManager.setTaskStatus(session.taskGraph, "implementation", "pending");
     if (task.type === "implementation" || task.type === "test-fix") taskGraphManager.setTaskStatus(session.taskGraph, "verification", "pending");
     if (task.type === "verification") taskGraphManager.setTaskStatus(session.taskGraph, "finalize", "pending");
-    if (task.type === "finalize") await this.completeSession(session);
+    if (task.type === "finalize") {
+        if (await this.interruptHandler.applyStopIfRequested(session)) return;
+        await this.completeSession(session);
+    }
   }
 
   private emit(type: AutonomyEvent["type"], session: AutonomySession, payload: Record<string, unknown>): void {
@@ -425,6 +438,28 @@ export class AutonomousLoopEngine {
   }
 
   private buildPlanArtifact(session: AutonomySession, task: TaskNode, modelDecision: ModelDecision): string {
-    return `# Plan: ${task.type}\nModel: ${modelDecision.selectedModel}\nObjective: ${session.objective}`;
+    return `# Plan: ${task.type}
+## Current Model
+${modelDecision.selectedModel}
+
+## Objective
+${session.objective}
+
+## Gear
+${session.currentGear}
+`;
+  }
+
+  /**
+   * Internal method for testing: prunes touched files against git status
+   */
+  private async revalidateTouchedFiles(session: AutonomySession): Promise<void> {
+    const gitManager = this.options.gitManager ?? new AutonomyGitManager(this.options.projectRoot);
+    const dirty = await gitManager.getDirtyFiles();
+    const normalizedDirty = dirty.map(f => f.replace(/\\/g, "/"));
+    session.touchedFiles = session.touchedFiles
+      .filter(f => normalizedDirty.includes(f.replace(/\\/g, "/")))
+      .map(f => f.replace(/\\/g, "/")); // Normalize the stored paths too
+    session.updatedAt = new Date().toISOString();
   }
 }

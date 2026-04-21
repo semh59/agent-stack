@@ -8,14 +8,15 @@ import type {
   AutonomyEvent,
   GearLevel,
   AutonomousClientResolver,
+  AutonomousTaskExecutorResult,
 } from "../autonomy-types";
 import { SmartMultiModelRouter } from "../autonomy-model-router";
 import { gearEngine } from "../GearEngine";
 import { taskGraphManager } from "../TaskGraphManager";
 import { normalizeTouchedFiles } from "../gateway-utils";
-import { AutonomySessionManager } from "./autonomy-session-manager";
-import { GateEngine } from "../GateEngine";
-import { AlloyGatewayClient } from "../gateway-client";
+import type { AutonomySessionManager } from "./autonomy-session-manager";
+import type { GateEngine } from "../GateEngine";
+import type { AlloyGatewayClient } from "../gateway-client";
 import type { BudgetTracker } from "../BudgetTracker";
 
 interface CycleRunnerOptions {
@@ -83,7 +84,7 @@ export class AutonomyCycleRunner {
     modelDecision: ModelDecision,
     isInterrupted: () => boolean,
     budgetTracker: BudgetTracker,
-  ): Promise<{ success: boolean; result?: any; nextSwitchReason?: ModelSwitchReason }> {
+  ): Promise<{ success: boolean; result?: AutonomousTaskExecutorResult; nextSwitchReason?: ModelSwitchReason }> {
     await this.options.sessionManager.transition(session, "execute", task, `Executing ${task.type}`);
     task.status = "in_progress";
     task.attempts += 1;
@@ -168,7 +169,7 @@ export class AutonomyCycleRunner {
         result,
         nextSwitchReason: warningReason ? "BUDGET_EXCEEDED" : undefined,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       const isImmediateFail = this.isImmediateFailExecutionError(message);
       
@@ -266,7 +267,7 @@ export class AutonomyCycleRunner {
     session: AutonomySession,
     task: TaskNode,
     gateResult: GateResult,
-    executionResult: Record<string, any>,
+    executionResult: AutonomousTaskExecutorResult,
   ): Promise<{ passed: boolean; nextSwitchReason?: ModelSwitchReason; nextActionReason?: string }> {
     if (!gateResult.passed) {
       this.options.emit("log", session, {

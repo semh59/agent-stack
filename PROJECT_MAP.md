@@ -118,12 +118,28 @@ gateway/
 │   │   ├── autonomy-session-manager.test.ts
 │   │   ├── browser-launcher.ts         # Tarayıcı başlatma (OAuth flow)
 │   │   ├── circuit-breaker.ts          # Circuit breaker deseni (per-endpoint)
-│   │   ├── google-search.ts            # Google arama aracı (web search grounding)
-│   │   ├── model-resolver.ts           # Model çözümleme ve routing
-│   │   ├── provider-accounts.ts        # Sağlayıcı hesap yönetimi
-│   │   ├── session-recovery.ts         # Oturum kurtrama mekanizması
-│   │   ├── streaming.ts                # SSE/streaming yanıt işleme
-│   │   └── server.ts                   # Fastify sunucu kurulumu
+│   │   ├── claude-provider.ts          # Claude sağlayıcı adaptörü
+│   │   ├── cost-bridge.ts              # Maliyet köprüsü
+│   │   ├── event-bus.ts                # Olay veri yolu
+│   │   ├── gateway.ts                  # Ana gateway mantığı
+│   │   ├── gateway-auth-manager.ts     # Gateway auth yöneticisi
+│   │   ├── google-provider.ts          # Google/Gemini sağlayıcı adaptörü
+│   │   ├── index.ts                    # Modül dışa aktarımları
+│   │   ├── model-router.ts             # Sağlayıcıya özgü model routing
+│   │   ├── oauth-port.ts               # OAuth port yönetimi
+│   │   ├── pipeline-optimizer.ts       # Pipeline optimizasyonu
+│   │   ├── pkce.ts                     # PKCE (Proof Key for Code Exchange)
+│   │   ├── provider-types.ts           # Sağlayıcı tip tanımları
+│   │   ├── rest-middleware.ts          # REST ara katman
+│   │   ├── rest-response.ts            # REST yanıt yardımcıları
+│   │   ├── server.ts                   # Fastify sunucu kurulumu
+│   │   ├── task-delegator.ts           # Görev delege sistemi
+│   │   ├── token-store.ts              # Token depolama
+│   │   ├── webview-bootstrap.ts        # WebView başlatma
+│   │   ├── routes/
+│   │   │   ├── delegate.ts             # Delege route'ları
+│   │   │   └── optimize.ts             # Optimizasyon route'ları
+│   │   └── *.test.ts                   # Çeşitli test dosyaları
 │   │
 │   ├── orchestration/               # Orkestrasyon Motoru
 │   │   ├── SkillEngine.ts              # Yetenek (skill) motoru

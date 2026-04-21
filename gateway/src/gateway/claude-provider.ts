@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Claude Code Auth Provider â€” OAuth + API Key Dual Mode
  *
  * Authenticates with Anthropic's Claude Code via:
@@ -275,8 +275,6 @@ export class ClaudeCodeProvider implements ProviderAdapter {
       throw new Error(`Invalid Claude API key: ${validation.error}`);
     }
 
-    const keyType = this.detectKeyType(apiKey);
-
     return {
       provider: AIProvider.CLAUDE_CODE,
       accessToken: apiKey,
@@ -338,9 +336,15 @@ export class ClaudeCodeProvider implements ProviderAdapter {
         email: `claude-${this.detectKeyType(apiKey)}@anthropic`,
         quota,
       };
-    } catch {
-      // Network error: assume valid (can't verify, don't reject)
-      return { valid: true, email: `claude-unvalidated@offline` };
+    } catch (err: unknown) {
+      // Security: Do NOT assume valid on network error. 
+      // If we can't verify, we must fail closed to protect against token misuse.
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      return { 
+        valid: false, 
+        error: `Claude API validation failed (Network/Timeout): ${errorMessage}`,
+        email: `claude-unvalidated@offline` 
+      };
     }
   }
 

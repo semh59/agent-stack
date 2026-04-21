@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Provider-Aware Model Router
  *
  * Intelligently selects the best model for each agent call based on:
@@ -20,7 +20,6 @@ import {
   type ProviderModel,
   GOOGLE_GEMINI_MODELS,
   CLAUDE_CODE_MODELS,
-  type UnifiedToken,
 } from "./provider-types";
 
 // â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

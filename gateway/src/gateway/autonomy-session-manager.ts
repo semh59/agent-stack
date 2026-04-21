@@ -115,7 +115,6 @@ export class AutonomySessionManager {
       return this.engine.getSession(immediate.id) ?? immediate;
     }
     process.stderr.write(`[GATEWAY] Queuing session ${request.objective}. activeSessionId: ${this.activeSessionId}, queue: ${this.queue.length}\n`);
-    throw new Error(`[BRANCH_B] Queued branch. startMode: ${startMode}, ActiveSession: ${this.activeSessionId}, QueueLen: ${this.queue.length}`);
 
     const session = this.engine.create({ ...request, startMode: "queued" }, "queued");
     this.emitCreatedEvent(session);

@@ -1,12 +1,14 @@
-﻿import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AutonomousLoopEngine } from "./autonomous-loop-engine";
 import { GateEngine } from "./GateEngine";
 import type { GateContext, GateResult } from "./autonomy-types";
 import { eventBus } from "./event-bus";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 class FakeGateEngine extends GateEngine {
   constructor(private passAll = true) { super(); }
-  override async run(ctx: GateContext): Promise<GateResult> {
+  override async run(_ctx: GateContext): Promise<GateResult> {
     return { 
       passed: this.passAll,
       strictMode: true,
@@ -50,8 +52,13 @@ async function waitForSessionState(
 describe("AutonomousLoopEngine", () => {
   const projectRoot = process.cwd();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     eventBus.clearAll();
+    // Clear session persistence directory to ensure isolation
+    const autonomyPath = path.join(projectRoot, ".gemini", "autonomy");
+    try {
+      await fs.rm(autonomyPath, { recursive: true, force: true });
+    } catch (_e) {}
   });
 
   // 1. Happy Path
@@ -462,44 +469,27 @@ describe("AutonomousLoopEngine", () => {
       projectRoot,
       gateEngine: new FakeGateEngine(true),
       taskExecutor: async () => {
-        await new Promise(r => setTimeout(r, 100)); // Longer delay
+        await new Promise(r => setTimeout(r, 100));
         return { summary: "delayed", touchedFiles: [] };
       }
     });
 
-    const sessionPromise = engine.start({
+    const session = engine.create({
       account: "test@loji.next",
       objective: "Stop test",
       anchorModel: "gemini-3-pro-high",
       scope: { mode: "selected_only", paths: ["src"] },
       modelPolicy: "smart_multi",
       gitMode: "patch_only",
-      budgets: { maxCycles: 10, maxDurationMs: 60000, maxInputTokens: 100000, maxOutputTokens: 50000, maxUsd: 10 },
-      // Slow down executor for this test to catch stop()
-      taskExecutor: async () => {
-          await new Promise(r => setTimeout(r, 100));
-          return { summary: "Slowed task for stop test" };
-      }
-    } as any);
+      budgets: { maxCycles: 10, maxDurationMs: 60000, maxInputTokens: 100000, maxOutputTokens: 50000, maxUsd: 10 }
+    });
 
-    // Wait for session to start
-    let sessionId: string | undefined;
-    for(let i=0; i<10; i++) {
-        await new Promise(r => setTimeout(r, 10));
-        const list = await engine.listSessions();
-        if (list.length > 0) {
-            sessionId = list[0]!.id;
-            break;
-        }
-    }
+    engine.runExistingInBackground(session.id);
+    engine.stop(session.id, "User request");
 
-    if (sessionId) {
-        engine.stop(sessionId, "User request");
-    }
-
-    const session = await sessionPromise;
-    expect(session.state).toBe("stopped");
-    expect(session.stopReason).toBe("User request");
+    const finalSession = await waitForTerminalState(engine, session.id);
+    expect(finalSession.state).toBe("stopped");
+    expect(finalSession.stopReason).toBe("User request");
   });
 
   // 6. Interrupt: Pause/Resume
@@ -515,7 +505,7 @@ describe("AutonomousLoopEngine", () => {
       }
     });
 
-    const sessionPromise = engine.start({
+    const session = engine.create({
       account: "test@loji.next",
       objective: "Pause test",
       anchorModel: "gemini-3-pro-high",
@@ -525,26 +515,17 @@ describe("AutonomousLoopEngine", () => {
       budgets: { maxCycles: 5, maxDurationMs: 60000, maxInputTokens: 100000, maxOutputTokens: 50000, maxUsd: 10 }
     });
 
-    // Wait for session
-    let sessionId: string | undefined;
-    for(let i=0; i<10; i++) {
-        await new Promise(r => setTimeout(r, 20));
-        const list = await engine.listSessions();
-        if (list.length > 0) {
-            sessionId = list[0]!.id;
-            break;
-        }
-    }
+    engine.runExistingInBackground(session.id);
     
-    expect(sessionId).toBeDefined();
-    engine.pause(sessionId!, "Wait for me");
+    expect(session.id).toBeDefined();
+    engine.pause(session.id, "Wait for me");
     
-    const pausedSession = await waitForSessionState(engine, sessionId!, "paused");
+    const pausedSession = await waitForSessionState(engine, session.id, "paused");
     expect(pausedSession?.state).toBe("paused");
     
     // Resume
-    engine.resume(sessionId!, "Go ahead");
-    const finalSession = await sessionPromise;
+    engine.resume(session.id, "Go ahead");
+    const finalSession = await waitForTerminalState(engine, session.id);
     
     expect(finalSession.state).toBe("done");
     expect(executorCalled).toBeGreaterThan(0);
@@ -826,12 +807,12 @@ describe("AutonomousLoopEngine", () => {
       projectRoot,
       gateEngine: new FakeGateEngine(true),
       taskExecutor: async () => {
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 200));
         return { summary: "ok", touchedFiles: [] };
       }
     });
 
-    const sessionPromise = engine.start({
+    const session = engine.create({
       account: "test@loji.next",
       objective: "Interrupt test",
       anchorModel: "gemini-3-pro-high",
@@ -841,15 +822,14 @@ describe("AutonomousLoopEngine", () => {
       budgets: { maxCycles: 5, maxDurationMs: 30000, maxInputTokens: 1000, maxOutputTokens: 1000, maxUsd: 1 }
     });
 
+    engine.runExistingInBackground(session.id);
+
     // Wait for the session to start and be in running state
     await new Promise(r => setTimeout(r, 50));
-    const list = await engine.listSessions();
-    if (list.length > 0) {
-      engine.stop(list[0]!.id, "Immediate stop");
-    }
+    engine.stop(session.id, "Immediate stop");
 
-    const session = await sessionPromise;
-    expect(session.state).toBe("stopped");
-    expect(session.stopReason).toBe("Immediate stop");
+    const finalSession = await waitForTerminalState(engine, session.id);
+    expect(finalSession.state).toBe("stopped");
+    expect(finalSession.stopReason).toBe("Immediate stop");
   });
 });
