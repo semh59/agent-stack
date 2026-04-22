@@ -43,7 +43,8 @@ export interface PipelineState {
   authStrategy?: string;
   dbSchema?: string;
   apiContracts?: string;
-  backtrackHistory?: any[];
+  backtrackHistory?: unknown[];
+
   agentMetrics?: Record<string, unknown>;
   verificationResults?: Record<string, unknown>;
   pipelineStatus: 'completed' | 'failed' | 'paused' | 'halted' | 'idle' | 'running';
@@ -107,8 +108,9 @@ export class SharedMemory {
     this.mcpShadowFS = new McpShadowFSGate(projectRoot);
     this.mcpAuthVault = new McpAuthVault();
     this.modelRouter = new ModelRouterEngine(this);
-    this.inquisitor = new InquisitorAgent();
+    this.inquisitor = new InquisitorAgent(this);
     this.contextCompression = new ContextCompressionEngine();
+
     this.privacyGate = new PrivacySanctuaryGate();
     this.diffPrivacy = new DifferentialPrivacyEngine();
     this.privacyLedger = new ForensicPrivacyLedger();

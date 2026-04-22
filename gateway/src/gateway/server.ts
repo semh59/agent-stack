@@ -4,22 +4,21 @@ import staticPlugin from "@fastify/static";
 import websocket from "@fastify/websocket";
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { TokenStore, type StoredToken } from "./token-store";
+import { TokenStore } from "./token-store";
 import { SequentialPipeline } from "../orchestration/sequential-pipeline";
-import { AlloyGatewayClient } from "../orchestration/gateway-client";
 import { eventBus } from "../orchestration/event-bus";
-import { loadManagedProject } from "../plugin/project";
 import { AccountManager } from "../plugin/accounts";
+
 import { AutonomySessionManager } from "./autonomy-session-manager";
 import { orchestratorService } from "../orchestration/OrchestratorService";
+import { SlashCommandRegistry } from "../orchestration/commands/SlashCommandRegistry";
+import { DeepPlanningCommand } from "../orchestration/commands/DeepPlanningCommand";
+
+
 import type { MissionRepository } from "../repositories/mission.repository";
 import {
   type AutonomyEvent,
   type AutonomySession,
-  type CreateAutonomySessionRequest,
-  type PauseAutonomySessionRequest,
-  type ResumeAutonomySessionRequest,
-  type StopAutonomySessionRequest,
 } from "../orchestration/autonomy-types";
 import {
   GatewayAuthManager,
@@ -33,17 +32,13 @@ import { MissionPersistenceSubscriber } from "../persistence/MissionPersistenceS
 import { StartupRecoveryCoordinator } from "../persistence/recovery/StartupRecovery";
 import type { RecoveryNotifier } from "../persistence/recovery/RecoveryNotifier";
 import { TelegramRecoveryNotifier } from "../persistence/recovery/TelegramRecoveryNotifier";
-import {
-  DEFAULT_OAUTH_CALLBACK_PORT,
-  checkOAuthCallbackPortAvailability,
-} from "./oauth-port";
 import { BudgetTracker } from "../orchestration/BudgetTracker";
 import {
   createApproveAuthMiddleware,
   registerFormatWrapperMiddleware,
   registerRateLimitMiddleware,
 } from "./rest-middleware";
-import { apiError, apiResponse, parsePagination } from "./rest-response";
+import { apiError, apiResponse } from "./rest-response";
 import { registerMissionRoutes } from "../api/routers/mission.router";
 import { registerSettingsRoutes } from "../services/settings/routes";
 import { registerOptimizeRoutes } from "./routes/optimize";
@@ -53,58 +48,26 @@ import { registerAuthRoutes } from "../api/routers/auth.router";
 import { registerAccountsRoutes } from "../api/routers/accounts.router";
 import { registerPipelineRoutes } from "../api/routers/pipeline.router";
 import { registerAutonomyRoutes } from "../api/routers/autonomy.router";
+import { registerPrivacyRoutes } from "../api/routers/privacy.router";
 import { type MissionModel } from "../models/mission.model";
+
 import { MissionService, MissionServiceError } from "../services/mission.service";
 import { AutonomyMissionRuntime } from "../services/mission-runtime";
 import { SQLiteUnitOfWork } from "../uow/unit-of-work";
 
+
+
 // ——————————————————————————————————————————————————————————————————————————————————————————————————
 
-/** Mask email for PII safety: "user@gmail.com" → "u***@gmail.com" */
-function maskEmail(email: string): string {
-  const [local, domain] = email.split("@");
-  if (!local || !domain) return "***";
-  return `${local[0]}***@${domain}`;
-}
 
-/**
- * Defensive normalization for OAuth consent URLs before exposing them to clients.
- * This guards against malformed links from stale builds or intermediate rewrites.
- */
-function normalizeOAuthConsentUrl(rawUrl: string): string {
-  try {
-    const parsed = new URL(rawUrl);
-    const host = parsed.hostname.toLowerCase();
-    const isGoogleOAuthHost = host === "accounts.google.com" || host.endsWith(".accounts.google.com");
-    if (!isGoogleOAuthHost) return rawUrl;
 
-    if (!parsed.searchParams.get("response_type")) {
-      parsed.searchParams.set("response_type", "code");
-    }
-    if (!parsed.searchParams.get("access_type")) {
-      parsed.searchParams.set("access_type", "offline");
-    }
-    if (!parsed.searchParams.get("prompt")) {
-      parsed.searchParams.set("prompt", "consent");
-    }
-    return parsed.toString();
-  } catch {
-    return rawUrl;
-  }
-}
+
 
 // ————————————————————————————————— Rate Limit Tracking (in-memory, per-IP) —————————————————————————————————
 
 // ————————————————————————————————— Allowed Plan Modes ——————————————————————————————————————————————————————
 
-const VALID_PLAN_MODES = new Set([
-  "full",
-  "management_only",
-  "dev_only",
-  "quality_only",
-  "custom",
-]);
-const MAX_USER_TASK_LENGTH = 10_000;
+
 
 // ————————————————————————————————— CORS Whitelist ——————————————————————————————————————————————————————————
 
@@ -224,10 +187,11 @@ interface MissionSocketSnapshotMeta {
 }
 
 interface MissionSocketClientEntry {
-  socket: any;
+  socket: unknown;
   clientId: string;
   generation: WsSocketGeneration;
 }
+
 
 interface MissionWsTicketRequestBody {
   clientId?: string;
@@ -282,7 +246,10 @@ export class GatewayServer {
   private readonly startedAtMs = Date.now();
   private readonly missionDatabase: MissionDatabase | null;
   private readonly missionRepository: MissionRepository;
+  private readonly slashCommandRegistry = new SlashCommandRegistry();
   private readonly budgetTracker: BudgetTracker;
+
+
   private quotaStateReady = false;
   private readonly missionService: MissionService;
   private readonly missionPersistence: MissionPersistenceSubscriber;
@@ -348,10 +315,14 @@ export class GatewayServer {
     // Lazy load real account pool
     AccountManager.loadFromDisk().then(m => {
         this.accountManager = m;
-        console.log(`[Gateway] Real account pool loaded: ${m.getTotalAccountCount()} accounts`);
+        this.app.log.info(`[Gateway] Real account pool loaded: ${m.getTotalAccountCount()} accounts`);
     }).catch(err => {
-        console.error("[Gateway] Failed to load real account pool:", err);
+        this.app.log.error(`[Gateway] Failed to load real account pool: ${err instanceof Error ? err.message : String(err)}`);
     });
+
+    // Register Default Commands
+    this.slashCommandRegistry.register(new DeepPlanningCommand());
+
   }
 
   public async start(): Promise<void> {
@@ -416,10 +387,11 @@ export class GatewayServer {
             html = html.replace("<head>", `<head>${inject}`);
           }
           return reply.type("text/html").send(html);
-        } catch (err) {
+        } catch (_) {
           return reply.status(500).send(apiError("Failed to load dashboard index"));
         }
       };
+
 
       this.app.get("/", serveIndexWithToken);
       this.app.get("/index.html", serveIndexWithToken);
@@ -447,9 +419,9 @@ export class GatewayServer {
       return reply.status(404).type("text/plain").send("Not Found");
     });
 
-    this.app.setErrorHandler((error: any, request, reply) => {
-      // Avoid intercepting already processed Custom Errors or native hooks
+    this.app.setErrorHandler((error: Error & { statusCode?: number; code?: string }, request, reply) => {
       if (reply.sent) return;
+
 
       request.log.error(error, `[Global Error Boundary] Unhandled fastify crash: ${request.method} ${request.url}`);
       
@@ -645,7 +617,13 @@ export class GatewayServer {
       tokenStore: this.tokenStore,
       getAccountManager: () => this.accountManager,
       chatRepository: this.chatRepository,
+      slashCommandRegistry: this.slashCommandRegistry,
     });
+
+    registerPrivacyRoutes(this.app, {
+      ledger: (orchestratorService.getSharedMemory() as any).privacyLedger,
+    });
+
 
     registerSystemRoutes(this.app, {
       tokenStore: this.tokenStore,
@@ -1057,7 +1035,7 @@ export class GatewayServer {
 
           try {
              if (typeof (socket as any).ping === 'function') {
-                (socket as any).ping();
+                (entry.socket as any).ping();
              } else {
                 this.safeSendSocket(socket, { type: "ping", timestamp: Date.now() });
              }

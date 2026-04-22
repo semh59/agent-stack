@@ -4,6 +4,9 @@ import { type TokenStore } from "../../gateway/token-store";
 import { type AccountManager } from "../../plugin/accounts";
 import { apiResponse, apiError } from "../../gateway/rest-response";
 import { type SQLiteChatRepository } from "../../persistence/SQLiteChatRepository";
+import type { SlashCommandRegistry, SlashCommandContext } from "../../orchestration/commands/SlashCommandRegistry";
+
+
 
 /**
  * Dependencies for the Chat Router
@@ -12,7 +15,9 @@ export interface ChatRouteDependencies {
   tokenStore: TokenStore;
   getAccountManager: () => AccountManager | null;
   chatRepository: SQLiteChatRepository;
+  slashCommandRegistry: SlashCommandRegistry;
 }
+
 
 /**
  * Chat Router â€” Statless LLM Inference
@@ -214,6 +219,32 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
       } catch (err) {
         return reply.status(500).send(apiError(err instanceof Error ? err.message : String(err)));
       }
+    }
+  );
+
+  // 6. Execute Slash Command
+  app.post<{ Body: { command: string; sessionId?: string } }>(
+    "/api/chat/command",
+    async (request, reply) => {
+      const { command, sessionId } = request.body ?? {};
+      if (!command) return reply.status(400).send(apiError("command is required"));
+
+      const activeAccount = tokenStore.getActiveToken();
+      if (!activeAccount) return reply.status(401).send(apiError("Unauthorized"));
+
+      const sid = sessionId || `cmd_${Date.now()}`;
+      
+      // We need a dummy state for commands that don't have a mission context yet
+      const context: SlashCommandContext = {
+        projectRoot: (app as any).projectRoot || process.cwd(), 
+        sessionId: sid,
+        state: { state: "init" } as any, 
+        updateState: async () => {},
+      };
+
+      const result = await dependencies.slashCommandRegistry.execute(command, context);
+      return apiResponse(result);
+
     }
   );
 }
