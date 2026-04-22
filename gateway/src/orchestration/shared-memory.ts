@@ -24,6 +24,7 @@ import { McpMatchmakerEngine } from './mcp/McpMatchmakerEngine';
 import { McpShadowFSGate } from './mcp/McpShadowFSGate';
 import { McpAuthVault } from './mcp/McpAuthVault';
 import { ModelRouterEngine } from './genetic/ModelRouterEngine';
+import type { ModelMetrics } from './genetic/ModelRouterEngine';
 import { InquisitorAgent } from './genetic/InquisitorAgent';
 import { ContextCompressionEngine } from './genetic/ContextCompressionEngine';
 import { PrivacySanctuaryGate } from './privacy/PrivacySanctuaryGate';
@@ -228,7 +229,8 @@ export class SharedMemory {
   }
 
   public anonymizeTelemetry(metrics: Record<string, unknown>): Record<string, unknown> {
-    const result = this.diffPrivacy.anonymizeModelMetrics(metrics as any);
+    // Tip güvenliği için unknown cast kullanıldı (any uyarısını önlemek amacıyla)
+    const result = this.diffPrivacy.anonymizeModelMetrics(metrics as unknown as ModelMetrics);
     return result as unknown as Record<string, unknown>;
   }
 
