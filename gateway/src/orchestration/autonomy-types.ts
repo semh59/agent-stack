@@ -128,7 +128,7 @@ export interface GateContext {
   projectRoot: string;
   touchedFiles: string[];
   scopePaths: string[];
-  client?: any; // import("./gateway-client").AlloyGatewayClient if possible, but cross-module type avoids circularity
+  client?: unknown; // import("./gateway-client").AlloyGatewayClient if possible, but cross-module type avoids circularity
 }
 
 export interface GateMetadata {

@@ -39,7 +39,7 @@ END_FILE
 
 Task: ${userTask}`;
 
-    const response = await (this.client as any).fetch('https://generativelanguage.googleapis.com/v1beta/models/Alloy-claude-opus-4-6-thinking:generateContent', {
+    const response = await (this.client as unknown as { fetch: typeof fetch }).fetch('https://generativelanguage.googleapis.com/v1beta/models/Alloy-claude-opus-4-6-thinking:generateContent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

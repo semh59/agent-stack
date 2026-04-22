@@ -29,12 +29,6 @@ export function buildSignatureSessionKey(
   return `${sessionId}:${modelKey}:${projectPart}:${conversationPart}`;
 }
 
-
-
-
-
-
-
 export function shouldCacheThinkingSignatures(model?: string): boolean {
   if (typeof model !== "string") return false;
   const lower = model.toLowerCase();
@@ -58,20 +52,21 @@ export function extractTextFromContent(content: unknown): string {
     if (!block || typeof block !== "object") {
       continue;
     }
-    const anyBlock = block as any;
-    if (typeof anyBlock.text === "string") {
-      return anyBlock.text;
+    const record = block as Record<string, unknown>;
+    if (typeof record.text === "string") {
+      return record.text;
     }
-    if (anyBlock.text && typeof anyBlock.text === "object" && typeof anyBlock.text.text === "string") {
-      return anyBlock.text.text;
+    if (record.text && typeof record.text === "object" && typeof (record.text as Record<string, unknown>).text === "string") {
+      return (record.text as Record<string, unknown>).text as string;
     }
   }
   return "";
 }
 
-export function extractConversationSeedFromMessages(messages: any[]): string {
-  const system = messages.find((message) => message?.role === "system");
-  const users = messages.filter((message) => message?.role === "user");
+export function extractConversationSeedFromMessages(messages: unknown[]): string {
+  const asRecords = messages.filter((m): m is Record<string, unknown> => !!m && typeof m === "object" && !Array.isArray(m));
+  const system = asRecords.find((message) => message.role === "system");
+  const users = asRecords.filter((message) => message.role === "user");
   const firstUser = users[0];
   const lastUser = users.length > 0 ? users[users.length - 1] : undefined;
   const systemText = system ? extractTextFromContent(system.content) : "";
@@ -80,8 +75,9 @@ export function extractConversationSeedFromMessages(messages: any[]): string {
   return [systemText, userText || fallbackUserText].filter(Boolean).join("|");
 }
 
-export function extractConversationSeedFromContents(contents: any[]): string {
-  const users = contents.filter((content) => content?.role === "user");
+export function extractConversationSeedFromContents(contents: unknown[]): string {
+  const asRecords = contents.filter((c): c is Record<string, unknown> => !!c && typeof c === "object" && !Array.isArray(c));
+  const users = asRecords.filter((content) => content.role === "user");
   const firstUser = users[0];
   const lastUser = users.length > 0 ? users[users.length - 1] : undefined;
   const primaryUser = firstUser && Array.isArray(firstUser.parts) ? extractTextFromContent(firstUser.parts) : "";
@@ -95,20 +91,27 @@ export function extractConversationSeedFromContents(contents: any[]): string {
 }
 
 export function resolveConversationKey(requestPayload: Record<string, unknown>): string | undefined {
-  const anyPayload = requestPayload as any;
   const candidates = [
-    anyPayload.conversationId,
-    anyPayload.conversation_id,
-    anyPayload.thread_id,
-    anyPayload.threadId,
-    anyPayload.chat_id,
-    anyPayload.chatId,
-    anyPayload.sessionId,
-    anyPayload.session_id,
-    anyPayload.metadata?.conversation_id,
-    anyPayload.metadata?.conversationId,
-    anyPayload.metadata?.thread_id,
-    anyPayload.metadata?.threadId,
+    requestPayload.conversationId,
+    requestPayload.conversation_id,
+    requestPayload.thread_id,
+    requestPayload.threadId,
+    requestPayload.chat_id,
+    requestPayload.chatId,
+    requestPayload.sessionId,
+    requestPayload.session_id,
+    requestPayload.metadata && typeof requestPayload.metadata === "object"
+      ? (requestPayload.metadata as Record<string, unknown>).conversation_id
+      : undefined,
+    requestPayload.metadata && typeof requestPayload.metadata === "object"
+      ? (requestPayload.metadata as Record<string, unknown>).conversationId
+      : undefined,
+    requestPayload.metadata && typeof requestPayload.metadata === "object"
+      ? (requestPayload.metadata as Record<string, unknown>).thread_id
+      : undefined,
+    requestPayload.metadata && typeof requestPayload.metadata === "object"
+      ? (requestPayload.metadata as Record<string, unknown>).threadId
+      : undefined,
   ];
 
   for (const candidate of candidates) {
@@ -117,16 +120,21 @@ export function resolveConversationKey(requestPayload: Record<string, unknown>):
     }
   }
 
+  const systemInstruction = requestPayload.systemInstruction;
+  const systemInstructionParts = systemInstruction && typeof systemInstruction === "object"
+    ? (systemInstruction as Record<string, unknown>).parts
+    : undefined;
+
   const systemSeed = extractTextFromContent(
-    (anyPayload.systemInstruction as any)?.parts
-    ?? anyPayload.systemInstruction
-    ?? anyPayload.system
-    ?? anyPayload.system_instruction,
+    systemInstructionParts
+    ?? requestPayload.systemInstruction
+    ?? requestPayload.system
+    ?? requestPayload.system_instruction,
   );
-  const messageSeed = Array.isArray(anyPayload.messages)
-    ? extractConversationSeedFromMessages(anyPayload.messages)
-    : Array.isArray(anyPayload.contents)
-      ? extractConversationSeedFromContents(anyPayload.contents)
+  const messageSeed = Array.isArray(requestPayload.messages)
+    ? extractConversationSeedFromMessages(requestPayload.messages)
+    : Array.isArray(requestPayload.contents)
+      ? extractConversationSeedFromContents(requestPayload.contents)
       : "";
   const seed = [systemSeed, messageSeed].filter(Boolean).join("|");
   if (!seed) {
@@ -168,10 +176,10 @@ export function injectDebugThinking(response: unknown, debugText: string): unkno
     return response;
   }
 
-  const resp = response as any;
+  const resp = response as Record<string, unknown>;
 
   if (Array.isArray(resp.candidates) && resp.candidates.length > 0) {
-    const candidates = resp.candidates.slice();
+    const candidates = resp.candidates.slice() as Record<string, unknown>[];
     const first = candidates[0];
 
     if (
@@ -179,10 +187,11 @@ export function injectDebugThinking(response: unknown, debugText: string): unkno
       typeof first === "object" &&
       first.content &&
       typeof first.content === "object" &&
-      Array.isArray(first.content.parts)
+      Array.isArray((first.content as Record<string, unknown>).parts)
     ) {
-      const parts = [{ thought: true, text: debugText }, ...first.content.parts];
-      candidates[0] = { ...first, content: { ...first.content, parts } };
+      const firstContent = first.content as Record<string, unknown>;
+      const parts = [{ thought: true, text: debugText }, ...(firstContent.parts as unknown[])];
+      candidates[0] = { ...first, content: { ...firstContent, parts } };
       return { ...resp, candidates };
     }
 
@@ -218,7 +227,7 @@ export function stripInjectedDebugFromParts(parts: unknown): unknown {
       return true;
     }
 
-    const record = part as any;
+    const record = part as Record<string, unknown>;
     const text =
       typeof record.text === "string"
         ? record.text
@@ -236,34 +245,36 @@ export function stripInjectedDebugFromParts(parts: unknown): unknown {
 }
 
 export function stripInjectedDebugFromRequestPayload(payload: Record<string, unknown>): void {
-  const anyPayload = payload as any;
-
-  if (Array.isArray(anyPayload.contents)) {
-    anyPayload.contents = anyPayload.contents.map((content: any) => {
+  if (Array.isArray(payload.contents)) {
+    payload.contents = payload.contents.map((content: unknown) => {
       if (!content || typeof content !== "object") {
         return content;
       }
 
-      if (Array.isArray(content.parts)) {
-        return { ...content, parts: stripInjectedDebugFromParts(content.parts) };
+      const contentObj = content as Record<string, unknown>;
+
+      if (Array.isArray(contentObj.parts)) {
+        return { ...contentObj, parts: stripInjectedDebugFromParts(contentObj.parts) };
       }
 
-      if (Array.isArray(content.content)) {
-        return { ...content, content: stripInjectedDebugFromParts(content.content) };
+      if (Array.isArray(contentObj.content)) {
+        return { ...contentObj, content: stripInjectedDebugFromParts(contentObj.content) };
       }
 
       return content;
     });
   }
 
-  if (Array.isArray(anyPayload.messages)) {
-    anyPayload.messages = anyPayload.messages.map((message: any) => {
+  if (Array.isArray(payload.messages)) {
+    payload.messages = payload.messages.map((message: unknown) => {
       if (!message || typeof message !== "object") {
         return message;
       }
 
-      if (Array.isArray(message.content)) {
-        return { ...message, content: stripInjectedDebugFromParts(message.content) };
+      const messageObj = message as Record<string, unknown>;
+
+      if (Array.isArray(messageObj.content)) {
+        return { ...messageObj, content: stripInjectedDebugFromParts(messageObj.content) };
       }
 
       return message;
@@ -271,15 +282,17 @@ export function stripInjectedDebugFromRequestPayload(payload: Record<string, unk
   }
 }
 
-export function isGeminiToolUsePart(part: any): boolean {
-  return !!(part && typeof part === "object" && (part.functionCall || part.tool_use || part.toolUse));
+export function isGeminiToolUsePart(part: unknown): boolean {
+  if (!part || typeof part !== "object") return false;
+  const record = part as Record<string, unknown>;
+  return !!(record.functionCall || record.tool_use || record.toolUse);
 }
 
-export function isGeminiThinkingPart(part: any): boolean {
+export function isGeminiThinkingPart(part: unknown): boolean {
+  if (!part || typeof part !== "object") return false;
+  const record = part as Record<string, unknown>;
   return !!(
-    part &&
-    typeof part === "object" &&
-    (part.thought === true || part.type === "thinking" || part.type === "reasoning")
+    record.thought === true || record.type === "thinking" || record.type === "reasoning"
   );
 }
 
@@ -288,69 +301,76 @@ export function isGeminiThinkingPart(part: any): boolean {
 // Reference: LLM-API-Key-Proxy uses this pattern for Gemini 3 tool calls.
 export const SENTINEL_SIGNATURE = "skip_thought_signature_validator";
 
-export function ensureThoughtSignature(part: any, sessionId: string): any {
+export function ensureThoughtSignature(part: unknown, sessionId: string): unknown {
   if (!part || typeof part !== "object") {
     return part;
   }
 
-  const text = typeof part.text === "string" ? part.text : typeof part.thinking === "string" ? part.thinking : "";
+  const record = part as Record<string, unknown>;
+  const text = typeof record.text === "string" ? record.text : typeof record.thinking === "string" ? record.thinking : "";
   if (!text) {
     return part;
   }
 
-  if (part.thought === true) {
-    if (!part.thoughtSignature) {
+  if (record.thought === true) {
+    if (!record.thoughtSignature) {
       const cached = getCachedSignature(sessionId, text);
       if (cached) {
-        return { ...part, thoughtSignature: cached };
+        return { ...record, thoughtSignature: cached };
       }
       // Fallback: use sentinel signature to prevent API rejection
       // This allows Claude to redact the thinking block instead of failing
-      return { ...part, thoughtSignature: SENTINEL_SIGNATURE };
+      return { ...record, thoughtSignature: SENTINEL_SIGNATURE };
     }
     return part;
   }
 
-  if ((part.type === "thinking" || part.type === "reasoning") && !part.signature) {
+  if ((record.type === "thinking" || record.type === "reasoning") && !record.signature) {
     const cached = getCachedSignature(sessionId, text);
     if (cached) {
-      return { ...part, signature: cached };
+      return { ...record, signature: cached };
     }
     // Fallback: use sentinel signature to prevent API rejection
-    return { ...part, signature: SENTINEL_SIGNATURE };
+    return { ...record, signature: SENTINEL_SIGNATURE };
   }
 
   return part;
 }
 
-export function hasSignedThinkingPart(part: any): boolean {
+export function hasSignedThinkingPart(part: unknown): boolean {
   if (!part || typeof part !== "object") {
     return false;
   }
 
-  if (part.thought === true) {
-    return typeof part.thoughtSignature === "string" && part.thoughtSignature.length >= MIN_SIGNATURE_LENGTH;
+  const record = part as Record<string, unknown>;
+
+  if (record.thought === true) {
+    return typeof record.thoughtSignature === "string" && record.thoughtSignature.length >= MIN_SIGNATURE_LENGTH;
   }
 
-  if (part.type === "thinking" || part.type === "reasoning") {
-    return typeof part.signature === "string" && part.signature.length >= MIN_SIGNATURE_LENGTH;
+  if (record.type === "thinking" || record.type === "reasoning") {
+    return typeof record.signature === "string" && record.signature.length >= MIN_SIGNATURE_LENGTH;
   }
 
   return false;
 }
 
-export function ensureThinkingBeforeToolUseInContents(contents: any[], signatureSessionKey: string): any[] {
-  return contents.map((content: any) => {
-    if (!content || typeof content !== "object" || !Array.isArray(content.parts)) {
+export function ensureThinkingBeforeToolUseInContents(contents: unknown[], signatureSessionKey: string): unknown[] {
+  return contents.map((content: unknown) => {
+    if (!content || typeof content !== "object" || Array.isArray(content)) {
+      return content;
+    }
+    const contentObj = content as Record<string, unknown>;
+    if (!Array.isArray(contentObj.parts)) {
       return content;
     }
 
-    const role = content.role;
+    const role = contentObj.role;
     if (role !== "model" && role !== "assistant") {
       return content;
     }
 
-    const parts = content.parts as any[];
+    const parts = contentObj.parts as unknown[];
     const hasToolUse = parts.some(isGeminiToolUsePart);
     if (!hasToolUse) {
       return content;
@@ -361,7 +381,7 @@ export function ensureThinkingBeforeToolUseInContents(contents: any[], signature
     const hasSignedThinking = thinkingParts.some(hasSignedThinkingPart);
 
     if (hasSignedThinking) {
-      return { ...content, parts: [...thinkingParts, ...otherParts] };
+      return { ...contentObj, parts: [...thinkingParts, ...otherParts] };
     }
 
     const lastThinking = defaultSignatureStore.get(signatureSessionKey);
@@ -370,7 +390,7 @@ export function ensureThinkingBeforeToolUseInContents(contents: any[], signature
       // Claude requires valid signatures, and we can't fake them
       // Return only tool_use parts without any thinking to avoid signature validation errors
       log.debug("Stripping thinking from tool_use content (no valid cached signature)", { signatureSessionKey });
-      return { ...content, parts: otherParts };
+      return { ...contentObj, parts: otherParts };
     }
 
     const injected = {
@@ -379,106 +399,127 @@ export function ensureThinkingBeforeToolUseInContents(contents: any[], signature
       thoughtSignature: lastThinking.signature,
     };
 
-    return { ...content, parts: [injected, ...otherParts] };
+    return { ...contentObj, parts: [injected, ...otherParts] };
   });
 }
 
-export function ensureMessageThinkingSignature(block: any, sessionId: string): any {
+export function ensureMessageThinkingSignature(block: unknown, sessionId: string): unknown {
   if (!block || typeof block !== "object") {
     return block;
   }
 
-  if (block.type !== "thinking" && block.type !== "redacted_thinking") {
+  const record = block as Record<string, unknown>;
+
+  if (record.type !== "thinking" && record.type !== "redacted_thinking") {
     return block;
   }
 
-  if (typeof block.signature === "string" && block.signature.length >= MIN_SIGNATURE_LENGTH) {
+  if (typeof record.signature === "string" && record.signature.length >= MIN_SIGNATURE_LENGTH) {
     return block;
   }
 
-  const text = typeof block.thinking === "string" ? block.thinking : typeof block.text === "string" ? block.text : "";
+  const text = typeof record.thinking === "string" ? record.thinking : typeof record.text === "string" ? record.text : "";
   if (!text) {
     return block;
   }
 
   const cached = getCachedSignature(sessionId, text);
   if (cached) {
-    return { ...block, signature: cached };
+    return { ...record, signature: cached };
   }
 
   return block;
 }
 
-export function hasToolUseInContents(contents: any[]): boolean {
-  return contents.some((content: any) => {
-    if (!content || typeof content !== "object" || !Array.isArray(content.parts)) {
+export function hasToolUseInContents(contents: unknown[]): boolean {
+  return contents.some((content: unknown) => {
+    if (!content || typeof content !== "object" || Array.isArray(content)) {
       return false;
     }
-    return (content.parts as any[]).some(isGeminiToolUsePart);
+    const contentObj = content as Record<string, unknown>;
+    if (!Array.isArray(contentObj.parts)) return false;
+    return (contentObj.parts as unknown[]).some(isGeminiToolUsePart);
   });
 }
 
-export function hasSignedThinkingInContents(contents: any[]): boolean {
-  return contents.some((content: any) => {
-    if (!content || typeof content !== "object" || !Array.isArray(content.parts)) {
+export function hasSignedThinkingInContents(contents: unknown[]): boolean {
+  return contents.some((content: unknown) => {
+    if (!content || typeof content !== "object" || Array.isArray(content)) {
       return false;
     }
-    return (content.parts as any[]).some(hasSignedThinkingPart);
+    const contentObj = content as Record<string, unknown>;
+    if (!Array.isArray(contentObj.parts)) return false;
+    return (contentObj.parts as unknown[]).some(hasSignedThinkingPart);
   });
 }
 
-export function hasToolUseInMessages(messages: any[]): boolean {
-  return messages.some((message: any) => {
-    if (!message || typeof message !== "object" || !Array.isArray(message.content)) {
+export function hasToolUseInMessages(messages: unknown[]): boolean {
+  return messages.some((message: unknown) => {
+    if (!message || typeof message !== "object" || Array.isArray(message)) {
       return false;
     }
-    return (message.content as any[]).some(
-      (block) => block && typeof block === "object" && (block.type === "tool_use" || block.type === "tool_result"),
+    const messageObj = message as Record<string, unknown>;
+    if (!Array.isArray(messageObj.content)) return false;
+    return (messageObj.content as unknown[]).some(
+      (block) => block && typeof block === "object" && ((block as Record<string, unknown>).type === "tool_use" || (block as Record<string, unknown>).type === "tool_result"),
     );
   });
 }
 
-export function hasSignedThinkingInMessages(messages: any[]): boolean {
-  return messages.some((message: any) => {
-    if (!message || typeof message !== "object" || !Array.isArray(message.content)) {
+export function hasSignedThinkingInMessages(messages: unknown[]): boolean {
+  return messages.some((message: unknown) => {
+    if (!message || typeof message !== "object" || Array.isArray(message)) {
       return false;
     }
-    return (message.content as any[]).some(
-      (block) =>
-        block &&
-        typeof block === "object" &&
-        (block.type === "thinking" || block.type === "redacted_thinking") &&
-        typeof block.signature === "string" &&
-        block.signature.length >= MIN_SIGNATURE_LENGTH,
+    const messageObj = message as Record<string, unknown>;
+    if (!Array.isArray(messageObj.content)) return false;
+    return (messageObj.content as unknown[]).some(
+      (block) => {
+        if (!block || typeof block !== "object") return false;
+        const b = block as Record<string, unknown>;
+        return (
+          (b.type === "thinking" || b.type === "redacted_thinking") &&
+          typeof b.signature === "string" &&
+          b.signature.length >= MIN_SIGNATURE_LENGTH
+        );
+      },
     );
   });
 }
 
-export function ensureThinkingBeforeToolUseInMessages(messages: any[], signatureSessionKey: string): any[] {
-  return messages.map((message: any) => {
-    if (!message || typeof message !== "object" || !Array.isArray(message.content)) {
+export function ensureThinkingBeforeToolUseInMessages(messages: unknown[], signatureSessionKey: string): unknown[] {
+  return messages.map((message: unknown) => {
+    if (!message || typeof message !== "object" || Array.isArray(message)) {
+      return message;
+    }
+    const messageObj = message as Record<string, unknown>;
+    if (!Array.isArray(messageObj.content)) {
       return message;
     }
 
-    if (message.role !== "assistant") {
+    if (messageObj.role !== "assistant") {
       return message;
     }
 
-    const blocks = message.content as any[];
-    const hasToolUse = blocks.some((b) => b && typeof b === "object" && (b.type === "tool_use" || b.type === "tool_result"));
+    const blocks = messageObj.content as unknown[];
+    const hasToolUse = blocks.some((b) => b && typeof b === "object" && ((b as Record<string, unknown>).type === "tool_use" || (b as Record<string, unknown>).type === "tool_result"));
     if (!hasToolUse) {
       return message;
     }
 
     const thinkingBlocks = blocks
-      .filter((b) => b && typeof b === "object" && (b.type === "thinking" || b.type === "redacted_thinking"))
+      .filter((b) => b && typeof b === "object" && ((b as Record<string, unknown>).type === "thinking" || (b as Record<string, unknown>).type === "redacted_thinking"))
       .map((b) => ensureMessageThinkingSignature(b, signatureSessionKey));
 
-    const otherBlocks = blocks.filter((b) => !(b && typeof b === "object" && (b.type === "thinking" || b.type === "redacted_thinking")));
-    const hasSignedThinking = thinkingBlocks.some((b) => typeof b.signature === "string" && b.signature.length >= MIN_SIGNATURE_LENGTH);
+    const otherBlocks = blocks.filter((b) => !(b && typeof b === "object" && ((b as Record<string, unknown>).type === "thinking" || (b as Record<string, unknown>).type === "redacted_thinking")));
+    const hasSignedThinking = thinkingBlocks.some((b) => {
+      if (!b || typeof b !== "object") return false;
+      const record = b as Record<string, unknown>;
+      return typeof record.signature === "string" && record.signature.length >= MIN_SIGNATURE_LENGTH;
+    });
 
     if (hasSignedThinking) {
-      return { ...message, content: [...thinkingBlocks, ...otherBlocks] };
+      return { ...messageObj, content: [...thinkingBlocks, ...otherBlocks] };
     }
 
     const lastThinking = defaultSignatureStore.get(signatureSessionKey);
@@ -486,14 +527,17 @@ export function ensureThinkingBeforeToolUseInMessages(messages: any[], signature
       // No cached signature available - use sentinel to bypass validation
       // This handles cache miss scenarios (restart, session mismatch, expiry)
       const existingThinking = thinkingBlocks[0];
-      const thinkingText = existingThinking?.thinking || existingThinking?.text || "";
+      const existingRecord = existingThinking && typeof existingThinking === "object" ? existingThinking as Record<string, unknown> : undefined;
+      const thinkingText = existingRecord
+        ? (typeof existingRecord.thinking === "string" ? existingRecord.thinking : typeof existingRecord.text === "string" ? existingRecord.text : "")
+        : "";
       log.debug("Injecting sentinel signature (cache miss)", { signatureSessionKey });
       const sentinelBlock = {
         type: "thinking",
         thinking: thinkingText,
         signature: SKIP_THOUGHT_SIGNATURE,
       };
-      return { ...message, content: [sentinelBlock, ...otherBlocks] };
+      return { ...messageObj, content: [sentinelBlock, ...otherBlocks] };
     }
 
     const injected = {
@@ -502,7 +546,7 @@ export function ensureThinkingBeforeToolUseInMessages(messages: any[], signature
       signature: lastThinking.signature,
     };
 
-    return { ...message, content: [injected, ...otherBlocks] };
+    return { ...messageObj, content: [injected, ...otherBlocks] };
   });
 }
 
@@ -530,4 +574,3 @@ export const STREAM_ACTION = "streamGenerateContent";
 export function isGenerativeLanguageRequest(input: RequestInfo): input is string {
   return typeof input === "string" && input.includes("generativelanguage.googleapis.com");
 }
-

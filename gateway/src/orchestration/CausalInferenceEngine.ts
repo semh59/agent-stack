@@ -55,11 +55,11 @@ export class CausalInferenceEngine {
   }
 
   private extractTargetFiles(event: TimelineEvent): string[] {
-    const data = event.data as any;
-    if (event.type === 'fs_change' && data?.path) return [data.path];
-    if (event.type === 'terminal_output' && data?.command) {
+    const data = event.data as Record<string, unknown> | null | undefined;
+    if (event.type === 'fs_change' && typeof data?.path === 'string') return [data.path];
+    if (event.type === 'terminal_output' && typeof data?.command === 'string') {
        // Simple heuristic: extract file names from test commands
-       const matches = (data.command as string).match(/[\w-]+\.\w+/g);
+       const matches = data.command.match(/[\w-]+\.\w+/g);
        return matches || [];
     }
     return [];

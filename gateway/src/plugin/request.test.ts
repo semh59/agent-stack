@@ -500,10 +500,11 @@ describe("request.ts", () => {
       const reader = transformer.readable.getReader();
       
       const readPromise = (async () => {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (value) outputChunks.push(value);
+        let done = false;
+        while (!done) {
+          const chunk = await reader.read();
+          done = chunk.done;
+          if (chunk.value) outputChunks.push(chunk.value);
         }
       })();
       

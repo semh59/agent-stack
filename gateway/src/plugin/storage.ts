@@ -11,12 +11,11 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { createCipheriv, createDecipheriv, scryptSync, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import lockfile from "proper-lockfile";
-import pkg from "node-machine-id";
-const { machineIdSync } = pkg;
 import { KeyManager, type EncryptedPayload } from "./key-manager";
 import type { HeaderStyle } from "../constants";
+import type { Fingerprint } from "./fingerprint";
 import { createLogger } from "./logger";
 
 const log = createLogger("storage");
@@ -196,7 +195,7 @@ export interface AccountMetadataV3 {
   coolingDownUntil?: number;
   cooldownReason?: CooldownReason;
   /** Per-account device fingerprint for rate limit mitigation */
-  fingerprint?: import("./fingerprint").Fingerprint;
+  fingerprint?: Fingerprint;
   /** Cached soft quota data */
   cachedQuota?: Record<string, { remainingFraction?: number; resetTime?: string; modelCount: number }>;
   cachedQuotaUpdatedAt?: number;
@@ -909,7 +908,7 @@ export async function saveAccounts(storage: AccountStorageV3, overwrite: boolean
 async function loadAccountsUnsafe(): Promise<AccountStorageV3 | null> {
   try {
     const path = getStoragePath();
-    let content = await fs.readFile(path, "utf-8");
+    const content = await fs.readFile(path, "utf-8");
 
     if (isEncrypted(content)) {
       try {

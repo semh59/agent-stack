@@ -67,8 +67,9 @@ export class AstStructuralAnchor {
 
   private getNodeName(node: Node): string | undefined {
     // Portably check for getName without using any
-    if ((node as any).getName && typeof (node as any).getName === 'function') {
-      return (node as any).getName();
+    const n = node as unknown as Record<string, unknown>;
+    if (typeof n.getName === 'function') {
+      return (n.getName as () => string | undefined)();
     }
     return undefined;
   }

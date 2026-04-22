@@ -132,7 +132,7 @@ interface WebSocketLike {
   send(data: string): void;
   close(code?: number, reason?: string): void;
   terminate?(): void;
-  on(event: string, cb: (...args: any[]) => void): void;
+  on(event: string, cb: (...args: unknown[]) => void): void;
   ping?(): void;
 }
 
@@ -385,7 +385,7 @@ export class GatewayServer {
       console.log(`[Gateway] Serving UI from: ${rootPath}`);
       
       // Manual handler for index.html to inject the gateway token
-      serveIndexWithToken = async (_request: any, reply: any) => {
+      serveIndexWithToken = async (_request: unknown, reply: { type: (t: string) => { send: (html: string) => unknown }; status: (s: number) => { send: (body: unknown) => unknown } }) => {
         const indexPath = path.join(rootPath, "index.html");
         try {
           let html = await fs.readFile(indexPath, "utf8");
@@ -569,7 +569,7 @@ export class GatewayServer {
   private setupRoutes() {
     const issueMissionWsTicket = async (
       sessionId: string,
-      reply: any,
+      reply: { status: (s: number) => { send: (b: unknown) => unknown }; send?: (b: unknown) => unknown },
       body?: MissionWsTicketRequestBody,
     ) => {
       try {
@@ -582,7 +582,7 @@ export class GatewayServer {
         ) {
           return reply.status(403).send(apiError("Forbidden: ticket can only be issued by mission owner"));
         }
-        const b = typeof body === "object" ? body as any : {};
+        const b = typeof body === "object" ? body as MissionWsTicketRequestBody : {};
         const clientId = typeof b?.clientId === "string" ? b.clientId.trim() : "";
         if (
           clientId &&
@@ -626,7 +626,7 @@ export class GatewayServer {
 
     this.app.post<{ Params: { id: string }; Body: MissionWsTicketRequestBody }>(
       "/api/missions/:id/ws-ticket",
-      async (request, reply) => issueMissionWsTicket(request.params.id, reply, request.body as any),
+      async (request, reply) => issueMissionWsTicket(request.params.id, reply, request.body),
     );
 
     registerSettingsRoutes(this.app);
@@ -677,7 +677,7 @@ export class GatewayServer {
       getAccountManager: () => this.accountManager,
       autonomyManager: this.autonomyManager,
       startupRecovery: this.startupRecovery,
-      issueMissionWsTicket: (sessionId, reply, body) => issueMissionWsTicket(sessionId, reply, body as any),
+      issueMissionWsTicket: (sessionId, reply, body) => issueMissionWsTicket(sessionId, reply, body as MissionWsTicketRequestBody | undefined),
     });
   }
 
@@ -1027,9 +1027,10 @@ export class GatewayServer {
     }
   }
 
-  private resolveSocket(connection: any): WebSocketLike {
-    if (typeof connection?.on === "function") return connection as WebSocketLike;
-    return (connection?.socket ?? connection) as WebSocketLike;
+  private resolveSocket(connection: unknown): WebSocketLike {
+    const conn = connection as Record<string, unknown> | null | undefined;
+    if (conn && typeof conn.on === "function") return conn as unknown as WebSocketLike;
+    return ((conn?.socket ?? connection) as WebSocketLike);
   }
 
 

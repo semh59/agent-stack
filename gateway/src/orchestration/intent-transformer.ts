@@ -87,16 +87,16 @@ export class IntentTransformer {
       await this.init();
     }
 
-    const output = (await (this.classifier as (t: string, l: string[]) => Promise<any>)(text, this.labels)) as { labels: string[]; scores: number[] };
+    const output = (await (this.classifier as (t: string, l: string[]) => Promise<{ labels: string[]; scores: number[] }>)(text, this.labels));
 
     const scores: Record<string, number> = {};
     output.labels.forEach((label: string, index: number) => {
-      scores[label] = output.scores[index];
+      scores[label] = output.scores[index] ?? 0;
     });
 
     return {
-      prediction: output.labels[0],
-      confidence: output.scores[0],
+      prediction: output.labels[0] ?? "",
+      confidence: output.scores[0] ?? 0,
       all_scores: scores
     };
   }

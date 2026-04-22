@@ -1,6 +1,5 @@
 ﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SharedMemory } from '../orchestration/shared-memory';
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 let simulateDiskFull = false;

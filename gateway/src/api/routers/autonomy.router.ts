@@ -19,7 +19,7 @@ export interface AutonomyRouteDependencies {
   getAccountManager: () => AccountManager | null;
   autonomyManager: AutonomySessionManager;
   startupRecovery: StartupRecoveryCoordinator;
-  issueMissionWsTicket: (sessionId: string, reply: FastifyReply, body?: any) => Promise<any>;
+  issueMissionWsTicket: (sessionId: string, reply: FastifyReply, body?: unknown) => Promise<unknown>;
 }
 
 function summarizeAutonomySession(session: AutonomySession) {
@@ -247,7 +247,7 @@ export function registerAutonomyRoutes(
     },
   );
 
-  app.post<{ Params: { id: string }; Body: any }>(
+  app.post<{ Params: { id: string }; Body: unknown }>(
     "/api/autonomy/sessions/:id/ws-ticket",
     async (request, reply) => {
       return issueMissionWsTicket(request.params.id, reply, request.body);

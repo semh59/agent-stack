@@ -20,14 +20,14 @@ const MOCK_LATENCY_HEADER = "x-alloy-mock-latency-ms";
 export class AlloyAPI {
   // Static state for rate limiting and failure tracking
   // These are now initialized inline to avoid TypeScript initialization issues
-  private static rateLimitStateByAccountQuota = new Map<string, any>();
+  private static rateLimitStateByAccountQuota = new Map<string, unknown>();
   private static failureStateCountByEmail = new Map<string, number>();
 
   constructor(
-    private accountManager: any,
+    private accountManager: unknown,
     private config: AlloyGatewayConfig,
     private providerId: string,
-    private getAuth: () => Promise<any>,
+    private getAuth: () => Promise<unknown>,
     private nativeFetch: typeof fetch
   ) {}
 
@@ -60,9 +60,11 @@ export class AlloyAPI {
       const response = await this.nativeFetch(input, requestInit);
 
       if (response.ok) {
-        if (this.accountManager?.markAccountUsed) {
-           const active = this.accountManager.getCurrentAccountForFamily?.(family);
-           if (active) this.accountManager.markAccountUsed(active.index);
+        const am = this.accountManager as Record<string, unknown> | null | undefined;
+        if (am?.markAccountUsed) {
+           const getCurrentForFamily = am.getCurrentAccountForFamily as ((f: string) => Record<string, unknown> | null) | undefined;
+           const active = getCurrentForFamily?.(family);
+           if (active) (am.markAccountUsed as (idx: unknown) => void)(active.index);
         }
         return response;
       }
@@ -76,10 +78,12 @@ export class AlloyAPI {
         const reason = parseRateLimitReason(bodyInfo.reason, bodyInfo.message, response.status);
 
         // Strategy: Rotation over same-account retry
-        if (this.accountManager?.getCurrentOrNextForFamily) {
-          const current = this.accountManager.getCurrentAccountForFamily ? this.accountManager.getCurrentAccountForFamily(family) : null;
+        const am = this.accountManager as Record<string, unknown> | null | undefined;
+        if (am?.getCurrentOrNextForFamily) {
+          const getCurrentForFamily = am.getCurrentAccountForFamily as ((f: string) => Record<string, unknown> | null) | undefined;
+          const current = getCurrentForFamily ? getCurrentForFamily(family) : null;
           if (current) {
-            this.accountManager.markRateLimited(
+            (am.markRateLimited as (a: unknown, ms: number, f: string, s: string, m: string | null) => void)(
               current,
               retryAfterMs ?? DEFAULT_RATE_LIMIT_COOLDOWN_MS,
               family,
@@ -88,10 +92,15 @@ export class AlloyAPI {
             );
           }
 
-          const next = this.accountManager.getCurrentOrNextForFamily(family, model, "round-robin", headerStyle);
+          const getCurrentOrNext = am.getCurrentOrNextForFamily as (f: string, m: string | null, s: string, h: string) => Record<string, unknown> | null;
+          const next = getCurrentOrNext(family, model, "round-robin", headerStyle);
           const nextAccessToken = getAccountAccessToken(next);
-          if (next && nextAccessToken && next.index !== current?.index) {
-            log.warn(`[Alloy AI] 429 hit. Rotating from ${current?.email || 'unknown'} to ${next.email || next.index}`);
+          const currentIndex = current ? (current.index as number | undefined) : undefined;
+          const nextIndex = next ? (next.index as number | undefined) : undefined;
+          if (next && nextAccessToken && nextIndex !== currentIndex) {
+            const currentEmail = current ? String(current.email ?? 'unknown') : 'unknown';
+            const nextEmail = next ? String(next.email ?? nextIndex ?? '') : '';
+            log.warn(`[Alloy AI] 429 hit. Rotating from ${currentEmail} to ${nextEmail}`);
 
             requestInit = withAuthorizationHeader(requestInit, nextAccessToken);
             continue; // Immediate retry with new account
@@ -106,12 +115,12 @@ export class AlloyAPI {
 
       if (response.status === 401 && !refreshAttempted) {
         refreshAttempted = true;
-        const locallyExpired = accessTokenExpired(latestAuth as any);
+        const locallyExpired = accessTokenExpired(latestAuth as Parameters<typeof accessTokenExpired>[0]);
         log.info(
           `[Alloy AI] Received 401${locallyExpired ? " for expired access token" : ""}, attempting refresh...`,
         );
         try {
-          const refreshed = await refreshAccessToken(latestAuth as any, {} as any, this.providerId);
+          const refreshed = await refreshAccessToken(latestAuth as Parameters<typeof refreshAccessToken>[0], {} as Parameters<typeof refreshAccessToken>[1], this.providerId);
           const refreshedAccessToken = getAuthAccessToken(refreshed);
           if (!refreshed || !refreshedAccessToken) {
             return createGracefulErrorResponse(

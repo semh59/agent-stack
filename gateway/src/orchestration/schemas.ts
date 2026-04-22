@@ -64,8 +64,8 @@ export const APIContractSchema = z.object({
   endpoints: z.array(z.object({
     path: z.string(),
     method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
-    requestBody: z.any().optional(),
-    responseBody: z.any(),
+    requestBody: z.unknown().optional(),
+    responseBody: z.unknown(),
     authRequired: z.boolean(),
   })),
 });
@@ -167,7 +167,7 @@ export const DevopsSchema = z.object({
   issues: z.array(z.string()).optional(),
 });
 
-export const AGENT_SCHEMAS: Record<string, z.ZodType<any>> = {
+export const AGENT_SCHEMAS: Record<string, z.ZodType<unknown>> = {
   ceo: CEODraftSchema,
   pm: PMPlanSchema,
   architect: ArchitectureSchema,
@@ -206,7 +206,7 @@ export type Devops = z.infer<typeof DevopsSchema>;
 export function safeValidate(
   role: string,
   data: unknown
-): { success: boolean; data?: any; errors?: string[] } {
+): { success: boolean; data?: unknown; errors?: string[] } {
   const schema = AGENT_SCHEMAS[role];
   if (!schema) {
     return { success: true, data };
@@ -214,10 +214,11 @@ export function safeValidate(
   try {
     const parsed = schema.parse(data);
     return { success: true, data: parsed };
-  } catch (err: any) {
-    const errors = err?.errors?.map((e: any) =>
+  } catch (err) {
+    const zodErr = err as { errors?: Array<{ path?: string[]; message?: string }>; message?: string };
+    const errors = zodErr?.errors?.map((e) =>
       `${e.path?.join('.') ?? 'root'}: ${e.message ?? String(e)}`
-    ) ?? [err.message ?? 'Unknown validation error'];
+    ) ?? [zodErr?.message ?? 'Unknown validation error'];
     return { success: false, errors };
   }
 }
@@ -237,7 +238,7 @@ export function getValidationErrors(role: string, data: unknown): string[] {
 export function sanitizeOutput(
   role: string,
   rawText: string
-): { success: boolean; data?: any; errors?: string[] } {
+): { success: boolean; data?: unknown; errors?: string[] } {
   const schema = AGENT_SCHEMAS[role];
   if (!schema) {
     return { success: true, data: rawText };

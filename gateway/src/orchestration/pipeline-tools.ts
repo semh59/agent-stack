@@ -63,8 +63,9 @@ export class PipelineTools {
             ? args.skipAgents.split(',').map((s) => s.trim())
             : [];
 
-          return (client as any).tui.withProgress({
-            title: `Alloy Pipeline: ${args.task.slice(0, 30)}...`,
+          const clientTui = (client as unknown as { tui: { withProgress: (opts: { title: string; cancellable: boolean }, fn: (progress: { report: (m: { message: string; increment?: number }) => void }, _token: unknown) => Promise<string>) => Promise<string> } }).tui;
+          return clientTui.withProgress({
+            title: `Alloy Pipeline: ${(args.task ?? "").slice(0, 30)}...`,
             cancellable: true,
           }, async (progress: { report: (m: { message: string, increment?: number }) => void }, _token: unknown) => {
             try {

@@ -52,10 +52,11 @@ export class McpAuthVault {
 
     // Senato oylamasını bekle (Gerçek Bus Entegrasyonu)
     return new Promise((resolve) => {
-      const voteHandler = (msg: any) => {
-        if (msg.type === 'VOTE_COMPLETED' && msg.payload?.sessionId === `install-${serverName}`) {
+      const voteHandler = (msg: unknown) => {
+        const m = msg as { type?: string; payload?: { sessionId?: string; result?: string } };
+        if (m.type === 'VOTE_COMPLETED' && m.payload?.sessionId === `install-${serverName}`) {
           this.bus.off('broadcast', voteHandler);
-          resolve(msg.payload.result === 'APPROVED');
+          resolve(m.payload.result === 'APPROVED');
         }
       };
       

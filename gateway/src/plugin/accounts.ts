@@ -157,7 +157,7 @@ export interface ManagedAccount {
   /** Timestamp of last failure for TTL-based reset of consecutiveFailures */
   lastFailureTime?: number;
   /** Per-account device fingerprint for rate limit mitigation */
-  fingerprint?: import("./fingerprint").Fingerprint;
+  fingerprint?: Fingerprint;
   /** History of previous fingerprints for this account */
   fingerprintHistory?: FingerprintVersion[];
   /** Cached quota data from last checkAccountsQuota() call */

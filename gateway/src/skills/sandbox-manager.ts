@@ -18,7 +18,7 @@ export class SandboxManager {
   /**
    * Bir komutu sandbox iÃ§inde Ã§alÄ±ÅŸtÄ±rÄ±r.
    */
-  public async executeInSandbox(command: string, timeout: number = 30000): Promise<string> {
+  public async executeInSandbox(command: string, _timeout: number = 30000): Promise<string> {
     if (!this.isDockerAvailable) {
       console.warn('Docker bulunamadÄ±. Komut kÄ±sÄ±tlÄ± yerel terminalde Ã§alÄ±ÅŸtÄ±rÄ±lacak.');
       // Burada aslÄ±nda `child_process.exec` Ã§aÄŸrÄ±mÄ± yapÄ±lÄ±r ama sandbox kÄ±sÄ±tlamalarÄ±yla.

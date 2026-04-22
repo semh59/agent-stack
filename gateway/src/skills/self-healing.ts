@@ -15,7 +15,7 @@ export class SelfHealingEngine {
   /**
    * Hata mesajÄ±nÄ± ve context'i analiz ederek hipotezler Ã¼retir.
    */
-  public diagnose(errorMessage: string, stackTrace?: string): DiagnosisResult {
+  public diagnose(errorMessage: string, _stackTrace?: string): DiagnosisResult {
     const hypotheses: Hypothesis[] = [];
     
     // 1. Ã–rÃ¼ntÃ¼ TanÄ±ma (BasitleÅŸtirilmiÅŸ 'Smart Debug' mantÄ±ÄŸÄ±)

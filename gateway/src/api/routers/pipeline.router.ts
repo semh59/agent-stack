@@ -104,7 +104,7 @@ export function registerPipelineRoutes(
 
       // Start in background
       newPipeline
-        .start(userTask.trim(), { planMode: planMode as any })
+        .start(userTask.trim(), { planMode: planMode as import("../../orchestration/sequential-pipeline").PlanMode })
         .catch((err) => {
           app.log.error(err, "[GatewayServer] Pipeline background error");
         });

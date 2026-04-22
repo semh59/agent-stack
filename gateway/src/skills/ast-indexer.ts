@@ -1,6 +1,4 @@
 ﻿import ts from 'typescript';
-import fs from 'fs';
-import path from 'path';
 
 /**
  * AST Indexer: Proje kodlarÄ±nÄ± yapÄ±sal (AST) olarak analiz eder.
@@ -23,7 +21,7 @@ export class ASTIndexer {
    * TÃ¼m dosyalarÄ± tarar ve semantik bir sembol listesi Ã§Ä±karÄ±r.
    */
   public indexProject() {
-    const symbols: any[] = [];
+    const symbols: Record<string, unknown>[] = [];
     for (const sourceFile of this.program.getSourceFiles()) {
       if (!sourceFile.isDeclarationFile) {
         ts.forEachChild(sourceFile, (node) => {
@@ -34,7 +32,7 @@ export class ASTIndexer {
     return symbols;
   }
 
-  private visitNode(node: ts.Node, sourceFile: ts.SourceFile, symbols: any[]) {
+  private visitNode(node: ts.Node, sourceFile: ts.SourceFile, symbols: Record<string, unknown>[]) {
     if (ts.isFunctionDeclaration(node) && node.name) {
       symbols.push(this.extractSymbolInfo(node, 'Function', sourceFile));
     } else if (ts.isClassDeclaration(node) && node.name) {

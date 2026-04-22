@@ -4,7 +4,7 @@ const lines = fs.readFileSync('plugin.ts', 'utf8').split('\n');
 const fetchStart = 458; 
 const fetchEnd = 1516;  
 
-let fetchLines = lines.slice(fetchStart, fetchEnd + 1);
+const fetchLines = lines.slice(fetchStart, fetchEnd + 1);
 
 fetchLines[0] = fetchLines[0].replace(/async fetch\s*\(\s*input\s*,\s*init\s*\)\s*\{/, 'export async function createFetchInterceptor(input: RequestInfo, init: RequestInit | undefined, ctx: any) {');
 

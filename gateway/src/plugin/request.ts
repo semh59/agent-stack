@@ -260,7 +260,7 @@ export function prepareAlloyRequest(
 
             // Step 2: Inject signed thinking from cache (after firewall filtering)
             if (isClaudeThinking && Array.isArray(req.contents)) {
-              req.contents = ensureThinkingBeforeToolUseInContents(req.contents as unknown[], signatureSessionKey);
+              req.contents = ensureThinkingBeforeToolUseInContents(req.contents as unknown[], signatureSessionKey) as MessageContent[];
             }
             if (isClaudeThinking && Array.isArray(req.messages)) {
               req.messages = ensureThinkingBeforeToolUseInMessages(req.messages as unknown as MessageContent[], signatureSessionKey) as unknown as MessageContent[];
@@ -697,10 +697,10 @@ export function prepareAlloyRequest(
 
           // Step 2: Inject signed thinking from cache (after firewall filtering)
           if (isClaudeThinking && Array.isArray(requestPayload.contents)) {
-            requestPayload.contents = ensureThinkingBeforeToolUseInContents(requestPayload.contents, signatureSessionKey);
+            requestPayload.contents = ensureThinkingBeforeToolUseInContents(requestPayload.contents as unknown[], signatureSessionKey) as MessageContent[];
           }
           if (isClaudeThinking && Array.isArray(requestPayload.messages)) {
-            requestPayload.messages = ensureThinkingBeforeToolUseInMessages(requestPayload.messages, signatureSessionKey);
+            requestPayload.messages = ensureThinkingBeforeToolUseInMessages(requestPayload.messages as unknown[], signatureSessionKey) as MessageContent[];
           }
 
           // Step 3: Check if warmup needed (AFTER injection attempt)

@@ -1,9 +1,6 @@
 ﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AutonomyMissionRuntime } from "./mission-runtime";
 import { AutonomySessionManager } from "../gateway/autonomy-session-manager";
-import { TokenStore } from "../gateway/token-store";
-import { AccountManager } from "../plugin/accounts";
-import { BudgetTracker } from "../orchestration/BudgetTracker";
 import { AlloyGatewayClient } from "../orchestration/gateway-client";
 import type { CreateAutonomySessionRequest } from "../orchestration/autonomy-types";
 

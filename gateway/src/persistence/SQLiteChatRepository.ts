@@ -79,7 +79,7 @@ export class SQLiteChatRepository {
     try {
       const rows = this.database.connection
         .prepare(`SELECT * FROM chat_messages WHERE conversation_id = ? ORDER BY created_at ASC`)
-        .all(conversationId) as any[];
+        .all(conversationId) as Record<string, unknown>[];
 
       return rows.map(r => ({
         id: r.id,
@@ -100,7 +100,7 @@ export class SQLiteChatRepository {
     try {
       const rows = this.database.connection
         .prepare(`SELECT * FROM chat_conversations WHERE owner_account = ? ORDER BY updated_at DESC`)
-        .all(ownerAccount) as any[];
+        .all(ownerAccount) as Record<string, unknown>[];
 
       return rows.map(r => ({
         id: r.id,

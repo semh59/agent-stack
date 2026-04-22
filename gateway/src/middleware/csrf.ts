@@ -212,33 +212,49 @@ export const csrfTokenManager = new CSRFTokenManager();
  * - GET requests: Generate and return token in X-CSRF-Token header
  * - POST/PUT/DELETE: Validate token from X-CSRF-Token header
  */
-export function csrfProtection(req: any, res: any, next: () => void): void {
-  const sessionId = req.sessionID || req.id || 'anonymous';
+interface CsrfRequest {
+  sessionID?: string;
+  id?: string;
+  method?: string;
+  path?: string;
+  get?: (header: string) => string | undefined;
+}
+
+interface CsrfResponse {
+  set?: (header: string, value: string) => void;
+  status?: (code: number) => CsrfResponse;
+  json?: (body: unknown) => void;
+}
+
+export function csrfProtection(req: CsrfRequest, res: CsrfResponse, next: () => void): void {
+  const sessionId = req.sessionID ?? req.id ?? 'anonymous';
 
   if (req.method === 'GET') {
     // Generate new token for GET requests
     const token = csrfTokenManager.generateToken(sessionId);
-    res.set('X-CSRF-Token', token);
+    res.set?.('X-CSRF-Token', token);
     return next();
   }
 
   // For POST/PUT/DELETE, validate token
-  const token = req.get('X-CSRF-Token');
+  const token = req.get?.('X-CSRF-Token');
 
   if (!token) {
     log.warn('CSRF token missing', { method: req.method, path: req.path });
-    return res.status(403).json({
+    res.status?.(403).json?.({
       error: 'csrf_token_missing',
       message: 'CSRF token is required for this request',
     });
+    return;
   }
 
   if (!csrfTokenManager.validateToken(sessionId, token)) {
     log.warn('CSRF token validation failed', { method: req.method, path: req.path });
-    return res.status(403).json({
+    res.status?.(403).json?.({
       error: 'csrf_validation_failed',
       message: 'CSRF token is invalid or expired',
     });
+    return;
   }
 
   // Token is valid, proceed
@@ -251,8 +267,8 @@ export function csrfProtection(req: any, res: any, next: () => void): void {
  * Usage:
  * app.use(csrfProtectionIf((req) => !req.path.startsWith('/health')))
  */
-export function csrfProtectionIf(shouldProtect: (req: any) => boolean) {
-  return (req: any, res: any, next: () => void) => {
+export function csrfProtectionIf(shouldProtect: (req: CsrfRequest) => boolean) {
+  return (req: CsrfRequest, res: CsrfResponse, next: () => void) => {
     if (!shouldProtect(req)) {
       return next();
     }
@@ -266,11 +282,11 @@ export function csrfProtectionIf(shouldProtect: (req: any) => boolean) {
 export function skipCsrf(
   paths: string[],
   methods: string[] = ['GET']
-): (req: any) => boolean {
-  return (req: any) => {
+): (req: CsrfRequest) => boolean {
+  return (req: CsrfRequest) => {
     const shouldSkip =
-      paths.some(p => req.path.startsWith(p)) &&
-      methods.includes(req.method);
+      paths.some(p => req.path?.startsWith(p)) &&
+      methods.includes(req.method ?? '');
 
     return !shouldSkip;
   };

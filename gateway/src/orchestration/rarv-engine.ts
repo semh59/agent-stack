@@ -56,6 +56,16 @@ const DEFAULT_RARV_CONFIG: RARVConfig = {
   phaseTimeoutMs: 120_000,
 };
 
+interface SharedMemoryState {
+  rarvState?: Record<number, RARVState>;
+  rarvMetrics?: RARVMetrics;
+}
+
+interface SharedMemoryLike {
+  getState(): Promise<SharedMemoryState>;
+  updateState(patch: Partial<SharedMemoryState>): Promise<void>;
+}
+
 /**
  * Summary of a completed RARV cycle.
  */
@@ -87,7 +97,7 @@ export class RARVEngine {
   private bus = EventBus.getInstance();
   private config: RARVConfig;
 
-  constructor(private memory?: any, config: Partial<RARVConfig> = {}) {
+  constructor(private memory?: SharedMemoryLike, config: Partial<RARVConfig> = {}) {
     this.config = { ...DEFAULT_RARV_CONFIG, ...config };
   }
 

@@ -169,10 +169,6 @@ function cloneTimelineEntry(entry: MissionTimelineRecord): MissionTimelineRecord
   return structuredClone(entry);
 }
 
-function cloneBudgetSnapshot(entry: MissionBudgetSnapshot): MissionBudgetSnapshot {
-  return structuredClone(entry);
-}
-
 function matchesFilter(mission: MissionModel, filter?: MissionFilter): boolean {
   if (!filter) {
     return true;

@@ -200,15 +200,16 @@ describe("closeToolLoopForThinking", () => {
       modelMsg([functionCallPart("tool_2")]),
     ];
 
-    const result = closeToolLoopForThinking(contents);
+    type Msg = { role: string; parts: Array<Record<string, unknown>> };
+    const result = closeToolLoopForThinking(contents) as Msg[];
     // Should have original (4) + synthetic model + synthetic user = 6
     expect(result.length).toBe(contents.length + 2);
     // Last message should be user with resume text
-    const lastMsg = result[result.length - 1];
+    const lastMsg = result[result.length - 1]!;
     expect(lastMsg.role).toBe("user");
-    expect(lastMsg.parts[0].text).toBeTruthy();
+    expect((lastMsg.parts[0] as Record<string, unknown>)?.text).toBeTruthy();
     // Second to last should be synthetic model
-    const synthModel = result[result.length - 2];
+    const synthModel = result[result.length - 2]!;
     expect(synthModel.role).toBe("model");
   });
 
@@ -231,7 +232,8 @@ describe("closeToolLoopForThinking", () => {
       modelMsg([thinkingPart("bad thinking"), functionCallPart("tool_2")]),
     ];
 
-    const result = closeToolLoopForThinking(contents);
+    type MsgStrip = { role: string; parts?: Array<Record<string, unknown>> };
+    const result = closeToolLoopForThinking(contents) as MsgStrip[];
     // No thinking parts should remain in original messages
     for (const msg of result) {
       if (msg.role === "model" && Array.isArray(msg.parts)) {
@@ -256,9 +258,10 @@ describe("closeToolLoopForThinking", () => {
       userToolResultMsg("tool_2", "ok"),
     ];
 
-    const result = closeToolLoopForThinking(contents);
-    const synthModel = result[result.length - 2];
-    const text = synthModel.parts[0].text as string;
+    type MsgSingle = { role: string; parts: Array<Record<string, unknown>> };
+    const result = closeToolLoopForThinking(contents) as MsgSingle[];
+    const synthModel = result[result.length - 2]!;
+    const text = synthModel.parts[0]!.text as string;
     // Only the last userToolResultMsg counts (stops at model boundary)
     expect(text).toContain("Tool execution completed");
   });
@@ -277,9 +280,10 @@ describe("closeToolLoopForThinking", () => {
       },
     ];
 
-    const result = closeToolLoopForThinking(contents);
-    const synthModel = result[result.length - 2];
-    const text = synthModel.parts[0].text as string;
+    type MsgMulti = { role: string; parts: Array<Record<string, unknown>> };
+    const result = closeToolLoopForThinking(contents) as MsgMulti[];
+    const synthModel = result[result.length - 2]!;
+    const text = synthModel.parts[0]!.text as string;
     expect(text).toContain("2 tool executions completed");
   });
 });

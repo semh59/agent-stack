@@ -96,16 +96,17 @@ export class StandaloneToolExecutionEngine implements IToolExecutionEngine {
       const absolutePath = await this.resolvePath(filePath);
       const content = await fs.readFile(absolutePath, 'utf-8');
       return { success: true, output: content };
-    } catch (err: any) {
-      return { success: false, output: `Error reading file: ${err.message}` };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, output: `Error reading file: ${msg}` };
     }
   }
 
   public async writeFile(filePath: string, content: string): Promise<ToolResult> {
     try {
-      if (!(await this.requestApproval(`Write file: ${filePath}`, { 
-        toolName: 'write_to_file', 
-        filePath, 
+      if (!(await this.requestApproval(`Write file: ${filePath}`, {
+        toolName: 'write_to_file',
+        filePath,
         args: { content },
         confidence: 1.0
       }))) {
@@ -116,8 +117,9 @@ export class StandaloneToolExecutionEngine implements IToolExecutionEngine {
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(absolutePath, content, 'utf-8');
       return { success: true, output: `File written successfully: ${filePath}` };
-    } catch (err: any) {
-      return { success: false, output: `Error writing file: ${err.message}` };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, output: `Error writing file: ${msg}` };
     }
   }
 
@@ -129,8 +131,9 @@ export class StandaloneToolExecutionEngine implements IToolExecutionEngine {
         .map(e => `${e.isDirectory() ? '[DIR]' : '[FILE]'} ${e.name}`)
         .join('\n');
       return { success: true, output };
-    } catch (err: any) {
-      return { success: false, output: `Error listing files: ${err.message}` };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, output: `Error listing files: ${msg}` };
     }
   }
 

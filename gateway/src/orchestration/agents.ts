@@ -65,9 +65,12 @@ export interface AgentDefinition {
 }
 
 // Load prompts from YAML
-let prompts: any = {};
+let prompts: Record<string, { system?: string }> = {};
 try {
-  prompts = yaml.load(fs.readFileSync(PROMPTS_PATH, 'utf8'));
+  const loaded = yaml.load(fs.readFileSync(PROMPTS_PATH, 'utf8'));
+  if (loaded && typeof loaded === 'object' && !Array.isArray(loaded)) {
+    prompts = loaded as Record<string, { system?: string }>;
+  }
 } catch (err) {
   console.error('[Agents] Failed to load prompts.yaml:', err);
 }

@@ -143,7 +143,7 @@ export function registerDelegationRoutes(app: FastifyInstance): void {
         task,
         groups: groups as TaskGroup[],
         customAgents: body.customAgents,
-        provider: body.provider as any,
+        provider: body.provider as import("../task-delegator").DelegationRequest["provider"],
         modelOverride: body.modelOverride,
         parallel: body.parallel,
         skipAgents: body.skipAgents,

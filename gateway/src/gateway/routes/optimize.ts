@@ -110,7 +110,7 @@ class OptimizationBridge {
       if (!response.ok) {
         return {
           ok: false,
-          error: (data as any)?.error || `Bridge returned ${response.status}`,
+          error: (typeof (data as Record<string, unknown>)?.error === "string" ? (data as Record<string, unknown>).error : undefined) as string | undefined ?? `Bridge returned ${response.status}`,
           status: response.status,
         };
       }

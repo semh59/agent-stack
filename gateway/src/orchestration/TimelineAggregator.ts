@@ -73,12 +73,12 @@ export class TimelineAggregator {
     this.isProcessing = false;
   }
 
-  private safeStringify(obj: any): string {
-    const cache = new Set();
-    return JSON.stringify(obj, (key, value) => {
+  private safeStringify(obj: unknown): string {
+    const cache = new Set<object>();
+    return JSON.stringify(obj, (key, value: unknown) => {
       if (typeof value === 'object' && value !== null) {
-        if (cache.has(value)) return `[Circular]`;
-        cache.add(value);
+        if (cache.has(value as object)) return `[Circular]`;
+        cache.add(value as object);
       }
       return value;
     });

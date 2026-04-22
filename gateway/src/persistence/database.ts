@@ -122,7 +122,7 @@ export class MissionDatabase {
     try {
       database = this.openDatabaseFile();
       this.assertIntegrity(database);
-    } catch (error) {
+    } catch {
       try {
         database?.close();
       } catch {

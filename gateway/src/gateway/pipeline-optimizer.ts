@@ -314,7 +314,7 @@ export class PipelineOptimizer {
   private estimateTokensBPE(text: string): number {
     if (text.length === 0) return 0;
     const codeChars = text.match(/[{}[\]();=<>|&!~^%]/g)?.length ?? 0;
-    const unicodeChars = text.match(/[^\u0000-\u007F]/g)?.length ?? 0;
+    const unicodeChars = text.match(/\P{ASCII}/gu)?.length ?? 0;
     const whitespaceChars = text.match(/\s/g)?.length ?? 0;
     const len = text.length;
 

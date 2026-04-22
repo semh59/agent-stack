@@ -600,7 +600,7 @@ describe("TokenBucketTracker", () => {
     });
 
     it("hybrid scoring produces consistent results with integer tokens", () => {
-      let mockTime = 0;
+      const mockTime = 0;
       vi.spyOn(Date, 'now').mockImplementation(() => mockTime);
 
       const tracker = new TokenBucketTracker({

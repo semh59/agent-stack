@@ -6,7 +6,7 @@ import {
 } from "../constants";
 import { processImageData } from "./image-saver";
 import type { GoogleSearchConfig } from "./transform/types";
-import type { MessageContent, MessagePart, AlloyTool, AlloyRequestRoot } from "./types";
+import type { MessageContent, MessagePart } from "./types";
 
 const log = createLogger("request-helpers");
 

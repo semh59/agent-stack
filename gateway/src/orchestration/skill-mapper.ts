@@ -164,8 +164,9 @@ export class SkillMapper {
       sections.push('## SOVEREIGN AUTONOMY PROTOCOL (MUTLAK YASALAR)');
       sections.push(rulesContent);
       sections.push('---');
-    } catch (err: any) {
-      console.warn(`[SkillMapper] Failed to inject personals_rules.md: ${err.message}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[SkillMapper] Failed to inject personals_rules.md: ${msg}`);
     }
 
     // Load and inject skill contents

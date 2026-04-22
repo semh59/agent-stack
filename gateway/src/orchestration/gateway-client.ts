@@ -13,7 +13,7 @@ export class AlloyGatewayClient {
     private accountManager: AccountManager,
     private config: AlloyGatewayConfig,
     private providerId: string,
-    private getAuth: () => Promise<any>,
+    private getAuth: () => Promise<unknown>,
     private nativeFetch: typeof fetch = globalThis.fetch
   ) {
     this.api = new AlloyAPI(
@@ -40,13 +40,13 @@ export class AlloyGatewayClient {
       getCurrentOrNextForFamily: () => ({ email, access: accessToken, accessToken, expires: fallbackExpiresAt, parts: { refreshToken: accessToken } }),
       markRateLimited: () => {},
       markAccountUsed: () => {},
-    } as any);
+    } as unknown as AccountManager);
 
     const config = {
       Alloy: {
         accounts: [{ email, accessToken }]
       }
-    } as any;
+    } as unknown as AlloyGatewayConfig;
 
     return new AlloyGatewayClient(
       manager,
@@ -95,34 +95,35 @@ export class AlloyGatewayClient {
    * For compatibility with parts of the code expecting standard fetch-like interface
    */
   public get nativeFetchHandler(): typeof fetch {
-    return this.fetch.bind(this) as any;
+    return this.fetch.bind(this) as typeof fetch;
   }
 }
 
 function resolveManagedAccount(
-  manager: AccountManager | Record<string, any>,
+  manager: AccountManager | Record<string, unknown>,
   email: string,
   accessToken: string,
 ): { access?: string; accessToken?: string; expires?: number; parts?: { refreshToken: string; projectId?: string; managedProjectId?: string } } | null {
-  const dynamicManager = manager as Record<string, any>;
-  const byFamily =
-    dynamicManager.getCurrentAccountForFamily?.("gemini") ??
-    dynamicManager.getCurrentAccountForFamily?.("claude");
+  const dynamicManager = manager as Record<string, unknown>;
+  const getCurrentForFamily = dynamicManager.getCurrentAccountForFamily as ((family: string) => unknown) | undefined;
+  const byFamily = getCurrentForFamily?.("gemini") ?? getCurrentForFamily?.("claude");
   if (byFamily) {
-    return byFamily;
+    return byFamily as ReturnType<typeof resolveManagedAccount>;
   }
 
-  const snapshots = dynamicManager.getAccountsSnapshot?.();
+  const getSnapshots = dynamicManager.getAccountsSnapshot as (() => unknown) | undefined;
+  const snapshots = getSnapshots?.();
   if (Array.isArray(snapshots)) {
-    const byEmail = snapshots.find((account: { email?: string }) => account.email === email);
+    const byEmail = snapshots.find((account: unknown) => (account as { email?: string }).email === email);
     if (byEmail) {
-      return byEmail;
+      return byEmail as ReturnType<typeof resolveManagedAccount>;
     }
   }
 
-  const active = dynamicManager.getActiveAccount?.();
+  const getActive = dynamicManager.getActiveAccount as (() => unknown) | undefined;
+  const active = getActive?.();
   if (active) {
-    return active;
+    return active as ReturnType<typeof resolveManagedAccount>;
   }
 
   return {

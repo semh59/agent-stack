@@ -147,7 +147,7 @@ export const createAlloyPlugin = (providerId: string) => async (
   const accountManager = await AccountManager.loadFromDisk();
   const alloyClient = new AlloyGatewayClient(
     accountManager,
-    config as any,
+    config as import("./plugin/config").AlloyGatewayConfig,
     'alloy',
     async () => {
       if (!cachedGetAuth) throw new Error("Auth not initialized");

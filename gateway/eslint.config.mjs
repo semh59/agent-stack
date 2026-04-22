@@ -91,6 +91,25 @@ export default [
     },
   },
 
+  // CommonJS scripts — allow require() and Node.js globals
+  {
+    files: ["**/*.cjs"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: {
+        require: "readonly",
+        module: "readonly",
+        exports: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "no-undef": "off",
+    },
+  },
+
   // UI (React) — keep same core rules; JSX specifics handled by Vite/TS
   {
     files: ["ui/src/**/*.{ts,tsx}"],

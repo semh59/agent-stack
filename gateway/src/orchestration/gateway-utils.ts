@@ -10,10 +10,10 @@ export interface RateLimitBodyInfo {
 }
 
 export const log = {
-  debug: (...args: any[]) => console.debug('[Alloy:Debug]', ...args),
-  info: (...args: any[]) => console.info('[Alloy:Info]', ...args),
-  warn: (...args: any[]) => console.warn('[Alloy:Warn]', ...args),
-  error: (...args: any[]) => console.error('[Alloy:Error]', ...args),
+  debug: (...args: unknown[]) => console.debug('[Alloy:Debug]', ...args),
+  info: (...args: unknown[]) => console.info('[Alloy:Info]', ...args),
+  warn: (...args: unknown[]) => console.warn('[Alloy:Warn]', ...args),
+  error: (...args: unknown[]) => console.error('[Alloy:Error]', ...args),
 };
 
 export function retryAfterMsFromResponse(response: Response, defaultRetryMs: number = 60_000): number {
@@ -38,7 +38,7 @@ function parseDurationToMs(duration: string): number | null {
 
 export async function extractRetryInfoFromBody(response: Response): Promise<RateLimitBodyInfo> {
   try {
-    let body: any;
+    let body: unknown;
     try {
       body = await response.clone().json();
     } catch {
@@ -46,34 +46,44 @@ export async function extractRetryInfoFromBody(response: Response): Promise<Rate
     }
 
     if (!body || typeof body !== "object") return { retryDelayMs: null };
+    const bodyObj = body as Record<string, unknown>;
 
-    const error = body.error;
-    const message = error?.message ?? body.message;
+    const error = typeof bodyObj.error === "object" && bodyObj.error !== null
+      ? bodyObj.error as Record<string, unknown>
+      : null;
+    const rawMessage = error?.message ?? bodyObj.message;
+    const message = typeof rawMessage === "string" ? rawMessage : undefined;
     const details = error?.details;
-    let reason = error?.reason ?? body.reason;
+    let reason = typeof (error?.reason ?? bodyObj.reason) === "string"
+      ? String(error?.reason ?? bodyObj.reason)
+      : undefined;
 
     if (Array.isArray(details)) {
       for (const detail of details) {
         if (!detail || typeof detail !== "object") continue;
-        const type = detail["@type"];
-        if (typeof type === "string" && type.includes("google.rpc.ErrorInfo") && typeof detail.reason === "string") {
-          reason = detail.reason;
+        const d = detail as Record<string, unknown>;
+        const type = d["@type"];
+        if (typeof type === "string" && type.includes("google.rpc.ErrorInfo") && typeof d.reason === "string") {
+          reason = d.reason;
           break;
         }
       }
       for (const detail of details) {
         if (!detail || typeof detail !== "object") continue;
-        const type = detail["@type"];
-        if (typeof type === "string" && type.includes("google.rpc.RetryInfo") && typeof detail.retryDelay === "string") {
-          const retryDelayMs = parseDurationToMs(detail.retryDelay);
+        const d = detail as Record<string, unknown>;
+        const type = d["@type"];
+        if (typeof type === "string" && type.includes("google.rpc.RetryInfo") && typeof d.retryDelay === "string") {
+          const retryDelayMs = parseDurationToMs(d.retryDelay);
           if (retryDelayMs !== null) return { retryDelayMs, message, reason };
         }
       }
       for (const detail of details) {
         if (!detail || typeof detail !== "object") continue;
-        if (detail.metadata && typeof detail.metadata === "object") {
-          const quotaResetDelay = detail.metadata.quotaResetDelay;
-          const quotaResetTime = detail.metadata.quotaResetTimeStamp;
+        const d = detail as Record<string, unknown>;
+        if (d.metadata && typeof d.metadata === "object") {
+          const meta = d.metadata as Record<string, unknown>;
+          const quotaResetDelay = meta.quotaResetDelay;
+          const quotaResetTime = typeof meta.quotaResetTimeStamp === "string" ? meta.quotaResetTimeStamp : undefined;
           if (typeof quotaResetDelay === "string") {
             const retryDelayMs = parseDurationToMs(quotaResetDelay);
             if (retryDelayMs !== null) return { retryDelayMs, message, quotaResetTime, reason };
@@ -90,12 +100,18 @@ export async function extractRetryInfoFromBody(response: Response): Promise<Rate
       }
     }
 
-    return {
-      retryDelayMs: body.retry_after_ms ?? body.retryAfterMs ?? (body.retry_after ? body.retry_after * 1000 : null),
-      message,
-      quotaResetTime: body.quota_reset_time ?? body.quotaResetTime,
-      reason
-    };
+    const retryAfterMs = bodyObj.retry_after_ms ?? bodyObj.retryAfterMs;
+    const retryAfterSec = bodyObj.retry_after;
+    const retryDelayMs = typeof retryAfterMs === "number" ? retryAfterMs
+      : typeof retryAfterSec === "number" ? retryAfterSec * 1000
+      : null;
+    const quotaResetTime = typeof bodyObj.quota_reset_time === "string"
+      ? bodyObj.quota_reset_time
+      : typeof bodyObj.quotaResetTime === "string"
+      ? bodyObj.quotaResetTime
+      : undefined;
+
+    return { retryDelayMs, message, quotaResetTime, reason };
   } catch {
     return { retryDelayMs: null };
   }
@@ -147,8 +163,8 @@ export function headerStyleToQuotaKey(headerStyle: HeaderStyle, family: ModelFam
 }
 
 export function getCliFirst(config: AlloyGatewayConfig): boolean {
-  // Use any cast to access potentially missing keys in simplified config objects
-  return !!(config as any).alloy?.cliFirst;
+  // Use unknown cast to access potentially missing keys in simplified config objects
+  return !!((config as Record<string, unknown>).alloy as Record<string, unknown> | undefined)?.cliFirst;
 }
 
 export function resolveQuotaFallbackHeaderStyle(input: {

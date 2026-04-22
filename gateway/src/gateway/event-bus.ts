@@ -80,10 +80,10 @@ export class AlloyEventBus {
 
   /** Listen to a specific event type */
   public on<T extends AlloyEvent["type"]>(
-    type: T, 
+    type: T,
     listener: (event: Extract<AlloyEvent, { type: T }>) => void
   ): () => void {
-    const wrapper = (e: any) => listener(e);
+    const wrapper = (e: unknown) => listener(e as Extract<AlloyEvent, { type: T }>);
     this.emitter.on(type, wrapper);
     return () => this.emitter.off(type, wrapper);
   }
@@ -99,7 +99,7 @@ export class AlloyEventBus {
     type: T,
     listener: (event: Extract<AlloyEvent, { type: T }>) => void
   ): void {
-    this.emitter.once(type, listener as any);
+    this.emitter.once(type, listener as (e: unknown) => void);
   }
 
   /** Get recent events for hydrating UI state */

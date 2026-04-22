@@ -251,7 +251,7 @@ async function runCliAuthFlow(
     const useManualMode = noBrowser || shouldSkipLocalServer();
     
     let existingStorage = await loadAccounts();
-    const accounts: any[] = [];
+    const accounts: AlloyTokenExchangeResult[] = [];
     let startFresh = true;
     let refreshAccountIndex: number | undefined;
 
@@ -262,7 +262,7 @@ async function runCliAuthFlow(
             const existingAccounts = existingStorage.accounts.map((acc, idx) => ({
                 email: acc.email,
                 index: idx,
-                status: ((acc.coolingDownUntil && acc.coolingDownUntil > now) ? 'rate-limited' : 'active') as any,
+                status: ((acc.coolingDownUntil && acc.coolingDownUntil > now) ? 'rate-limited' : 'active') as 'rate-limited' | 'active',
                 isCurrentAccount: idx === (existingStorage?.activeIndex ?? 0),
                 enabled: acc.enabled !== false,
             }));
@@ -380,7 +380,7 @@ async function runCliAuthFlow(
     };
 }
 
-async function renderQuotaTui(storage: any, client: PluginClient, providerId: string) {
+async function renderQuotaTui(storage: { accounts: unknown[] }, client: PluginClient, providerId: string) {
     console.log("\nChecking quotas...\n");
     const results = await checkAccountsQuota(storage.accounts, client, providerId);
     for (const res of results) {
@@ -392,8 +392,9 @@ async function renderQuotaTui(storage: any, client: PluginClient, providerId: st
         }
         // Simplified rendering for brevity in refactor
         if (res.quota?.groups) {
-            Object.entries(res.quota.groups).forEach(([name, data]: [string, any]) => {
-                const pct = Math.round((data.remainingFraction || 0) * 100);
+            Object.entries(res.quota.groups).forEach(([name, data]: [string, unknown]) => {
+                const groupData = data as { remainingFraction?: number };
+                const pct = Math.round((groupData.remainingFraction || 0) * 100);
                 console.log(`    ${name.padEnd(15)} [${'#'.repeat(pct/10).padEnd(10)}] ${pct}%`);
             });
         }

@@ -25,10 +25,7 @@ interface PKCESession {
   consumed: boolean;
 }
 
-interface AlloyAuthState {
-  verifier: string;
-  projectId: string;
-}
+
 
 /**
  * PKCEStateManager - Server-side PKCE state storage

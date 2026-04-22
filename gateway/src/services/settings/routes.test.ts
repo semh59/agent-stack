@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, vi } from "vitest";
+﻿import { describe, it, expect, beforeEach } from "vitest";
 import Fastify from "fastify";
 import { registerSettingsRoutes } from "./routes";
 import { resetSettingsStore, __resetEphemeralKeyForTests } from "./index";

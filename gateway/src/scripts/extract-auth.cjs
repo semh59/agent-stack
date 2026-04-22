@@ -7,7 +7,6 @@ const targetFile = path.join(__dirname, '../plugin/auth-flow.ts');
 const lines = fs.readFileSync(pluginFile, 'utf8').split('\n');
 
 const startStr = 'authorize: async (inputs?: Record<string, string>) => {';
-const endStr = '      {';
 
 let startLine = -1;
 let endLine = -1;
@@ -29,7 +28,7 @@ if (startLine === -1 || endLine === -1) {
     process.exit(1);
 }
 
-let authorizeLines = lines.slice(startLine + 1, endLine);
+const authorizeLines = lines.slice(startLine + 1, endLine);
 
 const newFileContent = `import { authorizeGoogleGemini, exchangeGoogleGemini, type AlloyTokenExchangeResult } from "../google-gemini/oauth";
 import { parseRefreshParts } from "./auth";
