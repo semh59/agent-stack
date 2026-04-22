@@ -138,7 +138,7 @@ export class SkillEngine {
    */
   private extractKeywords(name: string, description: string): string[] {
     const combined = `${name} ${description}`.toLowerCase();
-    const tokens = combined.split(/[\s\-_.,;:!?()\[\]{}'"\/\\]+/).filter(t => t.length > 2);
+    const tokens = combined.split(/[\s\-_.,;:!?()[\]{}'"/\\]+/).filter(t => t.length > 2);
     return [...new Set(tokens.filter(t => !SkillEngine.STOP_WORDS.has(t)))];
   }
 
@@ -172,7 +172,7 @@ export class SkillEngine {
   }
 
   private tokenize(input: string): string[] {
-    const tokens = input.toLowerCase().split(/[\s\-_.,;:!?()\[\]{}'"\/\\]+/).filter(t => t.length > 2);
+    const tokens = input.toLowerCase().split(/[\s\-_.,;:!?()[\]{}'"/\\]+/).filter(t => t.length > 2);
     return [...new Set(tokens.filter(t => !SkillEngine.STOP_WORDS.has(t)))];
   }
 }

@@ -1,4 +1,4 @@
-﻿import { pipeline } from '@xenova/transformers';
+import { pipeline } from '@xenova/transformers';
 import { join } from 'node:path';
 import { getConfigDir } from '../plugin/storage';
 
@@ -10,8 +10,8 @@ export interface TransformerResult {
 
 export class IntentTransformer {
   private static instance: IntentTransformer;
-  private classifierPromise: Promise<any> | null = null;
-  private classifier: any = null;
+  private classifierPromise: Promise<unknown> | null = null;
+  private classifier: unknown = null;
   private modelName = 'Xenova/nli-deberta-v3-small'; // Standard for zero-shot
   private labels = ['backend', 'frontend', 'qa', 'devops', 'security', 'lead_architect'];
 
@@ -59,12 +59,11 @@ export class IntentTransformer {
   /**
    * Internal method to load the model (called only once per initialization).
    */
-  private async _loadModel(): Promise<any> {
+  private async _loadModel(): Promise<unknown> {
     const cacheDir = join(getConfigDir(), 'models');
 
     // Transformers.js local cache ve WASM ayarlarÄ±
     const options = {
-      // @ts-ignore - transformers.js types can be tricky
       cache_dir: cacheDir,
     };
 
@@ -88,7 +87,7 @@ export class IntentTransformer {
       await this.init();
     }
 
-    const output = await this.classifier(text, this.labels);
+    const output = (await (this.classifier as (t: string, l: string[]) => Promise<any>)(text, this.labels)) as { labels: string[]; scores: number[] };
 
     const scores: Record<string, number> = {};
     output.labels.forEach((label: string, index: number) => {

@@ -279,7 +279,7 @@ describe("transformSseLine", () => {
 
     // Second call does not inject again
     debugState.injected = true;
-    const result2 = transformSseLine(line, store, thoughtBuffer, sentBuffer, callbacks, options, debugState);
+    transformSseLine(line, store, thoughtBuffer, sentBuffer, callbacks, options, debugState);
     expect(onInjectDebug).toHaveBeenCalledTimes(1);
   });
 });
@@ -364,10 +364,11 @@ describe("createStreamingTransformer", () => {
 
     const results: Uint8Array[] = [];
     const readPromise = (async () => {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        results.push(value);
+      let done = false;
+      while (!done) {
+        const chunk = await reader.read();
+        done = chunk.done;
+        if (chunk.value) results.push(chunk.value);
       }
     })();
 
@@ -391,10 +392,11 @@ describe("createStreamingTransformer", () => {
 
     const results: Uint8Array[] = [];
     const readPromise = (async () => {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        results.push(value);
+      let done = false;
+      while (!done) {
+        const chunk = await reader.read();
+        done = chunk.done;
+        if (chunk.value) results.push(chunk.value);
       }
     })();
 
@@ -420,10 +422,11 @@ describe("createStreamingTransformer", () => {
 
     const results: Uint8Array[] = [];
     const readPromise = (async () => {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        results.push(value);
+      let done = false;
+      while (!done) {
+        const chunk = await reader.read();
+        done = chunk.done;
+        if (chunk.value) results.push(chunk.value);
       }
     })();
 

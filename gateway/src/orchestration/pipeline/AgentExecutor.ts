@@ -3,7 +3,6 @@ import * as path from "node:path";
 import type { AgentDefinition } from "../agents";
 import type { SharedMemory } from "../shared-memory";
 import type { SkillMapper } from "../skill-mapper";
-import type { TokenUsage } from "./pipeline-types";
 
 export interface AgentExecutorOptions {
   projectRoot: string;

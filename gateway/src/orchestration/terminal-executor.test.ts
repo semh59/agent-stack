@@ -1,6 +1,5 @@
 ﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TerminalExecutor } from './terminal-executor';
-import os from 'node:os';
 
 describe('TerminalExecutor', () => {
   let executor: TerminalExecutor;

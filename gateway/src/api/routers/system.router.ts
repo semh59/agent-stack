@@ -68,7 +68,7 @@ export function registerSystemRoutes(
             const mdPath = path.join(skillsDir, skillId, "SKILL.md");
             let description = "Agent skill for " + skillId;
             let name = skillId.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-            let tags = [skillId.split("-")[0]];
+            const tags = [skillId.split("-")[0]];
             
             if (fsSync.existsSync(mdPath)) {
                const content = await fs.readFile(mdPath, "utf8");
@@ -157,8 +157,8 @@ export function registerSystemRoutes(
           const managed = await loadManagedProject(accessToken, activeAccount.projectId || undefined);
           if (managed && managed.allowedTiers) modelCount = managed.allowedTiers.length;
       }
-    } catch (err) {
-      modelCount = 6; 
+    } catch {
+      modelCount = 6;
     }
 
     // 4. Usage Percentage from AccountManager
@@ -179,7 +179,7 @@ export function registerSystemRoutes(
       } else {
           usagePercentage = 5; // Initial fallback while loading
       }
-    } catch (err) {
+    } catch {
       usagePercentage = 87; // Fallback
     }
 

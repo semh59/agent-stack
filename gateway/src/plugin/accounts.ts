@@ -1228,7 +1228,7 @@ function parseIsoResetTime(resetTime: string): number | null {
   return null;
 }
 
-function formatWaitTime(ms: number): string {
+export function formatWaitTime(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   const sec = Math.ceil(ms / 1000);
   if (sec < 60) return `${sec}s`;

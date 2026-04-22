@@ -34,12 +34,12 @@ export function toWarmupStreamUrl(value: RequestInfo): string {
 }
 
 export function extractModelFromUrl(urlString: string): string | null {
-  const match = urlString.match(/\/models\/([^:\/?]+)(?::\w+)?/);
+  const match = urlString.match(/\/models\/([^:/?]+)(?::\w+)?/);
   return match?.[1] ?? null;
 }
 
 export function extractModelFromUrlWithSuffix(urlString: string): string | null {
-  const match = urlString.match(/\/models\/([^:\/\?]+)/);
+  const match = urlString.match(/\/models\/([^:/?]+)/);
   return match?.[1] ?? null;
 }
 

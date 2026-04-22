@@ -206,9 +206,9 @@ describe('TokenStore - Race Condition Prevention', () => {
     const anonStore = new TokenStore(tempPath);
     anonStore.addOrUpdateAccount(anonToken);
 
-    let callCount = 0;
+    let _callCount = 0;
     global.fetch = vi.fn(async () => {
-      callCount++;
+      _callCount++;
       await delay(30);
       return new Response(JSON.stringify({
         access_token: 'new-access',
@@ -275,7 +275,7 @@ describe('TokenStore - File Permissions & Security', () => {
 
     // Check directory permissions (0o700 = rwx------)
     const stats = fs.statSync(customConfigDir);
-    const mode = stats.mode & 0o777;
+    const _mode = stats.mode & 0o777;
 
     // On Windows, permissions work differently, so we just check directory exists
     expect(fs.existsSync(customConfigDir)).toBe(true);

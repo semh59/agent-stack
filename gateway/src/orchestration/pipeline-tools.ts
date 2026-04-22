@@ -1,10 +1,10 @@
-﻿import { SequentialPipeline, PlanMode } from './sequential-pipeline';
+import { SequentialPipeline, PlanMode } from './sequential-pipeline';
 import { AGENTS, getAgentByRole, getTotalEstimatedMinutes } from './agents';
 import { TerminalExecutor } from './terminal-executor';
 import { tool } from '@opencode-ai/plugin/tool';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
-import { AlloyGatewayClient } from './gateway-client';
+import type { AlloyGatewayClient } from './gateway-client';
 import type { PluginClient } from '../plugin/types';
 
 /**
@@ -25,12 +25,11 @@ export class PipelineTools {
     this.terminal = new TerminalExecutor(directory);
   }
 
-  public getTools(): Record<string, any> {
+  public getTools(): Record<string, unknown> {
     const pipeline = this.pipeline;
     const terminal = this.terminal;
     const projectRoot = this.projectRoot;
-    const self = this;
-
+    const client = this.client;
     return {
       pipeline_start: tool({
         description: `Start the 18-agent sequential pipeline (CEO â†’ PM â†’ Architect â†’ ... â†’ DevOps). Each agent reads previous agents' outputs and writes to .ai-company/. Estimated time: ~${getTotalEstimatedMinutes()} minutes.`,
@@ -64,10 +63,10 @@ export class PipelineTools {
             ? args.skipAgents.split(',').map((s) => s.trim())
             : [];
 
-          return (self.client.tui as any).withProgress({
+          return (client as any).tui.withProgress({
             title: `Alloy Pipeline: ${args.task.slice(0, 30)}...`,
             cancellable: true,
-          }, async (progress: any, token: any) => {
+          }, async (progress: { report: (m: { message: string, increment?: number }) => void }, _token: unknown) => {
             try {
               const result = await pipeline.start(args.task, {
                 skipAgents,
@@ -76,8 +75,7 @@ export class PipelineTools {
                 modelOverride: args.modelOverride,
                 skillsDir: args.skillsDir,
                 onAgentStart: (agent) => {
-                  const pct = Math.round((agent.order / AGENTS.length) * 100);
-                  progress.report({ 
+                  progress.report({
                     message: `${agent.emoji} ${agent.name} (${agent.order}/18)`,
                     increment: 0 // We don't use cumulative increment here, we just set message
                   });
@@ -213,7 +211,7 @@ ${timelineStr || 'No outputs yet.'}
 
           let response = `Skip list updated: ${valid.join(', ')}`;
           if (invalid.length > 0) {
-            response += `\nâš ï¸ Unknown roles ignored: ${invalid.join(', ')}`;
+            response += `\n⚠️ Unknown roles ignored: ${invalid.join(', ')}`;
             response += `\n\nValid roles: ${AGENTS.map((a) => a.role).join(', ')}`;
           }
           return response;
@@ -324,7 +322,7 @@ ${timelineStr || 'No outputs yet.'}
             // Try to remove from INDEX.md
             try {
               const indexPath = path.join(proposedDir, 'INDEX.md');
-              let indexContent = await fs.readFile(indexPath, 'utf-8');
+              const indexContent = await fs.readFile(indexPath, 'utf-8');
               const lines = indexContent.split('\n');
               const filteredLines = lines.filter(line => !line.includes(`| ${args.skillName} |`));
               await fs.writeFile(indexPath, filteredLines.join('\n'), 'utf-8');

@@ -16,7 +16,7 @@
  */
 
 import type { AgentDefinition } from "../orchestration/agents";
-import { ModelRouter, type RoutingContext, type RoutingDecision } from "./model-router";
+import { ModelRouter, type RoutingContext } from "./model-router";
 import { ProviderCircuitBreaker } from "./circuit-breaker";
 import { CostBridge, type CostEntry } from "./cost-bridge";
 import { AIProvider, type ProviderModel } from "./provider-types";
@@ -313,8 +313,8 @@ export class PipelineOptimizer {
    */
   private estimateTokensBPE(text: string): number {
     if (text.length === 0) return 0;
-    const codeChars = text.match(/[{}\[\]();=<>|&!~^%]/g)?.length ?? 0;
-    const unicodeChars = text.match(/[^\x00-\x7F]/g)?.length ?? 0;
+    const codeChars = text.match(/[{}[\]();=<>|&!~^%]/g)?.length ?? 0;
+    const unicodeChars = text.match(/[^\u0000-\u007F]/g)?.length ?? 0;
     const whitespaceChars = text.match(/\s/g)?.length ?? 0;
     const len = text.length;
 

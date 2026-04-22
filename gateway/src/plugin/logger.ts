@@ -18,7 +18,7 @@ type LogLevel = "debug" | "info" | "warn" | "error";
  */
 function maskPII(text: string): string {
   // Mask email: a***@b***.com
-  let masked = text.replace(/([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})/g, (match, user, domain, tld) => {
+  let masked = text.replace(/([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})/g, (match, user, domain, tld) => {
     const maskedUser = user.length > 1 ? user[0] + '***' : '*';
     const maskedDomain = domain.length > 1 ? domain[0] + '***' : '*';
     return `${maskedUser}@${maskedDomain}.${tld}`;

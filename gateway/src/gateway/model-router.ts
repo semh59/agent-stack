@@ -140,7 +140,7 @@ export class ModelRouter {
   // â”€â”€ Tier Determination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private determineTier(ctx: RoutingContext): ProviderModel["tier"] {
-    const { agent, complexity, estimatedTokens } = ctx;
+    const { agent, complexity } = ctx;
 
     // Role-based tier assignment
     if (THINKING_ROLES.has(agent.role)) {

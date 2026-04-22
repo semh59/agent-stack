@@ -1,15 +1,18 @@
 import crypto from "node:crypto";
 import {
-  ALLOY_HEADERS,
-  GEMINI_CLI_HEADERS,
   ALLOY_ENDPOINT,
   GEMINI_CLI_ENDPOINT,
   EMPTY_SCHEMA_PLACEHOLDER_NAME,
   EMPTY_SCHEMA_PLACEHOLDER_DESCRIPTION,
-  SKIP_THOUGHT_SIGNATURE,
   getRandomizedHeaders,
-  type HeaderStyle,
 } from "../constants";
+import type {
+  AlloyRequestRoot,
+  AlloyTool,
+  HeaderStyle,
+  MessageContent,
+  MessagePart,
+} from "./types";
 import { cacheSignature, getCachedSignature } from "./cache";
 import { getKeepThinking } from "./config";
 import {
@@ -19,7 +22,6 @@ import {
 } from "./core/streaming";
 import { defaultSignatureStore } from "./stores/signature-store";
 import {
-  DEBUG_MESSAGE_PREFIX,
   isDebugEnabled,
   logAlloyDebugResponse,
   logCacheStats,
@@ -60,8 +62,6 @@ import {
 import { sanitizeCrossModelPayloadInPlace } from "./transform/cross-model-sanitizer";
 import { isGemini3Model, isImageGenerationModel, buildImageGenerationConfig, applyGeminiTransforms } from "./transform";
 import {
-  resolveModelWithTier,
-  resolveModelWithVariant,
   resolveModelForHeaderStyle,
   isClaudeModel,
   isClaudeThinkingModel,
@@ -91,7 +91,6 @@ import {
   hasSignedThinkingInContents,
   hasToolUseInMessages,
   hasSignedThinkingInMessages,
-  getPluginSessionId,
   generateSyntheticProjectId,
   SYNTHETIC_THINKING_PLACEHOLDER,
   isGenerativeLanguageRequest,
@@ -107,6 +106,15 @@ import {
   hasSignedThinkingPart,
   MIN_SIGNATURE_LENGTH
 } from "./transform/request-thinking-utils";
+
+// Centralized interfaces moved to types.ts to enable project-wide type safety.
+
+interface RecoveryError extends Error {
+  [key: string]: unknown;
+  recoveryType?: string;
+  originalError?: unknown;
+  debugInfo?: unknown;
+}
 /**
  * Options for request preparation.
  */
@@ -193,7 +201,7 @@ export function prepareAlloyRequest(
   // Tier-based thinking configuration from model resolver (can be overridden by variant config)
   let tierThinkingBudget = resolved.thinkingBudget;
   let tierThinkingLevel = resolved.thinkingLevel;
-  let signatureSessionKey = buildSignatureSessionKey(
+  let signatureSessionKey: string = buildSignatureSessionKey(
     PLUGIN_SESSION_ID,
     effectiveModel,
     undefined,
@@ -203,26 +211,26 @@ export function prepareAlloyRequest(
   let body = baseInit.body;
   if (typeof baseInit.body === "string" && baseInit.body) {
     try {
-      const parsedBody = JSON.parse(baseInit.body) as Record<string, unknown>;
+      const parsedBody = JSON.parse(baseInit.body) as AlloyRequestRoot;
       const isWrapped = typeof parsedBody.project === "string" && "request" in parsedBody;
 
       if (isWrapped) {
         const wrappedBody = {
           ...parsedBody,
           model: effectiveModel,
-        } as Record<string, unknown>;
+        } as AlloyRequestRoot;
 
         // Some callers may already send an Alloy-wrapped body.
         // We still need to sanitize Claude thinking blocks (remove cache_control)
         // and attach a stable sessionId so multi-turn signature caching works.
         const requestRoot = wrappedBody.request;
-        const requestObjects: Array<Record<string, unknown>> = [];
+        const requestObjects: AlloyRequestRoot[] = [];
 
         if (requestRoot && typeof requestRoot === "object") {
-          requestObjects.push(requestRoot as Record<string, unknown>);
-          const nested = (requestRoot as any).request;
+          requestObjects.push(requestRoot);
+          const nested = requestRoot.request;
           if (nested && typeof nested === "object") {
-            requestObjects.push(nested as Record<string, unknown>);
+            requestObjects.push(nested);
           }
         }
 
@@ -238,7 +246,7 @@ export function prepareAlloyRequest(
 
         for (const req of requestObjects) {
           // Use stable session ID for signature caching across multi-turn conversations
-          (req as any).sessionId = signatureSessionKey;
+          req.sessionId = signatureSessionKey;
           stripInjectedDebugFromRequestPayload(req as Record<string, unknown>);
 
           // Apply signature-based thinking block firewall (Universal Hardeninig)
@@ -251,11 +259,11 @@ export function prepareAlloyRequest(
             sanitizeCrossModelPayloadInPlace(req, { targetModel: effectiveModel });
 
             // Step 2: Inject signed thinking from cache (after firewall filtering)
-            if (isClaudeThinking && Array.isArray((req as any).contents)) {
-              (req as any).contents = ensureThinkingBeforeToolUseInContents((req as any).contents, signatureSessionKey);
+            if (isClaudeThinking && Array.isArray(req.contents)) {
+              req.contents = ensureThinkingBeforeToolUseInContents(req.contents as unknown[], signatureSessionKey);
             }
-            if (isClaudeThinking && Array.isArray((req as any).messages)) {
-              (req as any).messages = ensureThinkingBeforeToolUseInMessages((req as any).messages, signatureSessionKey);
+            if (isClaudeThinking && Array.isArray(req.messages)) {
+              req.messages = ensureThinkingBeforeToolUseInMessages(req.messages as unknown as MessageContent[], signatureSessionKey) as unknown as MessageContent[];
             }
 
             // Step 3: Apply tool pairing fixes (ID assignment, response matching, orphan recovery)
@@ -265,12 +273,12 @@ export function prepareAlloyRequest(
 
         if (isClaudeThinking && sessionId) {
           const hasToolUse = requestObjects.some((req) =>
-            (Array.isArray((req as any).contents) && hasToolUseInContents((req as any).contents)) ||
-            (Array.isArray((req as any).messages) && hasToolUseInMessages((req as any).messages)),
+            (Array.isArray(req.contents) && hasToolUseInContents(req.contents as unknown[])) ||
+            (Array.isArray(req.messages) && hasToolUseInMessages(req.messages as unknown[])),
           );
           const hasSignedThinking = requestObjects.some((req) =>
-            (Array.isArray((req as any).contents) && hasSignedThinkingInContents((req as any).contents)) ||
-            (Array.isArray((req as any).messages) && hasSignedThinkingInMessages((req as any).messages)),
+            (Array.isArray(req.contents) && hasSignedThinkingInContents(req.contents as unknown[])) ||
+            (Array.isArray(req.messages) && hasSignedThinkingInMessages(req.messages as unknown[])),
           );
           const hasCachedThinking = defaultSignatureStore.has(signatureSessionKey);
           needsSignedThinkingWarmup = hasToolUse && !hasSignedThinking && !hasCachedThinking;
@@ -278,7 +286,7 @@ export function prepareAlloyRequest(
 
         body = JSON.stringify(wrappedBody);
       } else {
-        const requestPayload: Record<string, unknown> = { ...parsedBody };
+        const requestPayload: AlloyRequestRoot = { ...parsedBody };
 
         const rawGenerationConfig = requestPayload.generationConfig as Record<string, unknown> | undefined;
         const extraBody = requestPayload.extra_body as Record<string, unknown> | undefined;
@@ -326,7 +334,7 @@ export function prepareAlloyRequest(
         const isImageModel = isImageGenerationModel(effectiveModel);
         const userThinkingConfig = isImageModel ? undefined : extractThinkingConfig(requestPayload, rawGenerationConfig, extraBody);
         const hasAssistantHistory = Array.isArray(requestPayload.contents) &&
-          requestPayload.contents.some((c: any) => c?.role === "model" || c?.role === "assistant");
+          (requestPayload.contents as Record<string, unknown>[]).some((c) => c?.role === "model" || c?.role === "assistant");
 
         // For claude-sonnet-4-5 (without -thinking suffix), ignore client's thinkingConfig
         // Only claude-sonnet-4-5-thinking-* variants should have thinking enabled
@@ -442,7 +450,7 @@ export function prepareAlloyRequest(
         delete requestPayload.thinking;
 
         if ("system_instruction" in requestPayload) {
-          requestPayload.systemInstruction = requestPayload.system_instruction;
+          requestPayload.systemInstruction = requestPayload.system_instruction as string | Record<string, unknown>;
           delete requestPayload.system_instruction;
         }
 
@@ -480,9 +488,9 @@ export function prepareAlloyRequest(
               sys.parts = [{ text: hint }];
             }
 
-            requestPayload.systemInstruction = sys;
+            requestPayload.systemInstruction = sys as Record<string, unknown>;
           } else if (Array.isArray(requestPayload.contents)) {
-            requestPayload.systemInstruction = { parts: [{ text: hint }] };
+            requestPayload.systemInstruction = { parts: [{ text: hint }] } as Record<string, unknown>;
           }
         }
 
@@ -514,11 +522,11 @@ export function prepareAlloyRequest(
 
         if (hasTools) {
           if (isClaude) {
-            const functionDeclarations: any[] = [];
-            const passthroughTools: any[] = [];
+            const functionDeclarations: AlloyTool[] = [];
+            const passthroughTools: AlloyTool[] = [];
 
-            const normalizeSchema = (schema: any) => {
-              const createPlaceholderSchema = (base: any = {}) => ({
+            const normalizeSchema = (schema: unknown) => {
+              const createPlaceholderSchema = (base: Record<string, unknown> = {}) => ({
                 ...base,
                 type: "object",
                 properties: {
@@ -566,46 +574,43 @@ export function prepareAlloyRequest(
               return cleaned;
             };
 
-            (requestPayload.tools as any[]).forEach((tool: any) => {
-              const pushDeclaration = (decl: any, source: string) => {
+            (requestPayload.tools as AlloyTool[]).forEach((tool: AlloyTool) => {
+              const pushDeclaration = (decl: AlloyTool, source: string) => {
                 const schema =
-                  decl?.parameters ||
-                  decl?.parametersJsonSchema ||
-                  decl?.input_schema ||
-                  decl?.inputSchema ||
+                  decl.parameters ||
+                  decl.parametersJsonSchema ||
+                  decl.input_schema ||
+                  decl.inputSchema ||
                   tool.parameters ||
                   tool.parametersJsonSchema ||
                   tool.input_schema ||
                   tool.inputSchema ||
-                  tool.function?.parameters ||
-                  tool.function?.parametersJsonSchema ||
-                  tool.function?.input_schema ||
-                  tool.function?.inputSchema ||
-                  tool.custom?.parameters ||
-                  tool.custom?.parametersJsonSchema ||
-                  tool.custom?.input_schema;
+                  ((tool.function as AlloyTool)?.inputSchema) ||
+                  ((tool.custom as AlloyTool)?.parameters) ||
+                  ((tool.custom as AlloyTool)?.parametersJsonSchema) ||
+                  ((tool.custom as AlloyTool)?.input_schema);
 
                 let name =
-                  decl?.name ||
+                  decl.name ||
                   tool.name ||
-                  tool.function?.name ||
-                  tool.custom?.name ||
+                  ((tool.function as AlloyTool)?.name) ||
+                  ((tool.custom as AlloyTool)?.name) ||
                   `tool-${functionDeclarations.length}`;
 
                 // Sanitize tool name: must be alphanumeric with underscores, no special chars
                 name = String(name).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
 
                 const description =
-                  decl?.description ||
+                  decl.description ||
                   tool.description ||
-                  tool.function?.description ||
-                  tool.custom?.description ||
+                  ((tool.function as AlloyTool)?.description) ||
+                  ((tool.custom as AlloyTool)?.description) ||
                   "";
 
                 functionDeclarations.push({
                   name,
                   description: String(description || ""),
-                  parameters: normalizeSchema(schema),
+                  parameters: normalizeSchema(schema) as Record<string, unknown>,
                 });
 
                 toolDebugSummaries.push(
@@ -614,7 +619,7 @@ export function prepareAlloyRequest(
               };
 
               if (Array.isArray(tool.functionDeclarations) && tool.functionDeclarations.length > 0) {
-                tool.functionDeclarations.forEach((decl: any) => pushDeclaration(decl, "functionDeclarations"));
+                (tool.functionDeclarations as Record<string, unknown>[]).forEach((decl) => pushDeclaration(decl, "functionDeclarations"));
                 return;
               }
 
@@ -626,7 +631,7 @@ export function prepareAlloyRequest(
                 tool.input_schema ||
                 tool.inputSchema
               ) {
-                pushDeclaration(tool.function ?? tool.custom ?? tool, "function/custom");
+                pushDeclaration((tool.function as AlloyTool) ?? (tool.custom as AlloyTool) ?? tool, "function/custom");
                 return;
               }
 
@@ -634,7 +639,7 @@ export function prepareAlloyRequest(
               passthroughTools.push(tool);
             });
 
-            const finalTools: any[] = [];
+            const finalTools: AlloyTool[] = [];
             if (functionDeclarations.length > 0) {
               finalTools.push({ functionDeclarations });
             }
@@ -720,12 +725,12 @@ export function prepareAlloyRequest(
           const pendingCallIdsByName = new Map<string, string[]>();
 
           // First pass: assign IDs to all functionCalls and collect them
-          requestPayload.contents = requestPayload.contents.map((content: any) => {
+          requestPayload.contents = ((requestPayload.contents as Record<string, unknown>[]).map((content) => {
             if (!content || !Array.isArray(content.parts)) {
-              return content;
+              return content as MessageContent;
             }
 
-            const newParts = content.parts.map((part: any) => {
+            const newParts = (content.parts as MessagePart[]).map((part) => {
               if (part && typeof part === "object" && part.functionCall) {
                 const call = { ...part.functionCall };
                 if (!call.id) {
@@ -742,26 +747,20 @@ export function prepareAlloyRequest(
             });
 
             return { ...content, parts: newParts };
-          });
+          })) as unknown as MessageContent[];
 
           // Second pass: match functionResponses to their corresponding calls (FIFO order)
-          requestPayload.contents = (requestPayload.contents as any[]).map((content: any) => {
+          requestPayload.contents = ((requestPayload.contents as Record<string, unknown>[]).map((content) => {
             if (!content || !Array.isArray(content.parts)) {
-              return content;
+              return content as MessageContent;
             }
 
-            const newParts = content.parts.map((part: any) => {
+            const newParts = (content.parts as MessagePart[]).map((part) => {
               if (part && typeof part === "object" && part.functionResponse) {
                 const resp = { ...part.functionResponse };
                 if (!resp.id && typeof resp.name === "string") {
                   const queue = pendingCallIdsByName.get(resp.name);
                   if (queue && queue.length > 0) {
-                    // Consume the first pending ID (FIFO order).
-                    // Defensive pattern: `shift()` returns `T | undefined`, so keep
-                    // the read and the assignment separate and verify the value is
-                    // defined before writing. Prevents `resp.id = undefined` from
-                    // sneaking through when a concurrent mutation empties the queue
-                    // between the length check and the shift.
                     const id = queue.shift();
                     if (id !== undefined) {
                       resp.id = id;
@@ -775,19 +774,19 @@ export function prepareAlloyRequest(
             });
 
             return { ...content, parts: newParts };
-          });
+          })) as unknown as MessageContent[];
 
           // Third pass: Apply orphan recovery for mismatched tool IDs
           // This handles cases where context compaction or other processes
           // create ID mismatches between calls and responses.
           // Ported from LLM-API-Key-Proxy's _fix_tool_response_grouping()
-          requestPayload.contents = fixToolResponseGrouping(requestPayload.contents as any[]);
+          requestPayload.contents = fixToolResponseGrouping(requestPayload.contents as MessageContent[]);
         }
 
         // Fourth pass: Fix Claude format tool pairing (defense in depth)
         // Handles orphaned tool_use blocks in Claude's messages[] format
         if (Array.isArray(requestPayload.messages)) {
-          requestPayload.messages = validateAndFixClaudeToolPairing(requestPayload.messages);
+          requestPayload.messages = validateAndFixClaudeToolPairing(requestPayload.messages) as unknown as MessageContent[];
         }
 
         // =====================================================================
@@ -816,7 +815,7 @@ export function prepareAlloyRequest(
               ? "Thinking recovery: retrying with fresh turn (API error)"
               : "Thinking recovery: restarting turn (corrupted context)";
 
-            requestPayload.contents = closeToolLoopForThinking(requestPayload.contents);
+            requestPayload.contents = closeToolLoopForThinking(requestPayload.contents) as unknown as MessageContent[];
 
             defaultSignatureStore.delete(signatureSessionKey);
           }
@@ -875,13 +874,13 @@ export function prepareAlloyRequest(
         if (wrappedBody.request && typeof wrappedBody.request === 'object') {
           // Use stable session ID for signature caching across multi-turn conversations
           sessionId = signatureSessionKey;
-          (wrappedBody.request as any).sessionId = signatureSessionKey;
+          (wrappedBody.request as AlloyRequestRoot).sessionId = signatureSessionKey;
         }
 
         body = JSON.stringify(wrappedBody);
       }
-    } catch (error) {
-      throw error;
+    } catch (e) {
+      console.error("[Alloy:Plugin] Request transform failed:", e);
     }
   }
 
@@ -920,11 +919,12 @@ export function prepareAlloyRequest(
     headers.set("Client-Metadata", fingerprintHeaders["Client-Metadata"] || selectedHeaders["Client-Metadata"]);
 
     // Add fingerprint-specific headers for device identity (Alloy only)
-    if (fingerprintHeaders["X-Goog-QuotaUser"]) {
-      headers.set("X-Goog-QuotaUser", fingerprintHeaders["X-Goog-QuotaUser"]);
+    const fHeaders = fingerprintHeaders as Record<string, string>;
+    if (fHeaders["X-Goog-QuotaUser"]) {
+      headers.set("X-Goog-QuotaUser", fHeaders["X-Goog-QuotaUser"]);
     }
-    if (fingerprintHeaders["X-Client-Device-Id"]) {
-      headers.set("X-Client-Device-Id", fingerprintHeaders["X-Client-Device-Id"]);
+    if (fHeaders["X-Client-Device-Id"]) {
+      headers.set("X-Client-Device-Id", fHeaders["X-Client-Device-Id"]);
     }
   } else {
     // Gemini CLI mode: Use simple static headers matching opencode-gemini-auth
@@ -981,7 +981,7 @@ export function buildThinkingWarmupBody(
   const updateRequest = (req: Record<string, unknown>) => {
     req.contents = [{ role: "user", parts: [{ text: warmupPrompt }] }];
     delete req.tools;
-    delete (req as any).toolConfig;
+    delete (req as Record<string, unknown>).toolConfig;
 
     const generationConfig = (req.generationConfig ?? {}) as Record<string, unknown>;
     generationConfig.thinkingConfig = {
@@ -992,9 +992,9 @@ export function buildThinkingWarmupBody(
     req.generationConfig = generationConfig;
   };
 
-  if (parsed.request && typeof parsed.request === "object") {
-    updateRequest(parsed.request as Record<string, unknown>);
-    const nested = (parsed.request as any).request;
+    if (parsed.request && typeof parsed.request === "object") {
+      updateRequest(parsed.request as Record<string, unknown>);
+      const nested = (parsed.request as AlloyRequestRoot).request;
     if (nested && typeof nested === "object") {
       updateRequest(nested as Record<string, unknown>);
     }
@@ -1103,10 +1103,10 @@ export async function transformAlloyResponse(
         // Check if this is a recoverable thinking error - throw to trigger retry
         const errorType = detectErrorType(errorBody.error.message || "");
         if (errorType === "thinking_block_order") {
-          const recoveryError = new Error("THINKING_RECOVERY_NEEDED");
-          (recoveryError as any).recoveryType = errorType;
-          (recoveryError as any).originalError = errorBody;
-          (recoveryError as any).debugInfo = debugInfo;
+          const recoveryError = new Error("THINKING_RECOVERY_NEEDED") as RecoveryError;
+          recoveryError.recoveryType = errorType;
+          recoveryError.originalError = errorBody;
+          recoveryError.debugInfo = debugInfo;
           throw recoveryError;
         }
 
@@ -1138,11 +1138,11 @@ export async function transformAlloyResponse(
       }
 
       if (errorBody?.error?.details && Array.isArray(errorBody.error.details)) {
-        const retryInfo = errorBody.error.details.find(
-          (detail: any) => detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
+        const retryInfo = (errorBody.error.details as Record<string, unknown>[]).find(
+          (detail) => detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
         );
 
-        if (retryInfo?.retryDelay) {
+        if (typeof retryInfo?.retryDelay === "string") {
           const match = retryInfo.retryDelay.match(/^([\d.]+)s$/);
           if (match && match[1]) {
             const retrySeconds = parseFloat(match[1]);
@@ -1157,11 +1157,6 @@ export async function transformAlloyResponse(
       }
     }
 
-    const init = {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    };
 
     const usageFromSse = streaming && isEventStreamResponse ? extractUsageFromSsePayload(text) : null;
     const parsed: AlloyApiBody | null = !streaming || !isEventStreamResponse ? parseAlloyApiBody(text) : null;
@@ -1210,7 +1205,7 @@ export async function transformAlloyResponse(
   }
 }
 
-async function handleAlloyError(error: any, debugContext: any, model?: string, project?: string, endpoint?: string) {
+async function handleAlloyError(error: unknown, _debugContext: AlloyDebugContext | null | undefined, _model?: string, _project?: string, _endpoint?: string) {
   return new Response(JSON.stringify({ error: String(error) }), { status: 500 });
 }
 

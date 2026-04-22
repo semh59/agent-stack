@@ -222,7 +222,7 @@ export class SecurityGate implements AutonomousGate {
   name = "SecurityGate";
   constructor(private terminal: TerminalExecutor) {}
 
-  async run(context: GateContext) {
+  async run(_context: GateContext) {
     const resp = await this.terminal.run("npm audit --json");
     const issues: string[] = [];
     let audit: AuditSummary = { critical: 0, high: 0, moderate: 0, low: 0, total: 0 };
@@ -324,10 +324,10 @@ export class ArchitectGate implements AutonomousGate {
     let archContent = "";
     try {
       archContent = await fs.readFile(archPath, "utf-8");
-    } catch (err) {
-      return { 
-        passed: false, 
-        issues: ["ARCHITECTURE.md is required for ArchitectGate verification but could not be read."] 
+    } catch {
+      return {
+        passed: false,
+        issues: ["ARCHITECTURE.md is required for ArchitectGate verification but could not be read."]
       };
     }
 

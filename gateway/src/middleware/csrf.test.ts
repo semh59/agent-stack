@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CSRFTokenManager, csrfTokenManager, csrfProtection, skipCsrf } from './csrf';
+import { CSRFTokenManager, skipCsrf } from './csrf';
 
 describe('CSRF Token Manager', () => {
   let manager: CSRFTokenManager;
@@ -203,7 +203,7 @@ describe('CSRF Security Properties', () => {
 
     // These should take similar time (no timing leak)
     const wrongToken1 = validToken.slice(0, -10) + '0'.repeat(10);
-    const wrongToken2 = '0'.repeat(128);
+    const _wrongToken2 = '0'.repeat(128);
 
     const start1 = performance.now();
     manager.validateToken(sessionId, wrongToken1);
@@ -221,7 +221,7 @@ describe('CSRF Security Properties', () => {
   });
 
   it('token manager can be securely shut down', () => {
-    const token = manager.generateToken('session-123');
+    manager.generateToken('session-123');
     expect(manager.getTokenCount()).toBe(1);
 
     manager.shutdown();

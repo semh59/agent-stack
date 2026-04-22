@@ -7,7 +7,7 @@
  * 3. Token alÄ±ndÄ± â†’ Agent Handoff â†’ Otonom Ã§alÄ±ÅŸma
  */
 
-import { AuthServer, type AuthServerOptions } from "./auth-server";
+import { AuthServer } from "./auth-server";
 import { launchOAuthBrowser } from "./browser-launcher";
 import { TokenStore } from "./token-store";
 import { performHandoff, type HandoffOptions, type HandoffResult } from "./agent-handoff";

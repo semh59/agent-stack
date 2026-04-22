@@ -1,5 +1,6 @@
-﻿import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
 import pkg from 'node-machine-id';
+import os from 'node:os';
 const { machineIdSync } = pkg;
 
 export interface KeyMeta {
@@ -38,7 +39,7 @@ export class KeyManager {
     try {
       return machineIdSync(true);
     } catch {
-      return `fallback-${require('node:os').hostname()}-${process.pid}`;
+      return `fallback-${os.hostname()}-${process.pid}`;
     }
   }
 
@@ -77,7 +78,6 @@ export class KeyManager {
     const payload = Buffer.from(encrypted.payload, 'base64');
 
     const decipher = createDecipheriv('aes-256-gcm', this.masterKey, iv, {
-      // @ts-ignore
       authTagLength: 16
     });
     decipher.setAuthTag(tag);
@@ -152,7 +152,6 @@ export class KeyManager {
     const payload = Buffer.from(bundle.payload, 'base64');
 
     const key = scryptSync(passphrase, salt, 32);
-    // @ts-ignore - explicitly set authTagLength to 16 bytes (128 bits) to avoid deprecation warning
     const decipher = createDecipheriv('aes-256-gcm', key, iv, { authTagLength: 16 });
     decipher.setAuthTag(tag);
 

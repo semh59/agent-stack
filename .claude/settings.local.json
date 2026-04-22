@@ -1,5 +1,9 @@
 {
+  "enabledMcpjsonServers": [
+    "ai-stack"
+  ],
   "disabledMcpjsonServers": [
     "bridge"
-  ]
+  ],
+  "enableAllProjectMcpServers": true
 }

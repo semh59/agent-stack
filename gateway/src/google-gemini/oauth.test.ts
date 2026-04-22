@@ -209,7 +209,7 @@ describe('OAuth Token Exchange', () => {
       if (typeof url === 'string' && url.includes('oauth2.googleapis.com/token')) {
         // Verify verifier is sent in POST body
         const body = options?.body as URLSearchParams;
-        const verifier = body?.get('code_verifier');
+        const _verifier = body?.get('code_verifier');
 
         return Promise.resolve(new Response(JSON.stringify({
           access_token: 'test-access-token',
@@ -341,7 +341,7 @@ describe('Security Properties', () => {
   });
 
   it('prevents PKCE interception attacks', async () => {
-    const { state, challenge } = pkceStateManager.generateState();
+    const { state, challenge: _challenge } = pkceStateManager.generateState();
 
     // Even if attacker intercepts state, they can't derive verifier
     const stateData = pkceStateManager.validateAndConsumeState(state);

@@ -1,5 +1,5 @@
 ﻿import type { AgentDefinition } from './agents';
-import type { TerminalExecutor, CommandResult } from './terminal-executor';
+import type { TerminalExecutor } from './terminal-executor';
 
 /**
  * Result of verifying a single command.

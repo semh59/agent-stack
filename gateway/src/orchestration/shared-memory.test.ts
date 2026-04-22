@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SharedMemory, type PipelineState } from './shared-memory';
+import { SharedMemory } from './shared-memory';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';

@@ -1,5 +1,4 @@
-﻿import { generatePKCE } from "@openauthjs/openauth/pkce";
-import { randomBytes, createHash } from "node:crypto";
+﻿import { randomBytes, createHash } from "node:crypto";
 
 import {
   ALLOY_CLIENT_ID,
@@ -15,11 +14,6 @@ import { createLogger } from "../plugin/logger";
 import { calculateTokenExpiry } from "../plugin/auth";
 
 const log = createLogger("oauth");
-
-interface PkcePair {
-  challenge: string;
-  verifier: string;
-}
 
 interface PKCESession {
   state: string;
@@ -198,30 +192,6 @@ interface AlloyTokenResponse {
 
 interface AlloyUserInfo {
   email?: string;
-}
-
-/**
- * Encode an object into a URL-safe base64 string.
- */
-function encodeState(payload: AlloyAuthState): string {
-  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-}
-
-/**
- * Decode an OAuth state parameter back into its structured representation.
- */
-function decodeState(state: string): AlloyAuthState {
-  const normalized = state.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized.padEnd(normalized.length + ((4 - normalized.length % 4) % 4), "=");
-  const json = Buffer.from(padded, "base64").toString("utf8");
-  const parsed = JSON.parse(json);
-  if (typeof parsed.verifier !== "string") {
-    throw new Error("Missing PKCE verifier in state");
-  }
-  return {
-    verifier: parsed.verifier,
-    projectId: typeof parsed.projectId === "string" ? parsed.projectId : "",
-  };
 }
 
 /**

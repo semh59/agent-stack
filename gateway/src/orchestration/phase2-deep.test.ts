@@ -9,7 +9,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 
 describe("Phase 2 Deep Tests", () => {
-  let projectRoot = process.cwd();
+  const projectRoot = process.cwd();
 
   describe("ArchitectGate Bypass", () => {
     it("should bypass LLM check and not call fetch when touchedFiles is empty", async () => {

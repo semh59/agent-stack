@@ -23,7 +23,7 @@ export class CheckpointManager {
 			const now = new Date();
 			const timestamp = now.toISOString().replace(/[:.]/g, '-');
 			const id = `checkpoint_${timestamp}`;
-			const safeLabel = label.replace(/[^a-zA-Z0-9_\-]/g, '_');
+			const safeLabel = label.replace(/[^a-zA-Z0-9_-]/g, '_');
 			try {
 				// Check if git is initialized
 				const gitCheck = await this.terminal.run('git rev-parse --is-inside-work-tree');

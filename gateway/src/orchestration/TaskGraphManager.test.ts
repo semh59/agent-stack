@@ -73,7 +73,7 @@ describe("TaskGraphManager", () => {
   describe("setTaskStatus", () => {
     it("changes status and updates timestamp", () => {
       const graph = mgr.createDefaultGraph(3);
-      const before = graph[0]!.updatedAt;
+      const _before = graph[0]!.updatedAt;
       // Small delay to ensure timestamp changes
       mgr.setTaskStatus(graph, "analysis", "in_progress");
       expect(graph[0]!.status).toBe("in_progress");

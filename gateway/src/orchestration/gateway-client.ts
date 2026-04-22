@@ -1,10 +1,9 @@
-﻿import { type HeaderStyle } from "../constants";
-import { type AlloyGatewayConfig } from "../plugin/config";
-import { type ModelFamily, AccountManager } from "../plugin/accounts";
+﻿import { type AlloyGatewayConfig } from "../plugin/config";
+import { AccountManager } from "../plugin/accounts";
 import { formatRefreshParts } from "../plugin/auth";
 import type { OAuthAuthDetails } from "../plugin/types";
 import { AlloyAPI } from "./gateway-api";
-import { toUrlString, extractModelFromUrl, getModelFamilyFromUrl, log } from "./gateway-utils";
+import { log } from "./gateway-utils";
 import { prepareAlloyRequest } from "../plugin/request";
 
 export class AlloyGatewayClient {

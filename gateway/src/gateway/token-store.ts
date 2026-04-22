@@ -16,9 +16,6 @@ import {
   ALLOY_CLIENT_SECRET,
   GEMINI_CLI_HEADERS,
 } from "../constants";
-import { createCipheriv, createDecipheriv, scryptSync, randomBytes } from "node:crypto";
-import pkg from "node-machine-id";
-const { machineIdSync } = pkg;
 import { KeyManager, type EncryptedPayload } from "../plugin/key-manager";
 
 // Cache for account lookups to ensure O(1) efficiency in high-frequency rotation
@@ -137,7 +134,6 @@ export class TokenStore {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    const json = JSON.stringify(this.data, null, 2);
     const encrypted = keyManager.encrypt(this.data);
     fs.writeFileSync(this.storePath, JSON.stringify(encrypted, null, 2), "utf-8");
   }

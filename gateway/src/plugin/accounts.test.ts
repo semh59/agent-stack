@@ -1,6 +1,6 @@
 ﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AccountManager, type ModelFamily, type HeaderStyle, parseRateLimitReason, calculateBackoffMs, type RateLimitReason, resolveQuotaGroup } from "./accounts";
+import { AccountManager, type ModelFamily, parseRateLimitReason, calculateBackoffMs, resolveQuotaGroup } from "./accounts";
 import type { AccountStorageV3 } from "./storage";
 import type { OAuthAuthDetails } from "./types";
 

@@ -245,7 +245,7 @@ describe('IntentTransformer - Thread-Safe Initialization', () => {
 
       // After reset, next init should reload
       const { pipeline } = await import('@xenova/transformers');
-      const beforeResetCallCount = (pipeline as any).mock.calls.length;
+      const _beforeResetCallCount = (pipeline as any).mock.calls.length;
 
       // Clear mock to count new calls
       (pipeline as any).mockClear();

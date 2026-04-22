@@ -108,13 +108,13 @@ export class SessionPersistenceManager {
           try {
             const raw = await fs.readFile(sessionFile, "utf-8");
             sessions.push(JSON.parse(raw));
-          } catch (e) {
+          } catch {
             // Skip invalid or non-existent session files
           }
         }
       }
       return sessions;
-    } catch (err) {
+    } catch {
       return [];
     }
   }

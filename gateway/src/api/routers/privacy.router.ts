@@ -31,17 +31,31 @@ export function registerPrivacyRoutes(app: FastifyInstance, dependencies: Privac
     // For Phase 13 Hardening, we'll simulate a heartbeat that checks for new logs.
     let lastLength = history.length;
     const interval = setInterval(() => {
-      const current = ledger.getFullAuditTrail();
-      if (current.length > lastLength) {
-        const newLogs = current.slice(lastLength);
-        reply.raw.write(`data: ${JSON.stringify({ type: 'UPDATE', logs: newLogs })}\n\n`);
-        lastLength = current.length;
-      } else {
-        reply.raw.write(`data: ${JSON.stringify({ type: 'HEARTBEAT', timestamp: new Date().toISOString() })}\n\n`);
+      try {
+        const current = ledger.getFullAuditTrail();
+        if (current.length > lastLength) {
+          const newLogs = current.slice(lastLength);
+          reply.raw.write(`data: ${JSON.stringify({ type: 'UPDATE', logs: newLogs })}\n\n`);
+          lastLength = current.length;
+        } else {
+          reply.raw.write(`data: ${JSON.stringify({ type: 'HEARTBEAT', timestamp: new Date().toISOString() })}\n\n`);
+        }
+      } catch (err) {
+        app.log.error(err, "Privacy stream write error");
+        clearInterval(interval);
       }
     }, 2000);
 
+    // Safeguard for long-running streams: limit history window
+    // const MAX_STREAM_BACKLOG = 500;
+    
     request.raw.on("close", () => {
+      clearInterval(interval);
+      app.log.info("Privacy telemetry stream closed by client");
+    });
+
+    request.raw.on("error", (err) => {
+      app.log.error(err, "Privacy telemetry stream error");
       clearInterval(interval);
     });
   });

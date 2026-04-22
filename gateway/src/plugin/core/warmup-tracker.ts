@@ -1,8 +1,4 @@
-﻿import { createLogger } from "../logger";
-
-const log = createLogger("warmup");
-
-/**
+﻿/**
  * Warmup Session Tracking
  * 
  * Prevents redundant warmup attempts for the same session ID

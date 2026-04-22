@@ -113,3 +113,70 @@ export interface ProjectContextResult {
   effectiveProjectId: string;
 }
 
+export interface MessagePart extends Record<string, unknown> {
+  text?: string;
+  inlineData?: {
+    mimeType: string;
+    data: string;
+  };
+  fileData?: {
+    mimeType: string;
+    fileUri: string;
+  };
+  functionCall?: {
+    name: string;
+    args: Record<string, unknown>;
+    id?: string;
+    [key: string]: unknown;
+  };
+  functionResponse?: {
+    name: string;
+    response: Record<string, unknown>;
+    id?: string;
+    [key: string]: unknown;
+  };
+  thought?: boolean;
+}
+
+export interface MessageContent {
+  [key: string]: unknown;
+  role?: string;
+  parts: MessagePart[];
+}
+
+export interface AlloyTool extends Record<string, unknown> {
+  name?: string;
+  description?: string;
+  parameters?: Record<string, unknown>;
+  parametersJsonSchema?: Record<string, unknown>;
+  input_schema?: Record<string, unknown>;
+  inputSchema?: Record<string, unknown>;
+  function?: {
+    name?: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+    parametersJsonSchema?: Record<string, unknown>;
+    input_schema?: Record<string, unknown>;
+    inputSchema?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  functionDeclarations?: AlloyTool[];
+  [key: string]: unknown;
+}
+
+export interface AlloyRequestRoot extends Record<string, unknown> {
+  request?: AlloyRequestRoot;
+  sessionId?: string;
+  contents?: MessageContent[];
+  messages?: MessageContent[];
+  tools?: AlloyTool[];
+  generationConfig?: Record<string, unknown>;
+  extra_body?: Record<string, unknown>;
+  project?: string;
+  providerOptions?: Record<string, unknown>;
+  toolConfig?: Record<string, unknown>;
+  safetySettings?: Record<string, unknown>[];
+  systemInstruction?: string | Record<string, unknown>;
+  cachedContent?: string;
+  cached_content?: string;
+}

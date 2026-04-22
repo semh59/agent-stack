@@ -6,6 +6,7 @@ import {
 } from "../constants";
 import { processImageData } from "./image-saver";
 import type { GoogleSearchConfig } from "./transform/types";
+import type { MessageContent, MessagePart, AlloyTool, AlloyRequestRoot } from "./types";
 
 const log = createLogger("request-helpers");
 
@@ -230,12 +231,13 @@ function isToolBlock(part: Record<string, unknown>): boolean {
  * Used for Claude models to avoid signature validation errors entirely.
  * Claude will generate fresh thinking for each turn.
  */
-function stripAllThinkingBlocks(contentArray: any[]): any[] {
+export function stripAllThinkingBlocks(contentArray: MessagePart[]): MessagePart[] {
   return contentArray.filter(item => {
     if (!item || typeof item !== "object") return true;
-    if (isToolBlock(item)) return true;
-    if (isThinkingPart(item)) return false;
-    if (hasSignatureField(item)) return false;
+    const block = item as Record<string, unknown>;
+    if (isToolBlock(block)) return true;
+    if (isThinkingPart(block)) return false;
+    if (hasSignatureField(block)) return false;
     return true;
   });
 }
@@ -246,17 +248,23 @@ function stripAllThinkingBlocks(contentArray: any[]): any[] {
  * Only removes unsigned thinking blocks; preserves those with valid signatures.
  */
 function removeTrailingThinkingBlocks(
-  contentArray: any[],
+  contentArray: MessagePart[],
   sessionId?: string,
   getCachedSignatureFn?: (sessionId: string, text: string) => string | undefined,
-): any[] {
+): MessagePart[] {
   const result = [...contentArray];
 
-  while (result.length > 0 && isThinkingPart(result[result.length - 1])) {
-    const part = result[result.length - 1];
+  while (result.length > 0) {
+    const lastPart = result[result.length - 1];
+    if (!lastPart || typeof lastPart !== "object") break;
+    const block = lastPart as Record<string, unknown>;
+    
+    if (!isThinkingPart(block)) break;
+
     const isValid = sessionId && getCachedSignatureFn
-      ? isOurCachedSignature(part as Record<string, unknown>, sessionId, getCachedSignatureFn)
-      : hasValidSignature(part as Record<string, unknown>);
+      ? isOurCachedSignature(block, sessionId, getCachedSignatureFn)
+      : hasValidSignature(block);
+      
     if (isValid) {
       break;
     }
@@ -319,12 +327,12 @@ function getThinkingText(part: Record<string, unknown>): string {
   if (typeof part.thinking === "string") return part.thinking;
 
   if (part.text && typeof part.text === "object") {
-    const maybeText = (part.text as any).text;
+    const maybeText = (part.text as Record<string, unknown>).text;
     if (typeof maybeText === "string") return maybeText;
   }
 
   if (part.thinking && typeof part.thinking === "object") {
-    const maybeText = (part.thinking as any).text ?? (part.thinking as any).thinking;
+    const maybeText = (part.thinking as Record<string, unknown>).text ?? (part.thinking as Record<string, unknown>).thinking;
     if (typeof maybeText === "string") return maybeText;
   }
 
@@ -358,7 +366,7 @@ function sanitizeThinkingPart(part: Record<string, unknown>): Record<string, unk
   if (part.thought === true) {
     let textContent: unknown = part.text;
     if (typeof textContent === "object" && textContent !== null) {
-      const maybeText = (textContent as any).text;
+      const maybeText = (textContent as Record<string, unknown>).text;
       textContent = typeof maybeText === "string" ? maybeText : undefined;
     }
 
@@ -377,7 +385,7 @@ function sanitizeThinkingPart(part: Record<string, unknown>): Record<string, unk
   if (part.type === "thinking" || part.type === "redacted_thinking" || part.thinking !== undefined) {
     let thinkingContent: unknown = part.thinking ?? part.text;
     if (thinkingContent !== undefined && typeof thinkingContent === "object" && thinkingContent !== null) {
-      const maybeText = (thinkingContent as any).text ?? (thinkingContent as any).thinking;
+      const maybeText = (thinkingContent as Record<string, unknown>).text ?? (thinkingContent as Record<string, unknown>).thinking;
       thinkingContent = typeof maybeText === "string" ? maybeText : undefined;
     }
 
@@ -396,7 +404,7 @@ function sanitizeThinkingPart(part: Record<string, unknown>): Record<string, unk
   if (part.type === "reasoning") {
     let textContent: unknown = part.text;
     if (typeof textContent === "object" && textContent !== null) {
-      const maybeText = (textContent as any).text;
+      const maybeText = (textContent as Record<string, unknown>).text;
       textContent = typeof maybeText === "string" ? maybeText : undefined;
     }
 
@@ -415,7 +423,7 @@ function sanitizeThinkingPart(part: Record<string, unknown>): Record<string, unk
   return stripCacheControlRecursively(part) as Record<string, unknown>;
 }
 
-function findLastAssistantIndex(contents: any[], roleValue: "model" | "assistant"): number {
+function findLastAssistantIndex(contents: MessageContent[], roleValue: string): number {
   for (let i = contents.length - 1; i >= 0; i--) {
     const content = contents[i];
     if (content && typeof content === "object" && content.role === roleValue) {
@@ -426,19 +434,19 @@ function findLastAssistantIndex(contents: any[], roleValue: "model" | "assistant
 }
 
 function filterContentArray(
-  contentArray: any[],
+  contentArray: MessagePart[],
   sessionId?: string,
   getCachedSignatureFn?: (sessionId: string, text: string) => string | undefined,
   isClaudeModel?: boolean,
   isLastAssistantMessage: boolean = false,
-): any[] {
+): MessagePart[] {
   // For Claude models, strip thinking blocks by default for reliability
   // User can opt-in to keep thinking via config: { "keep_thinking": true }
   if (isClaudeModel && !getKeepThinking()) {
     return stripAllThinkingBlocks(contentArray);
   }
 
-  const filtered: any[] = [];
+  const filtered: MessagePart[] = [];
 
   for (const item of contentArray) {
     if (!item || typeof item !== "object") {
@@ -446,13 +454,15 @@ function filterContentArray(
       continue;
     }
 
-    if (isToolBlock(item)) {
+    const block = item as Record<string, unknown>;
+
+    if (isToolBlock(block)) {
       filtered.push(item);
       continue;
     }
 
-    const isThinking = isThinkingPart(item);
-    const hasSignature = hasSignatureField(item);
+    const isThinking = isThinkingPart(block);
+    const hasSignature = hasSignatureField(block);
 
     if (!isThinking && !hasSignature) {
       filtered.push(item);
@@ -462,49 +472,45 @@ function filterContentArray(
     // For the LAST assistant message with thinking blocks:
     // - If signature is OUR cached signature, pass through unchanged
     // - Otherwise inject sentinel to bypass Alloy validation
-    // NOTE: We can't trust signatures just because they're >= 50 chars - Claude returns
-    // its own signatures which are long but invalid for Alloy.
     if (isLastAssistantMessage && (isThinking || hasSignature)) {
       // First check if it's our cached signature
-      if (isOurCachedSignature(item, sessionId, getCachedSignatureFn)) {
-        const sanitized = sanitizeThinkingPart(item);
-        if (sanitized) filtered.push(sanitized);
+      if (isOurCachedSignature(block, sessionId, getCachedSignatureFn)) {
+        const sanitized = sanitizeThinkingPart(block);
+        if (sanitized) filtered.push(sanitized as MessagePart);
         continue;
       }
       
       // Not our signature (or no signature) - inject sentinel
-      const thinkingText = getThinkingText(item) || "";
-      const existingSignature = item.signature || item.thoughtSignature;
-      const signatureInfo = existingSignature ? `foreign signature (${String(existingSignature).length} chars)` : "no signature";
-      log.debug(`Injecting sentinel for last-message thinking block with ${signatureInfo}`);
+      const thinkingText = getThinkingText(block) || "";
+      log.debug(`Injecting sentinel for last-message thinking block`);
       const sentinelPart = {
-        type: item.type || "thinking",
+        type: block.type || "thinking",
         thinking: thinkingText,
         signature: SKIP_THOUGHT_SIGNATURE,
       };
-      filtered.push(sentinelPart);
+      filtered.push(sentinelPart as MessagePart);
       continue;
     }
 
-    if (isOurCachedSignature(item, sessionId, getCachedSignatureFn)) {
-      const sanitized = sanitizeThinkingPart(item);
-      if (sanitized) filtered.push(sanitized);
+    if (isOurCachedSignature(block, sessionId, getCachedSignatureFn)) {
+      const sanitized = sanitizeThinkingPart(block);
+      if (sanitized) filtered.push(sanitized as MessagePart);
       continue;
     }
 
     if (sessionId && getCachedSignatureFn) {
-      const text = getThinkingText(item);
+      const text = getThinkingText(block);
       if (text) {
         const cachedSignature = getCachedSignatureFn(sessionId, text);
         if (cachedSignature && cachedSignature.length >= 50) {
-          const restoredPart = { ...item };
-          if ((item as any).thought === true) {
-            (restoredPart as any).thoughtSignature = cachedSignature;
+          const restoredPart = { ...block };
+          if (block.thought === true) {
+            restoredPart.thoughtSignature = cachedSignature;
           } else {
-            (restoredPart as any).signature = cachedSignature;
+            restoredPart.signature = cachedSignature;
           }
-          const sanitized = sanitizeThinkingPart(restoredPart as Record<string, unknown>);
-          if (sanitized) filtered.push(sanitized);
+          const sanitized = sanitizeThinkingPart(restoredPart);
+          if (sanitized) filtered.push(sanitized as MessagePart);
           continue;
         }
       }
@@ -523,43 +529,43 @@ function filterContentArray(
  * @param getCachedSignatureFn - Optional function to retrieve cached signatures
  */
 export function filterUnsignedThinkingBlocks(
-  contents: any[],
+  contents: MessageContent[],
   sessionId?: string,
   getCachedSignatureFn?: (sessionId: string, text: string) => string | undefined,
   isClaudeModel?: boolean,
-): any[] {
+): MessageContent[] {
   const lastAssistantIdx = findLastAssistantIndex(contents, "model");
 
-  return contents.map((content: any, idx: number) => {
+  return contents.map((content, idx) => {
     if (!content || typeof content !== "object") {
       return content;
     }
 
     const isLastAssistant = idx === lastAssistantIdx;
 
-    if (Array.isArray((content as any).parts)) {
+    if (Array.isArray(content.parts)) {
       const filteredParts = filterContentArray(
-        (content as any).parts,
+        content.parts,
         sessionId,
         getCachedSignatureFn,
         isClaudeModel,
         isLastAssistant,
       );
 
-      const trimmedParts = (content as any).role === "model" && !isClaudeModel
+      const trimmedParts = content.role === "model" && !isClaudeModel
         ? removeTrailingThinkingBlocks(filteredParts, sessionId, getCachedSignatureFn)
         : filteredParts;
 
       return { ...content, parts: trimmedParts };
     }
 
-    if (Array.isArray((content as any).content)) {
-      const isAssistantRole = (content as any).role === "assistant";
+    if (Array.isArray(content.content)) {
+      const isAssistantRole = content.role === "assistant";
       const isLastAssistantContent = idx === lastAssistantIdx || 
         (isAssistantRole && idx === findLastAssistantIndex(contents, "assistant"));
       
       const filteredContent = filterContentArray(
-        (content as any).content,
+        content.content as MessagePart[],
         sessionId,
         getCachedSignatureFn,
         isClaudeModel,
@@ -581,24 +587,24 @@ export function filterUnsignedThinkingBlocks(
  * Filters thinking blocks from Anthropic-style messages[] payloads using cached signatures.
  */
 export function filterMessagesThinkingBlocks(
-  messages: any[],
+  messages: MessageContent[],
   sessionId?: string,
   getCachedSignatureFn?: (sessionId: string, text: string) => string | undefined,
   isClaudeModel?: boolean,
-): any[] {
+): MessageContent[] {
   const lastAssistantIdx = findLastAssistantIndex(messages, "assistant");
 
-  return messages.map((message: any, idx: number) => {
+  return messages.map((message, idx) => {
     if (!message || typeof message !== "object") {
       return message;
     }
 
-    if (Array.isArray((message as any).content)) {
-      const isAssistantRole = (message as any).role === "assistant";
+    if (Array.isArray(message.content)) {
+      const isAssistantRole = message.role === "assistant";
       const isLastAssistant = isAssistantRole && idx === lastAssistantIdx;
       
       const filteredContent = filterContentArray(
-        (message as any).content,
+        message.content as MessagePart[],
         sessionId,
         getCachedSignatureFn,
         isClaudeModel,
@@ -644,7 +650,7 @@ export function deepFilterThinkingBlocks(
 
     if (Array.isArray(obj.contents)) {
       obj.contents = filterUnsignedThinkingBlocks(
-        obj.contents as any[],
+        obj.contents as MessageContent[],
         sessionId,
         getCachedSignatureFn,
         isClaudeModel,
@@ -653,7 +659,7 @@ export function deepFilterThinkingBlocks(
 
     if (Array.isArray(obj.messages)) {
       obj.messages = filterMessagesThinkingBlocks(
-        obj.messages as any[],
+        obj.messages as MessageContent[],
         sessionId,
         getCachedSignatureFn,
         isClaudeModel,
@@ -674,7 +680,7 @@ export function deepFilterThinkingBlocks(
  * thinking blocks but are hidden within text parts. This prevents deceptive
  * thinking injection attacks.
  */
-export function detectShadowThinkingBlocks(payload: any): any {
+export function detectShadowThinkingBlocks(payload: unknown): unknown {
   const visited = new WeakSet<object>();
 
   const walk = (value: unknown): void => {
@@ -690,7 +696,7 @@ export function detectShadowThinkingBlocks(payload: any): any {
           // Detect "Shadow" thinking block strings
           if (isShadowThinkingString(item)) {
             log.warn("Shadow thinking block detected and neutralized in array.");
-            (value as any)[idx] = "[REDACTED: SHADOW BLOCK]";
+            (value as Record<string, unknown>[])[idx] = "[REDACTED: SHADOW BLOCK]" as any;
           }
         }
       });
@@ -747,25 +753,26 @@ function isShadowThinkingString(text: string): boolean {
  * thinking parts (type: "thinking") to reasoning format.
  * Claude responses through Alloy may use candidates structure with Anthropic-style parts.
  */
-function transformGeminiCandidate(candidate: any): any {
+function transformGeminiCandidate(candidate: Record<string, unknown>): Record<string, unknown> {
   if (!candidate || typeof candidate !== "object") {
     return candidate;
   }
 
-  const content = candidate.content;
+  const content = candidate.content as Record<string, unknown> | undefined;
   if (!content || typeof content !== "object" || !Array.isArray(content.parts)) {
     return candidate;
   }
 
   const thinkingTexts: string[] = [];
-  const transformedParts = content.parts.map((part: any) => {
-    if (!part || typeof part !== "object") {
-      return part;
+  const transformedParts = content.parts.map((item: unknown) => {
+    if (!item || typeof item !== "object") {
+      return item;
     }
+    const part = item as Record<string, unknown>;
 
     // Handle Gemini-style: thought: true
     if (part.thought === true) {
-      const thinkingText = part.text || "";
+      const thinkingText = (part.text as string) || "";
       thinkingTexts.push(thinkingText);
       const transformed: Record<string, unknown> = { ...part, type: "reasoning" };
       if (part.cache_control) transformed.cache_control = part.cache_control;
@@ -776,8 +783,8 @@ function transformGeminiCandidate(candidate: any): any {
         transformed.providerMetadata = {
           anthropic: { signature: sig }
         };
-        delete (transformed as any).signature;
-        delete (transformed as any).thoughtSignature;
+        delete transformed.signature;
+        delete transformed.thoughtSignature;
       }
 
       return transformed;
@@ -785,7 +792,7 @@ function transformGeminiCandidate(candidate: any): any {
 
     // Handle Anthropic-style in candidates: type: "thinking"
     if (part.type === "thinking") {
-      const thinkingText = part.thinking || part.text || "";
+      const thinkingText = (part.thinking as string) || (part.text as string) || "";
       thinkingTexts.push(thinkingText);
       const transformed: Record<string, unknown> = {
         ...part,
@@ -801,25 +808,23 @@ function transformGeminiCandidate(candidate: any): any {
         transformed.providerMetadata = {
           anthropic: { signature: sig }
         };
-        delete (transformed as any).signature;
-        delete (transformed as any).thoughtSignature;
+        delete transformed.signature;
+        delete transformed.thoughtSignature;
       }
 
       return transformed;
     }
 
     // Handle functionCall: parse JSON strings in args and ensure args is always defined
-    // (Ported from LLM-API-Key-Proxy's _extract_tool_call)
-    // Fix: When Claude calls a tool with no parameters, args may be undefined.
-    // opencode expects state.input to be a record, so we must ensure args: {} as fallback.
     if (part.functionCall) {
-      const parsedArgs = part.functionCall.args
-        ? recursivelyParseJsonStrings(part.functionCall.args)
+      const fc = part.functionCall as Record<string, unknown>;
+      const parsedArgs = fc.args
+        ? recursivelyParseJsonStrings(fc.args)
         : {};
       return {
         ...part,
         functionCall: {
-          ...part.functionCall,
+          ...fc,
           args: parsedArgs,
         },
       };
@@ -827,9 +832,10 @@ function transformGeminiCandidate(candidate: any): any {
 
     // Handle image data (inlineData) - save to disk and return file path
     if (part.inlineData) {
+      const id = part.inlineData as { mimeType: string, data: string };
       const result = processImageData({
-        mimeType: part.inlineData.mimeType,
-        data: part.inlineData.data,
+        mimeType: id.mimeType,
+        data: id.data,
       });
       if (result) {
         return { text: result };
@@ -862,10 +868,11 @@ export function transformThinkingParts(response: unknown): unknown {
 
   // Handle Anthropic-style content array (type: "thinking")
   if (Array.isArray(resp.content)) {
-    const transformedContent: any[] = [];
-    for (const block of resp.content) {
-      if (block && typeof block === "object" && (block as any).type === "thinking") {
-        const thinkingText = (block as any).thinking || (block as any).text || "";
+    const transformedContent: unknown[] = [];
+    for (const item of resp.content) {
+      if (item && typeof item === "object" && (item as Record<string, unknown>).type === "thinking") {
+        const block = item as Record<string, unknown>;
+        const thinkingText = (block.thinking as string) || (block.text as string) || "";
         reasoningTexts.push(thinkingText);
         const transformed: Record<string, unknown> = {
           ...block,
@@ -875,18 +882,18 @@ export function transformThinkingParts(response: unknown): unknown {
         };
 
         // Convert signature to providerMetadata format for OpenCode
-        const sig = (block as any).signature || (block as any).thoughtSignature;
+        const sig = block.signature || block.thoughtSignature;
         if (sig) {
           transformed.providerMetadata = {
             anthropic: { signature: sig }
           };
-          delete (transformed as any).signature;
-          delete (transformed as any).thoughtSignature;
+          delete transformed.signature;
+          delete transformed.thoughtSignature;
         }
 
         transformedContent.push(transformed);
       } else {
-        transformedContent.push(block);
+        transformedContent.push(item);
       }
     }
     result.content = transformedContent;
@@ -894,7 +901,7 @@ export function transformThinkingParts(response: unknown): unknown {
 
   // Handle Gemini-style candidates array
   if (Array.isArray(resp.candidates)) {
-    result.candidates = resp.candidates.map(transformGeminiCandidate);
+    result.candidates = resp.candidates.map(c => transformGeminiCandidate(c as Record<string, unknown>));
   }
 
   // Add reasoning_content if we found any thinking blocks (for Anthropic-style)
@@ -958,7 +965,6 @@ export function parseAlloyApiBody(rawText: string): AlloyApiBody | null {
         rawText: rawText.slice(0, 500),
       });
       // Fallback: return raw object if it has either 'response' or 'error' keys
-      // to avoid breaking legacy paths that might be looser than our schema.
       if ('response' in target || 'error' in target) {
         return target as AlloyApiBody;
       }
@@ -976,7 +982,7 @@ export function parseAlloyApiBody(rawText: string): AlloyApiBody | null {
  */
 export function extractUsageMetadata(body: AlloyApiBody): AlloyUsageMetadata | null {
   const usage = (body.response && typeof body.response === "object"
-    ? (body.response as { usageMetadata?: unknown }).usageMetadata
+    ? (body.response as Record<string, unknown>).usageMetadata
     : undefined) as AlloyUsageMetadata | undefined;
 
   if (!usage || typeof usage !== "object") {
@@ -1074,24 +1080,11 @@ function isAlloyModel(target?: string): boolean {
     return false;
   }
 
-  // Check for Alloy models instead of Gemini 3
   return /alloy/i.test(target) || /opus/i.test(target) || /claude/i.test(target);
 }
 
-// ============================================================================
-// EMPTY RESPONSE DETECTION (Ported from LLM-API-Key-Proxy)
-// ============================================================================
-
 /**
  * Checks if a JSON response body represents an empty response.
- * 
- * Empty responses occur when:
- * - No candidates in Gemini format
- * - No choices in OpenAI format
- * - Candidates/choices exist but have no content
- * 
- * @param text - The response body text (should be valid JSON)
- * @returns true if the response is empty
  */
 export function isEmptyResponseBody(text: string): boolean {
   if (!text || !text.trim()) {
@@ -1101,20 +1094,18 @@ export function isEmptyResponseBody(text: string): boolean {
   try {
     const parsed = JSON.parse(text);
     
-    // Check for empty candidates (Gemini/Alloy format)
+    // Check for empty candidates
     if (parsed.candidates !== undefined) {
       if (!Array.isArray(parsed.candidates) || parsed.candidates.length === 0) {
         return true;
       }
       
-      // Check if first candidate has empty content
-      const firstCandidate = parsed.candidates[0];
+      const firstCandidate = parsed.candidates[0] as Record<string, unknown> | undefined;
       if (!firstCandidate) {
         return true;
       }
       
-      // Check for empty parts in content
-      const content = firstCandidate.content;
+      const content = firstCandidate.content as Record<string, unknown> | undefined;
       if (!content || typeof content !== "object") {
         return true;
       }
@@ -1124,9 +1115,9 @@ export function isEmptyResponseBody(text: string): boolean {
         return true;
       }
       
-      // Check if all parts are empty (no text, no functionCall)
-      const hasContent = parts.some((part: any) => {
-        if (!part || typeof part !== "object") return false;
+      const hasContent = parts.some((item: unknown) => {
+        if (!item || typeof item !== "object") return false;
+        const part = item as Record<string, unknown>;
         if (typeof part.text === "string" && part.text.length > 0) return true;
         if (part.functionCall) return true;
         if (part.thought === true && typeof part.text === "string") return true;
@@ -1138,74 +1129,47 @@ export function isEmptyResponseBody(text: string): boolean {
       }
     }
     
-    // Check for empty choices (OpenAI format - shouldn't occur but handle it)
+    // Check for empty choices (OpenAI format)
     if (parsed.choices !== undefined) {
       if (!Array.isArray(parsed.choices) || parsed.choices.length === 0) {
         return true;
       }
       
-      const firstChoice = parsed.choices[0];
+      const firstChoice = parsed.choices[0] as Record<string, unknown> | undefined;
       if (!firstChoice) {
         return true;
       }
       
-      // Check for empty message/delta
-      const message = firstChoice.message || firstChoice.delta;
+      const message = (firstChoice.message || firstChoice.delta) as Record<string, unknown> | undefined;
       if (!message) {
         return true;
       }
       
-      // Check if message has content or tool_calls
       if (!message.content && !message.tool_calls && !message.reasoning_content) {
         return true;
       }
     }
     
-    // Check response wrapper (Alloy envelope)
+    // Check response wrapper
     if (parsed.response !== undefined) {
       const response = parsed.response;
-      if (!response || typeof response !== "object") {
+      if (!response || typeof response !== "object" || visitedInEmptyCheck.has(response)) {
         return true;
       }
+      visitedInEmptyCheck.add(response);
       return isEmptyResponseBody(JSON.stringify(response));
     }
     
     return false;
   } catch {
-    // JSON parse error - treat as empty
     return true;
   }
 }
 
-/**
- * Checks if a streaming SSE response yielded zero meaningful chunks.
- * 
- * This is used after consuming a streaming response to determine if retry is needed.
- */
-export interface StreamingChunkCounter {
-  increment: () => void;
-  getCount: () => number;
-  hasContent: () => boolean;
-}
-
-export function createStreamingChunkCounter(): StreamingChunkCounter {
-  let count = 0;
-  const hasRealContent = false;
-
-  return {
-    increment: () => {
-      count++;
-    },
-    getCount: () => count,
-    hasContent: () => hasRealContent || count > 0,
-  };
-}
+const visitedInEmptyCheck = new WeakSet<object>();
 
 /**
  * Checks if an SSE line contains meaningful content.
- * 
- * @param line - A single SSE line (e.g., "data: {...}")
- * @returns true if the line contains content worth counting
  */
 export function isMeaningfulSseLine(line: string): boolean {
   if (!line.startsWith("data: ")) {
@@ -1225,12 +1189,12 @@ export function isMeaningfulSseLine(line: string): boolean {
   try {
     const parsed = JSON.parse(data);
     
-    // Check for candidates with content
     if (parsed.candidates && Array.isArray(parsed.candidates)) {
       for (const candidate of parsed.candidates) {
         const parts = candidate?.content?.parts;
         if (Array.isArray(parts) && parts.length > 0) {
-          for (const part of parts) {
+          for (const item of parts) {
+            const part = item as Record<string, unknown>;
             if (typeof part?.text === "string" && part.text.length > 0) return true;
             if (part?.functionCall) return true;
           }
@@ -1238,7 +1202,6 @@ export function isMeaningfulSseLine(line: string): boolean {
       }
     }
     
-    // Check response wrapper
     if (parsed.response?.candidates) {
       return isMeaningfulSseLine(`data: ${JSON.stringify(parsed.response)}`);
     }
@@ -1253,49 +1216,12 @@ export function isMeaningfulSseLine(line: string): boolean {
 // RECURSIVE JSON STRING AUTO-PARSING (Ported from LLM-API-Key-Proxy)
 // ============================================================================
 
-/**
- * Recursively parses JSON strings in nested data structures.
- * 
- * This is a port of LLM-API-Key-Proxy's _recursively_parse_json_strings() function.
- * 
- * Handles:
- * - JSON-stringified values: {"files": "[{...}]"} â†’ {"files": [{...}]}
- * - Malformed double-encoded JSON (extra trailing chars)
- * - Escaped control characters (\\n â†’ \n, \\t â†’ \t)
- * 
- * This is useful because Alloy sometimes returns JSON-stringified values
- * in tool arguments, which can cause downstream parsing issues.
- * 
- * @param obj - The object to recursively parse
- * @param skipParseKeys - Set of keys whose values should NOT be parsed as JSON (preserved as strings)
- * @param currentKey - The current key being processed (internal use)
- * @returns The parsed object with JSON strings expanded
- */
-// Keys whose string values should NOT be parsed as JSON - they contain literal text content
+// Keys whose string values should NOT be parsed as JSON
 const SKIP_PARSE_KEYS = new Set([
-  "oldString",
-  "newString",
-  "content",
-  "filePath",
-  "path",
-  "text",
-  "code",
-  "source",
-  "data",
-  "body",
-  "message",
-  "prompt",
-  "input",
-  "output",
-  "result",
-  "value",
-  "query",
-  "pattern",
-  "replacement",
-  "template",
-  "script",
-  "command",
-  "snippet",
+  "oldString", "newString", "content", "filePath", "path", "text", "code",
+  "source", "data", "body", "message", "prompt", "input", "output",
+  "result", "value", "query", "pattern", "replacement", "template",
+  "script", "command", "snippet",
 ]);
 
 const MAX_RECURSIVE_DEPTH = 10;
@@ -1325,16 +1251,12 @@ function recursivelyParseJsonStringsInternal(
 
   if (Array.isArray(obj)) {
     const cached = seen.get(obj);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const result: unknown[] = [];
     seen.set(obj, result);
     for (const item of obj) {
-      result.push(
-        recursivelyParseJsonStringsInternal(item, skipParseKeys, undefined, seen, depth + 1),
-      );
+      result.push(recursivelyParseJsonStringsInternal(item, skipParseKeys, undefined, seen, depth + 1));
     }
     return result;
   }
@@ -1342,20 +1264,12 @@ function recursivelyParseJsonStringsInternal(
   if (typeof obj === "object") {
     const objectRef = obj as Record<string, unknown>;
     const cached = seen.get(objectRef);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const result: Record<string, unknown> = {};
     seen.set(objectRef, result);
     for (const [key, value] of Object.entries(objectRef)) {
-      result[key] = recursivelyParseJsonStringsInternal(
-        value,
-        skipParseKeys,
-        key,
-        seen,
-        depth + 1,
-      );
+      result[key] = recursivelyParseJsonStringsInternal(value, skipParseKeys, key, seen, depth + 1);
     }
     return result;
   }
@@ -1370,146 +1284,59 @@ function recursivelyParseJsonStringsInternal(
 
   const stripped = obj.trim();
 
-  // Check if string contains control character escape sequences
-  // that need unescaping (\\n, \\t but NOT \\" or \\\\)
-  const hasControlCharEscapes = obj.includes("\\n") || obj.includes("\\t");
-  const hasIntentionalEscapes = obj.includes('\\"') || obj.includes("\\\\");
-
-  if (hasControlCharEscapes && !hasIntentionalEscapes) {
+  // Unescape control characters if present
+  if ((obj.includes("\\n") || obj.includes("\\t")) && !obj.includes('\\"') && !obj.includes("\\\\")) {
     try {
-      // Use JSON.parse with quotes to unescape the string
       return JSON.parse(`"${obj}"`);
-    } catch {
-      // Continue with original processing
-    }
+    } catch { /* Continue */ }
   }
 
-  // Check if it looks like JSON (starts with { or [)
+  // Try parsing JSON strings
   if (stripped && (stripped[0] === "{" || stripped[0] === "[")) {
-    // Try standard parsing first
-    if (
-      (stripped.startsWith("{") && stripped.endsWith("}")) ||
-      (stripped.startsWith("[") && stripped.endsWith("]"))
-    ) {
-      try {
-        const parsed = JSON.parse(obj);
-        if (parsed === obj) {
-          return obj;
-        }
-        return recursivelyParseJsonStringsInternal(
-          parsed,
-          skipParseKeys,
-          undefined,
-          seen,
-          depth + 1,
-        );
-      } catch {
-        // Continue
-      }
-    }
-
-    // Handle malformed JSON: array that doesn't end with ]
-    if (stripped.startsWith("[") && !stripped.endsWith("]")) {
-      try {
+    try {
+      let cleaned = stripped;
+      if (stripped.startsWith("[") && !stripped.endsWith("]")) {
         const lastBracket = stripped.lastIndexOf("]");
-        if (lastBracket > 0) {
-          const cleaned = stripped.slice(0, lastBracket + 1);
-          const parsed = JSON.parse(cleaned);
-          log.debug("Auto-corrected malformed JSON array", {
-            truncatedChars: stripped.length - cleaned.length,
-          });
-          if (parsed === obj) {
-            return obj;
-          }
-          return recursivelyParseJsonStringsInternal(
-            parsed,
-            skipParseKeys,
-            undefined,
-            seen,
-            depth + 1,
-          );
-        }
-      } catch {
-        // Continue
-      }
-    }
-
-    // Handle malformed JSON: object that doesn't end with }
-    if (stripped.startsWith("{") && !stripped.endsWith("}")) {
-      try {
+        if (lastBracket > 0) cleaned = stripped.slice(0, lastBracket + 1);
+      } else if (stripped.startsWith("{") && !stripped.endsWith("}")) {
         const lastBrace = stripped.lastIndexOf("}");
-        if (lastBrace > 0) {
-          const cleaned = stripped.slice(0, lastBrace + 1);
-          const parsed = JSON.parse(cleaned);
-          log.debug("Auto-corrected malformed JSON object", {
-            truncatedChars: stripped.length - cleaned.length,
-          });
-          if (parsed === obj) {
-            return obj;
-          }
-          return recursivelyParseJsonStringsInternal(
-            parsed,
-            skipParseKeys,
-            undefined,
-            seen,
-            depth + 1,
-          );
-        }
-      } catch {
-        // Continue
+        if (lastBrace > 0) cleaned = stripped.slice(0, lastBrace + 1);
       }
-    }
+
+      const parsed = JSON.parse(cleaned);
+      if (parsed !== obj) {
+        return recursivelyParseJsonStringsInternal(parsed, skipParseKeys, undefined, seen, depth + 1);
+      }
+    } catch { /* Continue */ }
   }
 
   return obj;
 }
 
-// ============================================================================
-// TOOL ID ORPHAN RECOVERY (Ported from LLM-API-Key-Proxy)
-// ============================================================================
-
 /**
  * Groups function calls with their responses, handling ID mismatches.
- * 
- * This is a port of LLM-API-Key-Proxy's _fix_tool_response_grouping() function.
- * 
- * When context compaction or other processes strip tool responses, the tool call
- * IDs become orphaned. This function attempts to recover by:
- * 
- * 1. Pass 1: Match by exact ID (normal case)
- * 2. Pass 2: Match by function name (for ID mismatches)
- * 3. Pass 3: Match "unknown_function" orphans or take first available
- * 4. Fallback: Create placeholder responses for missing tool results
- * 
- * @param contents - Array of Gemini-style content messages
- * @returns Fixed contents array with matched tool responses
  */
-export function fixToolResponseGrouping(contents: any[]): any[] {
+export function fixToolResponseGrouping(contents: MessageContent[]): MessageContent[] {
   if (!Array.isArray(contents) || contents.length === 0) {
     return contents;
   }
 
-  const newContents: any[] = [];
-  
-  // Track pending tool call groups that need responses
+  const newContents: MessageContent[] = [];
   const pendingGroups: Array<{
     ids: string[];
     funcNames: string[];
     insertAfterIdx: number;
   }> = [];
   
-  // Collected orphan responses (by ID)
-  const collectedResponses = new Map<string, any>();
+  const collectedResponses = new Map<string, MessagePart>();
   
   for (const content of contents) {
     const role = content.role;
     const parts = content.parts || [];
     
-    // Check if this is a tool response message
-    const responseParts = parts.filter((p: any) => p?.functionResponse);
+    const responseParts = parts.filter((p: MessagePart) => p?.functionResponse);
     
     if (responseParts.length > 0) {
-      // Collect responses by ID (skip duplicates)
       for (const resp of responseParts) {
         const respId = resp.functionResponse?.id || "";
         if (respId && !collectedResponses.has(respId)) {
@@ -1517,35 +1344,32 @@ export function fixToolResponseGrouping(contents: any[]): any[] {
         }
       }
       
-      // Try to satisfy the most recent pending group
       for (let i = pendingGroups.length - 1; i >= 0; i--) {
         const group = pendingGroups[i]!;
         if (group.ids.every(id => collectedResponses.has(id))) {
-          // All IDs found - build the response group
           const groupResponses = group.ids.map(id => {
-            const resp = collectedResponses.get(id);
+            const resp = collectedResponses.get(id)!;
             collectedResponses.delete(id);
             return resp;
           });
-          newContents.push({ parts: groupResponses, role: "user" });
+          newContents.push({ parts: groupResponses as any, role: "user" });
           pendingGroups.splice(i, 1);
-          break; // Only satisfy one group at a time
+          break;
         }
       }
-      continue; // Don't add the original response message
+      continue;
     }
     
     if (role === "model") {
-      // Check for function calls in this model message
-      const funcCalls = parts.filter((p: any) => p?.functionCall);
+      const funcCalls = parts.filter((p: MessagePart) => p?.functionCall);
       newContents.push(content);
       
       if (funcCalls.length > 0) {
         const callIds = funcCalls
-          .map((fc: any) => fc.functionCall?.id || "")
+          .map((fc: MessagePart) => fc.functionCall?.id || "")
           .filter(Boolean);
         const funcNames = funcCalls
-          .map((fc: any) => fc.functionCall?.name || "");
+          .map((fc: MessagePart) => fc.functionCall?.name || "");
         
         if (callIds.length > 0) {
           pendingGroups.push({
@@ -1560,35 +1384,28 @@ export function fixToolResponseGrouping(contents: any[]): any[] {
     }
   }
   
-  // Handle remaining pending groups with orphan recovery
-  // Process in reverse order so insertions don't shift indices
   pendingGroups.sort((a, b) => b.insertAfterIdx - a.insertAfterIdx);
   
   for (const group of pendingGroups) {
-    const groupResponses: any[] = [];
+    const groupResponses: MessagePart[] = [];
     
     for (let i = 0; i < group.ids.length; i++) {
       const expectedId = group.ids[i]!;
       const expectedName = group.funcNames[i] || "";
       
+      let matchedPart: MessagePart | null = null;
+
       if (collectedResponses.has(expectedId)) {
-        // Direct ID match - ideal case
-        groupResponses.push(collectedResponses.get(expectedId));
+        matchedPart = collectedResponses.get(expectedId)!;
         collectedResponses.delete(expectedId);
       } else if (collectedResponses.size > 0) {
-        // Need to find an orphan response
         let matchedId: string | null = null;
-        
-        // Pass 1: Match by function name
         for (const [orphanId, orphanResp] of collectedResponses) {
-          const orphanName = orphanResp.functionResponse?.name || "";
-          if (orphanName === expectedName) {
+          if (orphanResp.functionResponse?.name === expectedName) {
             matchedId = orphanId;
             break;
           }
         }
-        
-        // Pass 2: Match "unknown_function" orphans
         if (!matchedId) {
           for (const [orphanId, orphanResp] of collectedResponses) {
             if (orphanResp.functionResponse?.name === "unknown_function") {
@@ -1597,59 +1414,41 @@ export function fixToolResponseGrouping(contents: any[]): any[] {
             }
           }
         }
-        
-        // Pass 3: Take first available
-        if (!matchedId) {
-          matchedId = collectedResponses.keys().next().value ?? null;
-        }
+        if (!matchedId) matchedId = collectedResponses.keys().next().value ?? null;
         
         if (matchedId) {
-          const orphanResp = collectedResponses.get(matchedId)!;
+          matchedPart = collectedResponses.get(matchedId)!;
           collectedResponses.delete(matchedId);
-          
-          // Fix the ID and name to match expected
-          orphanResp.functionResponse.id = expectedId;
-          if (orphanResp.functionResponse.name === "unknown_function" && expectedName) {
-            orphanResp.functionResponse.name = expectedName;
+          if (matchedPart.functionResponse) {
+            matchedPart.functionResponse.id = expectedId;
+            if (matchedPart.functionResponse.name === "unknown_function" && expectedName) {
+              matchedPart.functionResponse.name = expectedName;
+            }
           }
-          
-          log.debug("Auto-repaired tool ID mismatch", {
-            mappedFrom: matchedId,
-            mappedTo: expectedId,
-            functionName: expectedName,
-          });
-          
-          groupResponses.push(orphanResp);
         }
+      }
+
+      if (matchedPart) {
+        groupResponses.push(matchedPart);
       } else {
-        // No responses available - create placeholder
-        const placeholder = {
+        groupResponses.push({
           functionResponse: {
             name: expectedName || "unknown_function",
             response: {
               result: {
-                error: "Tool response was lost during context processing. " +
-                       "This is a recovered placeholder.",
+                error: "Tool response was lost during context processing. This is a recovered placeholder.",
                 recovered: true,
               },
             },
             id: expectedId,
           },
-        };
-        
-        log.debug("Created placeholder response for missing tool", {
-          id: expectedId,
-          name: expectedName,
         });
-        
-        groupResponses.push(placeholder);
       }
     }
     
     if (groupResponses.length > 0) {
-      // Insert at correct position (after the model message that made the calls)
       newContents.splice(group.insertAfterIdx + 1, 0, {
-        parts: groupResponses,
+        parts: groupResponses as any,
         role: "user",
       });
     }
@@ -1658,12 +1457,6 @@ export function fixToolResponseGrouping(contents: any[]): any[] {
   return newContents;
 }
 
-/**
- * Checks if contents have any tool call/response ID mismatches.
- * 
- * @param contents - Array of Gemini-style content messages
- * @returns Object with mismatch details
- */
 export {
   detectToolIdMismatches,
   injectParameterSignatures,

@@ -185,7 +185,7 @@ export class IntentEngine {
           fallbackTriggered = false;
           method = 'ml'; // Upgraded from fallback to ML
         }
-      } catch (err) {
+      } catch {
         // Silently fail and keep original fallback
       }
     }

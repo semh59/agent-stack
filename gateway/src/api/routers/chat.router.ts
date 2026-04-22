@@ -5,6 +5,7 @@ import { type AccountManager } from "../../plugin/accounts";
 import { apiResponse, apiError } from "../../gateway/rest-response";
 import { type SQLiteChatRepository } from "../../persistence/SQLiteChatRepository";
 import type { SlashCommandRegistry, SlashCommandContext } from "../../orchestration/commands/SlashCommandRegistry";
+import type { PipelineState } from "../../orchestration/shared-memory";
 
 
 
@@ -76,7 +77,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
 
       const client = AlloyGatewayClient.fromToken(accessToken, activeAccount.email, accountManager);
       const selectedModel = model || "gemini-1.5-pro";
-      const cleanModel = selectedModel.includes("/") ? selectedModel.split("/")[1]! : selectedModel;
+      const cleanModel = selectedModel.includes("/") ? (selectedModel.split("/")[1] || selectedModel) : selectedModel;
       
       // Save User Message
       await chatRepository.saveMessage({
@@ -146,10 +147,10 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
                         deltaText = json.candidates[0].content.parts[0].text;
                      } else if (json.choices?.[0]?.delta?.content) {
                         // OpenAI / Anthropic-compatibility format
-                        deltaText = json.choices[0].delta.content;
+                        deltaText = String(json.choices[0].delta.content);
                      } else if (json.type === "content_block_delta" && json.delta?.text) {
                         // Native Anthropic format
-                        deltaText = json.delta.text;
+                        deltaText = String(json.delta.text);
                      }
 
                      if (deltaText) {
@@ -236,9 +237,15 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
       
       // We need a dummy state for commands that don't have a mission context yet
       const context: SlashCommandContext = {
-        projectRoot: (app as any).projectRoot || process.cwd(), 
+        projectRoot: (app as unknown as { projectRoot: string }).projectRoot || process.cwd(), 
         sessionId: sid,
-        state: { state: "init" } as any, 
+        state: { 
+          userTask: "",
+          pipelineStatus: "idle",
+          completedAgents: [],
+          filesCreated: [],
+          knownIssues: []
+        } as PipelineState, 
         updateState: async () => {},
       };
 

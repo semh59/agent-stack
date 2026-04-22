@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SequentialPipeline, type PipelineResult } from './sequential-pipeline';
+import { SequentialPipeline } from './sequential-pipeline';
 import { AGENTS } from './agents';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
@@ -254,7 +254,6 @@ describe('SequentialPipeline', () => {
     }, FULL_PIPELINE_TIMEOUT_MS);
 
     it('prevents stageIndex race condition during parallel execution', async () => {
-      let stageTransitions = 0;
       const stageProgressions: number[] = [];
 
       const result = await pipeline.start('Build a feature', {
@@ -271,7 +270,7 @@ describe('SequentialPipeline', () => {
     }, FULL_PIPELINE_TIMEOUT_MS);
 
     it('safely handles concurrent state mutations from parallel agents', async () => {
-      const result = await pipeline.start('Build a feature', {
+      await pipeline.start('Build a feature', {
         startFromOrder: 15, // Reduce to speed up test
       });
 
@@ -295,8 +294,8 @@ describe('SequentialPipeline', () => {
       const listener2 = vi.fn();
 
       // Add multiple listeners
-      const disposer1 = pipeline.onAgentStart(listener1);
-      const disposer2 = pipeline.onAgentComplete(listener2);
+      const _disposer1 = pipeline.onAgentStart(listener1);
+      const _disposer2 = pipeline.onAgentComplete(listener2);
 
       // Verify added
       expect((pipeline as any).agentStartListeners.size).toBeGreaterThan(0);

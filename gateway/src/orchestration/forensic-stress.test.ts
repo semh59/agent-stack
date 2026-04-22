@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { AutonomousLoopEngine } from './autonomous-loop-engine';
 import { GateEngine } from './GateEngine';
-import { SessionPersistenceManager } from './SessionPersistenceManager';
 import path from 'node:path';
 import os from 'node:os';
 import * as fs from 'node:fs/promises';

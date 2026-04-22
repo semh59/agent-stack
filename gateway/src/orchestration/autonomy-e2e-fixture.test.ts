@@ -50,7 +50,7 @@ describe("Autonomous Mode deterministic fixture", () => {
     await fs.writeFile(outsideFile, "fixture-readme\n", "utf-8");
     await fs.writeFile(path.join(fixtureRoot, "ARCHITECTURE.md"), "# Architecture Guide\n- src/utils: Math utilities\n", "utf-8");
 
-    const gateRunner = new StrictGateRunner({
+    const _gateRunner = new StrictGateRunner({
       projectRoot: fixtureRoot,
       terminal: new DeterministicTerminal() as unknown as any,
     });

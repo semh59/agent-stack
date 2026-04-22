@@ -1,9 +1,10 @@
 import { createLogger } from "../logger";
 import { fixToolResponseGrouping } from "../request-helpers";
+import type { MessageContent, MessagePart, AlloyTool } from "../types";
 
 const log = createLogger("tool-hardening");
 
-export function detectToolIdMismatches(contents: any[]): {
+export function detectToolIdMismatches(contents: MessageContent[]): {
   hasMismatches: boolean;
   expectedIds: string[];
   foundIds: string[];
@@ -17,10 +18,10 @@ export function detectToolIdMismatches(contents: any[]): {
     const parts = content.parts || [];
     
     for (const part of parts) {
-      if (part?.functionCall?.id) {
+      if (part.functionCall?.id) {
         expectedIds.push(part.functionCall.id);
       }
-      if (part?.functionResponse?.id) {
+      if (part.functionResponse?.id) {
         foundIds.push(part.functionResponse.id);
       }
     }
@@ -49,17 +50,18 @@ export function detectToolIdMismatches(contents: any[]): {
  * Find orphaned tool_use IDs (tool_use without matching tool_result).
  * Works on Claude format messages.
  */
-export function findOrphanedToolUseIds(messages: any[]): Set<string> {
+export function findOrphanedToolUseIds(messages: MessageContent[]): Set<string> {
   const toolUseIds = new Set<string>();
   const toolResultIds = new Set<string>();
 
   for (const msg of messages) {
-    if (Array.isArray(msg.content)) {
-      for (const block of msg.content) {
-        if (block.type === "tool_use" && block.id) {
+    const content = (msg.content || msg.parts) as Record<string, unknown>[] | undefined;
+    if (Array.isArray(content)) {
+      for (const block of content) {
+        if (block.type === "tool_use" && typeof block.id === "string") {
           toolUseIds.add(block.id);
         }
-        if (block.type === "tool_result" && block.tool_use_id) {
+        if (block.type === "tool_result" && typeof block.tool_use_id === "string") {
           toolResultIds.add(block.tool_use_id);
         }
       }
@@ -80,7 +82,7 @@ export function findOrphanedToolUseIds(messages: any[]): Set<string> {
  * @param messages - Claude format messages array
  * @returns Fixed messages with placeholder tool_results for orphans
  */
-export function fixClaudeToolPairing(messages: any[]): any[] {
+export function fixClaudeToolPairing(messages: MessageContent[]): MessageContent[] {
   if (!Array.isArray(messages) || messages.length === 0) {
     return messages;
   }
@@ -90,10 +92,13 @@ export function fixClaudeToolPairing(messages: any[]): any[] {
 
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    if (msg.role === "assistant" && Array.isArray(msg.content)) {
-      for (const block of msg.content) {
-        if (block.type === "tool_use" && block.id) {
-          toolUseMap.set(block.id, { name: block.name || `tool-${toolUseMap.size}`, msgIndex: i });
+    if (!msg) continue;
+    const role = msg.role;
+    const content = (msg.content || msg.parts) as Record<string, unknown>[] | undefined;
+    if (role === "assistant" && Array.isArray(content)) {
+      for (const block of content) {
+        if (block && block.type === "tool_use" && typeof block.id === "string") {
+          toolUseMap.set(block.id, { name: (block.name as string) || `tool-${toolUseMap.size}`, msgIndex: i });
         }
       }
     }
@@ -103,9 +108,10 @@ export function fixClaudeToolPairing(messages: any[]): any[] {
   const toolResultIds = new Set<string>();
 
   for (const msg of messages) {
-    if (msg.role === "user" && Array.isArray(msg.content)) {
-      for (const block of msg.content) {
-        if (block.type === "tool_result" && block.tool_use_id) {
+    const content = (msg.content || msg.parts) as Record<string, unknown>[] | undefined;
+    if (msg.role === "user" && Array.isArray(content)) {
+      for (const block of content) {
+        if (block.type === "tool_result" && typeof block.tool_use_id === "string") {
           toolResultIds.add(block.tool_use_id);
         }
       }
@@ -134,35 +140,43 @@ export function fixClaudeToolPairing(messages: any[]): any[] {
   }
 
   // 5. Build new messages array with injected tool_results
-  const result: any[] = [];
+  const result: MessageContent[] = [];
 
   for (let i = 0; i < messages.length; i++) {
-    result.push(messages[i]);
+    const msg = messages[i];
+    if (!msg) continue;
+    result.push(msg);
 
     const orphansForMsg = orphansByMsgIndex.get(i);
     if (orphansForMsg && orphansForMsg.length > 0) {
       // Check if next message is user with tool_result - if so, merge into it
-      const nextMsg = messages[i + 1];
-      if (nextMsg?.role === "user" && Array.isArray(nextMsg.content)) {
+      const nextMsg = messages[i + 1] as MessageContent | undefined;
+      const nextContent = (nextMsg?.content || nextMsg?.parts) as Record<string, unknown>[] | undefined;
+
+      if (nextMsg && nextMsg.role === "user" && Array.isArray(nextContent)) {
         // Will be handled when we push nextMsg - add to its content
         const placeholders = orphansForMsg.map((o) => ({
-          type: "tool_result",
+          type: "tool_result" as const,
           tool_use_id: o.id,
           content: `[Tool "${o.name}" execution was cancelled or failed]`,
           is_error: true,
         }));
         // Prepend placeholders to next message's content
-        nextMsg.content = [...placeholders, ...nextMsg.content];
+        if (nextMsg.content) {
+            nextMsg.content = [...placeholders, ...(nextMsg.content as Record<string, unknown>[])];
+        } else if (nextMsg.parts) {
+            nextMsg.parts = [...placeholders as MessagePart[], ...nextMsg.parts];
+        }
       } else {
         // Inject new user message with placeholder tool_results
         result.push({
           role: "user",
-          content: orphansForMsg.map((o) => ({
+          parts: orphansForMsg.map((o) => ({
             type: "tool_result",
             tool_use_id: o.id,
             content: `[Tool "${o.name}" execution was cancelled or failed]`,
             is_error: true,
-          })),
+          } as MessagePart)),
         });
       }
     }
@@ -175,23 +189,27 @@ export function fixClaudeToolPairing(messages: any[]): any[] {
  * Nuclear option: Remove orphaned tool_use blocks entirely.
  * Called when fixClaudeToolPairing() fails to pair all tools.
  */
-function removeOrphanedToolUse(messages: any[], orphanIds: Set<string>): any[] {
+function removeOrphanedToolUse(messages: MessageContent[], orphanIds: Set<string>): MessageContent[] {
   return messages
     .map((msg) => {
-      if (msg.role === "assistant" && Array.isArray(msg.content)) {
+      const content = (msg.content || msg.parts) as Record<string, unknown>[] | undefined;
+      if (msg.role === "assistant" && Array.isArray(content)) {
+        const filteredContent = content.filter(
+          (block) => block.type !== "tool_use" || !orphanIds.has(block.id as string)
+        );
         return {
           ...msg,
-          content: msg.content.filter(
-            (block: any) => block.type !== "tool_use" || !orphanIds.has(block.id)
-          ),
+          parts: filteredContent as MessagePart[],
         };
       }
       return msg;
     })
     .filter(
-      (msg) =>
+      (msg) => {
+        const content = (msg.content || msg.parts) as Record<string, unknown>[] | undefined;
         // Remove empty assistant messages
-        !(msg.role === "assistant" && Array.isArray(msg.content) && msg.content.length === 0)
+        return !(msg.role === "assistant" && Array.isArray(content) && content.length === 0);
+      }
     );
 }
 
@@ -199,13 +217,13 @@ function removeOrphanedToolUse(messages: any[], orphanIds: Set<string>): any[] {
  * Validate and fix tool pairing with fallback nuclear option.
  * Defense in depth: tries gentle fix first, then nuclear removal.
  */
-export function validateAndFixClaudeToolPairing(messages: any[]): any[] {
+export function validateAndFixClaudeToolPairing(messages: MessageContent[]): MessageContent[] {
   if (!Array.isArray(messages) || messages.length === 0) {
     return messages;
   }
 
   // First: Try gentle fix (inject placeholder tool_results)
-  let fixed = fixClaudeToolPairing(messages);
+  const fixed = fixClaudeToolPairing(messages);
 
   // Second: Validate - find any remaining orphans
   const orphanIds = findOrphanedToolUseIds(fixed);
@@ -290,25 +308,21 @@ function formatTypeHint(propData: Record<string, unknown>, depth = 0): string {
  * Injects parameter signatures into tool descriptions.
  * Port of LLM-API-Key-Proxy's _inject_signature_into_descriptions()
  * 
- * This helps prevent tool hallucination by explicitly listing parameters
- * in the description, making it harder for the model to hallucinate
- * parameters from its training data.
- * 
  * @param tools - Array of tool definitions (Gemini format)
- * @param promptTemplate - Template for the signature (default: "\\n\\nSTRICT PARAMETERS: {params}.")
+ * @param promptTemplate - Template for the signature (default: "\n\nSTRICT PARAMETERS: {params}.")
  * @returns Modified tools array with signatures injected
  */
 export function injectParameterSignatures(
-  tools: any[],
-  promptTemplate = "\n\nâš ï¸ STRICT PARAMETERS: {params}.",
-): any[] {
+  tools: AlloyTool[],
+  promptTemplate = "\n\n⚠️ STRICT PARAMETERS: {params}.",
+): AlloyTool[] {
   if (!tools || !Array.isArray(tools)) return tools;
 
   return tools.map((tool) => {
     const declarations = tool.functionDeclarations;
     if (!Array.isArray(declarations)) return tool;
 
-    const newDeclarations = declarations.map((decl: any) => {
+    const newDeclarations = declarations.map((decl: AlloyTool) => {
       // Skip if signature already injected (avoids duplicate injection)
       if (decl.description?.includes("STRICT PARAMETERS:")) {
         return decl;
@@ -372,18 +386,18 @@ export function injectToolHardeningInstruction(
       }
     } else if (typeof existing === "string") {
       payload.systemInstruction = {
-        role: "user",
+        role: "assistant",
         parts: [instructionPart, { text: existing }],
       };
     } else {
       payload.systemInstruction = {
-        role: "user",
+        role: "assistant",
         parts: [instructionPart],
       };
     }
   } else {
     payload.systemInstruction = {
-      role: "user",
+      role: "assistant",
       parts: [instructionPart],
     };
   }
@@ -402,8 +416,8 @@ export function injectToolHardeningInstruction(
  * @returns Object with modified contents and pending call IDs map
  */
 export function assignToolIdsToContents(
-  contents: any[]
-): { contents: any[]; pendingCallIdsByName: Map<string, string[]>; toolCallCounter: number } {
+  contents: MessageContent[]
+): { contents: MessageContent[]; pendingCallIdsByName: Map<string, string[]>; toolCallCounter: number } {
   if (!Array.isArray(contents)) {
     return { contents, pendingCallIdsByName: new Map(), toolCallCounter: 0 };
   }
@@ -411,12 +425,12 @@ export function assignToolIdsToContents(
   let toolCallCounter = 0;
   const pendingCallIdsByName = new Map<string, string[]>();
 
-  const newContents = contents.map((content: any) => {
+  const newContents = contents.map((content) => {
     if (!content || !Array.isArray(content.parts)) {
       return content;
     }
 
-    const newParts = content.parts.map((part: any) => {
+    const newParts = content.parts.map((part) => {
       if (part && typeof part === "object" && part.functionCall) {
         const call = { ...part.functionCall };
         if (!call.id) {
@@ -446,19 +460,19 @@ export function assignToolIdsToContents(
  * @returns Modified contents with matched response IDs
  */
 export function matchResponseIdsToContents(
-  contents: any[],
+  contents: MessageContent[],
   pendingCallIdsByName: Map<string, string[]>
-): any[] {
+): MessageContent[] {
   if (!Array.isArray(contents)) {
     return contents;
   }
 
-  return contents.map((content: any) => {
+  return contents.map((content) => {
     if (!content || !Array.isArray(content.parts)) {
       return content;
     }
 
-    const newParts = content.parts.map((part: any) => {
+    const newParts = content.parts.map((part) => {
       if (part && typeof part === "object" && part.functionResponse) {
         const resp = { ...part.functionResponse };
         if (!resp.id && typeof resp.name === "string") {
@@ -504,7 +518,7 @@ export function applyToolPairingFixes(
   if (Array.isArray(payload.contents)) {
     // First pass: assign IDs to functionCalls
     const { contents: contentsWithIds, pendingCallIdsByName } = assignToolIdsToContents(
-      payload.contents as any[]
+      payload.contents as MessageContent[]
     );
 
     // Second pass: match functionResponse IDs
@@ -515,40 +529,24 @@ export function applyToolPairingFixes(
     contentsFixed = true;
 
     log.debug("Applied tool pairing fixes to contents[]", {
-      originalLength: (payload.contents as any[]).length,
+      originalLength: (payload.contents as MessageContent[]).length,
     });
   }
 
-  // Fix Claude format (messages[])
   if (Array.isArray(payload.messages)) {
-    payload.messages = validateAndFixClaudeToolPairing(payload.messages as any[]);
+    payload.messages = validateAndFixClaudeToolPairing(payload.messages as MessageContent[]);
     messagesFixed = true;
 
     log.debug("Applied tool pairing fixes to messages[]", {
-      originalLength: (payload.messages as any[]).length,
+      originalLength: (payload.messages as MessageContent[]).length,
     });
   }
 
   return { contentsFixed, messagesFixed };
 }
 
-// ============================================================================
-// SYNTHETIC CLAUDE SSE RESPONSE
-// Used to return error messages as "successful" responses to avoid locking
-// the OpenCode session when unrecoverable errors (like 400 Prompt Too Long) occur.
-// ============================================================================
-
 /**
  * Creates a synthetic Claude SSE streaming response with error content.
- * 
- * When returning HTTP 400/500 errors to OpenCode, the session becomes locked
- * and the user cannot use /compact or other commands. This function creates
- * a fake "successful" SSE response (200 OK) with the error message as text content,
- * allowing the user to continue using the session.
- * 
- * @param errorMessage - The error message to include in the response
- * @param requestedModel - The model that was requested
- * @returns A Response object with synthetic SSE stream
  */
 export function createSyntheticErrorResponse(
   errorMessage: string,
@@ -561,8 +559,7 @@ export function createSyntheticErrorResponse(
   const events: string[] = [];
   
   // 1. message_start event
-  events.push(`event: message_start
-data: ${JSON.stringify({
+  events.push(`event: message_start\ndata: ${JSON.stringify({
     type: "message_start",
     message: {
       id: messageId,
@@ -574,54 +571,37 @@ data: ${JSON.stringify({
       stop_sequence: null,
       usage: { input_tokens: 0, output_tokens: 0 },
     },
-  })}
-
-`);
+  })}\n\n`);
 
   // 2. content_block_start event
-  events.push(`event: content_block_start
-data: ${JSON.stringify({
+  events.push(`event: content_block_start\ndata: ${JSON.stringify({
     type: "content_block_start",
     index: 0,
     content_block: { type: "text", text: "" },
-  })}
-
-`);
+  })}\n\n`);
 
   // 3. content_block_delta event with the error message
-  events.push(`event: content_block_delta
-data: ${JSON.stringify({
+  events.push(`event: content_block_delta\ndata: ${JSON.stringify({
     type: "content_block_delta",
     index: 0,
     delta: { type: "text_delta", text: errorMessage },
-  })}
-
-`);
+  })}\n\n`);
 
   // 4. content_block_stop event
-  events.push(`event: content_block_stop
-data: ${JSON.stringify({
+  events.push(`event: content_block_stop\ndata: ${JSON.stringify({
     type: "content_block_stop",
     index: 0,
-  })}
-
-`);
+  })}\n\n`);
 
   // 5. message_delta event (end_turn)
-  events.push(`event: message_delta
-data: ${JSON.stringify({
+  events.push(`event: message_delta\ndata: ${JSON.stringify({
     type: "message_delta",
     delta: { stop_reason: "end_turn", stop_sequence: null },
     usage: { output_tokens: Math.ceil(errorMessage.length / 4) },
-  })}
-
-`);
+  })}\n\n`);
 
   // 6. message_stop event
-  events.push(`event: message_stop
-data: ${JSON.stringify({ type: "message_stop" })}
-
-`);
+  events.push(`event: message_stop\ndata: ${JSON.stringify({ type: "message_stop" })}\n\n`);
 
   const body = events.join("");
 
@@ -636,4 +616,3 @@ data: ${JSON.stringify({ type: "message_stop" })}
     },
   });
 }
-

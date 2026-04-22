@@ -231,13 +231,6 @@ export class AutonomyGitManager {
   }
 }
 
-function sanitizeSlug(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function truncateTitle(objective: string): string {
   const compact = objective.replace(/\s+/g, " ").trim();
   if (compact.length <= 64) return compact;

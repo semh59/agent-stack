@@ -26,7 +26,7 @@ export class ContinuityManager {
     try {
       const data = await fs.readFile(this.memoryPath, 'utf8');
       return JSON.parse(data);
-    } catch (error) {
+    } catch {
       return {
         currentFeature: '',
         filesModified: [],

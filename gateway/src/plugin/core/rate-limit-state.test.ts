@@ -1,7 +1,7 @@
 ﻿/**
  * Tests for rate limit state tracking.
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   formatWaitTime,
   extractRateLimitBodyInfo,

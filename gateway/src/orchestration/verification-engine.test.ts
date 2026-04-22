@@ -1,5 +1,5 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { VerificationEngine, type VerificationResult } from './verification-engine';
+﻿import { describe, it, expect, vi } from 'vitest';
+import { VerificationEngine } from './verification-engine';
 import type { AgentDefinition } from './agents';
 import { AgentLayer, PreferredModel } from './agents';
 import type { TerminalExecutor, CommandResult } from './terminal-executor';

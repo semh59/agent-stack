@@ -6,11 +6,6 @@ import type { GatewayAuthManager } from "./gateway-auth-manager";
 export const RATE_LIMIT_WINDOW_MS = 60_000;
 export const RATE_LIMIT_MAX_REQUESTS = 100;
 
-interface RateLimitEntry {
-  count: number;
-  windowStart: number;
-}
-
 export interface RestRateLimitOptions {
   windowMs?: number;
   maxRequests?: number;

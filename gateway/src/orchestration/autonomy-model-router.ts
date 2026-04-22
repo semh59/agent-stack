@@ -127,9 +127,8 @@ export class SmartMultiModelRouter {
     const key = `${sessionId}:${normalizeModelName(model)}`;
     // In a production app, we would use a more sophisticated sliding window.
     // Here we trip the model globally for the session if it hits threshold.
-    const entry = SmartMultiModelRouter.CIRCUIT_BREAKER.get(key) || { trippedUntil: 0 };
-    SmartMultiModelRouter.CIRCUIT_BREAKER.set(key, { 
-        trippedUntil: Date.now() + SmartMultiModelRouter.COOLDOWN_MS 
+    SmartMultiModelRouter.CIRCUIT_BREAKER.set(key, {
+      trippedUntil: Date.now() + SmartMultiModelRouter.COOLDOWN_MS
     });
     console.warn(`[Alloy:Breaker] Tripped model ${model} for session ${sessionId} due to recurring failure.`);
   }

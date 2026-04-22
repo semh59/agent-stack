@@ -1,4 +1,4 @@
-﻿import crypto from 'node:crypto';
+import crypto from 'node:crypto';
 import { createLogger } from '../plugin/logger';
 
 const log = createLogger('csrf');
@@ -10,6 +10,7 @@ const CONFIG = {
   TOKEN_TTL_MS: 60 * 60 * 1000, // 1 hour
   CLEANUP_INTERVAL_MS: 5 * 60 * 1000, // 5 minutes
   HMAC_ALGORITHM: 'sha256',
+  MAX_TOKENS: 5000, // Prevent OOM from many sessions
 };
 
 /**
@@ -60,6 +61,13 @@ export class CSRFTokenManager {
       .createHmac(CONFIG.HMAC_ALGORITHM, this.secret)
       .update(`${token}:${sessionId}`)
       .digest('hex');
+
+    // Evict oldest tokens if we hit the cap
+    if (this.tokens.size >= CONFIG.MAX_TOKENS) {
+      log.warn('CSRF token cap reached, evicting oldest token');
+      const oldestKey = this.tokens.keys().next().value;
+      if (oldestKey) this.tokens.delete(oldestKey);
+    }
 
     // Store token metadata
     const now = Date.now();
@@ -204,7 +212,7 @@ export const csrfTokenManager = new CSRFTokenManager();
  * - GET requests: Generate and return token in X-CSRF-Token header
  * - POST/PUT/DELETE: Validate token from X-CSRF-Token header
  */
-export function csrfProtection(req: any, res: any, next: Function): void {
+export function csrfProtection(req: any, res: any, next: () => void): void {
   const sessionId = req.sessionID || req.id || 'anonymous';
 
   if (req.method === 'GET') {
@@ -244,7 +252,7 @@ export function csrfProtection(req: any, res: any, next: Function): void {
  * app.use(csrfProtectionIf((req) => !req.path.startsWith('/health')))
  */
 export function csrfProtectionIf(shouldProtect: (req: any) => boolean) {
-  return (req: any, res: any, next: Function) => {
+  return (req: any, res: any, next: () => void) => {
     if (!shouldProtect(req)) {
       return next();
     }

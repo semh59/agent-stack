@@ -335,12 +335,12 @@ export async function checkAccountsQuota(
       const updatedAccount = applyAccountUpdates(account, auth);
 
       let quotaResult: QuotaSummary;
-      let geminiCliQuotaResult: GeminiCliQuotaSummary;
+      let geminiCliQuotaResult: GeminiCliQuotaSummary = { models: [], error: undefined };
       
       // Fetch both Alloy and Gemini CLI quotas in parallel
       const [AlloyResponse, geminiCliResponse] = await Promise.all([
         fetchAvailableModels(auth.access ?? "", projectContext.effectiveProjectId)
-          .catch((error): FetchAvailableModelsResponse => ({ models: undefined })),
+          .catch((_error): FetchAvailableModelsResponse => ({ models: undefined })),
         fetchGeminiCliQuota(auth.access ?? "", projectContext.effectiveProjectId),
       ]);
 
