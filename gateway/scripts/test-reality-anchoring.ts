@@ -1,12 +1,7 @@
-import { SequentialPipeline } from '../src/orchestration/sequential-pipeline';
 import { SharedMemory } from '../src/orchestration/shared-memory';
-import * as fs from 'node:fs/promises';
-import path from 'node:path';
-
 async function main() {
   const projectRoot = process.cwd();
   const memory = new SharedMemory(projectRoot);
-  const pipeline = new SequentialPipeline(projectRoot);
   
   console.log('--- PHASE 6: REALITY ANCHORING TEST ---');
 
@@ -18,7 +13,9 @@ async function main() {
   console.log('[Test] Evidence Injection Check (Last 5 lines):');
   console.log(tail);
 
-  if (!tail.includes('Architecture defined')) {
+  const hasEvidence = tail.some((l: any) => l.message && l.message.includes('Architecture defined'));
+  
+  if (!hasEvidence) {
     console.error('!!! FAILED: Log tail not working !!!');
     process.exit(1);
   }

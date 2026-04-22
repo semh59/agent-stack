@@ -166,7 +166,7 @@ describe('SequentialPipeline', () => {
       const state = await memory.getState();
       expect(state.agentMetrics).toBeDefined();
       expect(state.agentMetrics?.['devops']).toBeDefined();
-      expect(state.agentMetrics?.['devops']?.attempts).toBe(1);
+      expect((state.agentMetrics as any)?.['devops']?.attempts).toBe(1);
     });
   });
 

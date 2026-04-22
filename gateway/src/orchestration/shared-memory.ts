@@ -30,6 +30,7 @@ import { ContextCompressionEngine } from './genetic/ContextCompressionEngine';
 import { PrivacySanctuaryGate } from './privacy/PrivacySanctuaryGate';
 import { DifferentialPrivacyEngine } from './privacy/DifferentialPrivacyEngine';
 import { ForensicPrivacyLedger } from './privacy/ForensicPrivacyLedger';
+import type { TokenUsage } from './pipeline/pipeline-types';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 
@@ -42,11 +43,18 @@ export interface PipelineState {
   authStrategy?: string;
   dbSchema?: string;
   apiContracts?: string;
-  pipelineStatus: string;
-  currentAgent?: string;
+  backtrackHistory?: any[];
+  agentMetrics?: Record<string, unknown>;
+  verificationResults?: Record<string, unknown>;
+  pipelineStatus: 'completed' | 'failed' | 'paused' | 'halted' | 'idle' | 'running';
+  currentAgent?: string | null;
+  startedAt?: string;
+  completedAt?: string | null;
   completedAgents: string[];
   filesCreated: string[];
   knownIssues: string[];
+  cumulativeTokens?: TokenUsage;
+  circuitBreakerState?: Record<string, 'CLOSED' | 'OPEN' | 'HALF_OPEN'>;
 }
 
 /**
@@ -229,7 +237,7 @@ export class SharedMemory {
   }
 
   public anonymizeTelemetry(metrics: Record<string, unknown>): Record<string, unknown> {
-    // Tip güvenliği için unknown cast kullanıldı (any uyarısını önlemek amacıyla)
+    // Tip güvenliği için unknown cast kullanıldı
     const result = this.diffPrivacy.anonymizeModelMetrics(metrics as unknown as ModelMetrics);
     return result as unknown as Record<string, unknown>;
   }
@@ -255,5 +263,108 @@ export class SharedMemory {
     } catch (_e) {
       return null;
     }
+  }
+
+  // --- Temel Durum ve Log Yönetimi (Restored Core) ---
+
+  public async getState(): Promise<PipelineState> {
+    const statePath = path.join(this.rootDir, 'logs', this.sessionId, 'state.json');
+    try {
+      const content = await fs.readFile(statePath, 'utf-8');
+      return JSON.parse(content);
+    } catch (_e) {
+      return {
+        userTask: '',
+        pipelineStatus: 'idle',
+        completedAgents: [],
+        filesCreated: [],
+        knownIssues: []
+      };
+    }
+  }
+
+  public async updateState(delta: Partial<PipelineState>): Promise<void> {
+    const currentState = await this.getState();
+    const newState = { ...currentState, ...delta };
+    
+    // Arrays merge (completedAgents, filesCreated)
+    if (delta.completedAgents) newState.completedAgents = Array.from(new Set([...currentState.completedAgents, ...delta.completedAgents]));
+    if (delta.filesCreated) newState.filesCreated = Array.from(new Set([...currentState.filesCreated, ...delta.filesCreated]));
+
+    const statePath = path.join(this.rootDir, 'logs', this.sessionId, 'state.json');
+    await fs.mkdir(path.dirname(statePath), { recursive: true });
+    await fs.writeFile(statePath, JSON.stringify(newState, null, 2), 'utf-8');
+  }
+
+  public async appendLog(agent: string, message: string, metadata: Record<string, unknown> = {}): Promise<void> {
+    const logPath = path.join(this.rootDir, 'logs', this.sessionId, 'timeline.jsonl');
+    const entry = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      agent,
+      message,
+      ...metadata
+    }) + '\n';
+    
+    await fs.mkdir(path.dirname(logPath), { recursive: true });
+    await fs.appendFile(logPath, entry, 'utf-8');
+  }
+
+  public async readLogTail(limit: number = 20): Promise<Record<string, unknown>[]> {
+    const logPath = path.join(this.rootDir, 'logs', this.sessionId, 'timeline.jsonl');
+    try {
+      const content = await fs.readFile(logPath, 'utf-8');
+      const lines = content.trim().split('\n');
+      return lines.slice(-limit).map(l => JSON.parse(l));
+    } catch (_e) {
+      return [];
+    }
+  }
+
+  public async getTimeline(): Promise<Record<string, unknown>[]> {
+    return this.readLogTail(1000);
+  }
+
+  public async writeAgentOutput(agent: string, filename: string, content: string): Promise<string[]> {
+    const outputPath = path.join(this.rootDir, 'logs', this.sessionId, filename);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, content, 'utf-8');
+    
+    await this.appendLog(agent, `Output generated: ${filename}`, { file: filename });
+    return [filename];
+  }
+
+  public async readAgentOutput(filename: string): Promise<string> {
+    const outputPath = path.join(this.rootDir, 'logs', this.sessionId, filename);
+    try {
+      return await fs.readFile(outputPath, 'utf-8');
+    } catch (_e) {
+      return '';
+    }
+  }
+
+  public async readMultipleOutputs(filenames: string[]): Promise<Record<string, string>> {
+    const results: Record<string, string> = {};
+    for (const f of filenames) {
+        results[f] = await this.readAgentOutput(f);
+    }
+    return results;
+  }
+
+  public async reset(): Promise<void> {
+    const sessionDir = path.join(this.rootDir, 'logs', this.sessionId);
+    await fs.rm(sessionDir, { recursive: true, force: true });
+  }
+
+  public async clean(): Promise<void> {
+    await fs.rm(this.rootDir, { recursive: true, force: true });
+  }
+
+  public async getRelevantContext(agent: string | { role: string }, task: string): Promise<Record<string, string>> {
+    const role = typeof agent === 'string' ? agent : agent.role;
+    const state = await this.getState();
+    const logs = await this.readLogTail(10);
+    return {
+      [`${role}_context`]: `Context for ${role} on ${task}. State: ${JSON.stringify(state)}. Recent logs: ${JSON.stringify(logs)}`
+    };
   }
 }

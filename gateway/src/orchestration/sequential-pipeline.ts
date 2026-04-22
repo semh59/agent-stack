@@ -485,10 +485,10 @@ export class SequentialPipeline {
       for (const cmd of verifyResult.commands) await this._emitVerify(agent, cmd, options);
       
       const state = await this.memory.getState();
-      const vResults = state.verificationResults ?? {};
+      const vResults = (state.verificationResults ?? {}) as Record<string, any>;
       vResults[agent.role] = { passed: verifyResult.passed, commands: verifyResult.commands.map(c => `${c.command}: ${c.passed ? 'OK' : 'FAIL'}`), timestamp: verifyResult.timestamp };
       
-      const metrics = state.agentMetrics ?? {};
+      const metrics = (state.agentMetrics ?? {}) as Record<string, any>;
       const m = metrics[agent.role] ?? { attempts: 0, totalDurationMs: 0, verificationPassed: false };
       metrics[agent.role] = { attempts: m.attempts + 1, totalDurationMs: m.totalDurationMs + (Date.now() - start), verificationPassed: verifyResult.passed };
       

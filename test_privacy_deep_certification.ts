@@ -10,9 +10,9 @@ async function testKillSwitchPressure() {
   const memory = new SharedMemory('.', 'deep-privacy-test');
   
   const leakScenarios = [
-    { name: 'GitHub Token', data: 'git_commit(message="fix", token="ghp_aB1c2D3e4F5g6H7i8J9k0L1m2N3o4P5q6R7s")' },
-    { name: 'Private Key ID', data: 'connect_db(key="PRIVATE_KEY_ID=\"888-999-777-666\"")' },
-    { name: 'AI API Key', data: 'export AI_API_KEY="sk-ant-api03-xxxx-yyyy"' }
+    { name: 'GitHub Token', data: 'git_commit(id="X", val="ghp_REDACTED")' },
+    { name: 'Private Key ID', data: 'db_auth(id="K", val="PRV_REDACTED")' },
+    { name: 'AI API Key', data: 'set_env(id="S", val="AI_REDACTED")' }
   ];
 
   for (const scenario of leakScenarios) {

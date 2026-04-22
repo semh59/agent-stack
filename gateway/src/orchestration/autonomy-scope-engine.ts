@@ -1,4 +1,4 @@
-﻿import * as path from "node:path";
+import * as path from "node:path";
 import {
   StandaloneToolExecutionEngine,
   type ApprovalRequest,
@@ -76,6 +76,11 @@ export class ScopedToolExecutionEngine implements IToolExecutionEngine {
       };
     }
     return this.delegate.listFiles(dirPath);
+  }
+
+  public async runCommand(command: string): Promise<ToolResult> {
+    // Komut çalıştırma delegasyonu
+    return this.delegate.runCommand(command);
   }
 
   private validatePath(inputPath: string): ScopeValidation {
