@@ -18,14 +18,7 @@ export class AgentExecutor {
     agent: AgentDefinition,
     userTask: string
   ): Promise<Record<string, string>> {
-    const context: Record<string, string> = { _userTask: userTask };
-    if (agent.inputFiles.length > 0) {
-      Object.assign(
-        context,
-        await this.options.memory.readMultipleOutputs(agent.inputFiles)
-      );
-    }
-    return context;
+    return this.options.memory.getRelevantContext(agent, userTask);
   }
 
   public async buildPrompt(

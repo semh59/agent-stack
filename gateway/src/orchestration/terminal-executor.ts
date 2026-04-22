@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import { autonomyPolicyEngine } from './policy/AutonomyPolicyEngine';
+import { eventBus } from './event-bus';
 
 /**
  * Commands that are allowed to execute.
@@ -126,6 +128,26 @@ export class TerminalExecutor {
       };
     }
 
+    // 1b. Policy: Proactive check
+    const violations = autonomyPolicyEngine.evaluate({
+      toolName: 'run_command',
+      command,
+      args: {},
+      confidence: 1.0, // Default for manual run
+    });
+
+    const policyBlock = violations.find(v => v.action === 'BLOCK');
+    if (policyBlock) {
+      return {
+        success: false,
+        stdout: '',
+        stderr: `[TerminalExecutor] POLICY_BLOCK: ${policyBlock.reason}`,
+        exitCode: -1,
+        durationMs: 0,
+        command,
+      };
+    }
+
     const cwd = options.cwd ?? this.projectRoot;
     const timeout = Math.min(options.timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT);
     const maxOutput = options.maxOutput ?? DEFAULT_MAX_OUTPUT;
@@ -191,8 +213,16 @@ export class TerminalExecutor {
       let stdout = '';
       let stderr = '';
 
-      child.stdout?.on('data', (data) => { stdout += data.toString(); });
-      child.stderr?.on('data', (data) => { stderr += data.toString(); });
+      child.stdout?.on('data', (data) => { 
+        const chunk = data.toString();
+        stdout += chunk; 
+        eventBus.publish('terminal:data', { role: 'system', type: 'stdout', chunk, command });
+      });
+      child.stderr?.on('data', (data) => { 
+        const chunk = data.toString();
+        stderr += chunk; 
+        eventBus.publish('terminal:data', { role: 'system', type: 'stderr', chunk, command });
+      });
 
       const timer = setTimeout(() => {
         stderr = `[TerminalExecutor] Execution timed out after ${timeout}ms.\n` + stderr;
@@ -215,14 +245,16 @@ export class TerminalExecutor {
       child.on('close', (code) => {
         clearTimeout(timer);
         const durationMs = Date.now() - startTime;
-        resolve({
+        const result: CommandResult = {
           success: code === 0,
           stdout: this.truncate(stdout, maxOutput),
           stderr: this.truncate(stderr, maxOutput),
           exitCode: code ?? 1,
           durationMs,
           command,
-        });
+        };
+        eventBus.publish('terminal:result', result);
+        resolve(result);
       });
     });
   }

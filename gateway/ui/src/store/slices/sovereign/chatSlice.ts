@@ -15,6 +15,17 @@ export interface ChatMessage {
   isStreaming?: boolean;
 }
 
+export interface PendingIntervention {
+  id: string;
+  toolName: string;
+  filePath?: string;
+  command?: string;
+  proposedContent?: string;
+  actualContent?: string;
+  reason?: string;
+  confidence: number;
+}
+
 export interface Conversation {
   id: string;
   title: string;
@@ -29,10 +40,16 @@ export interface AlloyChatSlice {
   isGenerating: boolean;
   error: string | null;
   
+  autonomyLevel: "manual" | "balanced" | "autonomous";
+  pendingInterventions: PendingIntervention[];
+  
   loadConversations: () => Promise<void>;
   selectConversation: (id: string) => Promise<void>;
   startNewChat: (title?: string) => Promise<void>;
   sendMessage: (content: string, model?: string) => Promise<void>;
+  setAutonomyLevel: (level: "manual" | "balanced" | "autonomous") => void;
+  approveIntervention: (id: string, updatedContent?: string) => Promise<void>;
+  rejectIntervention: (id: string) => Promise<void>;
   clearHistory: () => void;
 }
 
@@ -47,6 +64,8 @@ export const createAlloyChatSlice: StateCreator<
   activeConversationId: null,
   isGenerating: false,
   error: null,
+  autonomyLevel: "balanced",
+  pendingInterventions: [],
 
   loadConversations: async () => {
     try {
@@ -144,5 +163,22 @@ export const createAlloyChatSlice: StateCreator<
     }
   },
 
-  clearHistory: () => set({ messages: [], activeConversationId: null }),
+  setAutonomyLevel: (level) => set({ autonomyLevel: level }),
+
+  approveIntervention: async (id, updatedContent) => {
+    // In a real app, this would hit /api/autonomy/approve
+    console.log(`Approving intervention ${id} with content:`, updatedContent);
+    set((state) => ({
+      pendingInterventions: state.pendingInterventions.filter((pi) => pi.id !== id),
+    }));
+  },
+
+  rejectIntervention: async (id) => {
+    // In a real app, this would hit /api/autonomy/reject
+    set((state) => ({
+      pendingInterventions: state.pendingInterventions.filter((pi) => pi.id !== id),
+    }));
+  },
+
+  clearHistory: () => set({ messages: [], activeConversationId: null, pendingInterventions: [] }),
 });

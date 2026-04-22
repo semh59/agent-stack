@@ -1,0 +1,1 @@
+{"id":"ADR-101","timestamp":"2026-04-22T10:37:59.577Z","title":"Adoption of Playwright","status":"accepted","context":"Need visual verification","decision":"Use Playwright Chromium","consequences":"Requires browser installation in CI"}

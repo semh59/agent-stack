@@ -44,13 +44,16 @@ export class GeminiProvider implements ILLMProvider {
     }
 
     const data = (await res.json()) as any;
+    if (!data || typeof data !== 'object') {
+      throw new Error('Gemini API returned invalid response format');
+    }
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     const usage = data.usageMetadata;
     const tokenUsage: TokenUsage = {
-      promptTokens: usage?.promptTokenCount ?? 0,
-      completionTokens: usage?.candidatesTokenCount ?? 0,
-      totalTokens: usage?.totalTokenCount ?? 0,
-      estimatedCostUsd: (usage?.totalTokenCount ?? 0) * 0.000_000_1,
+      promptTokens: typeof usage?.promptTokenCount === 'number' ? usage.promptTokenCount : 0,
+      completionTokens: typeof usage?.candidatesTokenCount === 'number' ? usage.candidatesTokenCount : 0,
+      totalTokens: typeof usage?.totalTokenCount === 'number' ? usage.totalTokenCount : 0,
+      estimatedCostUsd: (typeof usage?.totalTokenCount === 'number' ? usage.totalTokenCount : 0) * 0.000_000_1,
     };
     return { output: text, tokenUsage };
   }
@@ -105,9 +108,12 @@ export class AnthropicProvider implements ILLMProvider {
     }
 
     const data = (await res.json()) as any;
+    if (!data || typeof data !== 'object') {
+      throw new Error('Anthropic API returned invalid response format');
+    }
     const text =
-      (data.content ?? [])
-        .filter((b: any) => b.type === "text")
+      (Array.isArray(data.content) ? data.content : [])
+        .filter((b: any) => b && typeof b === 'object' && b.type === "text")
         .map((b: any) => b.text)
         .join("\n") ?? "";
 
@@ -164,13 +170,16 @@ export class OpenAIProvider implements ILLMProvider {
     }
 
     const data = (await res.json()) as any;
+    if (!data || typeof data !== 'object') {
+      throw new Error('OpenAI API returned invalid response format');
+    }
     const text = data.choices?.[0]?.message?.content ?? "";
     const usage = data.usage;
     const tokenUsage: TokenUsage = {
-      promptTokens: usage?.prompt_tokens ?? 0,
-      completionTokens: usage?.completion_tokens ?? 0,
-      totalTokens: usage?.total_tokens ?? 0,
-      estimatedCostUsd: (usage?.total_tokens ?? 0) * 0.000_005,
+      promptTokens: typeof usage?.prompt_tokens === 'number' ? usage.prompt_tokens : 0,
+      completionTokens: typeof usage?.completion_tokens === 'number' ? usage.completion_tokens : 0,
+      totalTokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : 0,
+      estimatedCostUsd: (typeof usage?.total_tokens === 'number' ? usage.total_tokens : 0) * 0.000_005,
     };
     return { output: text, tokenUsage };
   }

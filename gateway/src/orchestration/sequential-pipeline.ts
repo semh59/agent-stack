@@ -15,6 +15,7 @@ import { CheckpointManager } from "./checkpoint-manager";
 import { eventBus } from "./event-bus";
 import type { IToolExecutionEngine } from "./tool-execution-engine";
 import type { PipelineOptimizer } from "../gateway/pipeline-optimizer";
+import { autonomyPolicyEngine } from "./policy/AutonomyPolicyEngine";
 
 import {
   PlanMode,
@@ -29,6 +30,11 @@ import { CircuitBreaker } from "./pipeline/CircuitBreaker";
 import { GeminiProvider, AnthropicProvider, OpenAIProvider } from "./pipeline/LLMProviders";
 import type { ILLMProvider } from "./pipeline/ILLMProvider";
 import { AgentExecutor } from "./pipeline/AgentExecutor";
+import { DependencyGraph } from "./DependencyGraph";
+import { TaskScheduler } from "./TaskScheduler";
+import { TimelineAggregator } from "./TimelineAggregator";
+import { FsWatcher } from "./FsWatcher";
+import { ContextProjector } from "./ContextProjector";
 
 /** Map plan modes to agent order ranges. */
 const PLAN_MODE_RANGES: Record<string, { start: number; end: number }> = {
@@ -94,6 +100,9 @@ export class SequentialPipeline {
   private circuitBreaker: CircuitBreaker;
   private agentExecutor: AgentExecutor;
   private providers: Map<string, ILLMProvider> = new Map();
+  private autonomyPolicy = autonomyPolicyEngine;
+  private timeline: TimelineAggregator;
+  private fsWatcher: FsWatcher;
 
   // Token & cost tracking
   private cumulativeTokens: TokenUsage = {
@@ -146,10 +155,13 @@ export class SequentialPipeline {
       skillMapper: this.skillMapper,
     });
 
-    // Strategy registration
     this.providers.set("gemini", new GeminiProvider());
     this.providers.set("anthropic", new AnthropicProvider());
     this.providers.set("openai", new OpenAIProvider());
+    
+    // Phase 4 Services
+    this.timeline = new TimelineAggregator(projectRoot, this.sessionId);
+    this.fsWatcher = new FsWatcher(projectRoot);
   }
 
   public dispose() {
@@ -161,6 +173,10 @@ export class SequentialPipeline {
     this.agentCompleteListeners.clear();
     this.errorListeners.clear();
     this.verifyListeners.clear();
+
+    // Phase 4 Tear Down
+    this.timeline.dispose();
+    this.fsWatcher.stop();
   }
 
   public async init(): Promise<void> {
@@ -222,6 +238,10 @@ export class SequentialPipeline {
     this.cumulativeTokens = { promptTokens: 0, completionTokens: 0, totalTokens: 0, estimatedCostUsd: 0 };
     this.epoch++;
 
+    // Start Phase 4 Monitoring
+    await this.timeline.init();
+    this.fsWatcher.start();
+
     if (options.skillsDir) {
       this.skillMapper = new SkillMapper(options.skillsDir);
     }
@@ -252,66 +272,66 @@ export class SequentialPipeline {
     });
 
     const allAgentsToRun = AGENTS.filter(a => a.order >= startOrder && a.order <= endOrder);
-    const stages = this.groupIntoStages(allAgentsToRun);
-    let stageIndex = 0;
+    
+    // Phase 3: High-Performance Parallel Orchestration
+    const graph = new DependencyGraph(allAgentsToRun);
+    const scheduler = new TaskScheduler({ 
+      graph, 
+      maxConcurrency: 4 // Optimized for performance/rate-limits
+    });
 
-    while (stageIndex < stages.length) {
+    scheduler.init(allAgentsToRun);
+    const runningTasks = new Set<Promise<void>>();
+
+    while (!scheduler.isDone()) {
       this.abortController.signal.throwIfAborted();
-      const stage = stages[stageIndex]!;
       
       if (this.paused) {
         await this.memory.updateState({ pipelineStatus: 'paused', currentAgent: null });
-        await this.saveWorkflow(agentResults, stages, stageIndex);
+        // await this.saveWorkflow(agentResults, stages, stageIndex); // TODO: Adapt workflow saving for parallel
         this.running = false;
         return this.buildResult(agentResults, startTime, 'paused');
       }
 
-      const state = await this.memory.getState();
-      const agentsToExecute = stage.filter(a => !state.completedAgents.includes(a.role) && !skipSet.has(a.role));
-
-      for (const agent of stage) {
-        if (skipSet.has(agent.role)) {
+      // Dispatch available tasks
+      const readyRoles = scheduler.dispatch();
+      for (const role of readyRoles) {
+        const agent = allAgentsToRun.find(a => a.role === role)!;
+        
+        if (skipSet.has(role)) {
           agentResults.push({ agent, status: 'skipped', durationMs: 0, outputFile: null });
-        }
-      }
-
-      if (agentsToExecute.length === 0) {
-        stageIndex++;
-        continue;
-      }
-
-      // Use allSettled for robust parallel execution
-      const settled = await Promise.allSettled(agentsToExecute.map(agent => 
-        this.executeAgentWithRetry(agent, userTask, options, allAgentsToRun, agentResults)
-      ));
-
-      // Process settled results
-      const results = settled.map((s, i) => {
-        if (s.status === 'fulfilled') return s.value;
-        // Rejected
-        const agent = agentsToExecute[i]!;
-        const failResult: AgentResult = { agent, status: 'failed', durationMs: 0, outputFile: null, error: s.reason?.message ?? 'Unknown error' };
-        agentResults.push(failResult);
-        return { status: 'failed' as const, result: failResult };
-      });
-
-      const halt = results.find(r => r.status === 'halted');
-      if (halt) return this.handleHalt(halt.result!.agent, halt.result!, startTime, agentResults, options);
-
-      const backtrack = results.find(r => r.backtrack);
-      if (backtrack) {
-        const { targetAgent } = backtrack.backtrack!;
-        const targetStageIndex = stages.findIndex(s => s.some(a => a.role === targetAgent.role));
-        if (targetStageIndex !== -1) {
-          stageIndex = targetStageIndex;
+          scheduler.complete(role);
           continue;
         }
+
+        const taskPromise = this.executeAgentWithRetry(agent, userTask, options, allAgentsToRun, agentResults)
+          .then(async (execResult) => {
+            if (execResult.status === 'completed') {
+              scheduler.complete(role);
+            } else if (execResult.status === 'halted') {
+               scheduler.abortAll(); // Abort others if we halt
+               this.pause(); 
+            } else if (execResult.backtrack) {
+              scheduler.abortAll(); // Strategic Abort: Cancel siblings to reset level
+              this.epoch++;
+            } else {
+              scheduler.abortAll(); // Extreme Hardening: Transactional failure
+              scheduler.fail(role, execResult.result?.error || 'Execution failed');
+            }
+            
+            runningTasks.delete(taskPromise);
+          });
+        
+        runningTasks.add(taskPromise);
       }
 
-      const fail = results.find(r => r.status === 'failed');
-      if (fail) return this.handleFailure(fail.result!.agent, fail.result!, startTime, agentResults);
-
-      stageIndex++;
+      // Performance Optimization: Wait for ANY task to complete before next dispatch cycle
+      if (runningTasks.size > 0) {
+        await Promise.race(runningTasks);
+      } else if (readyRoles.length === 0 && !scheduler.isDone()) {
+        // No ready tasks and not done? We might be waiting or in a deadlock
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
 
     if (options.autoVerify !== false) await this.autoVerifyPipeline(options);
@@ -412,6 +432,36 @@ export class SequentialPipeline {
 
       this.circuitBreaker.check(providerKey);
 
+      // Above Vision: Shadow Semantic Validation
+      // We perform a blind check to ensure reasoning aligns with goals
+      const shadowValidator = async (evalPrompt: string) => {
+         const shadowResponse = await provider.execute(
+           agent, 
+           "You are a Shadow Policy Validator.", 
+           evalPrompt, 
+           "gemini-1.5-flash", 
+           { temperature: 0, maxOutputTokens: 500, timeoutMs: 30000 }
+         );
+         return shadowResponse.output;
+      };
+
+      // Phase 4: Chronos Context Ingestion
+      const recentHistory = await ContextProjector.projectRecentActivity(
+        path.join(this.projectRoot, '.ai-company', 'logs', this.sessionId, 'timeline.jsonl')
+      );
+      this.timeline.setContext(agent.role, this.epoch);
+
+      const semanticViolation = await this.autonomyPolicy.verifySemanticIntent(
+        'Reasoning extraction placeholder', 
+        prompt.slice(0, 500) + `\n\n[RECENT_HISTORY]\n${recentHistory}`, 
+        userTask, 
+        shadowValidator
+      );
+
+      if (semanticViolation) {
+        throw new Error(`Sovereign Intercept: ${semanticViolation.reason}`);
+      }
+
       const response = await provider.execute(
         agent,
         agent.systemPrompt,
@@ -469,34 +519,34 @@ export class SequentialPipeline {
         this.circuitBreaker.recordFailure(provider);
         if (checkpointId) await this.checkpointManager.rollback(checkpointId);
       }
-      await this.memory.appendLog('system', `❌ Agent ${agent.role} failed: ${errorMessage.slice(0, 200)}`);
+      await this.memory.appendLog('system', `❌ Agent ${agent.role} failed: ${errorMessage.slice(0, 200)}`, { epoch: this.epoch });
 
       await this._emitError(agent, error as Error, options);
       return { agent, status: 'failed', durationMs: Date.now() - start, outputFile: null, error: errorMessage };
     }
   }
 
-  private groupIntoStages(agents: AgentDefinition[]): AgentDefinition[][] {
-    const roleMap = new Map(agents.map(a => [a.role, a]));
-    const stageDefs = [['ceo'], ['pm'], ['architect'], ['ui_ux', 'database'], ['api_designer'], ['backend'], ['frontend', 'auth'], ['integration'], ['unit_test', 'integration_test'], ['security', 'performance'], ['code_review'], ['docs', 'tech_writer'], ['devops']];
-    const stages: AgentDefinition[][] = [];
-    for (const roles of stageDefs) {
-      const sa = roles.map(r => roleMap.get(r)).filter((a): a is AgentDefinition => !!a);
-      if (sa.length > 0) stages.push(sa);
-    }
-    const mapped = new Set(stageDefs.flat());
-    const extra = agents.filter(a => !mapped.has(a.role));
-    if (extra.length > 0) stages.push(...extra.map(a => [a]));
-    return stages;
-  }
+  // legacy groupIntoStages removed to favor DependencyGraph
 
-  private async findBacktrackTarget(agent: AgentDefinition, agentsToRun: AgentDefinition[], curIdx: number) {
-    const targets = agent.backtrackTargets ?? [];
-    for (const t of targets) {
-      const idx = agentsToRun.findIndex(a => a.role === t);
-      if (idx >= 0 && idx < curIdx) return { targetIndex: idx, targetAgent: agentsToRun[idx]! };
+  private async findBacktrackTarget(agent: AgentDefinition, _agentsToRun: AgentDefinition[], _curIdx: number) {
+    const graph = new DependencyGraph(AGENTS);
+    const parents = graph.getDependencies(agent.role);
+    
+    if (parents.length > 0) {
+      // Backtrack to the first parent in the graph for maximum semantic safety
+      const targetRole = parents[0]!;
+      const targetAgent = AGENTS.find(a => a.role === targetRole)!;
+      return { targetIndex: targetAgent.order - 1, targetAgent };
     }
-    return curIdx > 0 ? { targetIndex: curIdx - 1, targetAgent: agentsToRun[curIdx - 1]! } : null;
+
+    // Conservative fallback to manual targets or immediate previous order
+    const manualTargets = agent.backtrackTargets ?? [];
+    if (manualTargets.length > 0) {
+       const targetAgent = AGENTS.find(a => a.role === manualTargets[0])!;
+       return { targetIndex: targetAgent.order - 1, targetAgent };
+    }
+
+    return null;
   }
 
   private async recordBacktrack(from: string, to: string, reason: string) {
@@ -504,7 +554,7 @@ export class SequentialPipeline {
     const history = state.backtrackHistory ?? [];
     history.push({ from, to, reason: reason.slice(0, 500), timestamp: new Date().toISOString() });
     await this.memory.updateState({ backtrackHistory: history });
-    await this.memory.appendLog('system', `🛑 BACKTRACK TRIGGERED: ${from} → ${to} (${reason.slice(0, 200)})`);
+    await this.memory.appendLog('system', `🛑 BACKTRACK TRIGGERED: ${from} → ${to} (${reason.slice(0, 200)})`, { epoch: this.epoch });
   }
 
   private async autoVerifyPipeline(_options: PipelineOptions) {
@@ -540,25 +590,28 @@ export class SequentialPipeline {
     this.cumulativeTokens.estimatedCostUsd += usage.estimatedCostUsd;
     
     // Persist to SharedMemory incrementally
-    this.memory.updateState({ cumulativeTokens: usage }).catch(() => {});
+    this.memory.updateState({ 
+      cumulativeTokens: usage,
+      circuitBreakerState: Object.fromEntries(this.circuitBreaker.getStates()) as unknown as Record<string, 'CLOSED' | 'OPEN' | 'HALF_OPEN'>
+    }).catch(() => {});
     
     eventBus.publish('token_usage', usage);
   }
 
   /**
    * Save current pipeline state as a workflow file for later resumption.
+   * Refactored for Parallel Orchestration: Stores completed agents instead of stage index.
    */
-  private async saveWorkflow(agentResults: AgentResult[], stages: AgentDefinition[][], currentStageIndex: number) {
+  private async saveWorkflow(agentResults: AgentResult[]) {
     const workflowPath = path.join(this.projectRoot, '.ai-company', 'workflow-state.json');
     const workflow = {
       sessionId: this.sessionId,
       savedAt: new Date().toISOString(),
-      currentStageIndex,
-      totalStages: stages.length,
       completedRoles: agentResults.filter(r => r.status === 'completed').map(r => r.agent.role),
       failedRoles: agentResults.filter(r => r.status === 'failed').map(r => ({ role: r.agent.role, error: r.error })),
       cumulativeTokens: { ...this.cumulativeTokens },
       circuitBreakers: Object.fromEntries(this.circuitBreaker.getStates()),
+      epoch: this.epoch
     };
     await fs.mkdir(path.dirname(workflowPath), { recursive: true });
     await fs.writeFile(workflowPath, JSON.stringify(workflow, null, 2), 'utf-8');

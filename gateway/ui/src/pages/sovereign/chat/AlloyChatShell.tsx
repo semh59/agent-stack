@@ -19,6 +19,8 @@ import { ConversationList } from "./components/ConversationList";
 import { MessageList } from "./components/MessageList";
 import { Composer } from "./components/Composer";
 import { CostFooter } from "./components/CostFooter";
+import { SurgicalEditor } from "./components/SurgicalEditor";
+import { AutonomyConsole } from "./components/AutonomyConsole";
 
 export function AlloyChatShell() {
   const { 
@@ -47,10 +49,12 @@ export function AlloyChatShell() {
   return (
     <div className="flex h-full min-h-0 w-full overflow-hidden bg-[var(--color-alloy-bg)]">
       <ConversationList />
-      <main className="flex min-w-0 flex-1 flex-col border-l border-[var(--color-alloy-border)]">
+      <main className="relative flex flex-1 flex-col overflow-hidden">
+        <AutonomyConsole />
         <MessageList />
         <Composer />
         <CostFooter />
+        <SurgicalEditor />
       </main>
     </div>
   );

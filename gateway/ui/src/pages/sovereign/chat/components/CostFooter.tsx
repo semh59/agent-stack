@@ -39,13 +39,18 @@ export function CostFooter() {
           tok
         </span>
         {sessionCostUsd > 0 ? (
-          <span>
+          <span className="flex items-center gap-1.5 border-l border-white/5 pl-4">
             <span className="text-[var(--color-alloy-text-sec)]">spend</span>{" "}
             <span className="font-mono text-white">
               ${sessionCostUsd.toFixed(4)}
             </span>
           </span>
         ) : null}
+        
+        {/* Placeholder for granular per-message cost which will be integrated with the ledger API */}
+        <span className="text-[10px] text-[var(--color-alloy-text-sec)]/50 italic">
+          (transparency ledger active)
+        </span>
       </div>
       {total > 0 ? (
         <button

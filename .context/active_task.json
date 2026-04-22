@@ -1,0 +1,12 @@
+{
+  "id": "P7-01",
+  "name": "Verification Loop",
+  "status": "executing",
+  "startTime": "2026-04-22T10:37:59.573Z",
+  "subTasks": [
+    {
+      "name": "Retina Test",
+      "status": "completed"
+    }
+  ]
+}

@@ -1,15 +1,12 @@
 import * as nodeCrypto from "node:crypto";
 import type {
-  AutonomyEvent,
   AutonomySession,
   AutonomyState,
   BudgetLimits,
   CreateAutonomySessionRequest,
-  ModelDecision,
-  ModelSwitchReason,
-  TaskNode,
   AutonomousClientResolver,
   AutonomousTaskExecutor,
+  AutonomyEvent,
 } from "./autonomy-types";
 import type { AlloyGatewayClient } from "./gateway-client";
 import { SmartMultiModelRouter } from "./autonomy-model-router";
@@ -24,6 +21,7 @@ import { SkillEngine } from "./SkillEngine";
 import { taskGraphManager } from "./TaskGraphManager";
 
 // Modular Engine Components
+import { AutonomyLoopOrchestrator } from "./engine/autonomy-loop-orchestrator";
 import { AutonomySessionManager } from "./engine/autonomy-session-manager";
 import { AutonomyGitOrchestrator } from "./engine/autonomy-git-orchestrator";
 import { AutonomyInterruptHandler } from "./engine/autonomy-interrupt-handler";
@@ -61,6 +59,7 @@ export class AutonomousLoopEngine {
   private readonly gitOrchestrator: AutonomyGitOrchestrator;
   private readonly interruptHandler: AutonomyInterruptHandler;
   private readonly cycleRunner: AutonomyCycleRunner;
+  private readonly orchestrator: AutonomyLoopOrchestrator;
 
   constructor(private readonly options: AutonomousLoopEngineOptions) {
     this.terminal = new TerminalExecutor(options.projectRoot);
@@ -100,6 +99,18 @@ export class AutonomousLoopEngine {
       emit,
       clientResolver: options.clientResolver,
       defaultClient: options.client,
+    });
+
+    this.orchestrator = new AutonomyLoopOrchestrator({
+      sessionManager: this.sessionManager,
+      cycleRunner: this.cycleRunner,
+      interruptHandler: this.interruptHandler,
+      gitOrchestrator: this.gitOrchestrator,
+      skillEngine: this.skillEngine,
+      budgetTracker: this.budgetTracker,
+      projectRoot: options.projectRoot,
+      emit,
+      onSessionComplete: (session) => this.completeSession(session),
     });
   }
 
@@ -205,108 +216,14 @@ export class AutonomousLoopEngine {
   }
 
   private async runSession(sessionId: string): Promise<AutonomySession> {
-    let session = this.sessionManager.getSession(sessionId);
-    if (!session) {
-      await this.sessionManager.hydrateFromDisk();
-      session = this.sessionManager.getSession(sessionId);
-    }
-    if (!session) throw new Error(`Autonomy session not found: ${sessionId}`);
-    
-    if (this.runningSessions.has(sessionId)) return session!;
-
-    this.runningSessions.add(sessionId);
-    process.stderr.write(`[AUTONOMY] Starting session ${sessionId} loop. Loop count: ${this.runningSessions.size}\n`);
-    try {
-      if (session.state === "queued") {
-        session.queuePosition = null;
-        await this.sessionManager.transition(session, "init", null, "Dequeued and starting");
+    return this.orchestrator.runSession(
+      sessionId,
+      (id) => this.runningSessions.has(id),
+      (id, active) => {
+        if (active) this.runningSessions.add(id);
+        else this.runningSessions.delete(id);
       }
-      await this.sessionManager.loadOpLog(session);
-      await this.skillEngine.initialize();
-      
-      await this.gitOrchestrator.prepareGit(session, (msg) => this.emit("log", session!, { message: msg }));
-
-      let nextSwitchReason: ModelSwitchReason = "INITIAL";
-      let recoverToAnchorPending = false;
-
-      while (session.cycleCount < session.maxCycles) {
-        if (await this.interruptHandler.checkInterrupts(session)) break;
-        
-        if (await this.interruptHandler.applyPauseIfRequested(session, async () => {
-             // Logic for re-validating state can be added here if needed in future
-        })) continue;
-
-        const task = taskGraphManager.findNextTask(session.taskGraph);
-        if (!task) {
-          if (await this.interruptHandler.checkInterrupts(session)) break;
-          await this.completeSession(session);
-          break;
-        }
-
-        if (taskGraphManager.wasTaskCompleted(session.taskGraph, task.type)) {
-          task.status = "completed";
-          task.updatedAt = new Date().toISOString();
-          continue;
-        }
-
-        session.cycleCount += 1;
-        const modelDecision = await this.cycleRunner.prepareCycle(session, task, nextSwitchReason, recoverToAnchorPending);
-        
-        session.artifacts.plan = this.buildPlanArtifact(session, task, modelDecision);
-        this.emit("artifact", session, { type: "plan", value: session.artifacts.plan });
-
-        const reviewDecision = await this.interruptHandler.awaitPlanReviewDecision(session, task);
-        if (reviewDecision !== "continue") break;
-
-        const executionResult = await this.cycleRunner.executeCycle(session, task, modelDecision, () => this.interruptHandler.isStopRequested(session.id), this.budgetTracker);
-        if (executionResult.success) {
-          taskGraphManager.completeTask(session.taskGraph, task.type);
-        }
-        
-        if (await this.interruptHandler.checkInterrupts(session, true)) break;
-        if (!executionResult.success) {
-          nextSwitchReason = executionResult.nextSwitchReason!;
-          recoverToAnchorPending = true;
-          if (session.state === "failed") break;
-          continue;
-        }
-
-        const gateResult = await this.cycleRunner.verifyCycle(session, task, this.options.projectRoot);
-        const reflection = await this.cycleRunner.reflectOnCycle(session, task, gateResult, executionResult.result!);
-        if (await this.interruptHandler.checkInterrupts(session)) break;
-
-        if (!reflection.passed) {
-          nextSwitchReason = reflection.nextSwitchReason!;
-          recoverToAnchorPending = true;
-          if (session.state === "failed") break;
-          continue;
-        }
-
-        await this.finalizeCycle(session, task, reflection.nextActionReason);
-        nextSwitchReason = executionResult.nextSwitchReason ?? "ROUTER_POLICY";
-        recoverToAnchorPending = executionResult.nextSwitchReason === undefined && modelDecision.selectedModel !== modelDecision.anchorModel;
-        
-        if (await this.interruptHandler.checkInterrupts(session)) break; 
-        if (session.state === "done") break;
-      }
-
-      if (!["done", "failed", "stopped"].includes(session.state)) {
-        await this.sessionManager.failSession(session, `Cycles budget exhausted (${session.maxCycles})`);
-      }
-
-      return session;
-    } catch (err: unknown) {
-      const error = err as Error;
-      if (!["failed", "stopped"].includes(session!.state)) {
-        await this.sessionManager.failSession(session!, error.message);
-      }
-      return session!;
-    } finally {
-      if (session!.state === "failed") {
-        await this.gitOrchestrator.cleanupFailedSessionBranch(session!).catch(() => {});
-      }
-      this.runningSessions.delete(sessionId);
-    }
+    );
   }
 
   private async completeSession(session: AutonomySession): Promise<void> {
@@ -347,16 +264,6 @@ export class AutonomousLoopEngine {
     });
   }
 
-  private async finalizeCycle(session: AutonomySession, task: TaskNode, nextActionReason?: string): Promise<void> {
-    if (nextActionReason) session.artifacts.nextActionReason = nextActionReason;
-    if (task.type === "analysis") taskGraphManager.setTaskStatus(session.taskGraph, "implementation", "pending");
-    if (task.type === "implementation" || task.type === "test-fix") taskGraphManager.setTaskStatus(session.taskGraph, "verification", "pending");
-    if (task.type === "verification") taskGraphManager.setTaskStatus(session.taskGraph, "finalize", "pending");
-    if (task.type === "finalize") {
-        if (await this.interruptHandler.applyStopIfRequested(session)) return;
-        await this.completeSession(session);
-    }
-  }
 
   private emit(type: AutonomyEvent["type"], session: AutonomySession, payload: Record<string, unknown>): void {
     const event: AutonomyEvent = {
@@ -437,18 +344,6 @@ export class AutonomousLoopEngine {
     return { id: session.id, state: session.state, objective: session.objective, account: session.account };
   }
 
-  private buildPlanArtifact(session: AutonomySession, task: TaskNode, modelDecision: ModelDecision): string {
-    return `# Plan: ${task.type}
-## Current Model
-${modelDecision.selectedModel}
-
-## Objective
-${session.objective}
-
-## Gear
-${session.currentGear}
-`;
-  }
 
   /**
    * Internal method for testing: prunes touched files against git status
@@ -456,10 +351,10 @@ ${session.currentGear}
   private async revalidateTouchedFiles(session: AutonomySession): Promise<void> {
     const gitManager = this.options.gitManager ?? new AutonomyGitManager(this.options.projectRoot);
     const dirty = await gitManager.getDirtyFiles();
-    const normalizedDirty = dirty.map(f => f.replace(/\\/g, "/"));
+    const normalizedDirty = dirty.map((f: string) => f.replace(/\\/g, "/"));
     session.touchedFiles = session.touchedFiles
-      .filter(f => normalizedDirty.includes(f.replace(/\\/g, "/")))
-      .map(f => f.replace(/\\/g, "/")); // Normalize the stored paths too
+      .filter((f: string) => normalizedDirty.includes(f.replace(/\\/g, "/")))
+      .map((f: string) => f.replace(/\\/g, "/")); // Normalize the stored paths too
     session.updatedAt = new Date().toISOString();
   }
 }

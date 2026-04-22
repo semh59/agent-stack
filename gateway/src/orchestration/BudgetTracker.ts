@@ -1,4 +1,6 @@
-﻿import type { AutonomySession, BudgetLimits, BudgetUsage } from "./autonomy-types";
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import type { AutonomySession, BudgetLimits, BudgetUsage } from "./autonomy-types";
 import {
   InMemoryMissionRepository,
   type AccountQuotaUsageSnapshot,
@@ -49,6 +51,16 @@ export interface BudgetExecutionAccounting {
   usage: AccountQuotaUsageSnapshot;
 }
 
+export interface TransactionRecord {
+  id: string;
+  sessionId: string;
+  agentRole: string;
+  modelId: string;
+  tokens: { input: number; output: number; cached: number };
+  costUsd: number;
+  timestamp: number;
+}
+
 export class BudgetReservationError extends Error {
   constructor(
     message: string,
@@ -80,8 +92,12 @@ export class BudgetTracker {
   private readonly repository: MissionRepository;
   private readonly sweeperInterval: ReturnType<typeof setInterval>;
   private readonly ROLLING_WINDOW_MS = 300_000;
+  private readonly projectRoot: string;
+  private readonly ledgerFile: string;
 
-  constructor(options: BudgetTrackerOptions = {}) {
+  constructor(options: BudgetTrackerOptions & { projectRoot?: string } = {}) {
+    this.projectRoot = options.projectRoot ?? process.cwd();
+    this.ledgerFile = path.join(this.projectRoot, '.ai-company', 'ledger.jsonl');
     this.repository = options.repository ?? new InMemoryMissionRepository();
     const sweeperIntervalMs =
       typeof options.sweeperIntervalMs === "number" && options.sweeperIntervalMs > 0
@@ -161,8 +177,33 @@ export class BudgetTracker {
         output: Math.max(0, Math.floor(usage.outputTokens)),
       });
       this.cleanupHistory();
+      
+      // Advanced: Transactional Ledger
+      void this.recordTransaction({
+        id: Math.random().toString(36).slice(2, 11),
+        sessionId: reservationId.split('_')[1] || 'unknown',
+        agentRole: 'unknown', // Role would need to be passed in for full precision
+        modelId: 'active_model',
+        tokens: { 
+          input: Math.max(0, Math.floor(usage.inputTokens)), 
+          output: Math.max(0, Math.floor(usage.outputTokens)), 
+          cached: Math.max(0, Math.floor(usage.cachedInputTokens)) 
+        },
+        costUsd: Math.max(0, usage.estimatedUsd),
+        timestamp: Date.now()
+      });
     }
     return result;
+  }
+
+  private async recordTransaction(record: TransactionRecord): Promise<void> {
+    try {
+      const line = JSON.stringify(record) + '\n';
+      await fs.mkdir(path.dirname(this.ledgerFile), { recursive: true });
+      await fs.appendFile(this.ledgerFile, line, 'utf-8');
+    } catch (err) {
+      console.error('[BudgetTracker] Failed to record transaction:', err);
+    }
   }
 
   public async release(
