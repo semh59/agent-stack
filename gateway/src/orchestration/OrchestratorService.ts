@@ -1,11 +1,17 @@
-﻿import { eventBus } from "./event-bus";
+import { eventBus } from "./event-bus";
 import { AutonomousLoopEngine } from "./autonomous-loop-engine";
-import { SequentialPipeline } from "./sequential-pipeline";
+import type { SequentialPipeline } from "./sequential-pipeline";
+
+import type { AlloyGatewayClient } from "./gateway-client";
+
+import { SharedMemory } from "./shared-memory";
+
 import type { 
   AutonomySession, 
   CreateAutonomySessionRequest, 
   AutonomyEvent 
 } from "./autonomy-types";
+
 
 /**
  * OrchestratorService: The central coordinator for Alloy autonomous missions and pipelines.
@@ -21,12 +27,17 @@ export class OrchestratorService {
   private pipelines: Map<string, SequentialPipeline> = new Map();
   private subscriptions: Array<() => void> = [];
   private engineDispose: { dispose: () => void } | null = null;
+  private sharedMemory: SharedMemory;
+
 
   private constructor(
     projectRoot: string, 
-    client?: import("./gateway-client").AlloyGatewayClient
+    client?: AlloyGatewayClient
   ) {
+
+    this.sharedMemory = new SharedMemory(projectRoot);
     this.autonomyEngine = new AutonomousLoopEngine({ projectRoot, client });
+
     
     // Listen to autonomy events and broadcast them globally
     this.engineDispose = this.autonomyEngine.onEvent((event) => {
@@ -43,8 +54,9 @@ export class OrchestratorService {
 
   public static getInstance(
     projectRoot: string, 
-    client?: import("./gateway-client").AlloyGatewayClient
+    client?: AlloyGatewayClient
   ): OrchestratorService {
+
     if (!OrchestratorService.instance) {
       OrchestratorService.instance = new OrchestratorService(projectRoot, client);
     }
@@ -124,9 +136,15 @@ export class OrchestratorService {
   public getPipeline(id: string): SequentialPipeline | undefined {
     return this.pipelines.get(id);
   }
+
+  public getSharedMemory(): SharedMemory {
+    return this.sharedMemory;
+  }
 }
+
 
 export const orchestratorService = (
   projectRoot: string, 
-  client?: import("./gateway-client").AlloyGatewayClient
+  client?: AlloyGatewayClient
 ) => OrchestratorService.getInstance(projectRoot, client);
+

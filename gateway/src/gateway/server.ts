@@ -5,8 +5,11 @@ import websocket from "@fastify/websocket";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { TokenStore } from "./token-store";
-import { SequentialPipeline } from "../orchestration/sequential-pipeline";
+import type { SequentialPipeline } from "../orchestration/sequential-pipeline";
 import { eventBus } from "../orchestration/event-bus";
+
+
+
 import { AccountManager } from "../plugin/accounts";
 
 import { AutonomySessionManager } from "./autonomy-session-manager";
@@ -49,7 +52,9 @@ import { registerAccountsRoutes } from "../api/routers/accounts.router";
 import { registerPipelineRoutes } from "../api/routers/pipeline.router";
 import { registerAutonomyRoutes } from "../api/routers/autonomy.router";
 import { registerPrivacyRoutes } from "../api/routers/privacy.router";
-import { type MissionModel } from "../models/mission.model";
+import type { MissionModel } from "../models/mission.model";
+import type { AuthServer } from "./auth-server";
+
 
 import { MissionService, MissionServiceError } from "../services/mission.service";
 import { AutonomyMissionRuntime } from "../services/mission-runtime";
@@ -122,7 +127,17 @@ function summarizeAutonomySession(session: AutonomySession) {
   };
 }
 
+interface WebSocketLike {
+  readyState: number;
+  send(data: string): void;
+  close(code?: number, reason?: string): void;
+  terminate?(): void;
+  on(event: string, cb: (...args: any[]) => void): void;
+  ping?(): void;
+}
+
 function summarizeMission(session: MissionModel) {
+
   return {
     id: session.id,
     state: session.currentPhase ?? session.state,
@@ -187,10 +202,11 @@ interface MissionSocketSnapshotMeta {
 }
 
 interface MissionSocketClientEntry {
-  socket: unknown;
+  socket: WebSocketLike;
   clientId: string;
   generation: WsSocketGeneration;
 }
+
 
 
 interface MissionWsTicketRequestBody {
@@ -237,7 +253,9 @@ export class GatewayServer {
   private tokenStore: TokenStore;
   private accountManager: AccountManager | null = null;
   private activePipeline: SequentialPipeline | null = null;
-  private activeAuthServer: import("./auth-server").AuthServer | null = null;
+  private activeAuthServer: AuthServer | null = null;
+
+
   private readonly autonomyManager: AutonomySessionManager;
   private readonly autonomySubscribers = new Map<string, Map<string, MissionSocketClientEntry>>();
   private projectRoot: string;
@@ -621,8 +639,10 @@ export class GatewayServer {
     });
 
     registerPrivacyRoutes(this.app, {
-      ledger: (orchestratorService.getSharedMemory() as any).privacyLedger,
+      ledger: orchestratorService(this.projectRoot).getSharedMemory().getPrivacyLedger(),
     });
+
+
 
 
     registerSystemRoutes(this.app, {
@@ -997,7 +1017,7 @@ export class GatewayServer {
     };
   }
 
-  private safeSendSocket(socket: any, payload: Record<string, unknown>): void {
+  private safeSendSocket(socket: WebSocketLike | null, payload: Record<string, unknown>): void {
     try {
       if (socket && socket.readyState === 1) {
         socket.send(JSON.stringify(payload));
@@ -1007,12 +1027,13 @@ export class GatewayServer {
     }
   }
 
-  private resolveSocket(connection: any): any {
-    if (typeof connection?.on === "function") return connection;
-    return connection?.socket ?? connection;
+  private resolveSocket(connection: any): WebSocketLike {
+    if (typeof connection?.on === "function") return connection as WebSocketLike;
+    return (connection?.socket ?? connection) as WebSocketLike;
   }
 
-  private closeSocket(socket: any, code: number, reason: string): void {
+
+  private closeSocket(socket: WebSocketLike | null, code: number, reason: string): void {
     try {
       if (socket && typeof socket.close === "function" && socket.readyState < 2) {
         socket.close(code, reason);
@@ -1022,27 +1043,39 @@ export class GatewayServer {
     }
   }
 
+
   private setupWebSockets() {
     // â”€â”€ WebSocket Heartbeat (30s) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const HEARTBEAT_INTERVAL_MS = 30_000;
-    const HEARTBEAT_TIMEOUT_MS = 5_000;
+
 
     const heartbeatInterval = setInterval(() => {
       for (const subscribers of this.autonomySubscribers.values()) {
         for (const entry of subscribers.values()) {
-          const socket = entry.socket;
+          const socket = entry.socket as WebSocketLike;
           if (socket.readyState !== 1) continue;
-
+ 
           try {
-             if (typeof (socket as any).ping === 'function') {
-                (entry.socket as any).ping();
+             if (typeof socket.ping === 'function') {
+                socket.ping();
              } else {
                 this.safeSendSocket(socket, { type: "ping", timestamp: Date.now() });
              }
+
+
           } catch (e) {
              console.warn("[WS] Ping failed, terminating socket", e);
-             socket.terminate?.() || socket.close();
+             const s = socket as WebSocketLike;
+             if (s.terminate) {
+               s.terminate();
+             } else {
+               s.close();
+             }
           }
+
+
+
+
         }
       }
     }, HEARTBEAT_INTERVAL_MS).unref();

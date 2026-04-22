@@ -248,6 +248,11 @@ export class SharedMemory {
     return this.privacyLedger.getFullAuditTrail();
   }
 
+  public getPrivacyLedger(): ForensicPrivacyLedger {
+    return this.privacyLedger;
+  }
+
+
   // --- Kalıcılık Katmanı (Persistence) ---
 
   public async saveModelMetrics(metrics: Record<string, unknown>[]): Promise<void> {
