@@ -3,7 +3,6 @@
   "displayName": "Alloy AI",
   "description": "Alloy AI — Mission Control for the Alloy AI gateway (Claude, Gemini, Ollama).",
   "version": "0.1.0",
-  "type": "module",
   "publisher": "alloy-ai",
   "license": "MIT",
   "author": "Alloy AI contributors",
@@ -73,6 +72,16 @@
         "command": "alloy.startPipeline",
         "title": "Start Mission Control",
         "category": "Alloy AI"
+      },
+      {
+        "command": "alloy.addAccount",
+        "title": "Add Account",
+        "category": "Alloy AI"
+      },
+      {
+        "command": "alloy.openAccounts",
+        "title": "Manage Accounts",
+        "category": "Alloy AI"
       }
     ],
     "configuration": {
@@ -98,7 +107,7 @@
     "vscode:prepublish": "npm run build",
     "compile": "tsc -p ./",
     "typecheck": "tsc --noEmit",
-    "build": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --platform=node --format=cjs --minify --drop:console",
+    "build": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --external:playwright --external:playwright-core --external:chromium-bidi --platform=node --format=cjs --minify --drop:console",
     "watch": "npm run build -- --watch",
     "lint": "eslint src --ext ts",
     "test": "echo 'VSIX Tests bypassed' && exit 0"
@@ -107,14 +116,12 @@
     "@types/chokidar": "^1.7.5",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.48.0",
     "esbuild": "^0.27.3",
     "eslint": "^8.57.0",
-    "typescript": "^5.4.5"
-  },
-  "dependencies": {
-    "chokidar": "^5.0.0",
-    "playwright": "^1.59.1"
+    "typescript": "^5.4.5",
+    "ws": "^8.20.0"
   }
 }

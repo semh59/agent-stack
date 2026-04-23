@@ -132,10 +132,11 @@ export const GOOGLE_GEMINI_MODELS: ProviderModel[] = [
 
 export const CLAUDE_CODE_MODELS: ProviderModel[] = [
   {
-    id: "claude-3-5-haiku",
-    name: "Claude 3.5 Haiku",
+    // Fastest, cheapest — ideal for simple edits, completions, quick Q&A
+    id: "claude-haiku-4-5-20251001",
+    name: "Claude Haiku 4.5",
     provider: AIProvider.CLAUDE_CODE,
-    maxTokens: 8_192,
+    maxTokens: 200_000,
     supportsStreaming: true,
     supportsThinking: false,
     costPer1kInput: 0.0008,
@@ -143,10 +144,11 @@ export const CLAUDE_CODE_MODELS: ProviderModel[] = [
     tier: "fast",
   },
   {
-    id: "claude-sonnet-4",
-    name: "Claude Sonnet 4",
+    // Best balance — strong coding, extended thinking, 200k context
+    id: "claude-sonnet-4-6",
+    name: "Claude Sonnet 4.6",
     provider: AIProvider.CLAUDE_CODE,
-    maxTokens: 64_000,
+    maxTokens: 200_000,
     supportsStreaming: true,
     supportsThinking: true,
     costPer1kInput: 0.003,
@@ -154,10 +156,11 @@ export const CLAUDE_CODE_MODELS: ProviderModel[] = [
     tier: "balanced",
   },
   {
-    id: "claude-opus-4",
-    name: "Claude Opus 4",
+    // Most capable — complex reasoning, large refactors, architecture
+    id: "claude-opus-4-6",
+    name: "Claude Opus 4.6",
     provider: AIProvider.CLAUDE_CODE,
-    maxTokens: 128_000,
+    maxTokens: 200_000,
     supportsStreaming: true,
     supportsThinking: true,
     costPer1kInput: 0.015,
@@ -166,15 +169,20 @@ export const CLAUDE_CODE_MODELS: ProviderModel[] = [
   },
 ];
 
-/** Cached model list (hot path â€” called by ModelRouter on every route) */
+/** Cached model list (hot path — called by ModelRouter on every route) */
 let _allModelsCache: ProviderModel[] | null = null;
 
-/** Get all models across all providers (memoized) */
+/** Get all models across all providers (memoized). Call invalidateModelCache() after dynamic changes. */
 export function getAllModels(): ProviderModel[] {
   if (!_allModelsCache) {
     _allModelsCache = [...GOOGLE_GEMINI_MODELS, ...CLAUDE_CODE_MODELS];
   }
   return _allModelsCache;
+}
+
+/** Invalidate the model cache (call when model list changes at runtime) */
+export function invalidateModelCache(): void {
+  _allModelsCache = null;
 }
 
 /** Get models for a specific provider */

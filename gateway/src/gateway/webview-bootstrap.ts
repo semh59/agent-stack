@@ -1,246 +1,247 @@
-﻿import * as fs from "node:fs";
-import * as path from "node:path";
+/* ═══════════════════════════════════════════════════════════════════
+   Alloy Webview Bootstrap — HTML generation & asset resolution
+   Provides buildWebviewHtml, resolveWebviewAssets, WebviewBootGate
+   ═══════════════════════════════════════════════════════════════════ */
 
-export interface WebviewAssetResolution {
+import * as fs from "fs";
+import * as path from "path";
+import type * as vscode from "vscode";
+
+/* ── Asset Resolution ─────────────────────────────────────────────── */
+
+export interface ResolvedAssets {
   scriptFileName: string;
   styleFileName: string;
-  strategy: "fixed-index" | "html-entry" | "fallback-scan";
+  strategy: string;
   notes: string[];
 }
 
-interface FsOps {
-  existsSync: (targetPath: string) => boolean;
-  readFileSync: (targetPath: string, encoding: BufferEncoding) => string;
-  readdirSync: (targetPath: string) => string[];
-}
-
-const defaultFsOps: FsOps = {
-  existsSync: fs.existsSync,
-  readFileSync: (targetPath: string, encoding: BufferEncoding) =>
-    fs.readFileSync(targetPath, encoding),
-  readdirSync: (targetPath: string) => fs.readdirSync(targetPath),
-};
-
-function normalizeAssetReference(reference: string): string | null {
-  const withoutQuery = reference.split("?")[0]?.split("#")[0]?.trim() ?? "";
-  if (!withoutQuery) return null;
-  const normalized = withoutQuery.replace(/\\/g, "/");
-  const parts = normalized.split("/");
-  const fileName = parts[parts.length - 1]?.trim();
-  return fileName || null;
-}
-
-function resolveFromHtml(html: string, attribute: "src" | "href"): string | null {
-  const regex = new RegExp(`<[^>]+${attribute}=["']([^"']+)["'][^>]*>`, "gi");
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(html)) !== null) {
-    const raw = match[1];
-    if (!raw) continue;
-    const normalized = normalizeAssetReference(raw);
-    if (!normalized) continue;
-    if (attribute === "src" && normalized.endsWith(".js")) return normalized;
-    if (attribute === "href" && normalized.endsWith(".css")) return normalized;
-  }
-  return null;
-}
-
-function pickAsset(
-  files: string[],
-  preferredFileName: string,
-  extension: ".js" | ".css",
-): string {
-  const extensionFiles = files.filter((file) => file.endsWith(extension));
-  if (extensionFiles.includes(preferredFileName)) {
-    return preferredFileName;
-  }
-
-  const nonVendor = extensionFiles.filter((file) => !/^vendor[-_]/i.test(file));
-  if (nonVendor.length > 0) {
-    return nonVendor.sort()[0]!;
-  }
-
-  if (extensionFiles.length > 0) {
-    return extensionFiles.sort()[0]!;
-  }
-
-  return preferredFileName;
-}
-
+/**
+ * O7 FIX: Dynamic asset discovery instead of hardcoded hashes.
+ * Reads the dist/assets directory to find the actual .js and .css files.
+ */
 export function resolveWebviewAssets(
   distPath: string,
-  assetsPath: string,
-  fsOps: FsOps = defaultFsOps,
-): WebviewAssetResolution {
+  assetsPath: string
+): ResolvedAssets {
   const notes: string[] = [];
-  const fixedScript = "index.js";
-  const fixedStyle = "index.css";
-  const fixedScriptPath = path.join(assetsPath, fixedScript);
-  const fixedStylePath = path.join(assetsPath, fixedStyle);
 
-  if (fsOps.existsSync(fixedScriptPath) && fsOps.existsSync(fixedStylePath)) {
-    return {
-      scriptFileName: fixedScript,
-      styleFileName: fixedStyle,
-      strategy: "fixed-index",
-      notes,
-    };
-  }
+  // Default fallback names
+  let scriptFileName = "index.js";
+  let styleFileName = "index.css";
+  let strategy = "fallback";
 
-  const indexHtmlPath = path.join(distPath, "index.html");
-  if (fsOps.existsSync(indexHtmlPath)) {
-    try {
-      const html = fsOps.readFileSync(indexHtmlPath, "utf-8");
-      const htmlScript = resolveFromHtml(html, "src");
-      const htmlStyle = resolveFromHtml(html, "href");
-      const scriptValid =
-        htmlScript !== null && fsOps.existsSync(path.join(assetsPath, htmlScript));
-      const styleValid =
-        htmlStyle !== null && fsOps.existsSync(path.join(assetsPath, htmlStyle));
-      if (scriptValid && styleValid) {
-        return {
-          scriptFileName: htmlScript!,
-          styleFileName: htmlStyle!,
-          strategy: "html-entry",
-          notes,
-        };
-      }
-      notes.push("index.html asset references were missing or invalid.");
-    } catch (error) {
-      notes.push(`index.html parse failed: ${String(error)}`);
-    }
-  } else {
-    notes.push("index.html not found; using fallback asset scan.");
-  }
-
-  let files: string[] = [];
   try {
-    if (fsOps.existsSync(assetsPath)) {
-      files = fsOps.readdirSync(assetsPath);
-    } else {
-      notes.push("assets directory not found; using static defaults.");
+    if (!fs.existsSync(assetsPath)) {
+      notes.push(`Assets directory not found: ${assetsPath}`);
+      return { scriptFileName, styleFileName, strategy, notes };
     }
-  } catch (error) {
-    notes.push(`assets scan failed: ${String(error)}`);
+
+    const files = fs.readdirSync(assetsPath);
+    const jsFiles = files.filter((f) => f.endsWith(".js"));
+    const cssFiles = files.filter((f) => f.endsWith(".css"));
+
+    // Strategy 1: Look for stable names (from Vite config)
+    if (jsFiles.includes("index.js")) {
+      scriptFileName = "index.js";
+      strategy = "stable-name";
+    } else if (jsFiles.length > 0) {
+      // Strategy 2: Use the first JS file found
+      scriptFileName = jsFiles[0];
+      strategy = "discovered";
+      notes.push(`Using discovered JS file: ${jsFiles[0]}`);
+    } else {
+      notes.push("No JS files found in assets directory");
+    }
+
+    if (cssFiles.includes("index.css")) {
+      styleFileName = "index.css";
+    } else if (cssFiles.length > 0) {
+      styleFileName = cssFiles[0];
+      notes.push(`Using discovered CSS file: ${cssFiles[0]}`);
+    } else {
+      notes.push("No CSS files found in assets directory — skipping stylesheet");
+      styleFileName = "";
+    }
+  } catch (err) {
+    notes.push(`Asset resolution error: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  return {
-    scriptFileName: pickAsset(files, fixedScript, ".js"),
-    styleFileName: pickAsset(files, fixedStyle, ".css"),
-    strategy: "fallback-scan",
-    notes,
-  };
+  return { scriptFileName, styleFileName, strategy, notes };
 }
 
-export interface BuildWebviewHtmlOptions {
-  title: string;
+/* ── HTML Builder ─────────────────────────────────────────────────── */
+
+export interface BuildHtmlOptions {
+  webview: vscode.Webview;
+  scriptUri: vscode.Uri;
+  styleUri: vscode.Uri;
   nonce: string;
   cspSource: string;
-  connectSources: string[];
-  styleUri: string;
-  scriptUri: string;
+  extraConnectOrigins?: string[];
 }
 
-export function buildWebviewHtml(options: BuildWebviewHtmlOptions): string {
-  const connectSources = Array.from(new Set(options.connectSources)).join(" ");
+/**
+ * Builds the complete HTML document for the webview.
+ * Includes CSP, nonce, boot gate, and VS Code theme integration.
+ */
+export function buildWebviewHtml(options: BuildHtmlOptions): string {
+  const { webview, scriptUri, styleUri, nonce, cspSource, extraConnectOrigins = [] } = options;
 
-  return `<!DOCTYPE html>
+  const connectSources = [
+    "'self'",
+    ...extraConnectOrigins,
+  ].join(" ");
+
+  const styleSheetTag = styleUri && styleUri.toString()
+    ? `<link rel="stylesheet" href="${styleUri.toString()}">`
+    : "";
+
+  return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${options.nonce}' ${options.cspSource}; style-src ${options.cspSource} 'unsafe-inline'; font-src ${options.cspSource} https://fonts.gstatic.com; img-src ${options.cspSource} data: https:; connect-src ${connectSources};">
-  <link href="${options.styleUri}" rel="stylesheet">
-  <title>${options.title}</title>
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none';
+             script-src 'nonce-${nonce}' ${cspSource};
+             style-src ${cspSource} 'unsafe-inline';
+             font-src ${cspSource};
+             connect-src ${connectSources};
+             img-src ${cspSource} https: data:;">
+  <meta name="theme-color" content="#09090b">
+  ${styleSheetTag}
+  <title>Alloy AI</title>
 </head>
 <body>
-  <div id="root"></div>
-  <script nonce="${options.nonce}">
-    (function () {
-      const vscode = typeof acquireVsCodeApi === "function" ? acquireVsCodeApi() : null;
-      const post = function (type, payload) {
-        if (!vscode) return;
-        try {
-          vscode.postMessage({ type: type, payload: payload || {} });
-        } catch {
-          // no-op
+  <div id="root">
+    <div id="alloy-boot-loader" style="display:flex;align-items:center;justify-content:center;height:100vh;color:#f3a833;font-family:system-ui;font-size:14px;gap:8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f3a833" stroke-width="2" style="animation:spin 1s linear infinite">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      Loading Alloy...
+    </div>
+  </div>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  <script nonce="${nonce}">
+    // ── Diagnostic: Boot timeout detection ──
+    window.__ALLOY_BOOT_DIAG = { startTime: Date.now(), phase: 'inline-script' };
+    setTimeout(function() {
+      if (!window.__ALLOY_BOOT_DONE) {
+        var el = document.getElementById('alloy-boot-loader');
+        if (el) {
+          el.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:8px">⏱️</div><div style="font-weight:bold;margin-bottom:4px">Alloy UI Timeout</div><div style="opacity:0.7;font-size:11px">Phase: ' + (window.__ALLOY_BOOT_DIAG.phase || 'unknown') + '<br>Elapsed: ' + ((Date.now() - window.__ALLOY_BOOT_DIAG.startTime)/1000).toFixed(1) + 's</div><button onclick="location.reload()" style="margin-top:8px;padding:4px 12px;background:#6366f1;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px">Retry</button></div>';
         }
-      };
-      const toMessage = function (reason) {
-        if (typeof reason === "string") return reason;
-        if (reason && typeof reason.message === "string") return reason.message;
-        try {
-          return JSON.stringify(reason);
-        } catch {
-          return String(reason);
+      }
+    }, 8000);
+
+    // ── VS Code API Acquisition (can only be called ONCE) ──
+    try {
+      var vscodeApi = acquireVsCodeApi();
+      window.__vsCodeApi = vscodeApi;
+      window.__ALLOY_BOOT_DIAG.phase = 'api-acquired';
+    } catch(e) {
+      window.__ALLOY_BOOT_DIAG.phase = 'api-failed:' + (e&&e.message||e);
+      document.getElementById('alloy-boot-loader').innerHTML = '<div style="text-align:center;color:#ef4444"><div style="font-size:32px;margin-bottom:8px">❌</div><div style="font-weight:bold">VS Code API Error</div><div style="opacity:0.7;font-size:11px;margin-top:4px">' + (e&&e.message||String(e)) + '</div></div>';
+      throw e;
+    }
+
+    // ── Boot Gate ──
+    window.__ALLOY_BOOT_DIAG.phase = 'boot-gate-setup';
+    var bootMessageQueue = [];
+    var bootReady = false;
+
+    window.__ALLOY_BOOT = {
+      ready: function() {
+        bootReady = true;
+        window.__ALLOY_BOOT_DONE = true;
+        window.__ALLOY_BOOT_DIAG.phase = 'ready';
+        vscodeApi.postMessage({ type: 'ui_boot_ready' });
+        while (bootMessageQueue.length > 0) {
+          var msg = bootMessageQueue.shift();
+          window.postMessage(msg, '*');
         }
-      };
-
-      window.__ALLOY_BOOT = {
-        ready: function (payload) { post("ui_boot_ready", payload || {}); },
-        fail: function (payload) { post("ui_boot_failed", payload || {}); },
-      };
-
-      post("ui_boot_started", { timestamp: new Date().toISOString() });
-
-      window.addEventListener("error", function (event) {
-        post("ui_boot_failed", {
-          message: event.message || "Runtime error",
-          source: event.filename || "",
-          line: event.lineno || 0,
-          column: event.colno || 0,
+      },
+      fail: function(err) {
+        window.__ALLOY_BOOT_DONE = true;
+        window.__ALLOY_BOOT_DIAG.phase = 'failed';
+        vscodeApi.postMessage({
+          type: 'ui_boot_failed',
+          payload: { message: (err && err.message) || String(err) }
         });
-      }, true);
+      }
+    };
 
-      window.addEventListener("unhandledrejection", function (event) {
-        post("ui_boot_failed", {
-          message: "Unhandled rejection: " + toMessage(event.reason),
-        });
-      });
-    })();
+    // Signal boot started
+    window.__ALLOY_BOOT_DIAG.phase = 'boot-started';
+    vscodeApi.postMessage({ type: 'ui_boot_started' });
   </script>
-  <script nonce="${options.nonce}" type="module" src="${options.scriptUri}"></script>
+  <script type="module" nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>
 </html>`;
 }
 
+/* ── Boot Gate ────────────────────────────────────────────────────── */
+
+/**
+ * Queues messages until the webview signals it's ready.
+ * Prevents message loss during React app initialization.
+ */
 export class WebviewBootGate<T> {
-  private ready = false;
-  private readonly queue: T[] = [];
-  private readonly maxQueueSize: number;
+  private queue: T[] = [];
+  private _ready = false;
+  private _sender: ((msg: T) => void) | null = null;
+  private readonly _maxSize: number;
 
-  constructor(maxQueueSize: number = 200) {
-    this.maxQueueSize = Math.max(1, maxQueueSize);
+  constructor(maxSize = 400) {
+    this._maxSize = maxSize;
   }
 
-  public reset(): void {
-    this.ready = false;
-    this.queue.length = 0;
+  get ready(): boolean {
+    return this._ready;
   }
 
-  public isReady(): boolean {
-    return this.ready;
-  }
-
-  public enqueue(message: T, send: (next: T) => void): void {
-    if (this.ready) {
-      send(message);
-      return;
-    }
-
-    if (this.queue.length >= this.maxQueueSize) {
-      this.queue.shift();
-    }
-    this.queue.push(message);
-  }
-
-  public markReady(send: (next: T) => void): void {
-    if (this.ready) return;
-    this.ready = true;
+  markReady(sender: (msg: T) => void): void {
+    this._sender = sender;
+    this._ready = true;
     while (this.queue.length > 0) {
-      const next = this.queue.shift();
-      if (next !== undefined) {
-        send(next);
+      const msg = this.queue.shift()!;
+      this._sender(msg);
+    }
+  }
+
+  enqueue(msg: T, fallbackSender: (msg: T) => void): void {
+    if (this._ready && this._sender) {
+      this._sender(msg);
+    } else {
+      if (this.queue.length >= this._maxSize) {
+        this.queue.shift();
+      }
+      this.queue.push(msg);
+      // Try sending via fallback in case webview is ready but gate isn't marked
+      try {
+        fallbackSender(msg);
+      } catch {
+        // Ignore — will be sent on markReady
       }
     }
+  }
+
+  reset(): void {
+    this.queue = [];
+    this._ready = false;
+    this._sender = null;
+  }
+}
+
+/* ── Window Type Augmentation ─────────────────────────────────────── */
+declare global {
+  interface Window {
+    __ALLOY_BOOT?: {
+      ready: () => void;
+      fail: (err?: Error) => void;
+    };
   }
 }

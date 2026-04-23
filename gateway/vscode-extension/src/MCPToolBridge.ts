@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
+import WS from 'ws';
 import { GlobalEventBus } from '../../src/gateway/event-bus';
 
 export class MCPToolBridge {
   private readonly websocketUrl: string;
-  private socket: WebSocket | null = null;
+  private socket: WS | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isDisposed = false;
 
@@ -14,9 +15,9 @@ export class MCPToolBridge {
 
   public connect() {
     try {
-      this.socket = new WebSocket(this.websocketUrl);
+      this.socket = new WS(this.websocketUrl);
 
-      this.socket.onopen = () => {
+      this.socket.on('open', () => {
         GlobalEventBus.emit({
           type: "ui:log",
           id: Date.now(),
@@ -26,11 +27,11 @@ export class MCPToolBridge {
           level: "success"
         });
         this.registerTools();
-      };
+      });
 
-      this.socket.onmessage = async (event: MessageEvent) => {
+      this.socket.on('message', async (data: WS.RawData) => {
         try {
-          const req = JSON.parse(event.data);
+          const req = JSON.parse(data.toString());
           if (req.method === 'executeTool') {
             const res = await this.executeTool(req.toolName, req.args);
             this.socket?.send(JSON.stringify({ id: req.id, result: res }));
@@ -38,13 +39,18 @@ export class MCPToolBridge {
         } catch (err) {
           console.error("MCPToolBridge Message Error", err);
         }
-      };
+      });
 
-      this.socket.onclose = () => {
+      this.socket.on('close', () => {
         if (!this.isDisposed) {
           this.reconnectTimer = setTimeout(() => this.connect(), 5000);
         }
-      };
+      });
+
+      this.socket.on('error', (err: Error) => {
+        console.warn('[MCPToolBridge] Connection error:', err.message);
+        // onclose will fire next and handle reconnect
+      });
 
     } catch {
       if (!this.isDisposed) {
