@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 /**
  * McpCognitiveDashboard: The Holographic Mesh UI.
  * Visualizes the Cognitive Load Index (CLI) and health of the MCP ecosystem.
  */
 export const McpCognitiveDashboard: React.FC = () => {
-  const [mcpHealth, setMcpHealth] = useState([
+  const [mcpHealth] = useState([
     { name: 'HuggingFace', cli: 0.94, latency: '45ms', status: 'optimal', cost: '$0.002' },
     { name: 'Python-HPC', cli: 0.88, latency: '120ms', status: 'busy', cost: '$0.000' },
     { name: 'SQLite-Forensics', cli: 0.99, latency: '12ms', status: 'optimal', cost: '$0.000' },

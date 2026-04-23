@@ -2,7 +2,7 @@ import { authorizeGoogleGemini, exchangeGoogleGemini } from "../google-gemini/oa
 import type { AlloyTokenExchangeResult } from "../google-gemini/oauth";
 import { promptAddAnotherAccount, promptLoginMode, promptProjectId } from "./cli";
 import { startOAuthListener } from "./server";
-import { clearAccounts, loadAccounts, saveAccounts } from "./storage";
+import { clearAccounts, loadAccounts, saveAccounts, type AccountMetadataV3 } from "./storage";
 import { persistAccountPool } from "./persist-account-pool";
 import type { AccountManager } from "./accounts";
 import { checkAccountsQuota } from "./quota";
@@ -382,7 +382,7 @@ async function runCliAuthFlow(
 
 async function renderQuotaTui(storage: { accounts: unknown[] }, client: PluginClient, providerId: string) {
     console.log("\nChecking quotas...\n");
-    const results = await checkAccountsQuota(storage.accounts, client, providerId);
+    const results = await checkAccountsQuota(storage.accounts as AccountMetadataV3[], client, providerId);
     for (const res of results) {
         console.log(`----------------------------------------`);
         console.log(`  ${res.email || `Account ${res.index + 1}`}${res.disabled ? " (disabled)" : ""}`);

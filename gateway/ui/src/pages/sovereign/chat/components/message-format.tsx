@@ -16,6 +16,7 @@
  * hand raw HTML to the DOM.
  */
 import { useMemo, type ReactNode } from "react";
+import clsx from "clsx";
 
 function escapeHtml(s: string): string {
   return s
@@ -121,28 +122,29 @@ export function FormattedMessage({ content, role }: FormattedMessageProps) {
           return (
             <pre
               key={idx}
-              className="overflow-x-auto rounded-xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] px-4 py-3 font-mono text-xs text-[var(--color-alloy-text)]"
+              className="overflow-x-auto rounded-lg border border-white/5 bg-black/40 px-5 py-4 font-mono text-[11px] leading-relaxed text-white/80 shadow-alloy-elevated"
             >
               {block.lang ? (
-                <div className="mb-2 font-ui text-[10px] uppercase tracking-widest text-[var(--color-alloy-text-sec)]">
-                  {block.lang}
+                <div className="mb-3 border-b border-white/5 pb-1.5 font-mono text-[9px] font-bold uppercase tracking-widest text-[var(--color-alloy-accent)] opacity-60">
+                  {block.lang} // AL.CODE_SURFACE
                 </div>
               ) : null}
-              <code>{block.text}</code>
+              <code className="text-[var(--color-alloy-accent)]/90">{block.text}</code>
             </pre>
           );
         }
         const paragraphs = block.text.split(/\n{2,}/g).filter((p) => p.length > 0);
         return (
-          <div key={idx} className="space-y-2">
+          <div key={idx} className="space-y-4">
             {paragraphs.map((para, pIdx) => (
               <p
                 key={pIdx}
-                className={
+                className={clsx(
+                  "leading-[1.6] text-[13px]",
                   role === "user"
-                    ? "whitespace-pre-wrap text-white"
-                    : "whitespace-pre-wrap text-[var(--color-alloy-text)]"
-                }
+                    ? "text-white/90"
+                    : "text-[var(--color-alloy-text)] opacity-90"
+                )}
               >
                 {renderInline(escapeHtml(para), `p-${idx}-${pIdx}`)}
               </p>

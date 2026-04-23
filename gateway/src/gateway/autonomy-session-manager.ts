@@ -22,6 +22,8 @@ import type {
 } from "../orchestration/autonomy-types";
 import type { TokenStore } from "./token-store";
 import type { AccountManager } from "../plugin/accounts";
+import { getSettingsStore } from "../services/settings";
+import { prepareAlloyRequest } from "../plugin/request";
 
 interface ModelPayload {
   summary?: unknown;
@@ -425,7 +427,7 @@ export class AutonomySessionManager {
 
       if (error === "Task interrupted by autonomy engine" || normalizedMessage.includes("abort")) {
         await this.budgetTracker.releaseAllForSession(context.session.id, "abort");
-        throw new Error("TASK_INTERRUPTED: Otonom döngü tarafından kesildi.");
+        throw new Error("TASK_INTERRUPTED: Otonom d\u00f6ng\u00fc taraf\u0131ndan kesildi.");
       }
 
       await this.budgetTracker.releaseAllForSession(context.session.id, "task_failure");
@@ -442,11 +444,28 @@ export class AutonomySessionManager {
     maxOutputTokens: number,
     abortSignal?: AbortSignal
   ): Promise<{ text: string; usage: UsageMetadata | null }> {
+    const settings = getSettingsStore().getSettings();
+    const modelId = context.modelDecision.selectedModel;
+    
+    // Determine provider from modelId (e.g., "anthropic/claude-3-5-sonnet" -> "anthropic")
+    const providerMatch = modelId.match(/^([^/:]+)[/:]/);
+    const providerId = providerMatch ? providerMatch[1] : "google";
+    const modelName = modelId.includes("/") || modelId.includes(":") ? modelId.split(/[/:]/).slice(1).join("/") : modelId;
+
+    // Direct Provider Branch (Native API Keys)
+    if (providerId === "anthropic" || providerId === "openai" || providerId === "openrouter") {
+      const apiKey = getSettingsStore().getSecret(`providers.${providerId}.api_key` as any);
+      if (apiKey) {
+        return this.invokeNativeProvider(providerId, modelName, prompt, apiKey, maxOutputTokens, abortSignal);
+      }
+    }
+
+    // Managed Provider Branch (OAuth / Google Proxy)
     const token = await this.tokenStore.getValidAccessToken();
     const active = this.tokenStore.getActiveToken();
 
     if (!token || !active) {
-      throw new Error("No active account/token available for autonomous execution");
+      throw new Error("No active account/token available for autonomous execution. Connect an account in the Accounts page.");
     }
 
     const accountManager = this.getAccountManager();
@@ -455,26 +474,31 @@ export class AutonomySessionManager {
     }
 
     const client = AlloyGatewayClient.fromToken(token, active.email, accountManager ?? undefined);
-    const modelName = normalizeModel(context.modelDecision.selectedModel);
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+    
+    // Use prepareAlloyRequest to handle model-specific transforms and generic-to-native mapping
+    const { request: url, init } = prepareAlloyRequest(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens,
+          },
+        }),
+        signal: this.createModelRequestSignal(abortSignal),
+      },
+      token,
+      "autonomy-task"
+    );
 
-    const requestSignal = this.createModelRequestSignal(abortSignal);
-    const response = await client.fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens,
-        },
-      }),
-      signal: requestSignal,
-    });
+    const response = await client.fetch(url, init);
 
     if (!response.ok) {
       const body = await response.text();
-      throw new Error(`Model request failed (${response.status}): ${body.slice(0, 300)}`);
+      throw new Error(`${providerId} request failed (${response.status}): ${body.slice(0, 300)}`);
     }
 
     const payload = (await response.json()) as ModelResponseShape;
@@ -488,16 +512,104 @@ export class AutonomySessionManager {
     };
   }
 
+  private async invokeNativeProvider(
+    provider: string,
+    model: string,
+    prompt: string,
+    apiKey: string,
+    maxOutputTokens: number,
+    abortSignal?: AbortSignal
+  ): Promise<{ text: string; usage: UsageMetadata | null }> {
+    let endpoint = "";
+    let headers: Record<string, string> = { "Content-Type": "application/json" };
+    let body: any = {};
+
+    if (provider === "anthropic") {
+      endpoint = "https://api.anthropic.com/v1/messages";
+      headers["x-api-key"] = apiKey;
+      headers["anthropic-version"] = "2023-06-01";
+      body = {
+        model,
+        max_tokens: maxOutputTokens,
+        messages: [{ role: "user", content: prompt }],
+      };
+    } else if (provider === "openai") {
+      endpoint = "https://api.openai.com/v1/chat/completions";
+      headers["Authorization"] = `Bearer ${apiKey}`;
+      body = {
+        model,
+        max_tokens: maxOutputTokens,
+        messages: [{ role: "user", content: prompt }],
+      };
+    } else if (provider === "openrouter") {
+      endpoint = "https://openrouter.ai/api/v1/chat/completions";
+      headers["Authorization"] = `Bearer ${apiKey}`;
+      body = {
+        model,
+        max_tokens: maxOutputTokens,
+        messages: [{ role: "user", content: prompt }],
+      };
+    }
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: this.createModelRequestSignal(abortSignal),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Native ${provider} request failed (${response.status}): ${errorText.slice(0, 300)}`);
+    }
+
+    const data = await response.json() as any;
+    let text = "";
+    let usage: UsageMetadata | null = null;
+
+    if (provider === "anthropic") {
+      text = data.content?.[0]?.text ?? "";
+      usage = {
+        promptTokenCount: data.usage?.input_tokens,
+        candidatesTokenCount: data.usage?.output_tokens,
+        totalTokenCount: (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0),
+      };
+    } else {
+      // OpenAI / OpenRouter format
+      text = data.choices?.[0]?.message?.content ?? "";
+      usage = {
+        promptTokenCount: data.usage?.prompt_tokens,
+        candidatesTokenCount: data.usage?.completion_tokens,
+        totalTokenCount: data.usage?.total_tokens,
+      };
+    }
+
+    return { text, usage };
+  }
+
   private buildPrompt(context: AutonomousTaskExecutionContext): string {
-    return [
-      `Objective: ${context.session.objective}`,
-      `Task: ${context.task.type}`,
-      `Scope: ${context.session.scope.paths.join(", ")}`,
-      "",
-      "Return a compact JSON object:",
-      '{"summary":"...", "touchedFiles":["relative/path.ts"]}',
-      "If no file changes are required for this task, return touchedFiles as [].",
-    ].join("\n");
+    const scope = context.session.scope.paths.join(", ");
+    return `
+You are an autonomous AI coding agent. Your goal is to solve the following objective:
+Objective: ${context.session.objective}
+
+Current Task: ${context.task.type}
+Allowed Scope: ${scope}
+
+Instructions:
+1. Analyze the context and perform the requested task.
+2. If the task requires file changes, provide a summary of the changes and a list of touched files.
+3. Your response MUST be a valid JSON object with the following structure:
+{
+  "summary": "Detailed explanation of what you did and why.",
+  "touchedFiles": ["relative/path/to/file1.ts", "relative/path/to/file2.ts"],
+  "contextPack": "Optional: Additional context or notes for the next turn."
+}
+4. If no files were modified, set "touchedFiles" to [].
+5. Do not include any text outside the JSON block.
+
+Begin your analysis.
+`.trim();
   }
 
   private parseModelPayload(raw: string): ModelPayload {
@@ -743,4 +855,3 @@ function resolveUsageAccounting(
 function isTerminalState(state: string): state is Extract<AutonomyState, "done" | "failed" | "stopped"> {
   return state === "done" || state === "failed" || state === "stopped";
 }
-

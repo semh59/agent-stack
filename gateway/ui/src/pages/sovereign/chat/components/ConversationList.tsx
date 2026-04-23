@@ -6,9 +6,8 @@
  * accent token so it's obvious at a glance.
  */
 import clsx from "clsx";
-import { MessageSquare, Plus, Trash2 } from "lucide-react";
+import { MessageSquare, Plus, Trash2, Activity } from "lucide-react";
 import { useAlloyStore } from "../../../../store/alloyStore";
-import { Button } from "../../../../components/sovereign/primitives";
 
 export function ConversationList() {
   const {
@@ -20,20 +19,18 @@ export function ConversationList() {
   } = useAlloyStore();
 
   return (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/30 backdrop-blur-md">
-      <div className="flex items-center justify-between border-b border-[var(--color-alloy-border)] px-4 py-3">
-        <span className="font-ui text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-text-sec)]">
-          Conversations
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-xs"
-          icon={<Plus size={14} />}
+    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-black/20 backdrop-blur-3xl">
+      <div className="flex items-center justify-between border-b border-white/5 px-4 py-4 bg-white/5">
+        <div className="flex flex-col">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--color-alloy-accent)]">MISSION_LOGS</span>
+          <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest">ARCHIVE_SYSTEM</span>
+        </div>
+        <button
           onClick={() => startNewChat()}
+          className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--color-alloy-accent)]/20 bg-[var(--color-alloy-accent)]/10 text-[var(--color-alloy-accent)] transition-all hover:bg-[var(--color-alloy-accent)] hover:text-black shadow-alloy-molten-glow"
         >
-          New
-        </Button>
+          <Plus size={14} />
+        </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
@@ -52,26 +49,31 @@ export function ConversationList() {
                 <li key={convo.id}>
                   <div
                     className={clsx(
-                      "group relative flex cursor-pointer flex-col gap-1 rounded-xl border p-3 transition-all duration-200",
+                      "group relative flex cursor-pointer flex-col gap-1 rounded-xl border p-3 transition-all duration-300",
                       isActive
-                        ? "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent)]/5 shadow-sm"
-                        : "border-transparent hover:bg-[var(--color-alloy-surface-hover)] hover:border-[var(--color-alloy-border)]"
+                        ? "border-[var(--color-alloy-accent)]/40 bg-[var(--color-alloy-accent)]/10 shadow-[0_0_15px_rgba(0,240,255,0.05)] border-l-4 border-l-[var(--color-alloy-accent)]"
+                        : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10"
                     )}
                     onClick={() => selectConversation(convo.id)}
                   >
                     <div className="flex items-center justify-between gap-1">
                       <span className={clsx(
-                        "truncate text-sm font-medium",
-                        isActive ? "text-[var(--color-alloy-accent)]" : "text-white/90"
+                        "truncate text-[11px] font-black uppercase tracking-wider",
+                        isActive ? "text-[var(--color-alloy-accent)]" : "text-white/40"
                       )}>
+                        {isActive && <Activity size={10} className="inline mr-2 animate-pulse" />}
                         {convo.title}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[10px] text-[var(--color-alloy-text-sec)]">
-                         {new Date(convo.updatedAt).toLocaleDateString()}
+                    <div className="flex items-center justify-between mt-2 border-t border-white/5 pt-2">
+                      <span className="font-mono text-[9px] text-white/20 tracking-tighter">
+                         TS_{new Date(convo.updatedAt).getTime().toString(16).slice(-6).toUpperCase()}
                       </span>
-                      {isActive && <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-accent)] shadow-[0_0_8px_var(--color-alloy-accent)]" />}
+                      {isActive ? (
+                        <span className="text-[8px] font-bold text-[var(--color-alloy-accent)] animate-pulse">ACTIVE_SESSION</span>
+                      ) : (
+                        <span className="text-[8px] font-bold text-white/10">ARCHIVED</span>
+                      )}
                     </div>
                   </div>
                 </li>

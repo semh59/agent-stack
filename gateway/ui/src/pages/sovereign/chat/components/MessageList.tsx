@@ -5,11 +5,47 @@
  * placeholder resolves. Each turn shows a role label, the rendered body, and a
  * footer with latency + token counts (assistant only).
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { Bot, Sparkles, User as UserIcon } from "lucide-react";
 import { useAlloyStore } from "../../../../store/alloyStore";
 import { FormattedMessage } from "./message-format";
+import { ChevronDown, ChevronUp, History } from "lucide-react";
+
+function ThoughtBlock({ content }: { content: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="mb-5 overflow-hidden rounded-lg border border-[var(--color-alloy-accent)]/20 bg-black/40 shadow-inner">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-[var(--color-alloy-accent)]/5 transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <History size={12} className="text-[var(--color-alloy-accent)]" />
+            {isOpen && <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[var(--color-alloy-accent)] animate-ping" />}
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--color-alloy-accent)]/60 group-hover:text-[var(--color-alloy-accent)]">
+            Thought Process
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-bold text-white/10 uppercase tracking-widest">{isOpen ? "COLLAPSE" : "EXPAND"}</span>
+          {isOpen ? <ChevronUp size={12} className="text-[var(--color-alloy-accent)]" /> : <ChevronDown size={12} className="opacity-40" />}
+        </div>
+      </button>
+      {isOpen && (
+        <div className="border-t border-white/5 p-5 font-mono text-[11px] leading-relaxed text-white/50 bg-black/40 animate-in fade-in slide-in-from-top-1 duration-300">
+          <div className="mb-2 flex items-center gap-2 text-[9px] font-black text-[var(--color-alloy-accent)] opacity-30">
+            <span className="animate-pulse">&gt;</span> KERNEL_HEURISTICS_ACTIVE
+          </div>
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function MessageList() {
   const { messages, activeConversationId, isGenerating } = useAlloyStore();
@@ -42,53 +78,54 @@ export function MessageList() {
           <article
             key={msg.id}
             className={clsx(
-              "flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
+              "flex gap-5 animate-in fade-in slide-in-from-bottom-2 duration-400",
               msg.role === "user" ? "flex-row-reverse" : "flex-row",
             )}
           >
             <div
               className={clsx(
-                "mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 shadow-sm transition-all",
+                "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-300",
                 msg.role === "user"
-                  ? "border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] text-[var(--color-alloy-text)]"
-                  : "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent)]/5 text-[var(--color-alloy-accent)]",
+                  ? "border-white/10 bg-[var(--color-alloy-surface)] text-white/40"
+                  : "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent-dim)] text-[var(--color-alloy-accent)] shadow-alloy-glow",
               )}
             >
-              {msg.role === "user" ? <UserIcon size={16} /> : <Bot size={16} />}
+              {msg.role === "user" ? <UserIcon size={14} /> : (
+                <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-molten text-[8px] font-bold text-black">AL</div>
+              )}
             </div>
             <div
               className={clsx(
-                "min-w-0 flex-1 rounded-2xl border px-5 py-4 transition-all",
+                "min-w-0 flex-1 rounded-xl border transition-all duration-300 overflow-hidden",
                 msg.role === "user"
-                  ? "border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/80"
-                  : "border-[var(--color-alloy-accent)]/20 bg-[var(--color-alloy-accent)]/5 backdrop-blur-sm",
+                  ? "border-white/5 bg-[var(--color-alloy-surface)]/40 px-5 py-4"
+                  : "border-[var(--color-alloy-accent)]/10 bg-black/20 backdrop-blur-sm",
               )}
             >
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-text-sec)]">
-                  <span>{msg.role === "user" ? "User" : "Alloy AI"}</span>
-                  {msg.isStreaming && (
-                    <span className="flex items-center gap-1 text-[var(--color-alloy-accent)]">
-                      <span className="h-1 w-1 animate-bounce rounded-full bg-current" />
-                      <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:0.2s]" />
-                      <span className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:0.4s]" />
-                    </span>
-                  )}
+              {msg.role === "model" && (
+                <div className="flex items-center gap-2 border-b border-white/5 bg-white/[0.02] px-5 py-2.5">
+                   <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-accent)] animate-pulse-cyan shadow-alloy-glow" />
+                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-accent)]">Alloy Reasoning &gt;</span>
                 </div>
-                <span className="text-[9px] text-[var(--color-alloy-text-sec)]/50">
-                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/90">
-                <FormattedMessage content={msg.content} role={msg.role} />
+              )}
+              <div className="px-5 py-5">
+                {msg.role === "model" && msg.content.includes("Thought:") && (
+                  <ThoughtBlock content={msg.content.split("Thought:")[1]?.split("\n\n")[0] || ""} />
+                )}
+                <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/90">
+                  <FormattedMessage 
+                    content={msg.content.includes("Thought:") ? msg.content.split("Thought:")[1]?.split("\n\n").slice(1).join("\n\n") || msg.content : msg.content} 
+                    role={msg.role} 
+                  />
+                </div>
               </div>
             </div>
           </article>
         ))}
         {isGenerating && messages.length === 0 && (
-           <div className="flex items-center gap-3 text-sm text-[var(--color-alloy-text-sec)]">
-              <div className="h-2 w-2 animate-ping rounded-full bg-[var(--color-alloy-accent)]" />
-              Waking up agents...
+           <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-text-sec)]">
+              <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-accent)] animate-pulse shadow-alloy-glow" />
+              Initializing agents...
            </div>
         )}
       </div>

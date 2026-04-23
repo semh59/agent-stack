@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { GatewayServer } from "./gateway/server";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname, "..", "..");
+const projectRoot = path.resolve(__dirname, "..");
 
 function requireEnv(name: string): string {
   const v = process.env[name];

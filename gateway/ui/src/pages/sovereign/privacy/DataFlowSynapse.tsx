@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Shield, ArrowRight, Zap, Database, Lock } from 'lucide-react';
+import { Shield, ArrowRight, Database, Lock } from 'lucide-react';
 
 interface TransitEvent {
   id: string;

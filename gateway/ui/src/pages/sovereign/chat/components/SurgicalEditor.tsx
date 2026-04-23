@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, X, Code2, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Check, X, Code2, AlertTriangle } from 'lucide-react';
 import { useAlloyStore } from '../../../../store/alloyStore';
 
 export function SurgicalEditor() {
@@ -7,7 +7,20 @@ export function SurgicalEditor() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBuffer, setEditBuffer] = useState("");
 
-  if (pendingInterventions.length === 0) return null;
+  if (pendingInterventions.length === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-12 text-center">
+        <div className="relative mb-8">
+           <Code2 size={48} className="text-white/5" />
+           <div className="absolute top-0 right-0 h-2 w-2 rounded-full bg-white/10" />
+        </div>
+        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">System Running Smoothly</h3>
+        <p className="mt-4 text-[9px] text-white/10 leading-relaxed max-w-[240px] uppercase font-bold tracking-widest">
+          The AI engine is working on your task. No approvals are required at this time.
+        </p>
+      </div>
+    );
+  }
 
   const current = pendingInterventions[0]!;
 
@@ -27,100 +40,94 @@ export function SurgicalEditor() {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 p-6 pointer-events-none">
-      <div className="mx-auto max-w-4xl w-full pointer-events-auto">
-        <div className="overflow-hidden rounded-2xl border border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-surface)]/95 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-[var(--color-alloy-border)] px-4 py-3 bg-[var(--color-alloy-accent)]/5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-alloy-accent)]/20 text-[var(--color-alloy-accent)]">
-                <AlertTriangle size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white">Sovereign Oversight: Action Required</h3>
-                <p className="text-[11px] text-[var(--color-alloy-text-sec)]">
-                  Policy-driven pause for {current.toolName} {current.filePath ? `on ${current.filePath}` : ''}
-                </p>
-              </div>
+    <div className="flex h-full flex-col overflow-hidden bg-black/40">
+      {/* Header */}
+      <div className="flex flex-col border-b border-white/5 bg-red-500/5 px-8 py-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+            <AlertTriangle size={24} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-black uppercase tracking-[0.2em] text-white">Approval Required</h3>
+            <div className="flex items-center gap-2 text-[9px] font-black text-red-500/60 uppercase tracking-[0.1em]">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+              The AI needs your review
             </div>
-            <div className="flex items-center gap-2">
-               <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/70">
-                 Confidence: {(current.confidence * 100).toFixed(0)}%
-               </span>
-            </div>
-          </div>
-
-          {/* Reason Section */}
-          <div className="px-4 py-2 border-b border-[var(--color-alloy-border)] bg-black/20">
-             <p className="text-xs text-yellow-200/80 italic">
-               "{current.reason || "Manual review required by policy."}"
-             </p>
-          </div>
-
-          {/* Diff / Editor Area */}
-          <div className="max-h-[400px] overflow-y-auto bg-[#0a0a0a] p-4 font-mono text-xs">
-            {current.toolName === 'write_to_file' ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-[var(--color-alloy-text-sec)] mb-2">
-                  <Code2 size={14} />
-                  <span>Proposed Content</span>
-                  {editingId !== current.id && (
-                    <button 
-                      onClick={handleStartEdit}
-                      className="ml-auto rounded border border-white/10 px-2 py-1 hover:bg-white/5 transition-colors"
-                    >
-                      Edit Symmetrically
-                    </button>
-                  )}
-                </div>
-                
-                {editingId === current.id ? (
-                  <textarea
-                    value={editBuffer}
-                    onChange={(e) => setEditBuffer(e.target.value)}
-                    className="w-full h-64 bg-black/40 border border-[var(--color-alloy-accent)]/30 p-3 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-[var(--color-alloy-accent)]/50"
-                  />
-                ) : (
-                  <pre className="p-3 text-green-400/90 whitespace-pre-wrap rounded-md bg-green-500/5 border border-green-500/10">
-                    {current.proposedContent}
-                  </pre>
-                )}
-              </div>
-            ) : current.toolName === 'run_command' ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[var(--color-alloy-text-sec)]">
-                  <ChevronRight size={14} />
-                  <span>Proposed Command</span>
-                </div>
-                <div className="rounded-md bg-blue-500/5 border border-blue-500/10 p-3 text-blue-300">
-                  <code>{current.command}</code>
-                </div>
-              </div>
-            ) : (
-              <div className="text-[var(--color-alloy-text-sec)] italic">
-                Generic tool intervention for {current.toolName}
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-[var(--color-alloy-border)] px-4 py-3 bg-[var(--color-alloy-bg)]">
-            <button
-              onClick={() => void rejectIntervention(current.id)}
-              className="flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-            >
-              <X size={14} />
-              Reject & Stop
-            </button>
-            <button
-              onClick={handleApprove}
-              className="flex items-center gap-2 rounded-lg bg-[var(--color-alloy-accent)] px-6 py-2 text-xs font-bold text-black hover:bg-[var(--color-alloy-accent)]/90 transition-all shadow-[0_0_20px_rgba(var(--color-alloy-accent-rgb),0.3)]"
-            >
-              <Check size={14} />
-              {editingId === current.id ? "Apply Edit & Execute" : "Approve & Execute"}
-            </button>
           </div>
         </div>
+        
+        <div className="mt-8 space-y-4">
+          <div className="rounded-xl border border-white/5 bg-black/40 p-4">
+            <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-white/20 mb-2 font-mono">Target File //</span>
+            <span className="text-[11px] font-mono font-bold text-white/80 break-all">{current.filePath || current.toolName}</span>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-black/40 p-4">
+            <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-white/20 mb-2 font-mono">Reason //</span>
+            <span className="text-[11px] font-medium text-red-400/80 leading-relaxed uppercase tracking-tight">
+              {current.reason || "The AI is about to make a significant change and needs your confirmation."}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Control Surface */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-white/40 uppercase">
+             <Code2 size={12} /> Trace // Proposal
+          </div>
+          {current.toolName === 'write_to_file' && editingId !== current.id && (
+            <button 
+              onClick={handleStartEdit}
+              className="text-[9px] font-bold text-[var(--color-alloy-accent)] hover:underline"
+            >
+              Edit Proposal
+            </button>
+          )}
+        </div>
+
+        {current.toolName === 'write_to_file' ? (
+          <div className="space-y-4">
+            {editingId === current.id ? (
+              <textarea
+                value={editBuffer}
+                onChange={(e) => setEditBuffer(e.target.value)}
+                className="w-full h-96 bg-black/60 border border-[var(--color-alloy-accent)]/30 p-4 font-mono text-[11px] text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--color-alloy-accent)]/50"
+              />
+            ) : (
+              <pre className="rounded-lg border border-white/5 bg-black/60 p-4 font-mono text-[11px] text-[var(--color-alloy-accent)]/80 overflow-x-auto">
+                {current.proposedContent}
+              </pre>
+            )}
+          </div>
+        ) : current.toolName === 'run_command' ? (
+          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 font-mono text-[11px] text-blue-300 break-all">
+            <span className="text-white/20 select-none mr-2">$</span>
+            {current.command}
+          </div>
+        ) : (
+          <div className="text-[10px] text-white/40 italic">
+            Generic tool intervention payload for {current.toolName}
+          </div>
+        )}
+      </div>
+
+      {/* Action Bay */}
+      <div className="grid grid-cols-2 gap-3 border-t border-white/5 bg-black/40 p-6">
+        <button
+          onClick={() => void rejectIntervention(current.id)}
+          className="flex items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 py-3 text-[10px] font-bold tracking-widest text-red-400 transition-all hover:bg-red-500/10 active:scale-95"
+        >
+          <X size={14} />
+          Reject
+        </button>
+        <button
+          onClick={handleApprove}
+          className="flex items-center justify-center gap-2 rounded-lg bg-molten py-3 text-[10px] font-bold tracking-widest text-black transition-all hover:scale-[1.02] active:scale-95 shadow-alloy-molten-glow"
+        >
+          <Check size={14} />
+          Approve
+        </button>
       </div>
     </div>
   );

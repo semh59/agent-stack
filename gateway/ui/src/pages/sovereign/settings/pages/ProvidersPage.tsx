@@ -1,264 +1,231 @@
 /**
- * Providers page — configure every LLM provider.
- *
- * Each provider gets its own collapsible card. Toggling `enabled` reveals
- * the provider's fields; `Test connection` runs the server-side probe
- * without first requiring a save (the probe reads what's already saved on
- * disk, so unsaved edits are NOT tested — this is called out in the UI).
+ * Providers page — configuring the bridge connection to various LLM backends.
  */
 import { useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, Activity, Zap } from "lucide-react";
 
 import {
-  Badge,
-  Button,
-  Card,
   Field,
   Input,
-  Row,
-  Section,
   SecretInput,
   Switch,
-} from "../../../../components/alloy/primitives";
+} from "../../../../components/sovereign/primitives";
 import { useAlloyStore } from "../../../../store/alloyStore";
 import { getAtPath, isSecretSet, useEffectiveSettings } from "../useEffectiveSettings";
+import type { ChangeEvent } from "react";
 
 interface ProviderDef {
   id: string;
   label: string;
   blurb: string;
-  kind: "local" | "hosted" | "enterprise";
-  hasApiKey: boolean;
-  defaultCta?: string;
+  kind: "cloud" | "local" | "enterprise";
   helpUrl?: string;
+  fields: Array<{ id: string; label: string; type: "secret" | "text" | "number"; hint?: string }>;
 }
 
 const PROVIDERS: ProviderDef[] = [
   {
-    id: "ollama",
-    label: "Ollama",
-    blurb: "Local-first open-source models. Zero latency, zero cost.",
-    kind: "local",
-    hasApiKey: false,
-    helpUrl: "https://ollama.com/download",
-  },
-  {
-    id: "openrouter",
-    label: "OpenRouter",
-    blurb: "200+ models across every frontier lab through a single key.",
-    kind: "hosted",
-    hasApiKey: true,
-    helpUrl: "https://openrouter.ai/keys",
+    id: "openai",
+    label: "OpenAI",
+    blurb: "GPT-4o, o1-preview, and more. Global standard for reasoning.",
+    kind: "cloud",
+    helpUrl: "https://platform.openai.com/api-keys",
+    fields: [{ id: "api_key", label: "API Key", type: "secret", hint: "sk-..." }],
   },
   {
     id: "anthropic",
     label: "Anthropic",
-    blurb: "Direct access to Claude. Highest quality on reasoning-heavy work.",
-    kind: "hosted",
-    hasApiKey: true,
+    blurb: "Claude 3.5 Sonnet — the gold standard for coding missions.",
+    kind: "cloud",
     helpUrl: "https://console.anthropic.com/settings/keys",
-  },
-  {
-    id: "openai",
-    label: "OpenAI",
-    blurb: "GPT-4o family, embeddings, fine-tunes. Also works with Azure backend.",
-    kind: "hosted",
-    hasApiKey: true,
-    helpUrl: "https://platform.openai.com/api-keys",
+    fields: [{ id: "api_key", label: "API Key", type: "secret", hint: "sk-ant-..." }],
   },
   {
     id: "google",
-    label: "Google",
-    blurb: "Gemini via OAuth. Uses the Alloy AI credentials in Accounts.",
-    kind: "hosted",
-    hasApiKey: false,
+    label: "Google AI",
+    blurb: "Gemini 1.5 Pro — massive 2M token context window.",
+    kind: "cloud",
+    helpUrl: "https://aistudio.google.com/app/apikey",
+    fields: [{ id: "api_key", label: "API Key", type: "secret" }],
   },
   {
-    id: "lmstudio",
-    label: "LM Studio",
-    blurb: "Local OpenAI-compatible server. Good for on-device experimentation.",
+    id: "groq",
+    label: "Groq",
+    blurb: "LPU™ Inference Engine — lightning fast Llama 3 generation.",
+    kind: "cloud",
+    helpUrl: "https://console.groq.com/keys",
+    fields: [{ id: "api_key", label: "API Key", type: "secret" }],
+  },
+  {
+    id: "ollama",
+    label: "Ollama",
+    blurb: "Sovereign intelligence running locally on your hardware.",
     kind: "local",
-    hasApiKey: false,
-  },
-  {
-    id: "azure",
-    label: "Azure OpenAI",
-    blurb: "Enterprise-compliant OpenAI with regional endpoints and deployments.",
-    kind: "enterprise",
-    hasApiKey: true,
-    helpUrl: "https://portal.azure.com",
+    helpUrl: "https://ollama.com",
+    fields: [
+      { id: "endpoint", label: "Endpoint", type: "text", hint: "http://localhost:11434" },
+      { id: "default_model", label: "Model", type: "text", hint: "qwen2.5:7b" },
+    ],
   },
 ];
 
 export function ProvidersPage() {
   return (
-    <div className="space-y-8">
-      <Section
-        title="Providers"
-        description="Connect LLM vendors and local runtimes. Fill in credentials here — no .env files required."
-        icon={<Zap size={16} />}
-      >
-        <div className="space-y-4">
-          {PROVIDERS.map((p) => (
-            <ProviderCard key={p.id} def={p} />
-          ))}
+    <div className="space-y-8 pb-10">
+      <div className="flex items-center gap-4 p-6 bg-molten/5 border border-molten/10 rounded-2xl mb-8">
+        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-molten/20 text-molten shadow-alloy-molten-glow">
+           <Zap size={20} />
         </div>
-      </Section>
+        <div>
+           <h2 className="text-sm font-bold uppercase tracking-widest text-white">Connect AI Models</h2>
+           <p className="text-[10px] text-white/40 mt-1 font-medium tracking-tight">Configure your API keys to enable coding assistance.</p>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {PROVIDERS.map((p) => (
+          <ProviderCard key={p.id} def={p} />
+        ))}
+      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ProviderCard
-// ─────────────────────────────────────────────────────────────────────────────
-
 function ProviderCard({ def }: { def: ProviderDef }) {
+  const [expanded, setExpanded] = useState(false);
   const effective = useEffectiveSettings();
-  const { updateSettingsPath, probeProvider, providerProbes } = useAlloyStore();
-  const [expanded, setExpanded] = useState(def.kind === "local");
-
+  const { providerProbes, probeProvider, updateSettingsPath } = useAlloyStore();
   const base = `providers.${def.id}`;
   const enabled = getAtPath<boolean>(effective, `${base}.enabled`, false);
   const probe = providerProbes[def.id];
 
   return (
-    <Card density="compact" tone={enabled ? "accent" : "neutral"}>
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center justify-between text-left"
-      >
-        <div className="flex items-center gap-4">
+    <div className="group relative bg-black/40 border border-white/5 rounded-2xl p-6 transition-all duration-300 hover:bg-white/[0.02] shadow-alloy-elevated overflow-hidden">
+      {enabled && (
+        <div className="absolute top-0 right-0 h-32 w-32 bg-[var(--color-alloy-accent)]/5 blur-3xl pointer-events-none" />
+      )}
+
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-6">
           <div
             className={clsx(
-              "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold uppercase",
+              "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 text-lg font-black uppercase tracking-tighter transition-all duration-500",
               enabled
-                ? "border-[var(--color-alloy-accent)]/40 bg-[var(--color-alloy-accent)]/10 text-[var(--color-alloy-accent)]"
-                : "border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] text-[var(--color-alloy-text-sec)]",
+                ? "border-[var(--color-alloy-accent)]/40 bg-[var(--color-alloy-accent)] shadow-alloy-glow text-black"
+                : "border-white/5 bg-white/[0.02] text-white/10"
             )}
           >
             {def.label.slice(0, 2)}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-display text-sm tracking-wide text-white">{def.label}</h3>
+          
+          <div className="pt-1">
+            <div className="flex items-center gap-3">
+              <h3 className="text-base font-bold tracking-tight text-white uppercase">{def.label}</h3>
+              <div className="h-4 w-[1px] bg-white/10" />
               <KindBadge kind={def.kind} />
               <ProbeBadge probe={probe} />
             </div>
-            <p className="mt-0.5 text-xs text-[var(--color-alloy-text-sec)]">{def.blurb}</p>
+            <p className="mt-2 text-xs text-white/30 leading-relaxed max-w-md font-medium tracking-tight">
+              {def.blurb}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-          <Switch
-            ariaLabel={`Enable ${def.label}`}
-            checked={enabled}
-            onChange={(next) => updateSettingsPath(`${base}.enabled`, next)}
-          />
-          <ChevronDown
-            size={18}
-            className={clsx(
-              "text-[var(--color-alloy-text-sec)] transition-transform",
-              expanded && "rotate-180",
-            )}
-          />
-        </div>
-      </button>
-
-      {expanded ? (
-        <div className="mt-5 border-t border-[var(--color-alloy-border)] pt-5">
-          <ProviderFields def={def} />
-          <div className="mt-4 flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Activity size={14} />}
-              onClick={() => probeProvider(def.id)}
-              loading={probe && "loading" in probe ? true : false}
+        
+        <div className="flex items-center gap-4">
+           <div className="flex flex-col items-end gap-1">
+             <span className="text-[9px] font-bold text-white/10 tracking-[0.2em] uppercase">Status</span>
+             <Switch
+                ariaLabel={`Enable ${def.label}`}
+                checked={enabled}
+                onChange={(next: boolean) => updateSettingsPath(`${base}.enabled`, next)}
+              />
+           </div>
+           
+           <button
+              onClick={() => setExpanded((v) => !v)}
+              className={clsx(
+                "h-10 w-10 flex items-center justify-center rounded-xl transition-all",
+                expanded ? "bg-white/10 text-white" : "text-white/20 hover:bg-white/5"
+              )}
             >
-              Test connection
-            </Button>
-            {def.helpUrl ? (
-              <a
-                href={def.helpUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-[var(--color-alloy-accent)] hover:underline"
-              >
-                Get API key ↗
-              </a>
-            ) : null}
-          </div>
-          {probe && "ok" in probe ? <ProbeDetails probe={probe} /> : null}
+              <ChevronDown
+                size={20}
+                className={clsx("transition-transform duration-300", expanded && "rotate-180")}
+              />
+           </button>
         </div>
-      ) : null}
-    </Card>
-  );
-}
-
-function KindBadge({ kind }: { kind: ProviderDef["kind"] }) {
-  if (kind === "local") return <Badge tone="success">Local</Badge>;
-  if (kind === "enterprise") return <Badge tone="warning">Enterprise</Badge>;
-  return <Badge tone="neutral">Cloud</Badge>;
-}
-
-function ProbeBadge({ probe }: { probe: ReturnType<typeof useAlloyStore.getState>["providerProbes"][string] | undefined }) {
-  if (!probe) return null;
-  if ("loading" in probe) return <Badge tone="neutral">Testing…</Badge>;
-  return probe.ok ? (
-    <Badge tone="success">{probe.latency_ms}ms · OK</Badge>
-  ) : (
-    <Badge tone="danger">{probe.reason}</Badge>
-  );
-}
-
-function ProbeDetails({ probe }: { probe: { ok: boolean; reason: string; detail?: string; models_seen?: number; latency_ms: number } }) {
-  return (
-    <div
-      className={clsx(
-        "mt-3 rounded-lg border px-3 py-2 text-xs",
-        probe.ok
-          ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-200"
-          : "border-red-500/30 bg-red-500/5 text-red-200",
-      )}
-    >
-      <div className="flex items-center gap-2">
-        <span className="font-semibold">{probe.ok ? "Connected" : "Failed"}</span>
-        <span className="text-[var(--color-alloy-text-sec)]">· {probe.latency_ms}ms</span>
       </div>
-      {probe.detail ? <p className="mt-1">{probe.detail}</p> : null}
-      {typeof probe.models_seen === "number" ? (
-        <p className="mt-1 text-[var(--color-alloy-text-sec)]">
-          {probe.models_seen} model{probe.models_seen === 1 ? "" : "s"} visible
-        </p>
-      ) : null}
+
+      {expanded && (
+        <div className="mt-8 pt-8 border-t border-white/5 space-y-6 animate-in slide-in-from-top-4 fade-in duration-300">
+          <div className="grid grid-cols-1 gap-6">
+            <ProviderFields def={def} />
+          </div>
+          
+          <div className="flex items-center justify-between pt-4 border-t border-white/5">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => probeProvider(def.id)}
+                disabled={probe && "loading" in probe}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white transition-all disabled:opacity-20"
+              >
+                <Activity size={12} className={clsx(probe && "loading" in probe && "animate-spin")} />
+                {probe && "loading" in probe ? "Testing..." : "Test Connection"}
+              </button>
+              
+              {def.helpUrl && (
+                <a
+                  href={def.helpUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-alloy-accent)] opacity-40 hover:opacity-100 transition-opacity"
+                >
+                  Get API Key ↗
+                </a>
+              )}
+            </div>
+            
+            {probe && "ok" in probe && (
+              <div className="text-[10px] font-mono text-white/20">
+                Latency: {probe.latency_ms}ms // Models: {probe.models_seen || 0}
+              </div>
+            )}
+          </div>
+          
+          {probe && "ok" in probe && !probe.ok && (
+             <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-[11px] text-red-200/80 font-mono italic">
+               Error: {probe.reason}
+             </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Per-provider fields — each one below maps to the Zod schema
-// ─────────────────────────────────────────────────────────────────────────────
+function KindBadge({ kind }: { kind: ProviderDef["kind"] }) {
+  if (kind === "local") return <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">Local</span>;
+  if (kind === "enterprise") return <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-widest">Enterprise</span>;
+  return <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-white/5 text-white/40 border border-white/5 uppercase tracking-widest">Cloud</span>;
+}
+
+function ProbeBadge({ probe }: { probe: ReturnType<typeof useAlloyStore.getState>["providerProbes"][string] | undefined }) {
+  if (!probe) return null;
+  if ("loading" in probe) return <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-white/5 text-[var(--color-alloy-accent)] animate-pulse uppercase tracking-widest">Probing...</span>;
+  return probe.ok ? (
+    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">{probe.latency_ms}ms // OK</span>
+  ) : (
+    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest">Failed</span>
+  );
+}
 
 function ProviderFields({ def }: { def: ProviderDef }) {
   const effective = useEffectiveSettings();
   const { updateSettingsPath } = useAlloyStore();
   const base = `providers.${def.id}`;
 
-  const commonSecret = (field: string) => {
-    const dotted = `${base}.${field}`;
-    const { set, updated_at } = isSecretSet(effective, dotted);
-    return (
-      <SecretInput
-        isSet={set}
-        updatedAt={updated_at}
-        onChange={(next) => updateSettingsPath(dotted, next)}
-        onClear={() => updateSettingsPath(dotted, "")}
-        placeholder={`${def.label} API key`}
-        name={dotted}
-      />
-    );
-  };
+  const humanize = (s: string) => s.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
   const strField = (field: string, hint?: string, placeholder?: string) => {
     const dotted = `${base}.${field}`;
@@ -267,7 +234,7 @@ function ProviderFields({ def }: { def: ProviderDef }) {
       <Field label={humanize(field)} hint={hint}>
         <Input
           value={v ?? ""}
-          onChange={(e) => updateSettingsPath(dotted, e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => updateSettingsPath(dotted, e.target.value)}
           placeholder={placeholder}
         />
       </Field>
@@ -282,7 +249,7 @@ function ProviderFields({ def }: { def: ProviderDef }) {
         <Input
           type="number"
           value={Number.isFinite(v) ? String(v) : ""}
-          onChange={(e) =>
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
             updateSettingsPath(dotted, e.target.value === "" ? undefined : Number(e.target.value))
           }
         />
@@ -290,108 +257,46 @@ function ProviderFields({ def }: { def: ProviderDef }) {
     );
   };
 
-  switch (def.id) {
-    case "ollama":
-      return (
-        <>
-          <Row label="Base URL" hint="Local Ollama server — usually 127.0.0.1:11434.">
-            {strField("base_url", undefined, "http://127.0.0.1:11434")}
-          </Row>
-          <Row label="Default model" hint='Example: "qwen2.5:7b", "llama3.2:3b".'>
-            {strField("default_model", undefined, "qwen2.5:7b")}
-          </Row>
-          <Row label="Timeout (seconds)" hint="How long to wait for a single response.">
-            {numField("timeout_s")}
-          </Row>
-        </>
-      );
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {def.fields.map((f) => {
+        const dotted = `${base}.${f.id}`;
 
-    case "openrouter":
-      return (
-        <>
-          <Row label="API key" hint="Never sent to clients in plaintext — encrypted at rest.">
-            {commonSecret("api_key")}
-          </Row>
-          <Row label="Default model" hint='e.g. "anthropic/claude-3.5-sonnet".'>
-            {strField("default_model")}
-          </Row>
-          <Row
-            label="HTTP Referer"
-            hint="Optional. Some model providers rank-list based on this."
-          >
-            {strField("http_referer", undefined, "https://your-app.example.com")}
-          </Row>
-        </>
-      );
+        if (f.type === "secret") {
+          const secretState = isSecretSet(effective, dotted);
+          return (
+            <Field key={f.id} label={f.label} hint={f.hint}>
+              <SecretInput
+                isSet={secretState.set}
+                updatedAt={secretState.updated_at}
+                onChange={(next: string) => updateSettingsPath(dotted, next)}
+                onClear={() => updateSettingsPath(dotted, "")}
+              />
+            </Field>
+          );
+        }
 
-    case "anthropic":
-      return (
-        <>
-          <Row label="API key">{commonSecret("api_key")}</Row>
-          <Row label="Default model" hint='e.g. "claude-sonnet-4-5".'>
-            {strField("default_model")}
-          </Row>
-        </>
-      );
+        if (f.type === "number") return numField(f.id, f.hint);
+        
+        return strField(f.id, f.hint);
+      })}
 
-    case "openai":
-      return (
+      {def.id === "openai" && (
         <>
-          <Row label="API key">{commonSecret("api_key")}</Row>
-          <Row label="Base URL" hint="Defaults to OpenAI; change for proxies or Together.ai.">
-            {strField("base_url", undefined, "https://api.openai.com/v1")}
-          </Row>
-          <Row label="Default model">{strField("default_model")}</Row>
-          <Row label="Organization ID" hint="Optional — only needed if your key spans orgs.">
-            {strField("organization_id")}
-          </Row>
+          {strField("organization_id", "Optional Org ID for billing.")}
+          {strField("project_id", "Optional Project ID.")}
         </>
-      );
+      )}
 
-    case "google":
-      return (
-        <>
-          <Row
-            label="Authentication"
-            hint="Google uses OAuth. Connect a Google account under Accounts; tokens live in the accounts service."
-          >
-            <Badge tone="accent">OAuth only</Badge>
-          </Row>
-          <Row label="Default model">{strField("default_model")}</Row>
-        </>
-      );
-
-    case "lmstudio":
-      return (
-        <>
-          <Row label="Base URL" hint="LM Studio's OpenAI-compatible endpoint.">
-            {strField("base_url", undefined, "http://127.0.0.1:1234/v1")}
-          </Row>
-          <Row label="Default model">{strField("default_model")}</Row>
-        </>
-      );
-
-    case "azure":
-      return (
-        <>
-          <Row label="Endpoint" hint="e.g. https://your-resource.openai.azure.com.">
-            {strField("endpoint")}
-          </Row>
-          <Row label="API key">{commonSecret("api_key")}</Row>
-          <Row label="API version">{strField("api_version", undefined, "2024-10-21")}</Row>
-          <Row label="Deployment" hint="Your Azure deployment name.">
-            {strField("deployment")}
-          </Row>
-        </>
-      );
-    default:
-      return null;
-  }
-}
-
-function humanize(field: string): string {
-  return field
-    .split("_")
-    .map((p) => (p.length > 0 ? p[0]!.toUpperCase() + p.slice(1) : p))
-    .join(" ");
+      {def.id === "anthropic" && (
+        <Field label="Custom Header" hint="Optional JSON for extra headers.">
+           <Input
+             value={getAtPath<string>(effective, `${base}.custom_header`, "")}
+             onChange={(e: ChangeEvent<HTMLInputElement>) => updateSettingsPath(`${base}.custom_header`, e.target.value)}
+             placeholder='{"X-Extra": "value"}'
+           />
+        </Field>
+      )}
+    </div>
+  );
 }

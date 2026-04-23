@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { MissionDatabase, getMissionDatabase } from "./database";
+import { type MissionDatabase, getMissionDatabase } from "./database";
 
 export interface ChatConversation {
   id: string;
@@ -8,6 +8,26 @@ export interface ChatConversation {
   ownerAccount: string;
   createdAt: string;
   updatedAt: string;
+}
+
+interface SQLiteMessageRow {
+  id: string;
+  conversation_id: string;
+  role: string;
+  content: string;
+  tokens_input: number;
+  tokens_output: number;
+  model: string;
+  created_at: string;
+}
+
+interface SQLiteConversationRow {
+  id: string;
+  title: string;
+  mode: string;
+  owner_account: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ChatMessageEntity {
@@ -79,9 +99,9 @@ export class SQLiteChatRepository {
     try {
       const rows = this.database.connection
         .prepare(`SELECT * FROM chat_messages WHERE conversation_id = ? ORDER BY created_at ASC`)
-        .all(conversationId) as Record<string, unknown>[];
+        .all(conversationId) as unknown as SQLiteMessageRow[];
 
-      return rows.map(r => ({
+      return rows.map((r) => ({
         id: r.id,
         conversationId: r.conversation_id,
         role: r.role,
@@ -100,9 +120,9 @@ export class SQLiteChatRepository {
     try {
       const rows = this.database.connection
         .prepare(`SELECT * FROM chat_conversations WHERE owner_account = ? ORDER BY updated_at DESC`)
-        .all(ownerAccount) as Record<string, unknown>[];
+        .all(ownerAccount) as unknown as SQLiteConversationRow[];
 
-      return rows.map(r => ({
+      return rows.map((r) => ({
         id: r.id,
         title: r.title,
         mode: r.mode,

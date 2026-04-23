@@ -1,52 +1,49 @@
 import React from 'react';
-import { Target, Brain, ShieldCheck, Gauge } from 'lucide-react';
+import { Target, ShieldCheck, Gauge } from 'lucide-react';
 import { useAlloyStore } from '../../../../store/alloyStore';
 import clsx from 'clsx';
 
 export function AutonomyConsole() {
   const { autonomyLevel, setAutonomyLevel, messages } = useAlloyStore();
   
-  // Extract reasoning from the last model message if available
   const lastModelMsg = [...messages].reverse().find(m => m.role === 'model');
   const reasoning = lastModelMsg?.content.includes('Thought:') 
     ? lastModelMsg.content.split('Thought:')[1]?.split('\n')[0] 
     : "Analyzing project structure and dependency graph...";
 
   return (
-    <div className="flex items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)]/80 px-6 py-2 backdrop-blur-md">
-      {/* Reasoning Trace */}
-      <div className="flex items-center gap-3 overflow-hidden">
-        <div className="flex h-5 w-5 items-center justify-center rounded bg-[var(--color-alloy-accent)]/10 text-[var(--color-alloy-accent)]">
-          <Brain size={12} />
+    <div className="flex h-[44px] items-center justify-between border-b border-[var(--color-alloy-border)] bg-black/40 px-6 backdrop-blur-xl z-20">
+      <div className="flex items-center gap-4 overflow-hidden flex-1">
+        <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-[var(--color-alloy-accent)]/20 bg-[var(--color-alloy-accent)]/5">
+          <div className="flex h-1.5 w-1.5 rounded-full bg-molten animate-pulse shadow-alloy-molten-glow" />
+          <span className="text-[9px] font-black uppercase tracking-tighter text-[var(--color-alloy-accent)]">AI is coding</span>
         </div>
-        <div className="flex flex-col truncate">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-alloy-text-sec)]">Reasoning Trace</span>
-          <span className="truncate text-[11px] text-white/90 italic">
-            {reasoning}
-          </span>
-        </div>
+        <span className="truncate text-[10px] font-mono text-white/50 italic max-w-[600px] border-l border-white/10 pl-4">
+          {reasoning}
+        </span>
       </div>
 
-      {/* Autonomy Level Gear */}
-      <div className="flex items-center gap-4 ml-4 shrink-0">
-        <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 p-1 px-2">
+      <div className="flex items-center gap-4 ml-6 shrink-0">
+        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/60 p-1 shadow-inner">
           <LevelButton 
             active={autonomyLevel === 'manual'} 
             onClick={() => setAutonomyLevel('manual')}
             label="Manual"
-            icon={<Target size={12} />}
+            icon={<Target size={11} />}
           />
+          <div className="h-4 w-[1px] bg-white/5 mx-0.5" />
           <LevelButton 
             active={autonomyLevel === 'balanced'} 
             onClick={() => setAutonomyLevel('balanced')}
-            label="Balanced"
-            icon={<ShieldCheck size={12} />}
+            label="Supervised"
+            icon={<ShieldCheck size={11} />}
           />
+          <div className="h-4 w-[1px] bg-white/5 mx-0.5" />
           <LevelButton 
             active={autonomyLevel === 'autonomous'} 
             onClick={() => setAutonomyLevel('autonomous')}
-            label="Full Auto"
-            icon={<Gauge size={12} />}
+            label="Autonomous"
+            icon={<Gauge size={11} />}
           />
         </div>
       </div>
@@ -59,13 +56,13 @@ function LevelButton({ active, onClick, label, icon }: { active: boolean, onClic
     <button
       onClick={onClick}
       className={clsx(
-        "flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-medium transition-all",
+        "flex items-center gap-2 rounded-md px-3 py-1.5 text-[9px] font-black tracking-[0.2em] transition-all",
         active 
-          ? "bg-[var(--color-alloy-accent)] text-black shadow-[0_0_15px_rgba(var(--color-alloy-accent-rgb),0.2)]" 
-          : "text-[var(--color-alloy-text-sec)] hover:bg-white/5 hover:text-white"
+          ? "bg-[var(--color-alloy-accent)] text-black shadow-alloy-molten-glow scale-[1.02] border border-white/20" 
+          : "text-[var(--color-alloy-text-sec)] hover:bg-white/5 hover:text-white border border-transparent"
       )}
     >
-      {icon}
+      <span className={clsx("transition-opacity", active ? "opacity-100" : "opacity-40")}>{icon}</span>
       {label}
     </button>
   );

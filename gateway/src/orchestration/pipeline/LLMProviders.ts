@@ -2,6 +2,44 @@ import type { AgentDefinition } from "../agents";
 import type { ILLMProvider, LLMProviderResult } from "./ILLMProvider";
 import type { TokenUsage } from "./pipeline-types";
 
+interface GeminiUsageMetadata {
+  promptTokenCount: number;
+  candidatesTokenCount: number;
+  totalTokenCount: number;
+}
+
+interface GeminiResponse {
+  candidates: {
+    content: {
+      parts: { text: string }[];
+    };
+  }[];
+  usageMetadata?: GeminiUsageMetadata;
+}
+
+interface AnthropicUsage {
+  input_tokens: number;
+  output_tokens: number;
+}
+
+interface AnthropicResponse {
+  content: { type: string; text: string }[];
+  usage?: AnthropicUsage;
+}
+
+interface OpenAIUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens?: number;
+}
+
+interface OpenAIResponse {
+  choices: {
+    message: { content: string };
+  }[];
+  usage?: OpenAIUsage;
+}
+
 /**
  * Google Gemini Provider Implementation
  */
@@ -43,16 +81,14 @@ export class GeminiProvider implements ILLMProvider {
       throw new Error(`Gemini API Error ${res.status}: ${body.slice(0, 500)}`);
     }
 
-    const data = await res.json() as Record<string, unknown>;
-    if (!data || typeof data !== 'object') {
-      throw new Error('Gemini API returned invalid response format');
-    }
+    const data = await res.json() as unknown as GeminiResponse;
     const candidates = Array.isArray(data.candidates) ? data.candidates : [];
-    const firstCandidate = candidates[0] as Record<string, unknown> | undefined;
-    const content = firstCandidate?.content as Record<string, unknown> | undefined;
+    const firstCandidate = candidates[0];
+    const content = firstCandidate?.content;
     const parts = Array.isArray(content?.parts) ? content.parts : [];
-    const firstPart = parts[0] as Record<string, unknown> | undefined;
+    const firstPart = parts[0];
     const text = typeof firstPart?.text === "string" ? firstPart.text : "";
+    
     const usage = data.usageMetadata;
     const tokenUsage: TokenUsage = {
       promptTokens: typeof usage?.promptTokenCount === 'number' ? usage.promptTokenCount : 0,
@@ -112,14 +148,11 @@ export class AnthropicProvider implements ILLMProvider {
       throw new Error(`Anthropic API Error ${res.status}: ${body.slice(0, 500)}`);
     }
 
-    const data = await res.json() as Record<string, unknown>;
-    if (!data || typeof data !== 'object') {
-      throw new Error('Anthropic API returned invalid response format');
-    }
+    const data = await res.json() as unknown as AnthropicResponse;
     const text =
       (Array.isArray(data.content) ? data.content : [])
-        .filter((b: unknown) => b && typeof b === 'object' && (b as Record<string, unknown>).type === "text")
-        .map((b: unknown) => (b as Record<string, unknown>).text)
+        .filter((b) => b && typeof b === 'object' && b.type === "text")
+        .map((b) => b.text)
         .join("\n") ?? "";
 
     const usage = data.usage;
@@ -174,13 +207,10 @@ export class OpenAIProvider implements ILLMProvider {
       throw new Error(`OpenAI API Error ${res.status}: ${body.slice(0, 500)}`);
     }
 
-    const data = await res.json() as Record<string, unknown>;
-    if (!data || typeof data !== 'object') {
-      throw new Error('OpenAI API returned invalid response format');
-    }
+    const data = await res.json() as unknown as OpenAIResponse;
     const choices = Array.isArray(data.choices) ? data.choices : [];
-    const firstChoice = choices[0] as Record<string, unknown> | undefined;
-    const message = firstChoice?.message as Record<string, unknown> | undefined;
+    const firstChoice = choices[0];
+    const message = firstChoice?.message;
     const text = typeof message?.content === "string" ? message.content : "";
     const usage = data.usage;
     const tokenUsage: TokenUsage = {

@@ -39,7 +39,7 @@ export class AlloyAPI {
     }
 
     let latestAuth = await this.getAuth();
-    if (!isOAuthAuth(latestAuth)) {
+    if (!isOAuthAuth(latestAuth as any)) {
       return this.nativeFetch(input, init);
     }
 

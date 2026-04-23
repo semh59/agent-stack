@@ -1,11 +1,8 @@
-import { Users, Trash2, Plus, ChevronRight, ShieldAlert } from 'lucide-react';
+import { Users, Trash2, Plus, ChevronRight, ShieldAlert, Fingerprint, Lock, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../../../store/appStore';
 import { 
-  Badge, 
-  Button, 
-  Card, 
   Row, 
   Section 
 } from '../../../../components/sovereign/primitives';
@@ -28,57 +25,85 @@ export function AccountsPage() {
   })));
 
   return (
-    <div className="space-y-8">
-      <Section 
-        title={t('Accounts')} 
-        description="System accounts authorized for agent operations. Agents will use these credentials to perform cloud-based reasoning."
-        icon={<Users size={16} />}
-        action={
-          <Button 
-            variant="primary" 
-            size="sm" 
-            icon={<Plus size={14} />}
-            onClick={() => addAccount()}
+    <div className="space-y-12 pb-20">
+      <div className="flex items-center justify-between p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl mb-8">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+             <Users size={20} />
+          </div>
+          <div>
+             <h2 className="text-sm font-bold uppercase tracking-widest text-white">Identity_Auth_Hub</h2>
+             <p className="text-[10px] text-white/40 mt-1 font-medium tracking-tight">Manage authorized credentials and session quotas for cloud-based engineering missions.</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <button 
+            onClick={() => addAccount('google')}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:bg-white/10 transition-all"
           >
-            {t('Add Account')}
-          </Button>
-        }
+            <Plus size={14} />
+            Connect_Google
+          </button>
+          <button 
+            onClick={() => addAccount('claude')}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-orange-400 hover:bg-white/10 transition-all"
+          >
+            <Plus size={14} />
+            Connect_Claude
+          </button>
+        </div>
+      </div>
+
+      <Section 
+        title="Authorized_Principals" 
+        description="Active cryptographic identities currently mounted to the system."
+        icon={<Fingerprint size={16} />}
       >
         <div className="grid gap-4">
           {accounts.map((acc) => (
-            <Card 
+            <div 
               key={acc.email} 
-              density="compact"
-              tone={acc.email === activeAccount ? "accent" : "neutral"}
-              className="group"
+              className={clsx(
+                "group relative bg-black/40 border rounded-2xl p-6 transition-all duration-300 hover:bg-white/[0.02] shadow-alloy-elevated overflow-hidden",
+                acc.email === activeAccount ? "border-[var(--color-alloy-accent)]/40 shadow-alloy-glow" : "border-white/5"
+              )}
             >
+              {acc.email === activeAccount && (
+                <div className="absolute top-0 left-0 w-1 h-full bg-[var(--color-alloy-accent)] shadow-[0_0_10px_rgba(var(--accent-rgb),0.5)]" />
+              )}
+
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--color-alloy-bg)] border border-[var(--color-alloy-border)] flex items-center justify-center text-sm font-bold text-white uppercase shadow-inner">
+                <div className="flex items-center gap-6">
+                  <div className="w-12 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center text-base font-black text-white uppercase shadow-inner">
                     {acc.email[0]}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">{acc.email}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-white uppercase tracking-tight">{acc.email}</span>
                       {acc.email === activeAccount && (
-                        <Badge tone="accent">{t('Active')}</Badge>
+                        <span className="px-2 py-0.5 rounded text-[8px] font-black bg-[var(--color-alloy-accent)] text-black uppercase tracking-[0.2em]">Active</span>
                       )}
                     </div>
+                    
                     {/* Quota Mini Bar */}
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-3 flex flex-wrap gap-4">
                        {accountQuotas.find(q => q.email === acc.email)?.quota && (
-                         Object.entries(accountQuotas.find(q => q.email === acc.email)!.quota!).slice(0, 1).map(([key, val]) => (
-                           <div key={key} className="flex items-center gap-2">
-                             <div className="w-24 h-1 bg-[var(--color-alloy-border)] rounded-full overflow-hidden">
-                               <div 
-                                 className={clsx(
-                                   "h-full transition-all duration-500",
-                                   (val.remainingFraction || 0) < 0.2 ? "bg-red-500" : "bg-[var(--color-alloy-accent)]"
-                                 )}
-                                 style={{ width: `${(val.remainingFraction || 0) * 100}%` }}
-                               />
-                             </div>
-                             <span className="text-[9px] text-[var(--color-alloy-text-sec)] font-bold uppercase tracking-tighter">{key}</span>
+                         Object.entries(accountQuotas.find(q => q.email === acc.email)!.quota!).map(([key, val]) => (
+                           <div key={key} className="flex flex-col gap-1.5 min-w-[120px]">
+                              <div className="flex justify-between items-center pr-2">
+                                <span className="text-[8px] text-white/20 font-bold uppercase tracking-widest">{key}</span>
+                                <span className="text-[8px] text-white/40 font-mono">{(val.remainingFraction || 0) * 100}%</span>
+                              </div>
+                              <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div 
+                                  className={clsx(
+                                    "h-full transition-all duration-500",
+                                    (val.remainingFraction || 0) < 0.2 ? "bg-red-500" : "bg-[var(--color-alloy-accent)] shadow-[0_0_5px_rgba(var(--accent-rgb),0.5)]"
+                                  )}
+                                  style={{ width: `${(val.remainingFraction || 0) * 100}%` }}
+                                />
+                              </div>
                            </div>
                          ))
                        )}
@@ -86,52 +111,59 @@ export function AccountsPage() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    icon={<Trash2 size={16} />}
+                <div className="flex items-center gap-4">
+                  <button 
                     onClick={() => removeAccount(acc.email)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    title={t("Remove Account")}
-                  />
-                  <ChevronRight size={18} className="text-[var(--color-alloy-text-sec)]" />
+                    className="p-3 text-white/10 hover:text-red-400 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-500/20 transition-all opacity-0 group-hover:opacity-100"
+                    title={t("Revoke_Identity")}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <ChevronRight size={18} className="text-white/10 group-hover:text-white/40 transition-colors" />
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
           
           {accounts.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-[var(--color-alloy-border)] rounded-3xl text-[var(--color-alloy-text-sec)] bg-[var(--color-alloy-surface)]/30">
-              <ShieldAlert size={40} className="mb-4 opacity-10 text-[var(--color-alloy-accent)]" />
-              <p className="text-sm font-body">{t('No authorized account has been configured yet.')}</p>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="mt-4 font-bold"
+            <div className="flex flex-col items-center justify-center py-20 border border-dashed border-white/5 rounded-3xl bg-black/20">
+              <Lock size={48} className="mb-6 text-white/5" />
+              <p className="text-xs font-bold uppercase tracking-widest text-white/20">No active principals found.</p>
+              <button 
+                className="mt-6 px-6 py-2 bg-indigo-500/20 border border-indigo-500/20 rounded-lg text-[10px] font-bold text-indigo-100 uppercase tracking-widest hover:bg-indigo-500/40"
                 onClick={() => addAccount()}
               >
-                {t('AUTHORIZE SYSTEM')}
-              </Button>
+                REQUEST_AUTHORIZATION
+              </button>
             </div>
           )}
         </div>
       </Section>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-alloy-border)] to-transparent opacity-50" />
+      <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
       <Section 
-        title={t("System Status")} 
+        title="Session_Heartbeat" 
         icon={<ShieldAlert size={16} />}
       >
-        <Card tone="neutral">
-          <Row label={t("Agent Connection")} hint="Real-time heartbeat status.">
-             <Badge tone="success">{t('ACTIVE')}</Badge>
-          </Row>
-          <Row label={t("Database Sync")} hint="Persistent storage integrity check.">
-             <Badge tone="success">{t('COMPLETE')}</Badge>
-          </Row>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1 bg-white/[0.02] border border-white/5 rounded-3xl">
+           <div className="p-6 bg-black/40 border border-white/5 rounded-2xl">
+              <Row label="AGENT_BRIDGE" hint="Real-time link status to the sovereign orchestrator.">
+                 <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">
+                    <ShieldCheck size={10} />
+                    Connected
+                 </div>
+              </Row>
+           </div>
+           <div className="p-6 bg-black/40 border border-white/5 rounded-2xl">
+              <Row label="DATA_INTEGRITY" hint="Validation of persistent state serialization.">
+                 <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">
+                    <ShieldCheck size={10} />
+                    Synched
+                 </div>
+              </Row>
+           </div>
+        </div>
       </Section>
     </div>
   );

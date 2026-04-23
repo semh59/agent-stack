@@ -34,24 +34,29 @@ export function TerminalTimeline() {
     : pipelineStatus?.state?.pipelineStatus === 'running';
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-black/40 border border-white/5 rounded-2xl shadow-inner overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500/20" />
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20" />
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500/20" />
+    <div className="flex h-full flex-col overflow-hidden bg-black/40 border border-white/5 rounded-2xl shadow-alloy-elevated">
+      {/* Chrome Style Bar */}
+      <div className="flex items-center justify-between px-5 py-2.5 bg-white/[0.03] border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1.5 opacity-40">
+            <div className="w-2 h-2 rounded-full bg-red-500" />
+            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+            <div className="w-2 h-2 rounded-full bg-green-500" />
           </div>
-          <span className="text-[9px] text-gray-500 font-black tracking-widest uppercase ml-2">Session_Stdout.log</span>
+          <span className="text-[10px] text-white/20 font-bold tracking-[0.2em] uppercase ml-2">Internal Logs // Output</span>
         </div>
-        <div className="text-[9px] text-gray-600 font-mono">
-          UTF-8 | TS_ORCHESTRATOR
+        <div className="flex items-center gap-4 text-[9px] font-mono text-white/10 uppercase tracking-widest">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1 w-1 rounded-full bg-[var(--color-alloy-accent)] animate-pulse" />
+            Live_Sync
+          </span>
+          <span>v4.0</span>
         </div>
       </div>
 
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 custom-scrollbar font-mono leading-tight relative"
+        className="flex-1 overflow-y-auto p-5 custom-scrollbar font-mono leading-relaxed relative"
       >
         <div
           style={{
@@ -76,25 +81,31 @@ export function TerminalTimeline() {
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
                 className={clsx(
-                  "flex gap-3 group px-2 py-1 rounded transition-colors timeline-item-enter",
-                  idx === autonomyTimeline.length - 1 ? "bg-white/5 border-l-2 border-[var(--color-alloy-accent)]" : "hover:bg-white/[0.02]"
+                  "flex gap-4 group px-3 py-1.5 rounded transition-all duration-300",
+                  idx === autonomyTimeline.length - 1 
+                    ? "bg-[var(--color-alloy-accent)]/5 border-l-2 border-[var(--color-alloy-accent)] shadow-[inset_10px_0_20px_-10px_rgba(0,240,255,0.1)]" 
+                    : "hover:bg-white/[0.02] border-l-2 border-transparent"
                 )}
               >
-                <span className="text-[10px] text-gray-700 shrink-0 select-none">
-                  [{new Date(item.timestamp).toLocaleTimeString([], { hour12: false })}]
-                </span>
-                <div className="shrink-0 mt-0.5">
-                  {item.type === 'tool' ? <Terminal size={12} className="text-blue-500/60" /> :
-                   item.type === 'success' ? <CheckCircle2 size={12} className="text-[var(--color-alloy-success)]/60" /> :
-                   item.type === 'error' ? <AlertCircle size={12} className="text-[var(--color-alloy-error)]/60" /> :
-                   <Zap size={12} className="text-[var(--color-alloy-accent)]/80" />}
+                <div className="flex flex-col items-center shrink-0 w-12 pt-1 opacity-20 group-hover:opacity-60 transition-opacity">
+                   <span className="text-[9px] font-bold text-white tracking-widest leading-none">
+                     {new Date(item.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                   </span>
                 </div>
+                
+                <div className="shrink-0 mt-1">
+                  {item.type === 'tool' ? <Terminal size={12} className="text-[var(--color-alloy-accent)] opacity-60" /> :
+                   item.type === 'success' ? <CheckCircle2 size={12} className="text-emerald-400 opacity-80" /> :
+                   item.type === 'error' ? <AlertCircle size={12} className="text-red-400" /> :
+                   <Zap size={12} className="text-[var(--color-alloy-accent)] shadow-alloy-glow" />}
+                </div>
+                
                 <div className="flex-1 min-w-0">
                   <p className={clsx(
-                    "text-[12px] break-words",
-                    item.type === 'error' ? "text-red-400" : 
-                    item.type === 'success' ? "text-[var(--color-alloy-success)]" :
-                    "text-gray-300"
+                    "text-[11px] break-words tracking-tight leading-[1.4]",
+                    item.type === 'error' ? "text-red-400/90" : 
+                    item.type === 'success' ? "text-emerald-400/80 font-medium" :
+                    "text-white/60"
                   )}>
                     {item.message}
                   </p>
@@ -105,14 +116,14 @@ export function TerminalTimeline() {
         </div>
         
         {isRunning && (
-          <div className="flex gap-3 px-2 py-2 mt-4">
-            <span className="text-[10px] text-[var(--color-alloy-accent)] animate-pulse shrink-0">$</span>
-            <div className="flex items-center gap-2">
-               <span className="text-[12px] text-gray-500 italic">Analyzing...</span>
-               <div className="flex gap-1">
-                  <div className="w-1 h-1 bg-[var(--color-alloy-accent)] rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <div className="w-1 h-1 bg-[var(--color-alloy-accent)] rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <div className="w-1 h-1 bg-[var(--color-alloy-accent)] rounded-full animate-bounce" />
+          <div className="flex gap-4 px-3 py-4 mt-2 border-t border-white/5 bg-gradient-to-b from-transparent to-[var(--color-alloy-accent)]/[0.02]">
+            <span className="text-[10px] text-[var(--color-alloy-accent)] animate-pulse shrink-0 font-bold">$</span>
+            <div className="flex items-center gap-3">
+               <span className="text-[11px] text-[var(--color-alloy-accent)] opacity-40 font-bold uppercase tracking-widest animate-pulse">Analyzing...</span>
+               <div className="flex gap-1.5 pt-0.5">
+                  <div className="w-1 h-1 bg-[var(--color-alloy-accent)] rounded-full animate-bounce shadow-alloy-glow [animation-delay:-0.3s]" />
+                  <div className="w-1 h-1 bg-[var(--color-alloy-accent)] rounded-full animate-bounce shadow-alloy-glow [animation-delay:-0.15s]" />
+                  <div className="w-1 h-1 bg-[var(--color-alloy-accent)] rounded-full animate-bounce shadow-alloy-glow" />
                </div>
             </div>
           </div>

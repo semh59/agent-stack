@@ -51,10 +51,19 @@ export function AlloyChatShell() {
       <ConversationList />
       <main className="relative flex flex-1 flex-col overflow-hidden">
         <AutonomyConsole />
-        <MessageList />
-        <Composer />
-        <CostFooter />
-        <SurgicalEditor />
+        
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          <div className="flex flex-1 flex-col min-w-0 relative">
+            <MessageList />
+            <Composer />
+            <CostFooter />
+          </div>
+          
+          {/* Side Panel for Surgical Fixes & Plan Previews */}
+          <div className="w-[400px] border-l border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/30 backdrop-blur-sm hidden xl:block">
+            <SurgicalEditor />
+          </div>
+        </div>
       </main>
     </div>
   );

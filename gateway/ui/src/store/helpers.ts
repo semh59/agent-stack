@@ -393,10 +393,15 @@ export function normalizeBudgetStatus(payload: Record<string, unknown>): Autonom
   };
 }
 
-export async function gatewayFetch(path: string, init: RequestInit, token: string): Promise<Response> {
+export async function gatewayFetch(path: string, init: RequestInit, token: string | null): Promise<Response> {
+  const effectiveToken = token || readGatewayToken();
+  if (!effectiveToken) {
+    console.warn(`[GatewayFetch] Aborting request to ${path}: No auth token available.`);
+    throw new Error("Gateway auth token missing");
+  }
   return fetch(buildApiUrl(path), {
     ...init,
-    headers: authHeaders(token, init.headers),
+    headers: authHeaders(effectiveToken, init.headers),
   });
 }
 

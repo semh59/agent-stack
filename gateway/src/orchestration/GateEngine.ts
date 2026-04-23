@@ -10,7 +10,6 @@ import type {
 } from "./autonomy-types";
 import type { TerminalExecutor } from "./terminal-executor";
 import type { AlloyGatewayClient } from "./gateway-client";
-
 import { log } from "./gateway-utils";
 
 /**
@@ -340,7 +339,7 @@ export class ArchitectGate implements AutonomousGate {
 
     try {
       // Use the standard client fetch which handles auth and routing
-      const response = await activeClient.fetch("/v1/chat/completions", {
+      const response = await (activeClient as AlloyGatewayClient).fetch("/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tests for request helper functions.
  * Covers: JSON schema cleaning, thinking config, tool normalization.
  */
@@ -28,7 +28,7 @@ describe("cleanJSONSchemaForAlloy", () => {
       required: ["name"],
       description: "A person",
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     expect(result.type).toBe("object");
     expect(result.properties).toBeDefined();
     expect(result.required).toEqual(["name"]);
@@ -40,7 +40,7 @@ describe("cleanJSONSchemaForAlloy", () => {
       type: "string",
       enum: ["a", "b", "c"],
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     expect(result.enum).toEqual(["a", "b", "c"]);
   });
 
@@ -49,7 +49,7 @@ describe("cleanJSONSchemaForAlloy", () => {
       type: "array",
       items: { type: "string" },
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     expect(result.type).toBe("array");
     expect(result.items).toEqual({ type: "string" });
   });
@@ -59,7 +59,7 @@ describe("cleanJSONSchemaForAlloy", () => {
       type: "string",
       const: "fixed_value",
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     expect(result.enum).toEqual(["fixed_value"]);
     expect(result.const).toBeUndefined();
   });
@@ -71,7 +71,7 @@ describe("cleanJSONSchemaForAlloy", () => {
         empty: {},
       },
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     // Empty object should be replaced with a placeholder
     expect(result.properties.empty).toBeDefined();
     // Should have at least a type or description
@@ -90,7 +90,7 @@ describe("cleanJSONSchemaForAlloy", () => {
       default: { name: "test" },
       examples: [{ name: "example" }],
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     // additionalProperties is removed (moved to description hint)
     expect(result.additionalProperties).toBeUndefined();
     // default and examples are removed (moved to description hints)
@@ -107,7 +107,7 @@ describe("cleanJSONSchemaForAlloy", () => {
       minProperties: 1,
       maxProperties: 10,
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     // minProperties/maxProperties are NOT in UNSUPPORTED_KEYWORDS
     expect(result.minProperties).toBe(1);
     expect(result.maxProperties).toBe(10);
@@ -125,7 +125,7 @@ describe("cleanJSONSchemaForAlloy", () => {
         },
       },
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     const deepProp = result.properties.nested.properties.deep;
     expect(deepProp.enum).toEqual(["deep_value"]);
     expect(deepProp.const).toBeUndefined();
@@ -139,7 +139,7 @@ describe("cleanJSONSchemaForAlloy", () => {
         { type: "number", const: 42 },
       ],
     };
-    const result = cleanJSONSchemaForAlloy(schema);
+    const result = cleanJSONSchemaForAlloy(schema) as any;
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items[1].enum).toEqual([42]);
   });

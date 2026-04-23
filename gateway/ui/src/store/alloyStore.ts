@@ -39,7 +39,6 @@ export const useAlloyStore = create<AlloyState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         conversations: s.conversations,
-        conversationOrder: s.conversationOrder,
         activeConversationId: s.activeConversationId,
         sessionCostUsd: s.sessionCostUsd,
         sessionTokens: s.sessionTokens,

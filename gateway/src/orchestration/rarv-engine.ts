@@ -1,4 +1,4 @@
-﻿import { EventBus } from './event-bus';
+import { EventBus } from './event-bus';
 
 /**
  * RARV Phase constants.
@@ -146,7 +146,7 @@ export class RARVEngine {
     
     if (this.memory) {
       const memState = await this.memory.getState();
-      state = memState.rarvState?.[taskId];
+      state = memState.rarvState?.[taskId] as RARVState;
     } else {
         throw new Error("SharedMemory is required for persistent RARV operations.");
     }

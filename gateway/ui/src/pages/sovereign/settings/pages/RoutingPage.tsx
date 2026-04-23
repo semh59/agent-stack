@@ -1,23 +1,11 @@
 /**
  * Routing page — decide which model each role / complexity tier uses.
- *
- * Two surfaces:
- *   1. Role map         — chat / autocomplete / edit / embed / rerank
- *   2. Complexity map   — low / medium / high (used by the MAB router)
- *   3. Fallback chain   — ordered list, first available wins
- *
- * Model IDs are strings of the form `provider:model` or `provider/model`.
- * We don't force a dropdown because the user may configure a provider we
- * don't know about — the input is free-form with autocomplete hints.
  */
 import { Trash2, Plus, Network, ListOrdered, AlertCircle } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, type ChangeEvent } from "react";
 import { useEffectiveSettings, getAtPath } from "../useEffectiveSettings";
 import { useAlloyStore } from "../../../../store/alloyStore";
 import {
-  Button,
-  Field,
-  Row,
   Section,
   Select,
 } from "../../../../components/sovereign/primitives";
@@ -56,19 +44,20 @@ export function RoutingPage() {
   }, [effective.providers]);
 
   const ModelSelector = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) => (
-    <div className="relative group">
+    <div className="relative group w-full">
        <Select 
          value={value} 
-         onChange={(e) => onChange(e.target.value)}
+         onChange={(e: ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
+         className="w-full bg-black/40 border-white/10 text-xs font-mono"
        >
-         <option value="">{placeholder || t("Select a model...")}</option>
+         <option value="">{placeholder || t("SELECT_MODEL_NODE")}</option>
          {modelChoices.map(m => (
-           <option key={m} value={m}>{m}</option>
+           <option key={m} value={m}>{m.toUpperCase()}</option>
          ))}
        </Select>
        {!modelChoices.includes(value) && value !== "" && (
-         <div className="mt-1 text-[10px] text-amber-400 flex items-center gap-1">
-           <AlertCircle size={10} /> {t("Custom/Manual model active")}
+         <div className="mt-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-[9px] font-bold text-amber-400 flex items-center gap-2 uppercase tracking-widest">
+           <AlertCircle size={10} /> {t("MANUAL_OVERRIDE_ACTIVE")}
          </div>
        )}
     </div>
@@ -86,77 +75,101 @@ export function RoutingPage() {
   };
 
   return (
-    <div className="space-y-10">
-      <Section
-        title="Role routing"
-        description="Pick the right model for each job. Typed as provider:model — e.g. ollama:qwen2.5:7b."
-        icon={<Network size={16} />}
-      >
-        <div>
-          {ROLES.map((r) => (
-            <Row key={r.key} label={r.label} hint={r.hint}>
-              {strField(`routing.roles.${r.key}`)}
-            </Row>
-          ))}
+    <div className="space-y-12 pb-20">
+      <div className="flex items-center gap-4 p-6 bg-[var(--color-alloy-accent)]/5 border border-[var(--color-alloy-accent)]/10 rounded-2xl mb-8">
+        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-[var(--color-alloy-accent)]/20 text-[var(--color-alloy-accent)]">
+           <Network size={20} />
         </div>
-      </Section>
+        <div>
+           <h2 className="text-sm font-bold uppercase tracking-widest text-white">Model Routing</h2>
+           <p className="text-[10px] text-white/40 mt-1 font-medium tracking-tight">Assign logical roles to specific AI models.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Section
+          title="Role Mapping"
+          description="Assign models to specific activities."
+          icon={<Network size={16} />}
+        >
+          <div className="bg-black/40 border border-white/5 rounded-2xl p-6 space-y-4">
+            {ROLES.map((r) => (
+              <div key={r.key} className="p-4 border border-white/5 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <span className="block text-[11px] font-bold text-white/80 uppercase tracking-tight">{r.label}</span>
+                    <span className="block text-[10px] text-white/20 mt-0.5 uppercase">{r.hint}</span>
+                  </div>
+                </div>
+                {strField(`routing.roles.${r.key}`)}
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section
+          title="Complexity Mapping"
+          description="Assign models based on task difficulty."
+        >
+          <div className="bg-black/40 border border-white/5 rounded-2xl p-6 space-y-4">
+            {COMPLEXITY.map((c) => (
+              <div key={c.key} className="p-4 border border-white/5 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <span className="block text-[11px] font-bold text-white/80 uppercase tracking-tight">{c.label} Tasks</span>
+                    <span className="block text-[10px] text-white/20 mt-0.5 uppercase">{c.hint}</span>
+                  </div>
+                </div>
+                {strField(`routing.complexity.${c.key}`)}
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
 
       <Section
-        title="Complexity tiers"
-        description="The router scales up to more expensive models as the task complexity grows."
-      >
-        <div>
-          {COMPLEXITY.map((c) => (
-            <Row key={c.key} label={c.label} hint={c.hint}>
-              {strField(`routing.complexity.${c.key}`)}
-            </Row>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        title="Fallback chain"
-        description="If the first model errors or times out, we walk the chain top-down."
+        title="Fallback Models"
+        description="Models to use if the primary model fails."
         icon={<ListOrdered size={16} />}
       >
-        <div className="space-y-2">
-          {(fallback ?? []).map((modelRef, i) => (
-            <div key={i} className="flex gap-2">
-              <Field label={`${t('Position')} ${i + 1}`} className="flex-1">
-                <ModelSelector
-                  value={modelRef}
-                  onChange={(v) => {
+        <div className="bg-black/40 border border-white/5 rounded-2xl p-8 space-y-6">
+          <div className="space-y-4">
+            {(fallback ?? []).map((modelRef, i) => (
+              <div key={i} className="flex items-end gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+                <div className="flex-1">
+                   <span className="block text-[9px] font-bold text-white/10 uppercase tracking-widest mb-2">Priority_{i + 1}</span>
+                   <ModelSelector
+                    value={modelRef}
+                    onChange={(v) => {
+                      const next = [...fallback];
+                      next[i] = v;
+                      updateSettingsPath("routing.fallback_chain", next);
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={() => {
                     const next = [...fallback];
-                    next[i] = v;
+                    next.splice(i, 1);
                     updateSettingsPath("routing.fallback_chain", next);
                   }}
-                />
-              </Field>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="self-end"
-                onClick={() => {
-                  const next = [...fallback];
-                  next.splice(i, 1);
-                  updateSettingsPath("routing.fallback_chain", next);
-                }}
-                icon={<Trash2 size={14} />}
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<Plus size={14} />}
+                  className="h-10 w-10 flex items-center justify-center rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all border border-white/5"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+          
+          <button
             onClick={() =>
               updateSettingsPath("routing.fallback_chain", [...(fallback ?? []), ""])
             }
+            className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-3 text-white/20 hover:text-white/60 hover:border-white/20 hover:bg-white/[0.01] transition-all group"
           >
-            {t('Add fallback')}
-          </Button>
+            <Plus size={16} className="group-hover:scale-125 transition-transform" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Add Fallback Model</span>
+          </button>
         </div>
       </Section>
     </div>

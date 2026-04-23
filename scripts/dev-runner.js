@@ -55,7 +55,7 @@ function launch(tag, color, cmd, args, opts) {
   const child = spawn(cmd, args, {
     cwd: opts.cwd,
     env: { ...process.env, ...opts.env },
-    shell: false,
+    shell: process.platform === "win32",
   });
   children.push({ tag, child });
   pipeWithPrefix(child.stdout, tag, color);

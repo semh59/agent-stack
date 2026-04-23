@@ -1,4 +1,4 @@
-import fastify from "fastify";
+import fastify, { type FastifyRequest, type FastifyReply } from "fastify";
 import cors from "@fastify/cors";
 import staticPlugin from "@fastify/static";
 import websocket from "@fastify/websocket";
@@ -368,7 +368,7 @@ export class GatewayServer {
     // 1.5 Static UI Serving
     const uiDistPath = path.join(this.projectRoot, "ui", "dist");
     const extensionUiDistPath = path.join(this.projectRoot, "vscode-extension", "ui", "dist");
-    let serveIndexWithToken: ((request: unknown, reply: unknown) => Promise<unknown>) | null = null;
+    let serveIndexWithToken: ((request: FastifyRequest, reply: FastifyReply) => Promise<void>) | null = null;
 
     let rootPath = "";
     try {
@@ -385,7 +385,7 @@ export class GatewayServer {
       console.log(`[Gateway] Serving UI from: ${rootPath}`);
       
       // Manual handler for index.html to inject the gateway token
-      serveIndexWithToken = async (_request: unknown, reply: { type: (t: string) => { send: (html: string) => unknown }; status: (s: number) => { send: (body: unknown) => unknown } }) => {
+      serveIndexWithToken = async (_request: FastifyRequest, reply: FastifyReply) => {
         const indexPath = path.join(rootPath, "index.html");
         try {
           let html = await fs.readFile(indexPath, "utf8");
@@ -396,9 +396,12 @@ export class GatewayServer {
               (function() {
                 const key = 'gateway_auth_token';
                 const token = '${token}';
-                if (sessionStorage.getItem(key) !== token) {
+                console.log('[Gateway] Handshake initiated. Pulse check...');
+                if (token) {
                   sessionStorage.setItem(key, token);
-                  console.log('[Gateway] Token auto-injected from server');
+                  console.log('[Gateway] Token synchronized with session storage.');
+                } else {
+                  console.warn('[Gateway] No token provided for injection!');
                 }
               })();
             </script>\n`;
@@ -1106,8 +1109,9 @@ export class GatewayServer {
         cleanup.forEach((dispose) => dispose());
       });
 
-      socket.on("error", (err: Error) => {
-        console.warn("[WS] Socket error:", err.message);
+      socket.on("error", (err: unknown) => {
+        const error = err as Error;
+        console.warn("[WS] Socket error:", error.message);
         cleanup.forEach((dispose) => dispose());
       });
     });

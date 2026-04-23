@@ -3,24 +3,24 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import {
-  MessageSquare,
   Zap,
-  History,
-  Settings,
   Menu,
   Globe,
   Sun,
   Moon,
+  Activity,
+  Shield,
+  Terminal,
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "../store/appStore";
 import { useAlloyStore } from "../store/alloyStore";
 
 const navItems = [
-  { icon: MessageSquare, label: "Chat", path: "/chat" },
-  { icon: Zap, label: "New Mission", path: "/dashboard" },
-  { icon: History, label: "Mission History", path: "/pipeline/history" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: Terminal, label: "Chat", path: "/chat" },
+  { icon: Zap, label: "Start Task", path: "/dashboard" },
+  { icon: Activity, label: "History", path: "/pipeline/history" },
+  { icon: Shield, label: "Settings", path: "/settings" },
 ];
 
 /**
@@ -37,7 +37,6 @@ export function AppLayout() {
     activeAccount,
     theme,
     toggleTheme,
-    stats,
     activeSessionId,
     autonomySessionId,
     snapshotMetaBySession,
@@ -51,7 +50,6 @@ export function AppLayout() {
       activeAccount: state.activeAccount,
       theme: state.theme,
       toggleTheme: state.toggleTheme,
-      stats: state.stats,
       activeSessionId: state.activeSessionId,
       autonomySessionId: state.autonomySessionId,
       snapshotMetaBySession: state.snapshotMetaBySession,
@@ -96,22 +94,36 @@ export function AppLayout() {
     <div className="flex h-screen w-full overflow-hidden bg-[var(--color-alloy-bg)] text-[var(--color-alloy-text)]">
       <aside
         className={clsx(
-          "flex flex-col border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] transition-all duration-300",
-          sidebarOpen ? "w-[260px]" : "w-[60px]",
+          "flex flex-col border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          sidebarOpen ? "w-[240px]" : "w-[68px]",
         )}
       >
-        <div className="flex h-[60px] items-center border-b border-[var(--color-alloy-border)] px-4">
+        <div className="flex h-[64px] items-center border-b border-[var(--color-alloy-border)] px-5">
           <button
             onClick={toggleSidebar}
-            className="rounded p-1 text-[var(--color-alloy-text-sec)] transition-colors hover:bg-[var(--color-alloy-border)] hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-alloy-text-sec)] transition-all hover:bg-[var(--color-alloy-accent-dim)] hover:text-[var(--color-alloy-accent)] group"
             aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <Menu size={20} />
+            <Menu size={20} className="group-hover:scale-110 transition-transform" />
           </button>
-          {sidebarOpen ? <span className="ml-3 font-display text-lg tracking-wider text-white">ALLOY</span> : null}
+          
+          {sidebarOpen && (
+            <div className="ml-4 flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
+               <div className="relative">
+                 <div className="flex h-7 w-7 items-center justify-center rounded bg-molten text-[11px] font-black text-black shadow-alloy-molten-glow border border-white/20">
+                   Λ
+                 </div>
+                 <div className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-[var(--color-alloy-surface)] bg-emerald-500 animate-pulse" />
+               </div>
+               <div className="flex flex-col">
+                 <span className="font-display text-sm font-black tracking-[0.25em] text-white leading-tight">ALLOY</span>
+                 <span className="text-[8px] font-bold text-white/30 tracking-widest uppercase">AI Engine</span>
+               </div>
+            </div>
+          )}
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-x-hidden overflow-y-auto px-2 py-4">
+        <nav className="flex-1 space-y-2 alloy-scroll overflow-x-hidden overflow-y-auto px-3 py-6">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -119,16 +131,20 @@ export function AppLayout() {
                 key={item.path}
                 to={item.path}
                 className={clsx(
-                  "group flex items-center rounded-md border px-2 py-2 transition-colors",
+                  "group relative flex items-center rounded-lg py-2.5 transition-all duration-200",
+                  sidebarOpen ? "px-3" : "justify-center",
                   isActive
-                    ? "border-[var(--color-alloy-accent)]/20 bg-[var(--color-alloy-accent)]/10 text-[var(--color-alloy-accent)]"
-                    : "border-transparent text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-border)] hover:text-white",
+                    ? "bg-[var(--color-alloy-accent-dim)] text-[var(--color-alloy-accent)] shadow-[inset_0_0_12px_rgba(0,240,255,0.05)] border border-[var(--color-alloy-accent)]/20"
+                    : "text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface-hover)] hover:text-white border border-transparent",
                 )}
                 title={!sidebarOpen ? item.label : undefined}
                 aria-label={item.label}
               >
-                <item.icon size={18} className="shrink-0" />
-                {sidebarOpen ? <span className="ml-3 whitespace-nowrap text-sm font-ui">{t(item.label)}</span> : null}
+                {isActive && (
+                  <div className="absolute left-[-4px] h-5 w-[4px] rounded-r bg-[var(--color-alloy-accent)] shadow-alloy-glow" />
+                )}
+                <item.icon size={18} className={clsx("shrink-0 transition-transform group-hover:scale-110", isActive ? "text-[var(--color-alloy-accent)]" : "opacity-50 group-hover:opacity-100")} />
+                {sidebarOpen ? <span className="ml-4 truncate text-[11px] font-black uppercase tracking-widest">{t(item.label)}</span> : null}
               </Link>
             );
           })}
@@ -136,51 +152,54 @@ export function AppLayout() {
 
         <div className="shrink-0 border-t border-[var(--color-alloy-border)] p-4">
           {sidebarOpen ? (
-            <div className="flex flex-col">
-              <span className="truncate text-sm font-medium text-white" title={activeAccount || t("No account")}>
-                {activeAccount || t("No account")}
+            <div className="flex flex-col rounded-xl bg-black/40 p-3 border border-white/10 shadow-inner">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-alloy-molten-glow" />
+                <span className="text-[9px] font-black text-white/40 uppercase tracking-tighter">Status</span>
+              </div>
+              <span className="truncate text-[11px] font-mono text-white/90" title={activeAccount || t("No account")}>
+                {activeAccount || "Not Connected"}
               </span>
-              {stats?.accounts ? (
-                <span className="mt-1 text-xs tracking-wider text-[var(--color-alloy-success)]">
-                   {t("System Ready")}
-                </span>
-              ) : null}
             </div>
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-alloy-success)] bg-[var(--color-alloy-border)] text-xs font-bold uppercase text-white">
-              {activeAccount ? activeAccount[0] : "?"}
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-[var(--color-alloy-surface-hover)] text-xs font-black uppercase text-white shadow-lg transition-transform hover:scale-105 active:scale-95">
+              {activeAccount ? activeAccount[0] : "!"}
             </div>
           )}
         </div>
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col bg-[var(--color-alloy-bg)]">
-        <header className="flex h-[60px] items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/50 px-6 backdrop-blur-sm">
-          <h1 className="font-display text-lg tracking-wide text-white underline decoration-[var(--color-alloy-accent)]/30 decoration-2 underline-offset-8">
-            {location.pathname.includes("/pipeline/") && location.pathname.endsWith("/plan")
-              ? t("Plan Approval")
-              : t(navItems.find((n) => location.pathname.startsWith(n.path))?.label || "Workspace")}
-          </h1>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2 rounded-full border border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] px-3 py-1 text-xs text-[var(--color-alloy-text-sec)]">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-alloy-success)]" />
-              {t("SYSTEM ONLINE")}
-            </span>
+        <header className="flex h-[64px] items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/60 px-8 backdrop-blur-xl z-20">
+          <div className="flex flex-col">
+            <h1 className="font-display text-sm uppercase tracking-[0.2em] text-white/40">
+              Workspace &gt; <span className="text-[var(--color-alloy-accent)] text-shadow-glow">{t(navItems.find((n) => location.pathname.startsWith(n.path))?.label || "Console")}</span>
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3 rounded-full border border-white/5 bg-black/40 px-4 py-1.5 text-[10px] font-bold tracking-widest text-white/60">
+              <div className="h-2 w-2 animate-pulse-cyan rounded-full bg-[var(--color-alloy-accent)] shadow-alloy-glow" />
+              ENGINE ONLINE
+            </div>
+            
+            <div className="h-4 w-[1px] bg-white/10" />
+
             <button
               onClick={toggleLanguage}
-              className="rounded-full border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] p-2 text-[var(--color-alloy-text-sec)] transition-colors hover:text-white"
-              aria-label="Toggle language"
+              className="rounded-lg border border-white/5 bg-[var(--color-alloy-surface)] p-2 text-[var(--color-alloy-text-sec)] transition-all hover:bg-[var(--color-alloy-surface-hover)] hover:text-white"
             >
-              <div className="flex items-center gap-1">
-                <Globe size={16} />
-                <span className="text-[10px] font-bold uppercase">{i18n.language}</span>
+              <div className="flex items-center gap-1.5">
+                <Globe size={14} className="opacity-70" />
+                <span className="text-[10px] font-bold uppercase tracking-tight">{i18n.language}</span>
               </div>
             </button>
+            
             <button
               onClick={toggleTheme}
-              className="rounded-full border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] p-2 text-[var(--color-alloy-text-sec)] transition-colors hover:text-white"
+              className="rounded-lg border border-white/5 bg-[var(--color-alloy-surface)] p-2 text-[var(--color-alloy-text-sec)] transition-all hover:bg-[var(--color-alloy-surface-hover)] hover:text-white"
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
         </header>

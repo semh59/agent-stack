@@ -1,21 +1,5 @@
 /**
  * Alloy Settings shell — the outer chrome for the full settings console.
- *
- *   ┌────────────────────────────────────────────────────────────┐
- *   │  Settings                               [Save] [Discard]   │
- *   ├────────────┬───────────────────────────────────────────────┤
- *   │ Providers  │                                               │
- *   │ Routing    │        <active settings page>                 │
- *   │ Pipeline   │                                               │
- *   │ MCP        │                                               │
- *   │ Rules      │                                               │
- *   │ Obs.       │                                               │
- *   │ Data       │                                               │
- *   │ Appearance │                                               │
- *   └────────────┴───────────────────────────────────────────────┘
- *
- * Left rail = navigation. Right column = currently-selected page.
- * Save and discard operate on the shared draft patch in the alloy store.
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import clsx from "clsx";
@@ -36,7 +20,7 @@ import {
 
 import { useAlloyStore } from "../../../store/alloyStore";
 import { useToast } from "../../../components/sovereign/Toast";
-import { Button, Card } from "../../../components/sovereign/primitives";
+import { Card } from "../../../components/sovereign/primitives";
 import { useTranslation } from "react-i18next";
 
 import { ProvidersPage } from "./pages/ProvidersPage";
@@ -61,15 +45,15 @@ type PageId =
   | "accounts";
 
 const NAV: Array<{ id: PageId; label: string; icon: ReactNode; sub: string }> = [
-  { id: "providers", label: "Providers", icon: <Cloud size={16} />, sub: "Models & API keys" },
-  { id: "routing", label: "Routing", icon: <Network size={16} />, sub: "Which model for which role" },
-  { id: "pipeline", label: "Pipeline", icon: <Layers size={16} />, sub: "Optimization stack" },
-  { id: "mcp", label: "MCP", icon: <Server size={16} />, sub: "Connected servers & tools" },
-  { id: "rules", label: "Rules & Prompts", icon: <NotebookPen size={16} />, sub: "System prompt, modes, commands" },
-  { id: "observability", label: "Observability", icon: <Gauge size={16} />, sub: "Logs, metrics, traces" },
-  { id: "data", label: "Data", icon: <Database size={16} />, sub: "Storage paths" },
-  { id: "appearance", label: "Appearance", icon: <Palette size={16} />, sub: "Theme, language, density" },
-  { id: "accounts", label: "Accounts", icon: <Users size={16} />, sub: "Authorized credentials" },
+  { id: "providers", label: "Providers", icon: <Cloud size={16} />, sub: "Connect AI Models" },
+  { id: "routing", label: "Routing", icon: <Network size={16} />, sub: "Assign models to tasks" },
+  { id: "pipeline", label: "Pipeline", icon: <Layers size={16} />, sub: "Processing logic" },
+  { id: "mcp", label: "MCP", icon: <Server size={16} />, sub: "Tools & servers" },
+  { id: "rules", label: "Rules", icon: <NotebookPen size={16} />, sub: "System instructions" },
+  { id: "observability", label: "Analytics", icon: <Gauge size={16} />, sub: "Logs & usage" },
+  { id: "data", label: "Data", icon: <Database size={16} />, sub: "Storage" },
+  { id: "appearance", label: "Appearance", icon: <Palette size={16} />, sub: "Theme & display" },
+  { id: "accounts", label: "Accounts", icon: <Users size={16} />, sub: "Logins/Oauth" },
 ];
 
 export function AlloySettingsShell() {
@@ -126,76 +110,121 @@ export function AlloySettingsShell() {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/50 px-6 py-4 backdrop-blur-sm">
-        <div>
-          <h1 className="font-display text-lg tracking-wide text-white">{t("Alloy Settings")}</h1>
-          <p className="text-xs text-[var(--color-alloy-text-sec)]">
-            {t("Every knob the console exposes — live-validated, encrypted at rest.")}
+    <div className="flex h-full flex-col bg-[var(--color-alloy-bg)] overflow-hidden">
+      <header className="flex items-center justify-between border-b border-white/5 bg-white/[0.02] px-8 py-6 backdrop-blur-md relative overflow-hidden">
+        {/* Animated header background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-alloy-accent)]/5 via-transparent to-transparent opacity-20" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+             <div className="h-2 w-2 rounded-full bg-molten animate-pulse shadow-alloy-molten-glow" />
+             <h1 className="text-xs font-bold uppercase tracking-[0.3em] text-white">Application Settings</h1>
+          </div>
+          <p className="mt-1 text-[10px] text-white/30 font-medium tracking-tight">
+            Configure your AI coding experience.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" icon={<RotateCcw size={14} />} onClick={() => setShowResetConfirm(true)} disabled={settingsSaving}>
-            {t("Reset")}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={clearSettingsDraft} disabled={!isDirty || settingsSaving}>
-            {t("Discard")}
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<Save size={14} />}
-            onClick={onSave}
-            disabled={!isDirty}
-            loading={settingsSaving}
+        
+        <div className="flex items-center gap-4 relative z-10">
+          <button 
+            onClick={() => setShowResetConfirm(true)}
+            disabled={settingsSaving}
+            className="flex items-center gap-2 text-[10px] font-bold text-white/40 hover:text-red-400 transition-colors disabled:opacity-20 uppercase tracking-widest"
           >
-            {isDirty ? `${t("Save")} (${Object.keys(settingsDraftPatch).length})` : t("Saved")}
-          </Button>
+            <RotateCcw size={12} />
+            Reset to default
+          </button>
+          
+          <div className="h-4 w-[1px] bg-white/10" />
+          
+          <button 
+            onClick={clearSettingsDraft}
+            disabled={!isDirty || settingsSaving}
+            className="text-[10px] font-bold text-white/40 hover:text-white transition-colors disabled:opacity-20 uppercase tracking-widest"
+          >
+            Discard
+          </button>
+          
+          <button
+            onClick={onSave}
+            disabled={!isDirty || settingsSaving}
+            className={clsx(
+              "flex items-center gap-2 rounded-lg px-6 py-2 text-[10px] font-bold tracking-[0.2em] transition-all active:scale-95 shadow-lg",
+              isDirty 
+                ? "bg-molten text-black shadow-alloy-molten-glow" 
+                : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
+            )}
+          >
+            <Save size={14} />
+            {isDirty ? `Save Changes (${Object.keys(settingsDraftPatch).length})` : "Saved"}
+          </button>
         </div>
       </header>
 
       {settingsError ? (
-        <div className="mx-6 mt-4 flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
-          <AlertCircle size={16} />
-          {settingsError}
+        <div className="mx-8 mt-6 flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/5 px-5 py-3 text-[11px] text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+          <AlertCircle size={14} className="text-red-500" />
+          <span className="font-mono tracking-tight uppercase">{settingsError}</span>
         </div>
       ) : null}
 
       <div className="flex min-h-0 flex-1">
-        <nav className="flex w-[240px] shrink-0 flex-col gap-1 border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]/40 p-3">
+        <nav className="flex w-[280px] shrink-0 flex-col gap-1 border-r border-white/5 bg-black/40 p-4 custom-scrollbar overflow-y-auto">
+          <div className="mb-4 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">System_Nodes</div>
+          
           {NAV.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setActive(item.id)}
               className={clsx(
-                "flex items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                "group relative flex items-start gap-4 rounded-xl border px-4 py-4 text-left transition-all duration-300",
                 active === item.id
-                  ? "border-[var(--color-alloy-accent)]/40 bg-[var(--color-alloy-accent)]/10 text-white"
-                  : "border-transparent text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-border)] hover:text-white",
+                  ? "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent)]/10 text-white shadow-[inset_0_0_20px_rgba(0,240,255,0.05)]"
+                  : "border-transparent text-white/40 hover:bg-white/[0.03] hover:text-white"
               )}
             >
-              <span className={clsx("mt-0.5 shrink-0", active === item.id ? "text-[var(--color-alloy-accent)]" : "")}>
+              {active === item.id && (
+                <div className="absolute left-0 top-4 bottom-4 w-[2px] bg-[var(--color-alloy-accent)] shadow-alloy-glow" />
+              )}
+              
+              <span className={clsx(
+                "mt-0.5 shrink-0 transition-transform group-hover:scale-110",
+                active === item.id ? "text-[var(--color-alloy-accent)]" : "text-white/20"
+              )}>
                 {item.icon}
               </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-medium">{t(item.label)}</span>
-                <span className="block text-[11px] text-[var(--color-alloy-text-sec)]">{t(item.sub)}</span>
-              </span>
+              
+              <div className="min-w-0">
+                <span className="block text-xs font-bold tracking-tight uppercase">{t(item.label)}</span>
+                <span className={clsx(
+                  "block text-[10px] leading-tight mt-1 transition-opacity",
+                  active === item.id ? "text-[var(--color-alloy-accent)]/60" : "text-white/10"
+                )}>
+                  {t(item.sub)}
+                </span>
+              </div>
             </button>
           ))}
         </nav>
 
-        <div className="min-w-0 flex-1 overflow-y-auto p-6">
-          {settingsLoading && !settings ? (
-            <Card className="text-sm text-[var(--color-alloy-text-sec)]">{t("Loading settings…")}</Card>
-          ) : !settings ? (
-            <Card tone="warning" className="text-sm text-amber-200">
-              {t("Settings unavailable. The gateway may be starting up.")}
-            </Card>
-          ) : (
-            <ActivePage id={active} />
-          )}
+        <div className="min-w-0 flex-1 overflow-y-auto p-10 custom-scrollbar bg-black/20">
+          <div className="max-w-4xl animate-in fade-in slide-in-from-right-4 duration-500">
+            {settingsLoading && !settings ? (
+              <div className="flex flex-col items-center justify-center h-[400px] text-white/20">
+                 <div className="h-10 w-10 rounded-full border-2 border-t-[var(--color-alloy-accent)] border-white/5 animate-spin mb-4" />
+                 <span className="text-[10px] font-bold uppercase tracking-widest">{t("Syncing_State...")}</span>
+              </div>
+            ) : !settings ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-8 text-center">
+                 <AlertCircle size={32} className="mx-auto mb-4 text-amber-500 opacity-50" />
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-amber-200">{t("Node_Offline")}</h3>
+                 <p className="mt-2 text-xs text-amber-200/40">{t("The configuration bridge did not respond. Check gateway status.")}</p>
+              </div>
+            ) : (
+              <ActivePage id={active} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -250,8 +279,8 @@ function ResetConfirmation({ onConfirm, onCancel }: { onConfirm: () => void; onC
             {t("This clears ALL saved API keys, routing rules, and provider configurations. This action cannot be undone.")}
           </p>
           <div className="flex gap-3 w-full pt-4">
-            <Button variant="ghost" className="flex-1" onClick={onCancel}>{t("Cancel")}</Button>
-            <Button variant="danger" className="flex-1" onClick={onConfirm}>{t("Reset Everything")}</Button>
+            <button className="flex-1 px-4 py-2 bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:bg-white/10 hover:text-white transition-all rounded-lg" onClick={onCancel}>{t("Cancel")}</button>
+            <button className="flex-1 px-4 py-2 bg-red-500/20 border border-red-500/20 text-[10px] font-bold uppercase tracking-widest text-red-100 hover:bg-red-500/40 hover:text-white transition-all rounded-lg" onClick={onConfirm}>{t("Reset Everything")}</button>
           </div>
         </div>
       </Card>

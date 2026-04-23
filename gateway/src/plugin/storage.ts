@@ -1,4 +1,4 @@
-﻿import { promises as fs } from "node:fs";
+import { promises as fs } from "node:fs";
 import {
   existsSync,
   readFileSync,
@@ -253,9 +253,9 @@ function getConfigDir(): string {
     return process.env.OPENCODE_CONFIG_DIR;
   }
 
-  // 2. Use ~/.config/opencode on all platforms (including Windows)
+  // 2. Use ~/.config/Alloy on all platforms (including Windows)
   const xdgConfig = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
-  return join(xdgConfig, "opencode");
+  return join(xdgConfig, "Alloy");
 }
 
 /**

@@ -13,7 +13,21 @@ import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { AuthGuard } from './components/AuthGuard';
 import { ToastProvider } from './components/sovereign/Toast';
 
+import { useEffect } from 'react';
+import { useAppStore } from './store/appStore';
+import { readGatewayToken } from './store/helpers';
+
 function App() {
+  const setGatewayToken = useAppStore(state => state.setGatewayToken);
+
+  useEffect(() => {
+    // Force sync the gateway token on mount to handle race conditions with script injection
+    const token = readGatewayToken();
+    if (token) {
+      setGatewayToken(token);
+    }
+  }, [setGatewayToken]);
+
   return (
     <GlobalErrorBoundary>
       <ToastProvider>

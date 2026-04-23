@@ -33,6 +33,7 @@ import { ForensicPrivacyLedger } from './privacy/ForensicPrivacyLedger';
 import type { TokenUsage } from './pipeline/pipeline-types';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
+import type { RARVState, RARVMetrics } from './rarv-engine';
 
 export interface PipelineState {
   userTask: string;
@@ -44,6 +45,9 @@ export interface PipelineState {
   dbSchema?: string;
   apiContracts?: string;
   backtrackHistory?: unknown[];
+
+  rarvState?: Record<number, RARVState>;
+  rarvMetrics?: RARVMetrics;
 
   agentMetrics?: Record<string, unknown>;
   verificationResults?: Record<string, unknown>;

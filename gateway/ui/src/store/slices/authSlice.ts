@@ -2,11 +2,11 @@ import type { StateCreator } from "zustand";
 import type { AppState, GoogleAccount, AccountQuota, VSCodeAPI } from "../types";
 import { 
   gatewayFetch, 
-  parseGatewayError, 
-  mapOAuthActionableError, 
   persistGatewayToken, 
   normalizeAccounts, 
-  normalizeOAuthUrl 
+  normalizeOAuthUrl,
+  readGatewayToken,
+  GATEWAY_BASE_URL
 } from "../helpers";
 
 // VS Code API declaration
@@ -34,7 +34,7 @@ export const createAuthSlice: StateCreator<
 > = (set, get) => ({
   accounts: [],
   activeAccount: null,
-  gatewayToken: null,
+  gatewayToken: readGatewayToken(),
   accountQuotas: [],
 
   setGatewayToken: (token: string | null) => {
@@ -115,25 +115,22 @@ export const createAuthSlice: StateCreator<
     }
   },
 
-  addAccount: async () => {
+  addAccount: async (provider = "google") => {
     if (typeof vscode !== "undefined" && vscode) {
-      vscode.postMessage({ type: "addAccount" });
+      vscode.postMessage({ type: "addAccount", payload: { provider } });
       return;
     }
 
     try {
       const token = get().gatewayToken;
       if (!token) throw new Error("Gateway auth token missing");
-      const response = await gatewayFetch("/api/auth/login", { method: "GET" }, token);
-      if (!response.ok) {
-        const parsed = await parseGatewayError(response);
-        throw new Error(mapOAuthActionableError(parsed));
-      }
-      const body = (await response.json()) as { data?: { url?: string } };
-      const oauthUrl = body.data?.url;
-      if (!oauthUrl) throw new Error("OAuth URL not returned");
-      const normalizedOAuthUrl = normalizeOAuthUrl(oauthUrl);
-      window.open(normalizedOAuthUrl, "_blank", "noopener,noreferrer");
+
+      // Use the robust authenticated redirect bridge
+      const bridgeUrl = normalizeOAuthUrl(
+        `${GATEWAY_BASE_URL}/api/auth/login?provider=${provider}&redirect=true&token=${encodeURIComponent(token)}`
+      );
+      
+      window.open(bridgeUrl, "_blank", "noopener,noreferrer");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       set({ lastError: `Hesap ekleme hatasi: ${message}` });

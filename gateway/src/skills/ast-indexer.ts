@@ -1,4 +1,11 @@
-﻿import ts from 'typescript';
+import ts from 'typescript';
+
+interface SymbolInfo {
+  name: string;
+  type: string;
+  line: number;
+  snippet: string;
+}
 
 /**
  * AST Indexer: Proje kodlarÄ±nÄ± yapÄ±sal (AST) olarak analiz eder.
@@ -61,7 +68,10 @@ export class ASTIndexer {
    */
   public searchSymbol(query: string) {
     const allSymbols = this.indexProject();
-    return allSymbols.filter(s => s.name?.toLowerCase().includes(query.toLowerCase()));
+    return allSymbols.filter(s => {
+      const name = (s as unknown as SymbolInfo).name;
+      return typeof name === 'string' && name.toLowerCase().includes(query.toLowerCase());
+    });
   }
 }
 

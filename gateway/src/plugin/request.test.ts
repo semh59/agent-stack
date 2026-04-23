@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   prepareAlloyRequest,
   getPluginSessionId,
@@ -231,7 +231,7 @@ describe("request.ts", () => {
   describe("ensureThoughtSignature", () => {
     it("adds sentinel signature when no cached signature exists", () => {
       const part = { thought: true, text: "thinking..." };
-      const result = ensureThoughtSignature(part, "no-cache-session");
+      const result = ensureThoughtSignature(part, "no-cache-session") as any;
       // Now uses sentinel fallback to prevent API rejection
       expect(result.thoughtSignature).toBe("skip_thought_signature_validator");
     });
@@ -239,13 +239,13 @@ describe("request.ts", () => {
     it("preserves existing thoughtSignature", () => {
       const existingSignature = "a".repeat(MIN_SIGNATURE_LENGTH + 10);
       const part = { thought: true, text: "thinking...", thoughtSignature: existingSignature };
-      const result = ensureThoughtSignature(part, "session-key");
+      const result = ensureThoughtSignature(part, "session-key") as any;
       expect(result.thoughtSignature).toBe(existingSignature);
     });
 
     it("does not modify non-thinking parts", () => {
       const part = { text: "regular text" };
-      const result = ensureThoughtSignature(part, "session-key");
+      const result = ensureThoughtSignature(part, "session-key") as any;
       expect(result.thoughtSignature).toBeUndefined();
     });
 

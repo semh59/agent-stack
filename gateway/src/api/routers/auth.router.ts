@@ -4,38 +4,13 @@ import { type GatewayAuthManager } from "../../gateway/gateway-auth-manager";
 import { apiResponse, apiError } from "../../gateway/rest-response";
 import { DEFAULT_OAUTH_CALLBACK_PORT, checkOAuthCallbackPortAvailability } from "../../gateway/oauth-port";
 import AsyncLock from "async-lock";
+import type { AuthServer } from "../../gateway/auth-server";
 
 const authLock = new AsyncLock();
 
 export interface AuthRouteDependencies {
   tokenStore: TokenStore;
   authManager: GatewayAuthManager;
-}
-
-/**
- * Defensive normalization for OAuth consent URLs before exposing them to clients.
- * This guards against malformed links from stale builds or intermediate rewrites.
- */
-function normalizeOAuthConsentUrl(rawUrl: string): string {
-  try {
-    const parsed = new URL(rawUrl);
-    const host = parsed.hostname.toLowerCase();
-    const isGoogleOAuthHost = host === "accounts.google.com" || host.endsWith(".accounts.google.com");
-    if (!isGoogleOAuthHost) return rawUrl;
-
-    if (!parsed.searchParams.get("response_type")) {
-      parsed.searchParams.set("response_type", "code");
-    }
-    if (!parsed.searchParams.get("access_type")) {
-      parsed.searchParams.set("access_type", "offline");
-    }
-    if (!parsed.searchParams.get("prompt")) {
-      parsed.searchParams.set("prompt", "consent");
-    }
-    return parsed.toString();
-  } catch {
-    return rawUrl;
-  }
 }
 
 export function registerAuthRoutes(
@@ -45,87 +20,87 @@ export function registerAuthRoutes(
   const { tokenStore, authManager } = dependencies;
   
   // State variables for Auth Server
-  let activeAuthServer: import("../../gateway/auth-server").AuthServer | null = null;
+  let activeAuthServer: AuthServer | null = null;
 
-  app.get("/api/auth/login", async (_request, reply) => {
+  app.get("/api/auth/login", async (request, reply) => {
     return authLock.acquire("login", async () => {
       try {
-        const { authorizeGoogleGemini } = await import("../../google-gemini/oauth");
+        const { provider = "google", redirect, token: queryToken } = request.query as { provider?: string; redirect?: string; token?: string };
+        const { getProviderAdapterByName } = await import("../../gateway/provider-registry");
         const { AuthServer } = await import("../../gateway/auth-server");
         const { loadAccounts, saveAccounts } = await import("../../plugin/storage");
 
+        // Auth check for window.open flows that can't use headers
+        const effectiveToken = queryToken || (request.headers.authorization?.split(" ")[1]);
+        if (!effectiveToken || !authManager.verifyToken(effectiveToken)) {
+          return reply.status(401).send(apiError("Unauthorized"));
+        }
+
+        const adapter = getProviderAdapterByName(provider);
         const callbackPort = DEFAULT_OAUTH_CALLBACK_PORT;
-        // Releasing a stale in-process auth listener avoids false EADDRINUSE on retry.
+
         if (activeAuthServer) {
           app.log.info("[GatewayAuthRouter] Stopping previous AuthServer instance...");
           activeAuthServer.stop();
           activeAuthServer = null;
         }
+
         const portCheck = await checkOAuthCallbackPortAvailability(callbackPort);
         if (!portCheck.available) {
           const message = `OAuth callback port ${callbackPort} is busy. Stop the other local auth process and retry.`;
-          app.log.error({ port: callbackPort, code: portCheck.code, detail: portCheck.message }, "[GatewayAuthRouter] OAuth callback port preflight failed");
-          return reply.status(409).send(
-            apiError(message, {
-              code: "OAUTH_CALLBACK_PORT_IN_USE",
-              meta: {
-                port: callbackPort,
-                detail: portCheck.message ?? null,
-              },
-            }),
-          );
+          return reply.status(409).send(apiError(message, { code: "OAUTH_CALLBACK_PORT_IN_USE" }));
         }
         
-        // Generate the Google OAuth Consent URL and state first
-        app.log.info("[GatewayAuthRouter] Generating OAuth URL...");
-        const authData = await authorizeGoogleGemini();
-        const oauthUrl = normalizeOAuthConsentUrl(authData.url);
-        if (oauthUrl !== authData.url) {
-          app.log.warn("[GatewayAuthRouter] OAuth URL normalized before returning to client.");
-        }
-        app.log.info({ oauthUrl }, "[GatewayAuthRouter] OAuth URL generated");
+        app.log.info({ provider }, "[GatewayAuthRouter] Generating OAuth URL...");
+        const authData = await adapter.getAuthUrl();
+        const oauthUrl = authData.url;
 
-        // Start AuthServer to listen for the callback, expecting the specific state
-        activeAuthServer = new AuthServer({ 
+        const currentServer = new AuthServer({ 
           port: callbackPort,
           tokenStore: tokenStore,
-          expectedState: authData.state
+          expectedState: authData.state,
+          adapter
         });
+        activeAuthServer = currentServer;
         
-        activeAuthServer.start().then(async (result) => {
-          activeAuthServer = null; // Clear when done
+        currentServer.start().then(async (result) => {
+          if (activeAuthServer === currentServer) {
+            activeAuthServer = null;
+          }
           if (!result.success || !result.token) return;
           
           try {
-            // Also sync to the VSCode Plugin extension storage 
             const existing = await loadAccounts();
             const storage = existing ?? { version: 3 as const, accounts: [], activeIndex: 0 };
             
-            // Check if duplicate
-            const duplicate = storage.accounts.find(a => a.email && a.email === result.token!.email);
-            if (duplicate) {
-               duplicate.refreshToken = result.token!.refreshToken;
-               duplicate.lastUsed = Date.now();
-               duplicate.enabled = true;
+            const duplicateIndex = storage.accounts.findIndex(a => a.email === result.token!.email);
+            const accountData = {
+              email: result.token.email,
+              refreshToken: result.token.refreshToken,
+              projectId: result.token.projectId,
+              addedAt: result.token.createdAt || Date.now(),
+              lastUsed: Date.now(),
+              enabled: true,
+            };
+
+            if (duplicateIndex >= 0) {
+              storage.accounts[duplicateIndex] = { ...storage.accounts[duplicateIndex], ...accountData };
             } else {
-               storage.accounts.push({
-                 email: result.token.email,
-                 refreshToken: result.token.refreshToken,
-                 projectId: (result.token as { projectId?: string }).projectId,
-                 addedAt: Date.now(),
-                 lastUsed: 0,
-                 enabled: true,
-               });
+              storage.accounts.push(accountData);
             }
             await saveAccounts(storage);
-            app.log.info("[GatewayAuthRouter] HesabÄ±n VSCode plugin storage'a senkronizasyonu tamamlandÄ±.");
-
+            app.log.info("[GatewayAuthRouter] Account synced to plugin storage.");
           } catch (storageErr) {
              app.log.error(storageErr, "[GatewayAuthRouter] Plugin storage sync error");
           }
         }).catch(err => {
-          app.log.error(err, "[GatewayAuthRouter] AuthServer background start error");
+          if (activeAuthServer === currentServer) activeAuthServer = null;
+          app.log.error(err, "[GatewayAuthRouter] AuthServer background error");
         });
+
+        if (redirect === "true") {
+          return reply.redirect(oauthUrl);
+        }
 
         return apiResponse({ url: oauthUrl });
       } catch (err) {

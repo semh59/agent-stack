@@ -251,7 +251,7 @@ export interface AppState {
   stopAutonomySession: (reason?: string) => Promise<void>;
   pauseAutonomySession: (reason?: string) => Promise<void>;
   resumeAutonomySession: (reason?: string) => Promise<void>;
-  addAccount: () => Promise<void>;
+  addAccount: (provider?: string) => Promise<void>;
   removeAccount: (email: string) => Promise<void>;
   fetchStats: () => Promise<void>;
   addLog: (log: LogEntry) => void;

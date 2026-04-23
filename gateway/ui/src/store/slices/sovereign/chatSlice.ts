@@ -43,6 +43,9 @@ export interface AlloyChatSlice {
   autonomyLevel: "manual" | "balanced" | "autonomous";
   pendingInterventions: PendingIntervention[];
   
+  sessionTokens: { input: number; output: number };
+  sessionCostUsd: number;
+  
   loadConversations: () => Promise<void>;
   selectConversation: (id: string) => Promise<void>;
   startNewChat: (title?: string) => Promise<void>;
@@ -50,6 +53,7 @@ export interface AlloyChatSlice {
   setAutonomyLevel: (level: "manual" | "balanced" | "autonomous") => void;
   approveIntervention: (id: string, updatedContent?: string) => Promise<void>;
   rejectIntervention: (id: string) => Promise<void>;
+  clearSessionCost: () => void;
   clearHistory: () => void;
 }
 
@@ -66,6 +70,8 @@ export const createAlloyChatSlice: StateCreator<
   error: null,
   autonomyLevel: "balanced",
   pendingInterventions: [],
+  sessionTokens: { input: 0, output: 0 },
+  sessionCostUsd: 0,
 
   loadConversations: async () => {
     try {
@@ -155,10 +161,10 @@ export const createAlloyChatSlice: StateCreator<
           m.id === assistantMsg.id ? { ...m, isStreaming: false } : m
         ),
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       set({
         isGenerating: false,
-        error: err.message || "Gönderim hatalı",
+        error: err instanceof Error ? err.message : "Gönderim hatalı",
       });
     }
   },
@@ -180,5 +186,7 @@ export const createAlloyChatSlice: StateCreator<
     }));
   },
 
-  clearHistory: () => set({ messages: [], activeConversationId: null, pendingInterventions: [] }),
+  clearSessionCost: () => set({ sessionTokens: { input: 0, output: 0 }, sessionCostUsd: 0 }),
+
+  clearHistory: () => set({ messages: [], activeConversationId: null, pendingInterventions: [], sessionTokens: { input: 0, output: 0 }, sessionCostUsd: 0 }),
 });
