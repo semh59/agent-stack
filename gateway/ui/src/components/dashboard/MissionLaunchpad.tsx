@@ -130,8 +130,8 @@ export function MissionLaunchpad() {
            <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">Start New Task</h1>
         </div>
         <div className="text-right">
-           <span className="block text-[10px] font-bold text-white/20 uppercase tracking-widest">SYSTEM_STATUS</span>
-           <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">READY_FOR_DEPLOYMENT</span>
+           <span className="block text-[10px] font-bold text-white/20 uppercase tracking-widest">System Status</span>
+           <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">System Ready</span>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export function MissionLaunchpad() {
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-3">
                     <Fingerprint size={20} className={activeAccount ? "text-emerald-400" : "text-red-400"} />
-                    <span className="text-xs font-bold uppercase tracking-widest text-white">Security_Clearance</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-white">Auth Status</span>
                  </div>
                  {activeAccount ? (
                    <ShieldCheck size={18} className="text-emerald-400" />
@@ -158,7 +158,7 @@ export function MissionLaunchpad() {
               <div className="flex-1 space-y-4">
                  {activeAccount ? (
                    <div className="p-4 bg-black/40 border border-emerald-500/10 rounded-xl">
-                      <span className="block text-[9px] font-bold text-white/20 uppercase mb-2">AUTHORIZED_PRINCIPAL</span>
+                      <span className="block text-[9px] font-bold text-white/20 uppercase mb-2">Identity</span>
                       <span className="block text-xs font-mono font-bold text-emerald-400 truncate">{activeAccount}</span>
                       <div className="mt-4 h-1 w-full bg-emerald-500/10 rounded-full overflow-hidden">
                          <div className="h-full w-full bg-emerald-500 animate-[shimmer_2s_infinite]" />
@@ -222,7 +222,7 @@ export function MissionLaunchpad() {
                     <div className="h-1 w-8 rounded-full bg-white/20" />
                     <div className="h-1 w-4 rounded-full bg-white/10" />
                  </div>
-                 <span className="text-[8px] font-bold text-white/10 uppercase tracking-[0.3em]">SECURE_LINK_ACTIVE</span>
+                 <span className="text-[8px] font-bold text-white/10 uppercase tracking-[0.3em]">Encrypted Connection</span>
               </div>
            </div>
         </div>
@@ -313,7 +313,7 @@ export function MissionLaunchpad() {
                     ) : (
                       <Activity size={16} className={prompt.trim() && activeAccount ? "animate-pulse" : ""} />
                     )}
-                    <span>Run AI Engine</span>
+                    <span>Start Task</span>
                   </button>
               </div>
            </form>
@@ -329,12 +329,12 @@ export function MissionLaunchpad() {
             <GearStatusCard session={null} />
          </div>
          <div className="hidden lg:flex p-4 rounded-2xl border border-white/5 bg-black/20 flex-col justify-center items-center text-center">
-            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">LATENCY_P50</span>
+            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">Latency</span>
             <span className="text-lg font-black text-white font-mono">--ms</span>
          </div>
          <div className="hidden lg:flex p-4 rounded-2xl border border-white/5 bg-black/20 flex-col justify-center items-center text-center">
-            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">NETWORK_THRPT</span>
-            <span className="text-lg font-black text-emerald-400 font-mono">GIGABIT</span>
+            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">Throughput</span>
+            <span className="text-lg font-black text-emerald-400 font-mono">Operational</span>
          </div>
       </div>
     </div>

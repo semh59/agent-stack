@@ -43,10 +43,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
       console.warn('[AuthGuard] Account invalid. Warning only because isDev.');
     } else {
       // Strict mode for Production
-      if (location.pathname === '/accounts') {
+      if (location.pathname === '/auth') {
         return <>{children}</>;
       }
-      return <Navigate to="/accounts" state={{ from: location }} replace />;
+      return <Navigate to="/auth" state={{ from: location }} replace />;
     }
   }
 

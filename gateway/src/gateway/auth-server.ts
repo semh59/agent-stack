@@ -205,7 +205,7 @@ export class AuthServer {
         reject(err);
       });
 
-      this.server.listen(this.port, "127.0.0.1", () => {
+      this.server.listen(this.port, "localhost", () => {
         this.serverState.listening = true;
         console.log(`[AuthServer] ${this.adapter.provider} callback listening: http://localhost:${this.port}/oauth-callback`);
         if (this.serverState.listeningResolve) {

@@ -20,7 +20,20 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
-const GATEWAY_PORT = process.env.GATEWAY_PORT || "3000";
+// Simple .env loader
+import { readFileSync, existsSync as fsExistsSync } from "node:fs";
+const envPath = path.join(root, "gateway", ".env");
+if (fsExistsSync(envPath)) {
+  const envContent = readFileSync(envPath, "utf8");
+  envContent.split("\n").forEach((line) => {
+    const [key, ...vals] = line.split("=");
+    if (key && vals.length > 0) {
+      process.env[key.trim()] = vals.join("=").trim();
+    }
+  });
+}
+
+const GATEWAY_PORT = process.env.GATEWAY_PORT || "51122";
 const BRIDGE_PORT = process.env.BRIDGE_PORT || "9100";
 const PY = process.env.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3");
 

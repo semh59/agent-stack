@@ -32,7 +32,7 @@ export function registerAuthRoutes(
 
         // Auth check for window.open flows that can't use headers
         const effectiveToken = queryToken || (request.headers.authorization?.split(" ")[1]);
-        if (!effectiveToken || !authManager.verifyToken(effectiveToken)) {
+        if (!effectiveToken || !authManager.isAuthorized(effectiveToken)) {
           return reply.status(401).send(apiError("Unauthorized"));
         }
 

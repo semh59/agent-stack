@@ -64,9 +64,9 @@ export function Composer() {
         ) : null}
 
         <div className="mb-3 flex items-center gap-2 overflow-x-auto alloy-scroll pb-1">
-          <ContextChip icon={<Sparkles size={10} />} label="AGENT_ORCHESTRATOR" active />
-          <ContextChip icon={<Database size={10} />} label="REPO_CONTEXT" />
-          <ContextChip icon={<Zap size={10} />} label="OPTIMIZE_PIPELINE" />
+          <ContextChip icon={<Sparkles size={10} />} label="Autonomous Mode" active />
+          <ContextChip icon={<Database size={10} />} label="Project Context" />
+          <ContextChip icon={<Zap size={10} />} label="Speed Boost" />
         </div>
 
         <div
@@ -77,12 +77,12 @@ export function Composer() {
               : "border-white/5 focus-within:border-[var(--color-alloy-accent)]/30 focus-within:ring-1 focus-within:ring-[var(--color-alloy-accent)]/10",
           )}
         >
-          <textarea
+            <textarea
             ref={textareaRef}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Ask Alloy anything — Forge will optimize context first..."
+            placeholder="Ask Alloy anything — I will check project context first..."
             disabled={isGenerating}
             rows={MIN_ROWS}
             className="block w-full resize-none bg-transparent px-4 pt-4 pb-3 font-body text-sm text-white placeholder:text-white/20 focus:outline-none"
@@ -104,18 +104,18 @@ export function Composer() {
                 "inline-flex h-9 items-center gap-2 rounded-lg px-6 text-[11px] font-bold tracking-widest transition-all disabled:cursor-not-allowed disabled:opacity-50",
                 isGenerating 
                   ? "bg-white/10 text-white/40" 
-                  : "bg-molten text-black shadow-alloy-molten-glow hover:scale-[1.02] active:scale-95",
+                  : "bg-white text-black hover:scale-[1.02] active:scale-95",
               )}
             >
               {isGenerating ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />
-                  FORGING...
+                  PROCESSING...
                 </>
               ) : (
                 <>
                   <Send size={14} />
-                  FORGE
+                  SEND
                 </>
               )}
             </button>

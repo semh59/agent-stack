@@ -91,9 +91,10 @@ export class ClaudeCodeProvider implements ProviderAdapter {
       };
     }
 
-    // API Key fallback â€” UI shows an input form
+    // API Key fallback — UI shows an input form
+    const origin = process.env.VITE_GATEWAY_URL || "http://localhost:5173";
     return {
-      url: `alloy://auth/claude-code?mode=api_key&state=${state}`,
+      url: `${origin}/#/auth/claude-key?mode=api_key&state=${state}`,
       state,
     };
   }
@@ -163,19 +164,23 @@ export class ClaudeCodeProvider implements ProviderAdapter {
     }
   }
 
-  // â”€â”€â”€ OAuth Flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— OAuth Flow —————————————————————————————————————————————————————————
 
   private async exchangeOAuthCode(code: string, _state: string): Promise<UnifiedToken> {
+    const bodyParams: Record<string, string> = {
+      grant_type: "authorization_code",
+      code,
+      client_id: CLAUDE_CLIENT_ID,
+      redirect_uri: CLAUDE_REDIRECT_URI,
+    };
+    if (CLAUDE_CLIENT_SECRET) {
+      bodyParams.client_secret = CLAUDE_CLIENT_SECRET;
+    }
+
     const response = await fetch(CLAUDE_OAUTH_TOKEN, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        client_id: CLAUDE_CLIENT_ID,
-        client_secret: CLAUDE_CLIENT_SECRET,
-        redirect_uri: CLAUDE_REDIRECT_URI,
-      }),
+      body: new URLSearchParams(bodyParams),
       signal: AbortSignal.timeout(15_000),
     });
 
@@ -206,17 +211,21 @@ export class ClaudeCodeProvider implements ProviderAdapter {
       availableModels: CLAUDE_CODE_MODELS,
     };
   }
-
+  
   private async refreshOAuthToken(token: UnifiedToken): Promise<UnifiedToken> {
+    const bodyParams: Record<string, string> = {
+      grant_type: "refresh_token",
+      refresh_token: token.refreshToken as string,
+      client_id: CLAUDE_CLIENT_ID,
+    };
+    if (CLAUDE_CLIENT_SECRET) {
+      bodyParams.client_secret = CLAUDE_CLIENT_SECRET;
+    }
+
     const response = await fetch(CLAUDE_OAUTH_TOKEN, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: token.refreshToken,
-        client_id: CLAUDE_CLIENT_ID,
-        client_secret: CLAUDE_CLIENT_SECRET,
-      }),
+      body: new URLSearchParams(bodyParams),
       signal: AbortSignal.timeout(15_000),
     });
 

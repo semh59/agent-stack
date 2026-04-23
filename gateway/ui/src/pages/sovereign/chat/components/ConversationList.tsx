@@ -22,8 +22,8 @@ export function ConversationList() {
     <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-black/20 backdrop-blur-3xl">
       <div className="flex items-center justify-between border-b border-white/5 px-4 py-4 bg-white/5">
         <div className="flex flex-col">
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--color-alloy-accent)]">MISSION_LOGS</span>
-          <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest">ARCHIVE_SYSTEM</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--color-alloy-accent)]">History</span>
+          <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Storage</span>
         </div>
         <button
           onClick={() => startNewChat()}
@@ -67,12 +67,12 @@ export function ConversationList() {
                     </div>
                     <div className="flex items-center justify-between mt-2 border-t border-white/5 pt-2">
                       <span className="font-mono text-[9px] text-white/20 tracking-tighter">
-                         TS_{new Date(convo.updatedAt).getTime().toString(16).slice(-6).toUpperCase()}
+                         ID_{new Date(convo.updatedAt).getTime().toString(16).slice(-6).toUpperCase()}
                       </span>
                       {isActive ? (
-                        <span className="text-[8px] font-bold text-[var(--color-alloy-accent)] animate-pulse">ACTIVE_SESSION</span>
+                        <span className="text-[8px] font-bold text-[var(--color-alloy-accent)] animate-pulse">Current</span>
                       ) : (
-                        <span className="text-[8px] font-bold text-white/10">ARCHIVED</span>
+                        <span className="text-[8px] font-bold text-white/10">Saved</span>
                       )}
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Fastify routes for the Alloy settings service.
  *
  *   GET    /api/settings                â€” redacted view (safe for UI)
@@ -103,8 +103,16 @@ export function registerSettingsRoutes(app: FastifyInstance): void {
   // â”€â”€ GET /api/settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   app.get("/api/settings", async (request, reply) => {
     getRequestId(request, reply);
-    const store = getSettingsStore();
-    return apiResponse(store.getSettingsRedacted());
+    console.log("[SettingsRoute] GET /api/settings hit");
+    try {
+      const store = getSettingsStore();
+      const settings = store.getSettingsRedacted();
+      console.log("[SettingsRoute] Settings retrieved successfully");
+      return apiResponse(settings);
+    } catch (err) {
+      console.error("[SettingsRoute] ERROR:", err);
+      throw err;
+    }
   });
 
   // â”€â”€ PUT /api/settings â€” full replacement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

@@ -56,23 +56,23 @@ export function DashboardView() {
             {/* Top Stat Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                <StatCard 
-                 label="SESSION_ID" 
+                 label="Session ID" 
                  value={sessionIdStr.slice(0, 8).toUpperCase()} 
                  icon={<Terminal size={14} />} 
                />
                <StatCard 
-                 label="AGENT_CYCLES" 
+                 label="Cycles" 
                  value={`${pipelineStatus?.completedCount || 0} / ${pipelineStatus?.totalAgents || "∞"}`} 
                  icon={<Activity size={14} />}
                />
                <StatCard 
-                 label="COMPUTE_EFFICIENCY" 
+                 label="Efficiency" 
                  value="0.94x" 
                  icon={<Zap size={14} />}
                  pulse
                />
                <StatCard 
-                 label="LATENCY_P95" 
+                 label="Latency" 
                  value="142ms" 
                  icon={<Gauge size={14} />}
                />
@@ -85,7 +85,7 @@ export function DashboardView() {
                   <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-3">
                       <div className="h-2 w-2 rounded-full bg-molten animate-pulse shadow-alloy-molten-glow" />
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">LIVE_EXECUTION_STREAM</h3>
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Live Execution</h3>
                     </div>
                   </div>
                   
@@ -105,7 +105,7 @@ export function DashboardView() {
                   <div className="flex-1 bg-black/40 border border-white/5 rounded-2xl p-6 overflow-hidden flex flex-col">
                     <div className="flex items-center gap-2 mb-6">
                       <Activity size={14} className="text-[var(--color-alloy-accent)]" />
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Decision_Matrix</h3>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Reasoning Output</h3>
                     </div>
                     <div className="flex-1 min-h-0">
                       <DecisionMatrix sessionId={sessionIdStr} />
@@ -122,7 +122,7 @@ export function DashboardView() {
                   className="group flex items-center gap-3 rounded-full border border-red-500/20 bg-red-500/10 px-8 py-3 text-[10px] font-bold tracking-widest text-red-500 transition-all hover:bg-red-500/20 hover:scale-[1.02] active:scale-95 shadow-lg"
                 >
                   <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                  ABORT_SESSION (ESC)
+                  Stop Task (ESC)
                 </button>
               </div>
             )}

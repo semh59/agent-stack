@@ -15,10 +15,19 @@ import type {
 
 export const GATEWAY_TOKEN_STORAGE_KEY = "gateway_auth_token";
 export const MAX_LOG_BUFFER = 2000;
-export const GATEWAY_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GATEWAY_URL ?? "http://127.0.0.1:51122";
-export const GATEWAY_WS_LOGS_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GATEWAY_WS_LOGS_URL ??
-  (GATEWAY_BASE_URL.replace("http://", "ws://").replace("https://", "wss://") + "/ws/logs");
-export const GATEWAY_WS_BASE_URL = GATEWAY_BASE_URL.replace("http://", "ws://").replace("https://", "wss://");
+export const GATEWAY_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GATEWAY_URL ?? "";
+
+const getWsUrl = (path = "") => {
+  if (GATEWAY_BASE_URL) {
+    return GATEWAY_BASE_URL.replace("http://", "ws://").replace("https://", "wss://") + path;
+  }
+  // In dev (relative paths), use current window host
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}${path}`;
+};
+
+export const GATEWAY_WS_LOGS_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GATEWAY_WS_LOGS_URL ?? getWsUrl("/ws/logs");
+export const GATEWAY_WS_BASE_URL = getWsUrl("");
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -45,8 +54,9 @@ export function toLogType(value: unknown, fallback: LogEntry["type"]): LogEntry[
 export function normalizeOAuthUrl(rawUrl: string): string {
   try {
     const url = new URL(rawUrl);
-    if (url.hostname === "localhost") {
-      url.hostname = "127.0.0.1";
+    // Standardize on localhost for local dev OAuth flows
+    if (url.hostname === "127.0.0.1") {
+      url.hostname = "localhost";
     }
     return url.toString();
   } catch {

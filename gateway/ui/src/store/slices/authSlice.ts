@@ -17,12 +17,13 @@ export interface AuthSlice {
   activeAccount: string | null;
   gatewayToken: string | null;
   accountQuotas: AccountQuota[];
+  isConnecting: boolean;
   
   setGatewayToken: (token: string | null) => void;
   fetchAccounts: () => Promise<void>;
   fetchQuota: () => Promise<void>;
   selectAccount: (email: string) => Promise<void>;
-  addAccount: () => Promise<void>;
+  addAccount: (provider?: "google" | "claude") => Promise<void>;
   removeAccount: (email: string) => Promise<void>;
 }
 
@@ -36,6 +37,7 @@ export const createAuthSlice: StateCreator<
   activeAccount: null,
   gatewayToken: readGatewayToken(),
   accountQuotas: [],
+  isConnecting: false,
 
   setGatewayToken: (token: string | null) => {
     persistGatewayToken(token);
@@ -115,25 +117,29 @@ export const createAuthSlice: StateCreator<
     }
   },
 
-  addAccount: async (provider = "google") => {
+  addAccount: async (provider: "google" | "claude" = "google") => {
     if (typeof vscode !== "undefined" && vscode) {
       vscode.postMessage({ type: "addAccount", payload: { provider } });
       return;
     }
 
+    set({ isConnecting: true, lastError: null });
     try {
       const token = get().gatewayToken;
       if (!token) throw new Error("Gateway auth token missing");
 
-      // Use the robust authenticated redirect bridge
+      // Ensure absolute URL for window.open to prevent relative path ambiguity
       const bridgeUrl = normalizeOAuthUrl(
-        `${GATEWAY_BASE_URL}/api/auth/login?provider=${provider}&redirect=true&token=${encodeURIComponent(token)}`
+        `${GATEWAY_BASE_URL || window.location.origin}/api/auth/login?provider=${provider}&redirect=true&token=${encodeURIComponent(token)}`
       );
       
-      window.open(bridgeUrl, "_blank", "noopener,noreferrer");
+      console.log('[Auth] Opening bridge:', bridgeUrl);
+      window.open(bridgeUrl, "_blank", "width=600,height=800,noopener,noreferrer");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       set({ lastError: `Hesap ekleme hatasi: ${message}` });
+    } finally {
+      set({ isConnecting: false });
     }
   },
 

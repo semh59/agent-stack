@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Alloy settings store â€” SQLite-backed persistence.
  *
  * Two tables:
@@ -322,15 +322,31 @@ export class SettingsStore {
       const envelope = secrets.get(p);
       if (plaintext) {
         if (envelope) {
-          setAtPath(out, p, decryptSecret(envelope, this.env));
+          try {
+            setAtPath(out, p, decryptSecret(envelope, this.env));
+          } catch (err) {
+            // Log but don't crash the whole settings object in production.
+            // If we're internal, we might want to know it failed.
+            console.error(`[SettingsStore] Failed to decrypt secret at ${p}:`, err);
+            setAtPath(out, p, undefined);
+          }
         }
       } else {
+        let isDecipherable = false;
+        if (envelope) {
+          try {
+            decryptSecret(envelope, this.env);
+            isDecipherable = true;
+          } catch {
+            isDecipherable = false;
+          }
+        }
         setAtPath(out, p, {
           set: Boolean(envelope),
           updated_at: envelope?.updated_at,
+          decryption_error: envelope && !isDecipherable ? true : undefined,
         });
       }
-
     }
     return out;
   }

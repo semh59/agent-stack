@@ -32,8 +32,8 @@ export function AccountsPage() {
              <Users size={20} />
           </div>
           <div>
-             <h2 className="text-sm font-bold uppercase tracking-widest text-white">Identity_Auth_Hub</h2>
-             <p className="text-[10px] text-white/40 mt-1 font-medium tracking-tight">Manage authorized credentials and session quotas for cloud-based engineering missions.</p>
+             <h2 className="text-sm font-bold uppercase tracking-widest text-white">Account Management</h2>
+             <p className="text-[10px] text-white/40 mt-1 font-medium tracking-tight">Manage authorized accounts and session quotas for your engineering tasks.</p>
           </div>
         </div>
         
@@ -43,21 +43,21 @@ export function AccountsPage() {
             className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:bg-white/10 transition-all"
           >
             <Plus size={14} />
-            Connect_Google
+            Connect Google
           </button>
           <button 
             onClick={() => addAccount('claude')}
             className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-orange-400 hover:bg-white/10 transition-all"
           >
             <Plus size={14} />
-            Connect_Claude
+            Connect Claude
           </button>
         </div>
       </div>
 
       <Section 
-        title="Authorized_Principals" 
-        description="Active cryptographic identities currently mounted to the system."
+        title="Connected Accounts" 
+        description="Active identities currently linked to the system."
         icon={<Fingerprint size={16} />}
       >
         <div className="grid gap-4">
@@ -133,7 +133,7 @@ export function AccountsPage() {
                 className="mt-6 px-6 py-2 bg-indigo-500/20 border border-indigo-500/20 rounded-lg text-[10px] font-bold text-indigo-100 uppercase tracking-widest hover:bg-indigo-500/40"
                 onClick={() => addAccount()}
               >
-                REQUEST_AUTHORIZATION
+                Add first account
               </button>
             </div>
           )}
@@ -143,26 +143,26 @@ export function AccountsPage() {
       <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
       <Section 
-        title="Session_Heartbeat" 
+        title="System Status" 
         icon={<ShieldAlert size={16} />}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1 bg-white/[0.02] border border-white/5 rounded-3xl">
-           <div className="p-6 bg-black/40 border border-white/5 rounded-2xl">
-              <Row label="AGENT_BRIDGE" hint="Real-time link status to the sovereign orchestrator.">
-                 <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">
-                    <ShieldCheck size={10} />
-                    Connected
-                 </div>
-              </Row>
-           </div>
-           <div className="p-6 bg-black/40 border border-white/5 rounded-2xl">
-              <Row label="DATA_INTEGRITY" hint="Validation of persistent state serialization.">
-                 <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">
-                    <ShieldCheck size={10} />
-                    Synched
-                 </div>
-              </Row>
-           </div>
+            <div className="p-6 bg-black/40 border border-white/5 rounded-2xl">
+               <Row label="Gateway Status" hint="Real-time link status to the gateway server.">
+                  <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">
+                     <ShieldCheck size={10} />
+                     Connected
+                  </div>
+               </Row>
+            </div>
+            <div className="p-6 bg-black/40 border border-white/5 rounded-2xl">
+               <Row label="Data Integrity" hint="Validation of persistent state synchronization.">
+                  <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">
+                     <ShieldCheck size={10} />
+                     Synced
+                  </div>
+               </Row>
+            </div>
         </div>
       </Section>
     </div>

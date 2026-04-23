@@ -33,7 +33,7 @@ function optionalEnv(name: string, fallback: string): string {
 }
 
 async function main(): Promise<void> {
-  const port = Number(optionalEnv("ALLOY_GATEWAY_PORT", "3000"));
+  const port = Number(optionalEnv("ALLOY_GATEWAY_PORT", "51122"));
   const host = optionalEnv("ALLOY_GATEWAY_HOST", "0.0.0.0");
   const authToken = requireEnv("ALLOY_GATEWAY_TOKEN");
 

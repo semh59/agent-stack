@@ -1,4 +1,4 @@
-﻿import { randomBytes, createHash } from "node:crypto";
+import { randomBytes, createHash } from "node:crypto";
 
 import {
   ALLOY_CLIENT_ID,
@@ -322,6 +322,17 @@ export async function exchangeGoogleGemini(
     const { verifier, projectId } = stateData;
 
     const startTime = Date.now();
+    const bodyParams: Record<string, string> = {
+      client_id: ALLOY_CLIENT_ID,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: ALLOY_REDIRECT_URI,
+      code_verifier: verifier,
+    };
+    if (ALLOY_CLIENT_SECRET) {
+      bodyParams.client_secret = ALLOY_CLIENT_SECRET;
+    }
+
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -331,14 +342,7 @@ export async function exchangeGoogleGemini(
         "User-Agent": GEMINI_CLI_HEADERS["User-Agent"],
         "X-Goog-Api-Client": GEMINI_CLI_HEADERS["X-Goog-Api-Client"],
       },
-      body: new URLSearchParams({
-        client_id: ALLOY_CLIENT_ID,
-        client_secret: ALLOY_CLIENT_SECRET,
-        code,
-        grant_type: "authorization_code",
-        redirect_uri: ALLOY_REDIRECT_URI,
-        code_verifier: verifier, // From server-side storage, not URL-encoded state
-      }),
+      body: new URLSearchParams(bodyParams),
     });
 
     if (!tokenResponse.ok) {

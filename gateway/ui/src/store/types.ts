@@ -180,6 +180,7 @@ export interface AppState {
   dataState: "idle" | "loading" | "ready" | "error";
   wsTransportState: "healthy" | "recovering" | "fatal";
   wsFatalError: { code: string; message: string; sessionId?: string } | null;
+  isConnecting: boolean;
   accounts: GoogleAccount[];
   models: ModelEntry[];
   skills: SkillEntry[];
@@ -251,7 +252,7 @@ export interface AppState {
   stopAutonomySession: (reason?: string) => Promise<void>;
   pauseAutonomySession: (reason?: string) => Promise<void>;
   resumeAutonomySession: (reason?: string) => Promise<void>;
-  addAccount: (provider?: string) => Promise<void>;
+  addAccount: (provider?: "google" | "claude") => Promise<void>;
   removeAccount: (email: string) => Promise<void>;
   fetchStats: () => Promise<void>;
   addLog: (log: LogEntry) => void;

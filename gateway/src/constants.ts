@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Constants used for Alloy AI OAuth flows and Cloud Code Assist API integration.
  */
 export const ALLOY_CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com";
@@ -23,7 +23,7 @@ export const ALLOY_SCOPES: readonly string[] = [
 /**
  * OAuth redirect URI used by the local CLI callback server.
  */
-export const ALLOY_REDIRECT_URI = "http://127.0.0.1:51121/oauth-callback";
+export const ALLOY_REDIRECT_URI = "http://localhost:51121/oauth-callback";
 
 /**
  * Root endpoints for the Alloy API (in fallback order).
