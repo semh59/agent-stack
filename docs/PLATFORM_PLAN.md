@@ -128,7 +128,7 @@ All optimization-layer knobs. These are what the bridge actually reads.
 
 ### 4.7 Data
 
-- Data directory path (`AI_STACK_DATA_DIR`).
+- Data directory path (`ALLOY_DATA_DIR`).
 - Export settings (JSON, secrets redacted or encrypted depending on choice).
 - Import settings.
 - Reset to defaults (destructive; confirmation dialog).

@@ -55,35 +55,40 @@
 alloy-core/
 ├── .gitignore
 ├── .mcp.json                        # MCP sunucu konfigürasyonu
-├── docker-compose.unified.yml       # Birleşik Docker Compose
+├── infra/docker/docker-compose.unified.yml  # Birleşik Docker Compose
 ├── package.json                     # Monorepo root package.json
 ├── package-lock.json
 ├── README.md                        # Proje tanıtım dosyası
 │
-├── gateway/                         # 🟦 TypeScript/Fastify AI Gateway
-├── bridge/                          # 🐍 Python/aiohttp Optimizasyon Köprüsü
-├── AGENT/                           # 🤖 Agent kaynakları
-│   └── src/                         #   Agent kaynak kodu
+├── core/
+│   ├── gateway/                     # 🟦 TypeScript/Fastify AI Gateway
+│   └── bridge/                      # 🐍 Python/aiohttp Optimizasyon Köprüsü
+├── interface/
+│   ├── console/                     # ⚛️ React + Vite Dashboard
+│   └── extension/                   # 🧩 VS Code Extension
 ├── docs/                            # 📚 Platform dokümantasyonu
-├── terraform/                       # ☁️ AWS IaC
-└── scripts/                         # 🔧 Geliştirme araçları
+├── infra/
+│   ├── terraform/                   # ☁️ AWS IaC
+│   └── docker/                      # 🐳 Docker Compose & Dockerfile'lar
+├── tools/                           # 🔧 Geliştirme araçları
+└── context/                         # 🧠 Agent bağlam dosyaları
 ```
 
 ---
 
-## 🟦 Gateway (`gateway/`) — TypeScript/Fastify
+## 🟦 Gateway (`core/gateway/`) — TypeScript/Fastify
 
 ### Genel Bakış
 Gateway, platformun ana giriş noktasıdır. 3 ana yetenek katmanı vardır:
 
-1. **OpenCode Plugin** — OAuth doğrulama ve model proxy
+1. **Alloy Plugin** — OAuth doğrulama ve model proxy
 2. **Fastify HTTP/WS Server** — REST API + WebSocket + statik UI serving
 3. **Orchestration Engine** — Otonom görev yönetimi ve skill motoru
 
 ### Dizin Yapısı
 
 ```
-gateway/
+core/gateway/
 ├── package.json                     # @alloy/gateway paket tanımı
 ├── tsconfig.json                    # TypeScript konfigürasyonu (ESNext, strict)
 ├── tsconfig.build.json              # Build-tipi TypeScript konfigürasyonu
@@ -95,7 +100,7 @@ gateway/
 │
 ├── src/                             # Kaynak kodu
 │   ├── main.ts                      # Uygulama başlatma
-│   ├── plugin.ts                    # OpenCode OAuth Plugin (AlloyCLIOAuthPlugin, GoogleOAuthPlugin)
+│   ├── plugin.ts                    # Alloy OAuth Plugin (AlloyCLIOAuthPlugin, GoogleOAuthPlugin)
 │   ├── constants.ts                 # Uygulama sabitleri
 │   ├── shims.d.ts                   # TypeScript tip shims
 │   │
@@ -104,7 +109,7 @@ gateway/
 │   │       ├── accounts.router.ts       # Hesap yönetimi endpoint'leri
 │   │       ├── auth.router.ts           # Kimlik doğrulama endpoint'leri
 │   │       ├── autonomy.router.ts       # Otonom oturum endpoint'leri
-│   │       ├── chat.router.ts           # Sohbet endpoint'leri
+│   │       ├── chat.router.ts           # Chat endpoint'leri
 │   │       ├── mission.router.ts        # Mission CRUD + state machine
 │   │       ├── pipeline.router.ts       # Optimizasyon pipeline proxy
 │   │       └── system.router.ts         # Sistem durumu endpoint'leri
@@ -149,72 +154,25 @@ gateway/
 │   │       └── autonomy-session-manager.ts # Alt seviye oturum yöneticisi
 │   │
 │   └── utils/                       # Yardımcı fonksiyonlar
-│
-├── ui/                              # React + Vite Dashboard
-│   └── src/
-│       ├── components/                 # React bileşenleri
-│       ├── pages/                      # Sayfa bileşenleri
-│       └── ...                         # Hooks, utils, styles
-│
-├── vscode-extension/                # VS Code Uzantısı
-│   └── ...
-│
-├── alloy-benchmark-api/             # Benchmark API araçları
-│   └── ...
-│
-├── tools/                           # Derlenmiş araç betikleri
-├── scripts/                         # Build ve yardımcı betikler
-├── script/                          # Ek betikler
-├── docs/                            # Gateway'a özgü dokümantasyon
-└── assets/                          # Statik varlıklar
 ```
-
-### Önemli Özellikler
-
-#### OpenCode Plugin Sistemi
-- **Google OAuth** ile kullanıcı doğrulama (Alloy AI / Gemini CLI kota limitleri)
-- **Çoklu hesap rotasyonu**: Rate-limit (429) durumunda hesaplar arası geçiş
-  - Stratejiler: `sticky`, `hybrid`, `round-robin`
-- **Çift kota sistemi**: Alloy AI kota (varsayılan) ↔ Gemini CLI kota (`cli_first` flag)
-- **Circuit breaker**: Her endpoint için bağımsız, otomatik geri kazanım
-- **Proaktif token refresh**: Sıra tabanlı arka plan yenileme
-- **Otomatik güncelleme denetleyicisi**
-
-#### Desteklenen Modeller
-| Sağlayıcı | Modeller |
-|---|---|
-| Claude | Opus, Sonnet 4.5, Sonnet 4.6 |
-| Gemini | 3 Pro, 3 Flash, 2.5 Pro, 2.5 Flash |
-| Thinking | Tüm thinking model varyantları |
-
-#### API Router'ları
-| Router | Endpoint'ler | Açıklama |
-|---|---|---|
-| `accounts` | `/api/accounts` | Sağlayıcı hesap yönetimi |
-| `auth` | `/api/auth` | OAuth akışları |
-| `autonomy` | `/api/autonomy` | Otonom oturum kontrolü |
-| `chat` | `/api/chat` | Sohbet mesajlaşma |
-| `mission` | `/api/missions` | Mission CRUD + state machine |
-| `pipeline` | `/api/optimize` | Bridge'e pipeline proxy |
-| `system` | `/api/system` | Sistem durumu sorgulama |
 
 ---
 
-## 🐍 Bridge (`bridge/`) — Python/aiohttp
+## 🐍 Bridge (`core/bridge/`) — Python/aiohttp
 
 ### Genel Bakış
 Bridge, prompt optimizasyon pipeline'ının kalbidir. 2 çalışma modu vardır:
 
 1. **Stdio MCP Sunucusu** — Claude Code ile stdio üzerinden iletişim
-2. **HTTP REST Köprüsü** — Gateway ile HTTP üzerinden iletişim (auth: `X-Bridge-Secret` header)
+2. **HTTP REST Köprüsü** — Gateway ile HTTP üzerinden iletişim (auth: `ALLOY_BRIDGE_SECRET` header)
 
 ### Dizin Yapısı
 
 ```
-bridge/
+core/bridge/
 ├── server.py                        # Stdio MCP sunucusu (9 araç kaydı)
 ├── bridge.py                        # HTTP REST köprüsü (aiohttp)
-├── config.py                        # Pydantic Settings (AI_STACK_ env prefix)
+├── config.py                        # Pydantic Settings (ALLOY_ env prefix)
 ├── dependencies.py                  # Bağımlılık sağlık denetleyicisi
 ├── metrics.py                       # Performans metrikleri
 ├── Dockerfile                       # Konteyner imajı
@@ -250,20 +208,8 @@ bridge/
 | 8 | `get_pipeline_status` | Pipeline sağlık durumu |
 | 9 | `generate_project_context` | Proje bağlamı oluşturma |
 
-### Optimizasyon Pipeline Bileşenleri
-
-| Bileşen | Modül | Açıklama |
-|---|---|---|
-| **Semantik Önbellek** | `cache/` | Lance + Chroma vektör DB ile anlam tabanlı önbellekleme |
-| **Token Sıkıştırma** | `compression/` | LLMLingua ile yapılandırılabilir oranlı sıkıştırma |
-| **Prompt Temizleme** | `cleaning/` | Girdi preprocessing ve normalizasyon |
-| **MAB/Thompson Sampling** | `pipeline/` | Çok-kollu bandit ile akıllı model seçimi |
-| **RAG** | `rag/` | Doküman indeksleme ve anlam araması |
-| **Model Cascade** | `pipeline/` | Akıllı model yönlendirme ve fallback |
-| **Veri Modelleri** | `models/` | Pydantic tabanlı tip güvenli modeller |
-
 ### Yapılandırma (`config.py`)
-- Tüm ayarlar `AI_STACK_` ortam değişkeni prefix'i ile
+- Tüm ayarlar `ALLOY_` ortam değişkeni prefix'i ile
 - Ollama URL/modelleri, OpenRouter API anahtarı
 - Önbellek eşikleri, MAB parametreleri, sıkıştırma oranları
 
@@ -284,10 +230,10 @@ bridge/
 
 ---
 
-## ☁️ Altyapı (`terraform/`)
+## ☁️ Altyapı (`infra/terraform/`)
 
 ```
-terraform/
+infra/terraform/
 ├── README.md                        # Terraform dokümantasyonu
 ├── docs/                            # Altyapı dokümantasyonu
 ├── modules/                         # Yeniden kullanılabilir Terraform modülleri
@@ -298,13 +244,13 @@ terraform/
 
 ---
 
-## 🔧 Geliştirme Araçları (`scripts/`)
+## 🔧 Geliştirme Araçları (`tools/`)
 
 | Dosya | Amaç |
 |---|---|
-| `scripts/dev-runner.js` | Geliştirme ortamı başlatıcı |
-| `scripts/smoke.sh` | Bash smoke test betiği |
-| `scripts/smoke_test.py` | Python smoke test |
+| `tools/dev-runner.js` | Geliştirme ortamı başlatıcı |
+| `tools/smoke.sh` | Bash smoke test betiği |
+| `tools/smoke_test.py` | Python smoke test |
 
 ---
 
@@ -312,9 +258,9 @@ terraform/
 
 | Bileşen | Framework | Konum | Kapsam |
 |---|---|---|---|
-| Gateway API | Vitest | `gateway/src/**/*.test.ts` | Router'lar, server logic |
-| Gateway UI | Vitest | `gateway/ui/src/**/*.test.tsx` | React bileşen testleri |
-| Bridge | Python unittest/pytest | `bridge/tests/` | Pipeline, cache, RAG |
+| Gateway API | Vitest | `core/gateway/src/**/*.test.ts` | Router'lar, server logic |
+| Gateway UI | Vitest | `interface/console/src/**/*.test.tsx` | React bileşen testleri |
+| Bridge | Python unittest/pytest | `core/bridge/tests/` | Pipeline, cache, RAG |
 | Mission Router | Vitest | `mission.router.test.ts`, `mission.router.illegal-transition.test.ts` | State machine geçişleri |
 | Auth Server | Vitest | `auth-server.test.ts` | OAuth akışları |
 | Autonomy Session | Vitest | `autonomy-session-manager.test.ts` | Oturum yönetimi |
@@ -341,7 +287,7 @@ terraform/
 
 | Sağlayıcı | Tip | Endpoint |
 |---|---|---|
-| Ollama | Yerel | `AI_STACK_OLLAMA_URL` |
+| Ollama | Yerel | `ALLOY_OLLAMA_URL` |
 | OpenRouter | API | API Key tabanlı |
 | Claude (Anthropic) | API | OAuth + API Key |
 | OpenAI | API | API Key tabanlı |
@@ -372,22 +318,23 @@ terraform/
 
 ### Docker ile (Birleşik)
 ```bash
-docker-compose -f docker-compose.unified.yml up
+docker compose -f infra/docker/docker-compose.unified.yml up
 ```
 
 ### Geliştirme Ortamı
 ```bash
 # Gateway
-cd gateway && npm install && npm run dev
+cd core/gateway && npm install && npm run dev
 
 # Bridge
-cd bridge && pip install -r requirements.txt && python server.py
+cd core/bridge && pip install -r requirements.txt && python bridge.py
 ```
 
 ### Test
 ```bash
 # Gateway testleri
-cd gateway && npm test
+cd core/gateway && npm test
 
 # Smoke test
-bash scripts/smoke.sh
+bash tools/smoke.sh
+```

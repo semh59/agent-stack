@@ -13,7 +13,7 @@ All responses are JSON unless noted. Every response carries `X-Request-ID`; if t
 All endpoints except `/health` and `/ready` require:
 
 ```
-X-Bridge-Secret: <AI_STACK_BRIDGE_SECRET>
+X-Bridge-Secret: <ALLOY_BRIDGE_SECRET>
 ```
 
 Comparison is constant-time. A missing or mismatched secret returns:

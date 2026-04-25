@@ -1,0 +1,128 @@
+# Alloy AI Platform — Bridge Stack
+#
+# Services:
+#   ollama           — local LLM server (qwen2.5-7b + mistral-7b + nomic-embed)
+#   caveman-service  — Flask prose compression API (port 5000)
+#   bridge           — Optimization Bridge + test runner
+#
+# Quick start:
+#   docker compose up --build -d
+#
+# Run tests inside the stack:
+#   docker compose run --rm bridge pytest tests/ -v
+#
+# Integration tests (requires Ollama):
+#   docker compose run --rm bridge pytest tests/ -v -m integration
+#
+# Stream logs:
+#   docker compose logs -f
+
+version: "3.9"
+
+# ---------------------------------------------------------------------------
+# Shared network
+# ---------------------------------------------------------------------------
+
+networks:
+  alloy-net:
+    driver: bridge
+
+# ---------------------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------------------
+
+volumes:
+  ollama-data:       # Ollama model weights — persisted across restarts
+  alloy-data:        # bridge runtime data (cache.db, mab_state.db, costs.db)
+  chromadb-data:     # ChromaDB semantic cache
+  lancedb-data:      # LanceDB RAG index
+
+# ---------------------------------------------------------------------------
+# Services
+# ---------------------------------------------------------------------------
+
+services:
+
+  # --------------------------------------------------------------------------
+  # Ollama — local LLM server
+  # --------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: alloy-ollama
+    restart: unless-stopped
+    networks:
+      - alloy-net
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+      - ./scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    environment:
+      OLLAMA_HOST: "0.0.0.0"
+      SKIP_MODEL_PULL: "${SKIP_MODEL_PULL:-0}"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
+
+  # --------------------------------------------------------------------------
+  # Caveman Service — Flask HTTP API for prose compression
+  # --------------------------------------------------------------------------
+  caveman-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.caveman
+    container_name: alloy-caveman
+    restart: unless-stopped
+    networks:
+      - alloy-net
+    ports:
+      - "5000:5000"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      ALLOY_OLLAMA_URL: "http://ollama:11434"
+      ALLOY_INTER_SERVICE_SECRET: "${ALLOY_INTER_SERVICE_SECRET:-}"
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "5000"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5000/health"]
+      interval: 20s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  # --------------------------------------------------------------------------
+  # Alloy Bridge — Optimization Bridge + pytest runner
+  # --------------------------------------------------------------------------
+  bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alloy-bridge
+    networks:
+      - alloy-net
+    depends_on:
+      ollama:
+        condition: service_healthy
+      caveman-service:
+        condition: service_healthy
+    volumes:
+      - alloy-data:/data
+      - chromadb-data:/data/chromadb
+      - lancedb-data:/data/lancedb
+      - ./:/app:ro
+    environment:
+      APP_ENV: "${APP_ENV:-development}"
+      ALLOY_DATA_DIR: "/data"
+      ALLOY_OLLAMA_URL: "http://ollama:11434"
+      ALLOY_OPENROUTER_API_KEY: "${ALLOY_OPENROUTER_API_KEY:-}"
+      ALLOY_BRIDGE_SECRET: "${ALLOY_BRIDGE_SECRET:-}"
+      PYTHONPATH: "/app"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    command: ["python", "-m", "pytest", "tests/", "-v", "--tb=short"]

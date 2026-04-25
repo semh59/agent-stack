@@ -1,0 +1,116 @@
+{
+  "id": "aut_20260425174449_219670",
+  "objective": "Reject before execute",
+  "account": "review@test.dev",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "stopped",
+  "reviewAfterPlan": true,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "rejected",
+  "reviewUpdatedAt": "2026-04-25T17:44:49.412Z",
+  "createdAt": "2026-04-25T17:44:49.293Z",
+  "updatedAt": "2026-04-25T17:44:49.412Z",
+  "cycleCount": 1,
+  "maxCycles": 3,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-only",
+      "type": "analysis",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:44:49.293Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 3,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 10000,
+      "maxRPD": 100,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 6,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-25T17:44:49.307Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-25T17:44:49.299Z",
+      "taskId": "analysis-only"
+    },
+    {
+      "cycle": 1,
+      "state": "paused",
+      "note": "Awaiting plan approval",
+      "timestamp": "2026-04-25T17:44:49.307Z",
+      "taskId": "analysis-only"
+    },
+    {
+      "cycle": 1,
+      "state": "stopped",
+      "note": "Plan rejected",
+      "timestamp": "2026-04-25T17:44:49.412Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [],
+  "artifacts": {
+    "plan": "# Plan: analysis\n## Current Model\ngemini-3-pro-high\n\n## Objective\nReject before execute\n\n## Gear\nfast\n",
+    "changeSummary": "",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": "Plan rejected",
+  "lastProgressAt": "2026-04-25T17:44:49.412Z"
+}

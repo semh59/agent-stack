@@ -1,0 +1,58 @@
+[
+  {
+    "operationId": "aut_20260425174442_74f48b:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "started",
+    "summary": "Executing analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-04-25T17:44:43.008Z"
+  },
+  {
+    "operationId": "aut_20260425174442_74f48b:analysis:1",
+    "cycle": 1,
+    "taskType": "analysis",
+    "status": "completed",
+    "summary": "burst analysis",
+    "touchedFiles": [],
+    "timestamp": "2026-04-25T17:44:43.021Z"
+  },
+  {
+    "operationId": "aut_20260425174442_74f48b:implementation:2",
+    "cycle": 2,
+    "taskType": "implementation",
+    "status": "started",
+    "summary": "Executing implementation",
+    "touchedFiles": [],
+    "timestamp": "2026-04-25T17:44:43.054Z"
+  },
+  {
+    "operationId": "aut_20260425174442_74f48b:implementation:2",
+    "cycle": 2,
+    "taskType": "implementation",
+    "status": "completed",
+    "summary": "burst implementation",
+    "touchedFiles": [
+      "src/burst.ts"
+    ],
+    "timestamp": "2026-04-25T17:44:43.058Z"
+  },
+  {
+    "operationId": "aut_20260425174442_74f48b:verification:3",
+    "cycle": 3,
+    "taskType": "verification",
+    "status": "started",
+    "summary": "Executing verification",
+    "touchedFiles": [],
+    "timestamp": "2026-04-25T17:44:43.104Z"
+  },
+  {
+    "operationId": "aut_20260425174442_74f48b:verification:3",
+    "cycle": 3,
+    "taskType": "verification",
+    "status": "completed",
+    "summary": "burst verification",
+    "touchedFiles": [],
+    "timestamp": "2026-04-25T17:44:43.112Z"
+  }
+]

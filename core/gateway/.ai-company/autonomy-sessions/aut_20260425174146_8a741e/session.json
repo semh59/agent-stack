@@ -1,0 +1,196 @@
+{
+  "id": "aut_20260425174146_8a741e",
+  "objective": "Budget hard stop test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-25T17:41:46.907Z",
+  "updatedAt": "2026-04-25T17:41:46.926Z",
+  "cycleCount": 1,
+  "maxCycles": 5,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-9863024a",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:46.926Z"
+    },
+    {
+      "id": "implementation-613b2841",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:46.907Z"
+    },
+    {
+      "id": "refactor-c8f2b262",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:46.907Z"
+    },
+    {
+      "id": "test-fix-a8dfb8e6",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:46.907Z"
+    },
+    {
+      "id": "verification-8eae1c31",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:46.907Z"
+    },
+    {
+      "id": "finalize-2f38aa48",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:46.907Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 1000000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000,
+      "maxRPD": 20,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 19,
+      "inputTokensUsed": 1200,
+      "outputTokensUsed": 0,
+      "currentTPM": 1200,
+      "requestsUsed": 1,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": true,
+    "exceedReason": "BUDGET_EXCEEDED: tpm 1200/1000"
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-25T17:41:46.913Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-25T17:41:46.909Z",
+      "taskId": "analysis-9863024a"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-25T17:41:46.913Z",
+      "taskId": "analysis-9863024a"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-25T17:41:46.923Z",
+      "taskId": "analysis-9863024a"
+    },
+    {
+      "cycle": 1,
+      "state": "failed",
+      "note": "BUDGET_EXCEEDED: tpm 1200/1000",
+      "timestamp": "2026-04-25T17:41:46.926Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260425174146_8a741e:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:41:46.916Z"
+    },
+    {
+      "operationId": "aut_20260425174146_8a741e:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "hard stop step",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:41:46.919Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: analysis\n## Current Model\ngemini-3-pro-high\n\n## Objective\nBudget hard stop test\n\n## Gear\nfast\n",
+    "changeSummary": "hard stop step",
+    "nextActionReason": "Initialized",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [],
+      "commands": [],
+      "timestamp": "2026-04-25T17:41:46.926Z"
+    },
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": "BUDGET_EXCEEDED: tpm 1200/1000",
+  "stopReason": null,
+  "lastProgressAt": "2026-04-25T17:41:46.926Z"
+}

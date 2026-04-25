@@ -1,0 +1,337 @@
+{
+  "id": "aut_20260425175638_a75fea",
+  "objective": "Bypass test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "done",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-25T17:56:38.003Z",
+  "updatedAt": "2026-04-25T17:56:38.331Z",
+  "cycleCount": 4,
+  "maxCycles": 5,
+  "maxDurationMs": 5000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-79897795",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:38.036Z"
+    },
+    {
+      "id": "implementation-4b610abb",
+      "type": "implementation",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:38.071Z"
+    },
+    {
+      "id": "refactor-8d694f1a",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:38.003Z"
+    },
+    {
+      "id": "test-fix-e8392646",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:38.003Z"
+    },
+    {
+      "id": "verification-8fbebe62",
+      "type": "verification",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:38.104Z"
+    },
+    {
+      "id": "finalize-4c30e7f2",
+      "type": "finalize",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:38.123Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 5000,
+      "maxInputTokens": 1000,
+      "maxOutputTokens": 1000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 4,
+      "durationMsUsed": 120,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-25T17:56:38.006Z"
+    },
+    {
+      "selectedModel": "gemini-3-flash",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-25T17:56:38.049Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-flash",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-25T17:56:38.074Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": false,
+      "timestamp": "2026-04-25T17:56:38.110Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-25T17:56:38.004Z",
+      "taskId": "analysis-79897795"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-25T17:56:38.006Z",
+      "taskId": "analysis-79897795"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-25T17:56:38.024Z",
+      "taskId": "analysis-79897795"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-25T17:56:38.036Z",
+      "taskId": "implementation-4b610abb"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-25T17:56:38.049Z",
+      "taskId": "implementation-4b610abb"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "note": "Bypassing quality gates for implementation (No files changed)",
+      "timestamp": "2026-04-25T17:56:38.068Z",
+      "taskId": "implementation-4b610abb"
+    },
+    {
+      "cycle": 3,
+      "state": "plan",
+      "note": "Planning verification task",
+      "timestamp": "2026-04-25T17:56:38.071Z",
+      "taskId": "verification-8fbebe62"
+    },
+    {
+      "cycle": 3,
+      "state": "execute",
+      "note": "Executing verification",
+      "timestamp": "2026-04-25T17:56:38.074Z",
+      "taskId": "verification-8fbebe62"
+    },
+    {
+      "cycle": 3,
+      "state": "verify",
+      "note": "Bypassing quality gates for verification (No files changed)",
+      "timestamp": "2026-04-25T17:56:38.095Z",
+      "taskId": "verification-8fbebe62"
+    },
+    {
+      "cycle": 4,
+      "state": "plan",
+      "note": "Planning finalize task",
+      "timestamp": "2026-04-25T17:56:38.104Z",
+      "taskId": "finalize-4c30e7f2"
+    },
+    {
+      "cycle": 4,
+      "state": "execute",
+      "note": "Executing finalize",
+      "timestamp": "2026-04-25T17:56:38.110Z",
+      "taskId": "finalize-4c30e7f2"
+    },
+    {
+      "cycle": 4,
+      "state": "verify",
+      "note": "Bypassing quality gates for finalize (No files changed)",
+      "timestamp": "2026-04-25T17:56:38.120Z",
+      "taskId": "finalize-4c30e7f2"
+    },
+    {
+      "cycle": 4,
+      "state": "done",
+      "note": "Autonomy completed",
+      "timestamp": "2026-04-25T17:56:38.331Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260425175638_a75fea:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.010Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "Bypass test summary",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.017Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.055Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "Bypass test summary",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.061Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "started",
+      "summary": "Executing verification",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.087Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "completed",
+      "summary": "Bypass test summary",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.091Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:finalize:4",
+      "cycle": 4,
+      "taskType": "finalize",
+      "status": "started",
+      "summary": "Executing finalize",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.114Z"
+    },
+    {
+      "operationId": "aut_20260425175638_a75fea:finalize:4",
+      "cycle": 4,
+      "taskType": "finalize",
+      "status": "completed",
+      "summary": "Bypass test summary",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:38.117Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: finalize\n## Current Model\ngemini-3-pro-high\n\n## Objective\nBypass test\n\n## Gear\nfast\n",
+    "changeSummary": "Bypass test summary",
+    "nextActionReason": "Task finalize completed",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [],
+      "commands": [],
+      "timestamp": "2026-04-25T17:56:38.123Z"
+    },
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-04-25T17:56:38.331Z"
+}

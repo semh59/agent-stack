@@ -4,22 +4,23 @@
   "version": "1.0.0",
   "description": "Alloy AI Platform — Unified VSIX + MCP Monorepo",
   "workspaces": [
-    "gateway",
-    "gateway/vscode-extension"
+    "core/gateway",
+    "interface/console",
+    "interface/extension"
   ],
   "scripts": {
     "test": "npm run test:ts && npm run test:py",
-    "test:ts": "npm run test --workspace=gateway",
-    "test:py": "cd bridge && python -m pytest tests/ --ignore=tests/integration -v",
+    "test:ts": "npm run test --workspace=core/gateway",
+    "test:py": "cd core/bridge && python -m pytest tests/ --ignore=tests/integration -v",
     "test:all": "npm run test:ts && npm run test:py && npm run test:integration",
-    "test:integration": "cd bridge && python -m pytest tests/integration -v",
-    "build": "npm run build --workspace=gateway",
-    "build:vsix": "cd gateway/vscode-extension && npm run build",
-    "typecheck": "npm run typecheck --workspace=gateway",
-    "dev": "node scripts/dev-runner.js",
-    "bridge": "cd bridge && python bridge.py --port 9100",
+    "test:integration": "cd core/bridge && python -m pytest tests/integration -v",
+    "build": "npm run build --workspace=core/gateway",
+    "build:extension": "cd interface/extension && npm run build",
+    "typecheck": "npm run typecheck --workspace=core/gateway",
+    "dev": "node tools/dev-runner.js",
+    "bridge": "cd core/bridge && python bridge.py --port 9100",
     "bridge:health": "curl -sf http://127.0.0.1:9100/health",
-    "gateway:start": "npm run gateway:start --workspace=gateway",
+    "gateway:start": "npm run gateway:start --workspace=core/gateway",
     "clean": "npm run clean --workspaces --if-present"
   },
   "engines": {

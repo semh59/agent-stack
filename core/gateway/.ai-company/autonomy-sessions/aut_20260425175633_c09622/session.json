@@ -1,0 +1,296 @@
+{
+  "id": "aut_20260425175633_c09622",
+  "objective": "Rapid-fire TPM mission",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-25T17:56:33.075Z",
+  "updatedAt": "2026-04-25T17:56:33.141Z",
+  "cycleCount": 3,
+  "maxCycles": 6,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-df4fd69d",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:33.098Z"
+    },
+    {
+      "id": "implementation-cca08b5a",
+      "type": "implementation",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:33.125Z"
+    },
+    {
+      "id": "refactor-90572f77",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:33.076Z"
+    },
+    {
+      "id": "test-fix-93a3b6e8",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:33.076Z"
+    },
+    {
+      "id": "verification-328593bf",
+      "type": "verification",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:33.141Z"
+    },
+    {
+      "id": "finalize-317d1a24",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:33.076Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 6,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 1000000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000,
+      "maxRPD": 20,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 3,
+      "durationMsUsed": 66,
+      "inputTokensUsed": 1200,
+      "outputTokensUsed": 0,
+      "currentTPM": 1200,
+      "requestsUsed": 3,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": true,
+    "exceedReason": "BUDGET_EXCEEDED: tpm 1200/1000"
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [
+    "src/burst.ts"
+  ],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-25T17:56:33.083Z"
+    },
+    {
+      "selectedModel": "gemini-3-flash",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-25T17:56:33.101Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-flash",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-04-25T17:56:33.130Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-25T17:56:33.077Z",
+      "taskId": "analysis-df4fd69d"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-25T17:56:33.083Z",
+      "taskId": "analysis-df4fd69d"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-25T17:56:33.092Z",
+      "taskId": "analysis-df4fd69d"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-25T17:56:33.098Z",
+      "taskId": "implementation-cca08b5a"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-25T17:56:33.101Z",
+      "taskId": "implementation-cca08b5a"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-04-25T17:56:33.121Z",
+      "taskId": "implementation-cca08b5a"
+    },
+    {
+      "cycle": 3,
+      "state": "plan",
+      "note": "Planning verification task",
+      "timestamp": "2026-04-25T17:56:33.125Z",
+      "taskId": "verification-328593bf"
+    },
+    {
+      "cycle": 3,
+      "state": "execute",
+      "note": "Executing verification",
+      "timestamp": "2026-04-25T17:56:33.130Z",
+      "taskId": "verification-328593bf"
+    },
+    {
+      "cycle": 3,
+      "state": "verify",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-04-25T17:56:33.139Z",
+      "taskId": "verification-328593bf"
+    },
+    {
+      "cycle": 3,
+      "state": "failed",
+      "note": "BUDGET_EXCEEDED: tpm 1200/1000",
+      "timestamp": "2026-04-25T17:56:33.141Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260425175633_c09622:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:33.086Z"
+    },
+    {
+      "operationId": "aut_20260425175633_c09622:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "burst analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:33.090Z"
+    },
+    {
+      "operationId": "aut_20260425175633_c09622:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:33.106Z"
+    },
+    {
+      "operationId": "aut_20260425175633_c09622:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "burst implementation",
+      "touchedFiles": [
+        "src/burst.ts"
+      ],
+      "timestamp": "2026-04-25T17:56:33.110Z"
+    },
+    {
+      "operationId": "aut_20260425175633_c09622:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "started",
+      "summary": "Executing verification",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:33.132Z"
+    },
+    {
+      "operationId": "aut_20260425175633_c09622:verification:3",
+      "cycle": 3,
+      "taskType": "verification",
+      "status": "completed",
+      "summary": "burst verification",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:56:33.136Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: verification\n## Current Model\ngemini-3-pro-high\n\n## Objective\nRapid-fire TPM mission\n\n## Gear\nfast\n",
+    "changeSummary": "burst verification",
+    "nextActionReason": "Task implementation completed",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [
+        "root"
+      ],
+      "commands": [],
+      "timestamp": "2026-04-25T17:56:33.141Z"
+    },
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": "BUDGET_EXCEEDED: tpm 1200/1000",
+  "stopReason": null,
+  "lastProgressAt": "2026-04-25T17:56:33.141Z"
+}

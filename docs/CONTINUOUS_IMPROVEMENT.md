@@ -27,7 +27,7 @@ cd AGENT && npx npm-check-updates -r
 
 ### 3. Document the `APP_ENV`/`NODE_ENV` contract
 
-The bridge now refuses to boot in `APP_ENV in {staging, production}` without `AI_STACK_BRIDGE_SECRET`. This is correct behaviour but is easy to trip on a laptop. `docs/OPERATIONS.md` and `env/.env.*` cover it now; a one-line startup log message naming the gate would make it unmissable:
+The bridge now refuses to boot in `APP_ENV in {staging, production}` without `ALLOY_BRIDGE_SECRET`. This is correct behaviour but is easy to trip on a laptop. `docs/OPERATIONS.md` and `env/.env.*` cover it now; a one-line startup log message naming the gate would make it unmissable:
 
 ```python
 logger.info("bridge_boot_gate", app_env=_APP_ENV, secret_present=bool(_BRIDGE_SECRET))

@@ -1,0 +1,196 @@
+{
+  "id": "aut_20260425174147_533168",
+  "objective": "Cycle limit test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-25T17:41:47.093Z",
+  "updatedAt": "2026-04-25T17:41:47.754Z",
+  "cycleCount": 1,
+  "maxCycles": 1,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-bfcfa2cf",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.754Z"
+    },
+    {
+      "id": "implementation-4b672819",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.093Z"
+    },
+    {
+      "id": "refactor-a4d8d5a7",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.093Z"
+    },
+    {
+      "id": "test-fix-55715e37",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.093Z"
+    },
+    {
+      "id": "verification-867e53c8",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.099Z"
+    },
+    {
+      "id": "finalize-05c88911",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.099Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 1,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 10
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 661,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": true,
+    "exceedReason": "BUDGET_EXCEEDED: cycles budget exhausted (1/1)"
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-25T17:41:47.231Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-25T17:41:47.102Z",
+      "taskId": "analysis-bfcfa2cf"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-04-25T17:41:47.231Z",
+      "taskId": "analysis-bfcfa2cf"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-04-25T17:41:47.681Z",
+      "taskId": "analysis-bfcfa2cf"
+    },
+    {
+      "cycle": 1,
+      "state": "failed",
+      "note": "BUDGET_EXCEEDED: cycles budget exhausted (1/1)",
+      "timestamp": "2026-04-25T17:41:47.754Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260425174147_533168:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:41:47.392Z"
+    },
+    {
+      "operationId": "aut_20260425174147_533168:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "nop",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:41:47.499Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: analysis\n## Current Model\ngemini-3-pro-high\n\n## Objective\nCycle limit test\n\n## Gear\nfast\n",
+    "changeSummary": "nop",
+    "nextActionReason": "Initialized",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [],
+      "commands": [],
+      "timestamp": "2026-04-25T17:41:47.754Z"
+    },
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": "BUDGET_EXCEEDED: cycles budget exhausted (1/1)",
+  "stopReason": null,
+  "lastProgressAt": "2026-04-25T17:41:47.754Z"
+}

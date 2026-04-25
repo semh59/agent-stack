@@ -1,0 +1,136 @@
+{
+  "id": "aut_20260425174147_1d0327",
+  "objective": "OOM hard failure path",
+  "account": "oom@test.dev",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-25T17:41:47.841Z",
+  "updatedAt": "2026-04-25T17:41:48.466Z",
+  "cycleCount": 1,
+  "maxCycles": 5,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "impl-1",
+      "type": "implementation",
+      "status": "failed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:41:47.962Z",
+      "lastError": "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 10,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-04-25T17:41:47.909Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-04-25T17:41:47.851Z",
+      "taskId": "impl-1"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-04-25T17:41:47.909Z",
+      "taskId": "impl-1"
+    },
+    {
+      "cycle": 1,
+      "state": "failed",
+      "note": "Task implementation failed with unrecoverable runtime error: FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+      "timestamp": "2026-04-25T17:41:48.466Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260425174147_1d0327:implementation:1",
+      "cycle": 1,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:41:47.962Z"
+    },
+    {
+      "operationId": "aut_20260425174147_1d0327:implementation:1",
+      "cycle": 1,
+      "taskType": "implementation",
+      "status": "failed",
+      "summary": "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+      "touchedFiles": [],
+      "timestamp": "2026-04-25T17:41:48.003Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: implementation\n## Current Model\ngemini-3-pro-high\n\n## Objective\nOOM hard failure path\n\n## Gear\nfast\n",
+    "changeSummary": "Task execution failed: FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": "Task implementation failed with unrecoverable runtime error: FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+  "stopReason": null,
+  "lastProgressAt": "2026-04-25T17:41:48.466Z"
+}

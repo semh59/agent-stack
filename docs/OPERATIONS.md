@@ -104,8 +104,8 @@ aws ecs update-service \
 Zero-downtime rotation:
 
 1. Write the new secret to Secrets Manager **as a second version**.
-2. Update the gateway task's `AI_STACK_BRIDGE_SECRET` secret ARN to the new version, deploy.
-3. Update the bridge's `AI_STACK_BRIDGE_SECRET` to the new version, deploy.
+2. Update the gateway task's `ALLOY_BRIDGE_SECRET` secret ARN to the new version, deploy.
+3. Update the bridge's `ALLOY_BRIDGE_SECRET` to the new version, deploy.
 4. Once all gateway tasks are running the new secret, delete the old version.
 
 (If you swap both at once, there's a brief window where one side has the old secret and the other has the new one — gateway will 401.)

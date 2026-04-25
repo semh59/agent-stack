@@ -1,0 +1,128 @@
+{
+  "id": "aut_20260425175626_03723d",
+  "objective": "test",
+  "account": "test@domain.com",
+  "anchorModel": "claude-3-5-sonnet-20241022",
+  "modelPolicy": "cost-optimized",
+  "gitMode": "isolate",
+  "startMode": "immediate",
+  "scope": "project",
+  "strictMode": true,
+  "state": "plan",
+  "reviewAfterPlan": false,
+  "currentModel": "claude-3-5-sonnet-20241022",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-04-25T17:56:26.758Z",
+  "updatedAt": "2026-04-25T17:56:26.800Z",
+  "cycleCount": 1,
+  "maxCycles": 12,
+  "maxDurationMs": 2700000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-a531d9e2",
+      "type": "analysis",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:26.761Z"
+    },
+    {
+      "id": "implementation-8095ae3f",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:26.761Z"
+    },
+    {
+      "id": "refactor-b98b7402",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:26.761Z"
+    },
+    {
+      "id": "test-fix-835b77b5",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:26.761Z"
+    },
+    {
+      "id": "verification-5abed0e0",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:26.761Z"
+    },
+    {
+      "id": "finalize-7c5144f8",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-04-25T17:56:26.761Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 12,
+      "maxDurationMs": 2700000,
+      "maxInputTokens": 2000000,
+      "maxOutputTokens": 400000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 35,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-04-25T17:56:26.800Z",
+      "taskId": "analysis-a531d9e2"
+    }
+  ],
+  "opLog": [],
+  "artifacts": {
+    "plan": "",
+    "changeSummary": "",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-04-25T17:56:26.800Z"
+}

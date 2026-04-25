@@ -26,7 +26,7 @@ client → [ALB:443] → gateway (ECS task, 2 tasks)
 
 ## Gateway (TypeScript)
 
-- Entry point: `AGENT/src/main.ts`
+- Entry point: `apps/gateway/src/main.ts`
 - Framework: Fastify 4
 - Runtime: `tsx` (we do not pre-compile; `tsconfig.json` uses `module: "Preserve"` + `allowImportingTsExtensions`)
 - Auth: Google Alloy AI OAuth, Claude OAuth, shared-secret bearer for the bridge
@@ -44,7 +44,7 @@ Shutdown is SIGTERM-aware: the server closes its connection pool, then `process.
 
 ## Optimization bridge (Python)
 
-- Entry point: `bridge/bridge.py`
+- Entry point: `apps/bridge/bridge.py`
 - Framework: aiohttp
 - Middleware: `correlation_and_error_middleware` — generates/propagates `X-Request-ID`, converts uncaught exceptions into structured JSON 500s
 
@@ -64,7 +64,7 @@ Authentication is a single header: `X-Bridge-Secret: <shared-secret>`. Compared 
 
 ### Pipeline orchestrator
 
-`bridge/pipeline/orchestrator.py → PipelineOrchestrator.optimize(...)`
+`apps/bridge/pipeline/orchestrator.py → PipelineOrchestrator.optimize(...)`
 
 Stages, in order:
 1. **Cache lookup** — L1 exact match → L2 semantic match.
@@ -80,13 +80,13 @@ Layer selection and reward updates are both `async` and are awaited in the orche
 
 | Store           | Kind         | Path                                       | Purpose |
 |-----------------|--------------|--------------------------------------------|---------|
-| Exact cache     | SQLite       | `${AI_STACK_DATA_DIR}/cache.db`            | Per-message fingerprint → optimized output |
-| Semantic cache  | ChromaDB     | `${AI_STACK_DATA_DIR}/chromadb/`           | Embedding → nearest neighbour |
-| MAB             | SQLite       | `${AI_STACK_DATA_DIR}/mab.db`              | α/β parameters per arm |
-| Cost log        | SQLite       | `${AI_STACK_DATA_DIR}/cost.db`             | Per-request accounting |
-| RAG docs        | LanceDB      | `${AI_STACK_DATA_DIR}/rag/`                | Indexed documentation corpus |
+| Exact cache     | SQLite       | `${ALLOY_DATA_DIR}/cache.db`            | Per-message fingerprint → optimized output |
+| Semantic cache  | ChromaDB     | `${ALLOY_DATA_DIR}/chromadb/`           | Embedding → nearest neighbour |
+| MAB             | SQLite       | `${ALLOY_DATA_DIR}/mab.db`              | α/β parameters per arm |
+| Cost log        | SQLite       | `${ALLOY_DATA_DIR}/cost.db`             | Per-request accounting |
+| RAG docs        | LanceDB      | `${ALLOY_DATA_DIR}/rag/`                | Indexed documentation corpus |
 
-All stores are keyed by `AI_STACK_DATA_DIR`. In containers that's `/data` (mounted as a volume). Nothing persists to the image.
+All stores are keyed by `ALLOY_DATA_DIR`. In containers that's `/data` (mounted as a volume). Nothing persists to the image.
 
 ## Observability
 
@@ -101,7 +101,7 @@ All stores are keyed by `AI_STACK_DATA_DIR`. In containers that's `/data` (mount
 |------------------------------------------|--------------|
 | Bridge crashes                           | Gateway returns 503 on `/api/optimize`; ALB de-registers the unhealthy bridge task; ECS restarts it. |
 | Bridge slow                              | Gateway returns 504 after request timeout. |
-| `AI_STACK_BRIDGE_SECRET` missing in prod | Bridge exits with code 78 (EX_CONFIG). ECS task fails; alert fires. |
+| `ALLOY_BRIDGE_SECRET` missing in prod | Bridge exits with code 78 (EX_CONFIG). ECS task fails; alert fires. |
 | Ollama unreachable                       | ModelCascade circuit-breaker opens; orchestrator falls back to OpenRouter. |
 | OpenRouter quota exhausted               | Circuit-breaker opens; `/status` exposes breaker state; requests return degraded results rather than 500s. |
 | Orchestrator uncaught exception          | Middleware returns structured 500 with `request_id`; client can correlate logs. |
