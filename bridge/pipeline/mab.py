@@ -5,16 +5,20 @@ Her katman (arm) için Beta dağılımı sürdürülür.
 select_layers() → Thompson sample'a göre sıralı katman listesi döner.
 reward()        → savings oranına göre alpha/beta güncellenir.
 Durum SQLite'a persist edilir — server restart sonrası korunur.
+
+NOT: __init__ bloklayan I/O içermez. Kullanım:
+    mab = ThompsonSamplingMAB(settings)
+    await mab.initialize()   # aiosqlite ile state yükle
 """
 from __future__ import annotations
 
 import asyncio
 import math
 import random
-import sqlite3
 from dataclasses import dataclass
 from typing import Any
 
+import aiosqlite  # pip install aiosqlite
 import structlog  # type: ignore
 
 from config import Settings
@@ -53,10 +57,7 @@ class MABArm:
         return random.betavariate(max(self.alpha, 0.01), max(self.beta, 0.01))
 
     def update(self, savings_fraction: float, threshold: float = 0.20) -> None:
-        """
-        savings_fraction: 0.0-1.0 (e.g. 0.42 = 42% savings)
-        Reward if savings >= threshold, penalise otherwise.
-        """
+        """Reward if savings >= threshold, penalise otherwise."""
         if savings_fraction >= threshold:
             self.alpha += 1
         else:
@@ -65,8 +66,12 @@ class MABArm:
 
 class ThompsonSamplingMAB:
     """
-    Manages a set of arms (optimization layers).
-    Persists state to SQLite so learning carries over across server restarts.
+    Manages a set of optimization-layer arms with Thompson Sampling.
+    Persists state to SQLite so learning carries over across restarts.
+
+    Usage:
+        mab = ThompsonSamplingMAB(settings)
+        await mab.initialize()   # non-blocking; call once before use
     """
 
     def __init__(self, settings: Settings) -> None:
@@ -76,31 +81,38 @@ class ThompsonSamplingMAB:
         self.arms: dict[str, MABArm] = {name: MABArm(name=name) for name in ARMS}
         self._db_path = str(settings.mab_db)
         self._lock = asyncio.Lock()
-        self._load_state()
+        # NOTE: no blocking I/O here — call initialize() to load persisted state
+
+    async def initialize(self) -> None:
+        """Load persisted arm state from SQLite. Non-blocking."""
+        try:
+            async with aiosqlite.connect(self._db_path) as db:
+                await db.execute(_SCHEMA)
+                await db.commit()
+                async with db.execute("SELECT name, alpha, beta FROM mab_state") as cur:
+                    async for row in cur:
+                        name_str, alpha_val, beta_val = str(row[0]), float(row[1]), float(row[2])
+                        if name_str in self.arms:
+                            self.arms[name_str].alpha = alpha_val
+                            self.arms[name_str].beta = beta_val
+        except Exception as exc:
+            logger.warning("mab.initialize failed, using priors", error=str(exc))
 
     async def select_layers(self, candidates: list[str]) -> list[str]:
         async with self._lock:
             if not candidates:
                 return []
-
             if random.random() < self.epsilon:
                 result = candidates.copy()
                 random.shuffle(result)
                 return result
-
-            # Thompson Sampling
-            arms_to_sample = [
-                self.arms.get(c, MABArm(name=c)) for c in candidates
-            ]
-            # Sort by sample value
+            arms_to_sample = [self.arms.get(c, MABArm(name=c)) for c in candidates]
             scored = sorted(
                 [(a.sample(), a.name) for a in arms_to_sample],
                 key=lambda x: x[0],
-                reverse=True
+                reverse=True,
             )
             return [name for _, name in scored]
-
-        return []
 
     async def reward(self, layer: str, savings_percent: float) -> None:
         async with self._lock:
@@ -109,12 +121,9 @@ class ThompsonSamplingMAB:
                 arm = MABArm(name=layer)
                 self.arms[layer] = arm
             arm.update(savings_percent / 100.0, threshold=self.reward_threshold)
-            
-            # Use type-safe delegation for background persistence
-            await asyncio.to_thread(lambda: self._save_state())
+            await self._save_state()
 
     def arm_stats(self) -> dict[str, dict[str, float]]:
-        # Explicit casting or ensuring key is str to satisfy Pyre
         stats: dict[str, dict[str, float]] = {}
         for name, arm in self.arms.items():
             stats[str(name)] = {
@@ -124,35 +133,15 @@ class ThompsonSamplingMAB:
             }
         return stats
 
-    # ------------------------------------------------------------------
-    # Persistence
-    # ------------------------------------------------------------------
-
-    def _load_state(self) -> None:
+    async def _save_state(self) -> None:
+        """Persist arm state. Must be called with self._lock held."""
         try:
-            conn = sqlite3.connect(self._db_path)
-            conn.execute(_SCHEMA)
-            conn.commit()
-            raw_data = conn.execute("SELECT name, alpha, beta FROM mab_state").fetchall()
-            for row in raw_data:
-                name_str, alpha_val, beta_val = str(row[0]), float(row[1]), float(row[2])
-                if name_str in self.arms:
-                    self.arms[name_str].alpha = alpha_val
-                    self.arms[name_str].beta = beta_val
-            conn.close()
-        except Exception:
-            pass  # fresh start with priors
-
-    def _save_state(self) -> None:
-        try:
-            conn = sqlite3.connect(self._db_path)
-            conn.execute(_SCHEMA)
-            for arm in self.arms.values():
-                conn.execute(
+            async with aiosqlite.connect(self._db_path) as db:
+                await db.execute(_SCHEMA)
+                await db.executemany(
                     "INSERT OR REPLACE INTO mab_state (name, alpha, beta) VALUES (?, ?, ?)",
-                    (arm.name, arm.alpha, arm.beta),
+                    [(arm.name, arm.alpha, arm.beta) for arm in self.arms.values()],
                 )
-            conn.commit()
-            conn.close()
-        except Exception:
-            pass
+                await db.commit()
+        except Exception as exc:
+            logger.warning("mab._save_state failed", error=str(exc))

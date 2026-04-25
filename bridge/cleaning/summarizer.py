@@ -16,12 +16,18 @@ PRESERVE edilen içerik (asla özetlenmeyen):
 """
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 
 import httpx
 
 from config import Settings
+
+logger = logging.getLogger(__name__)
+
+# Maximum input length in characters — prevents OOM / timeout on huge inputs.
+MAX_INPUT_CHARS = 50_000
 
 
 @dataclass
@@ -99,26 +105,40 @@ class ConversationSummarizer:
     # ------------------------------------------------------------------
 
     async def _ollama_summarize(self, msg: Message) -> Message:
+        content = msg.content
+        if len(content) > MAX_INPUT_CHARS:
+            logger.warning(
+                "summarizer_input_truncated",
+                original_len=len(content),
+                max_chars=MAX_INPUT_CHARS,
+            )
+            content = content[:MAX_INPUT_CHARS] + "\n[...truncated...]"
         prompt = (
             "Summarize this message in 1-2 sentences. "
             "MUST PRESERVE: error messages, file names (.py/.ts/.js), "
             "technical decisions, 'don't do X' rules, exact variable/function names. "
             "REMOVE: explanations, examples, verbose phrasing.\n\n"
-            f"{msg.content}"
+            f"{content}"
         )
         summary = await self._call_ollama(prompt, msg.content)
         return Message(id=msg.id, role=msg.role, content=f"[summary] {summary}")
 
     async def _meta_summarize(self, msg: Message) -> Message:
+        content = msg.content
+        if len(content) > MAX_INPUT_CHARS:
+            content = content[:MAX_INPUT_CHARS] + "\n[...truncated...]"
         prompt = (
             "Extract ONLY: file names mentioned, decisions made, errors that occurred. "
             "One line max. If nothing important, output 'no key info'.\n\n"
-            f"{msg.content}"
+            f"{content}"
         )
         meta = await self._call_ollama(prompt, msg.content)
         return Message(id=msg.id, role=msg.role, content=f"[meta] {meta}")
 
     async def _call_ollama(self, prompt: str, fallback_content: str) -> str:
+        # Safety net: truncate overly long prompts before sending to Ollama
+        if len(prompt) > MAX_INPUT_CHARS:
+            prompt = prompt[:MAX_INPUT_CHARS] + "\n[...truncated...]"
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 r = await client.post(

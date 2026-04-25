@@ -125,7 +125,7 @@ export function registerAutonomyRoutes(
       const body = request.body;
       const validationError = validateAutonomyCreateRequest(body);
       if (validationError) {
-        return reply.status(400).send(apiError(validationError));
+        return reply.status(400).send(apiError(validationError, { code: "BAD_REQUEST" }));
       }
 
       const normalizedRequest: CreateAutonomySessionRequest = {

@@ -41,7 +41,7 @@ export function registerAccountsRoutes(
     try {
       const accountManager = getAccountManager();
       if (!accountManager) {
-        return reply.status(503).send(apiError("Hesap yÃ¶neticisi henÃ¼z hazÄ±r deÄŸil"));
+        return reply.status(503).send(apiError("Account manager not ready", { code: "SERVICE_UNAVAILABLE" }));
       }
       
       const accounts = accountManager.getAccountsSnapshot();
@@ -56,7 +56,7 @@ export function registerAccountsRoutes(
       return apiResponse(quotaResults);
     } catch (err) {
       app.log.error(err, "[Gateway] Failed to fetch quota data");
-      return reply.status(500).send(apiError("Kota bilgileri alÄ±namadÄ±"));
+      return reply.status(500).send(apiError("Failed to fetch quota data", { code: "INTERNAL_ERROR" }));
     }
   });
 
@@ -70,12 +70,12 @@ export function registerAccountsRoutes(
     async (request, reply) => {
       const { email } = request.body ?? {};
       if (!email || typeof email !== "string" || !email.includes("@")) {
-        return reply.status(400).send(apiError("Invalid email format"));
+        return reply.status(400).send(apiError("Invalid email format", { code: "BAD_REQUEST" }));
       }
 
       const success = tokenStore.setActiveAccountByEmail(email);
       if (success) return apiResponse({ email: email });
-      return reply.status(404).send(apiError("Hesap bulunamadÄ±"));
+      return reply.status(404).send(apiError("Account not found", { code: "RESOURCE_NOT_FOUND" }));
     },
   );
 
@@ -83,7 +83,7 @@ export function registerAccountsRoutes(
     "/api/accounts/:email",
     async (request, reply) => {
       const emailToDel = request.params.email;
-      if (!emailToDel) return reply.status(400).send(apiError("GeÃ§ersiz email"));
+      if (!emailToDel) return reply.status(400).send(apiError("Invalid email", { code: "BAD_REQUEST" }));
       
       const decodedEmail = decodeURIComponent(emailToDel).trim().toLowerCase();
       app.log.info(`[Gateway] Attempting to delete account: "${decodedEmail}"`);
@@ -111,7 +111,7 @@ export function registerAccountsRoutes(
       if (tokenDeleted || poolDeleted) {
         return apiResponse({ deleted: true });
       } else {
-        return reply.status(404).send(apiError("Hesap bulunamadÄ±"));
+        return reply.status(404).send(apiError("Account not found", { code: "RESOURCE_NOT_FOUND" }));
       }
     }
   );

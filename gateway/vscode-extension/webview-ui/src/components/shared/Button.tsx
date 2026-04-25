@@ -1,91 +1,42 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Alloy Button — Premium button with variants & states
-   ═══════════════════════════════════════════════════════════════════ */
-
+/** Button primitive — inline styles, no Tailwind. */
 import { type ButtonHTMLAttributes, forwardRef } from "react";
-import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger" | "accent";
-  size?: "xs" | "sm" | "md" | "lg";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   loading?: boolean;
-  icon?: React.ReactNode;
-  iconRight?: React.ReactNode;
 }
 
+const BG: Record<string, string> = {
+  primary:   "var(--a-accent)",
+  secondary: "var(--a-bg2)",
+  ghost:     "transparent",
+  danger:    "var(--a-error)",
+};
+const COLOR: Record<string, string> = {
+  primary: "#000",
+  secondary: "var(--a-text)",
+  ghost:     "var(--a-text2)",
+  danger:    "#fff",
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = "secondary",
-      size = "md",
-      loading = false,
-      icon,
-      iconRight,
-      className,
-      disabled,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const isDisabled = disabled || loading;
-
-    return (
-      <button
-        ref={ref}
-        disabled={isDisabled}
-        className={cn(
-          "inline-flex items-center justify-center gap-1.5 font-medium transition-all duration-150 rounded-md",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--alloy-accent)]",
-          "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
-          // Variants
-          variant === "primary" && [
-            "bg-[var(--alloy-accent)] text-white",
-            "hover:bg-[var(--alloy-accent-hover)]",
-            "active:scale-[0.97]",
-            "shadow-[var(--alloy-shadow-sm)]",
-          ],
-          variant === "accent" && [
-            "bg-[var(--alloy-accent-muted)] text-[var(--alloy-accent)]",
-            "hover:bg-[var(--alloy-accent)] hover:text-white",
-            "border border-[var(--alloy-border-accent)]",
-          ],
-          variant === "secondary" && [
-            "bg-[var(--alloy-bg-tertiary)] text-[var(--alloy-text-primary)]",
-            "hover:bg-[var(--alloy-bg-hover)]",
-            "border border-[var(--alloy-border-default)]",
-          ],
-          variant === "ghost" && [
-            "bg-transparent text-[var(--alloy-text-secondary)]",
-            "hover:bg-[var(--alloy-bg-hover)] hover:text-[var(--alloy-text-primary)]",
-          ],
-          variant === "danger" && [
-            "bg-[var(--alloy-error)] text-white",
-            "hover:bg-[var(--alloy-error-dark)]",
-            "active:scale-[0.97]",
-          ],
-          // Sizes
-          size === "xs" && "h-6 px-2 text-[11px]",
-          size === "sm" && "h-7 px-2.5 text-xs",
-          size === "md" && "h-8 px-3 text-[13px]",
-          size === "lg" && "h-10 px-4 text-sm",
-          className
-        )}
-        {...props}
-      >
-        {loading ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        ) : icon ? (
-          <span className="shrink-0">{icon}</span>
-        ) : null}
-        {children && <span>{children}</span>}
-        {iconRight && !loading && (
-          <span className="shrink-0">{iconRight}</span>
-        )}
-      </button>
-    );
-  }
+  ({ variant = "primary", loading, children, disabled, style, ...rest }, ref) => (
+    <button
+      ref={ref}
+      disabled={disabled || loading}
+      style={{
+        display:"inline-flex", alignItems:"center", justifyContent:"center", gap:6,
+        padding:"6px 14px", borderRadius:6, fontSize:12, fontWeight:500, cursor: (disabled||loading) ? "not-allowed" : "pointer",
+        border:"none", background: BG[variant], color: COLOR[variant],
+        opacity: (disabled||loading) ? 0.5 : 1,
+        ...style,
+      }}
+      {...rest}
+    >
+      {loading && <span style={{ display:"inline-block", animation:"spin 1s linear infinite", fontSize:11 }}>⟳</span>}
+      {children}
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    </button>
+  )
 );
-
 Button.displayName = "Button";

@@ -130,6 +130,7 @@ function mapRuntimeStateToMissionState(state: string): MissionState {
     case "stopped":
       return "cancelled";
     default:
+      console.warn(`[mapRuntimeState] Unknown runtime state: "${state}" — defaulting to "received"`);
       return "received";
   }
 }

@@ -21,7 +21,7 @@ export interface ChatRouteDependencies {
 
 
 /**
- * Chat Router â€” Statless LLM Inference
+ * Chat Router — Stateless LLM Inference
  */
 export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRouteDependencies): void {
   const { tokenStore, getAccountManager, chatRepository } = dependencies;
@@ -29,7 +29,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
   // 1. List conversations
   app.get("/api/chat/conversations", async (request, reply) => {
      const activeAccount = tokenStore.getActiveToken();
-     if (!activeAccount) return reply.status(401).send(apiError("Unauthorized"));
+     if (!activeAccount) return reply.status(401).send(apiError("Unauthorized", { code: "UNAUTHORIZED" }));
      const list = await chatRepository.listConversations(activeAccount.email || "");
      return apiResponse(list);
   });
@@ -43,7 +43,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
   // 3. Create conversation
   app.post<{ Body: { title: string, mode?: string } }>("/api/chat/conversations", async (request, reply) => {
      const activeAccount = tokenStore.getActiveToken();
-     if (!activeAccount) return reply.status(401).send(apiError("Unauthorized"));
+     if (!activeAccount) return reply.status(401).send(apiError("Unauthorized", { code: "UNAUTHORIZED" }));
      
      const id = `conv_${Date.now()}`;
      await chatRepository.createConversation({
@@ -64,7 +64,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
       const { message, conversationId, model, stream } = request.body ?? {};
 
       if (!message || !conversationId) {
-        return reply.status(400).send(apiError("message and conversationId are required"));
+        return reply.status(400).send(apiError("message and conversationId are required", { code: "BAD_REQUEST" }));
       }
 
       const accountManager = getAccountManager();
@@ -72,7 +72,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
       const activeAccount = tokenStore.getActiveToken();
 
       if (!accessToken || !accountManager || !activeAccount) {
-        return reply.status(401).send(apiError("Active account or token session not found."));
+        return reply.status(401).send(apiError("Active account or token session not found.", { code: "UNAUTHORIZED" }));
       }
 
       const client = AlloyGatewayClient.fromToken(accessToken, activeAccount.email, accountManager);
@@ -103,7 +103,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
          });
 
          if (!res.ok) {
-           return reply.status(res.status).send(apiError(`LLM Stream Error: ${res.status}`));
+           return reply.status(res.status).send(apiError(`LLM Stream Error: ${res.status}`, { code: "SERVICE_UNAVAILABLE" }));
          }
 
          reply.raw.setHeader("Content-Type", "text/event-stream");
@@ -112,7 +112,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
 
          let fullResponse = "";
          const reader = res.body?.getReader();
-         if (!reader) return reply.status(500).send(apiError("No response body"));
+         if (!reader) return reply.status(500).send(apiError("No response body", { code: "INTERNAL_ERROR" }));
 
          const decoder = new TextDecoder();
          let buffer = "";
@@ -189,7 +189,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
 
         if (!res.ok) {
           const errBody = await res.text().catch(() => "Unknown error");
-          return reply.status(res.status).send(apiError(`LLM Error: ${errBody}`));
+          return reply.status(res.status).send(apiError(`LLM Error: ${errBody}`, { code: "SERVICE_UNAVAILABLE" }));
         }
 
         const data = await res.json() as {
@@ -218,7 +218,7 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
           }
         });
       } catch (err) {
-        return reply.status(500).send(apiError(err instanceof Error ? err.message : String(err)));
+        return reply.status(500).send(apiError(err instanceof Error ? err.message : String(err), { code: "INTERNAL_ERROR" }));
       }
     }
   );
@@ -228,10 +228,10 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
     "/api/chat/command",
     async (request, reply) => {
       const { command, sessionId } = request.body ?? {};
-      if (!command) return reply.status(400).send(apiError("command is required"));
+      if (!command) return reply.status(400).send(apiError("command is required", { code: "BAD_REQUEST" }));
 
       const activeAccount = tokenStore.getActiveToken();
-      if (!activeAccount) return reply.status(401).send(apiError("Unauthorized"));
+      if (!activeAccount) return reply.status(401).send(apiError("Unauthorized", { code: "UNAUTHORIZED" }));
 
       const sid = sessionId || `cmd_${Date.now()}`;
       

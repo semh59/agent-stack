@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as path from "path";
 import * as crypto from "crypto";
 import { SequentialPipeline } from "../../src/orchestration/sequential-pipeline";
 import { AlloyGatewayClient } from "../../src/orchestration/gateway-client";
@@ -38,6 +39,9 @@ interface WebviewMessage {
     | "resumeAutonomy"
     | "stopAutonomy"
     | "subscribeAutonomyEvents"
+    | "saveSettings"
+    | "clearHistory"
+    | "getWorkspaceFiles"
     | "ui_boot_started"
     | "ui_boot_failed"
     | "ui_boot_ready";
@@ -68,7 +72,11 @@ interface ExtensionMessage {
     | "modelSwitchEvent"
     | "gateEvent"
     | "budgetEvent"
-    | "queueEvent";
+    | "queueEvent"
+    | "token_update"
+    | "assistantText"
+    | "chatHistory"
+    | "workspaceFiles";
   agent?: string;
   order?: number;
   phase?: string;
@@ -85,6 +93,8 @@ interface ExtensionMessage {
   eventType?: string;
   timestamp?: string;
   sessionId?: string;
+  messages?: Array<{role:string;content:string;timestamp:string;isError?:boolean}>;
+  files?: string[];
 }
 
 interface PendingApproval {
@@ -97,7 +107,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-const DEFAULT_CSP_CONNECT_ORIGINS = ["http://127.0.0.1:51122", "ws://127.0.0.1:51122"];
 const DEFAULT_GATEWAY_HTTP_BASE = "http://127.0.0.1:51122";
 const DEFAULT_GATEWAY_WS_BASE = "ws://127.0.0.1:51122";
 
@@ -188,21 +197,79 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   private _autonomySessionId: string | null = null;
   private _autonomySocket: WebSocket | null = null;
   private _costTracker: UnifiedCostTracker;
-  private readonly _gatewayAuthToken: string | null;
+  private _gatewayAuthToken: string | null;
   private readonly _cspConnectOrigins: string[];
   private readonly _bootMessageGate = new WebviewBootGate<ExtensionMessage>(400);
   private _webviewBootReady = false;
   private _bootSnapshotSent = false;
+  private _chatHistory: Array<{role:string;content:string;timestamp:string;isError?:boolean}> = [];
+  private readonly _historyPath: string | undefined;
 
   constructor(private readonly _extensionUri: vscode.Uri, private readonly _globalStoragePath?: string) {
     this._costTracker = new UnifiedCostTracker(undefined, this._globalStoragePath);
     const config = vscode.workspace.getConfiguration("alloy");
-    // ALLOY_GATEWAY_TOKEN is now the primary, ALLOY_GATEWAY_TOKEN retained as deprecated fallback for users migrating from pre-rebrand.
-    this._gatewayAuthToken = process.env.ALLOY_GATEWAY_TOKEN
-      ?? process.env.ALLOY_GATEWAY_TOKEN
+    this._gatewayAuthToken =
+      process.env.ALLOY_GATEWAY_TOKEN
       ?? config.get<string>("gatewayAuthToken")
+      ?? ChatViewProvider._readTokenFromDotEnv(this._extensionUri.fsPath)
       ?? null;
     this._cspConnectOrigins = normalizeConnectOrigins(config.get<string[]>("gatewayConnectOrigins"));
+    if (this._globalStoragePath) {
+      this._historyPath = path.join(this._globalStoragePath, "chat-history.json");
+      try {
+        if (fs.existsSync(this._historyPath)) {
+          const raw = fs.readFileSync(this._historyPath, "utf8");
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            // Keep last 200 messages
+            this._chatHistory = parsed.slice(-200);
+          }
+        }
+      } catch { /* start fresh */ }
+    }
+  }
+
+  /**
+   * Reads ALLOY_GATEWAY_TOKEN from .env files next to the workspace root
+   * so users don't have to set a VS Code setting manually.
+   * Checks: workspaceRoot/.env  and  workspaceRoot/gateway/.env
+   */
+  private static _readTokenFromDotEnv(extensionPath?: string): string | undefined {
+    try {
+      const candidates: string[] = [];
+
+      // 1. Walk up from extension install dir — the most reliable anchor
+      let dir = extensionPath ?? __dirname;
+      for (let i = 0; i < 8; i++) {
+        candidates.push(path.join(dir, ".env"));
+        candidates.push(path.join(dir, "gateway", ".env"));
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+
+      // 2. From open workspace folders
+      for (const wf of vscode.workspace.workspaceFolders ?? []) {
+        const r = wf.uri.fsPath;
+        candidates.push(path.join(r, ".env"));
+        candidates.push(path.join(r, "gateway", ".env"));
+        candidates.push(path.join(r, "..", "gateway", ".env"));
+      }
+
+      for (const envPath of candidates) {
+        try {
+          if (!fs.existsSync(envPath)) continue;
+          const lines = fs.readFileSync(envPath, "utf8").split("\n");
+          for (const line of lines) {
+            if (!line.startsWith("ALLOY_GATEWAY_TOKEN=")) continue;
+            const raw = line.slice("ALLOY_GATEWAY_TOKEN=".length).trim();
+            const value = raw.replace(/^["']|["']$/g, "");
+            if (value) return value;
+          }
+        } catch { /* skip unreadable */ }
+      }
+    } catch (_e) { /* ignore */ }
+    return undefined;
   }
 
   public resolveWebviewView(
@@ -338,6 +405,28 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             if (sessionId) {
               void this._connectAutonomySocket(sessionId);
             }
+          }
+          break;
+        case "clearHistory":
+          this._chatHistory = [];
+          if (this._historyPath) {
+            try { fs.writeFileSync(this._historyPath, "[]", "utf8"); } catch { /* ignore */ }
+          }
+          break;
+        case "getWorkspaceFiles":
+          void this._sendWorkspaceFiles();
+          break;
+        case "saveSettings":
+          {
+            const p = isRecord(data.payload) ? data.payload : {};
+            const cfg = vscode.workspace.getConfiguration("alloy");
+            if (typeof p.anthropicKey === "string" && p.anthropicKey) {
+              await cfg.update("anthropicApiKey", p.anthropicKey, vscode.ConfigurationTarget.Global);
+            }
+            if (typeof p.gatewayUrl === "string" && p.gatewayUrl) {
+              await cfg.update("gatewayUrl", p.gatewayUrl, vscode.ConfigurationTarget.Global);
+            }
+            this._postMessage({ type: "system", value: "✓ Settings saved" });
           }
           break;
       }
@@ -478,7 +567,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
       this._postMessage({
         type: "system",
-        value: "Alloyty Bridge Active. Signals synchronized.",
+        value: "Alloy hazır.",
       });
       
       // Update local reference to accountManager for UI queries
@@ -493,29 +582,71 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  /** Extract @file mentions and prepend their content to the task. */
+  private _injectFileMentions(task: string): string {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!workspaceRoot) return task;
+    const mentions = [...task.matchAll(/@([\w./\\-]+)/g)];
+    if (mentions.length === 0) return task;
+
+    const snippets: string[] = [];
+    for (const m of mentions) {
+      const relPath = m[1];
+      const absPath = path.isAbsolute(relPath) ? relPath : path.join(workspaceRoot, relPath);
+      try {
+        if (!fs.existsSync(absPath)) continue;
+        const content = fs.readFileSync(absPath, "utf8");
+        const ext = path.extname(absPath).slice(1);
+        snippets.push(`// @${relPath}\n\`\`\`${ext}\n${content}\n\`\`\``);
+      } catch { /* skip unreadable files */ }
+    }
+
+    if (snippets.length === 0) return task;
+    return `${snippets.join("\n\n")}\n\n---\n\n${task}`;
+  }
+
   private async _handleUserMessage(task: string) {
     if (!this._pipeline) {
       this._postMessage({
         type: "error",
-        value: "Pipeline not initialized. Please open a workspace folder.",
+        value: "Pipeline başlatılmadı. Lütfen bir workspace klasörü açın.",
       });
       return;
     }
 
     this._postMessage({ type: "user", value: task });
+    const enrichedTask = this._injectFileMentions(task);
+
+    // Capture the last agent output to send as assistant response
+    let lastAgentOutput = "";
+    const outputCapture = this._pipeline.onAgentComplete((_agent: unknown, output: string) => {
+      if (output && output.trim()) lastAgentOutput = output;
+    });
 
     try {
-      // Start pipeline - listeners will pick up events automatically
-      await this._pipeline.start(task);
+      // Start pipeline — use enriched task (with @file content injected)
+      await this._pipeline.start(enrichedTask);
+      outputCapture.dispose();
+
+      // Send the final agent output as an assistant message in chat
+      if (lastAgentOutput) {
+        this._postMessage({ type: "assistantText", content: lastAgentOutput });
+      }
+
+      this._postMessage({ type: "system", value: "✓ Tamamlandı." });
+
+      // Push token usage to webview so TokenBudgetBar updates
+      const stats = this._costTracker.getStats();
       this._postMessage({
-        type: "system",
-        value: "Alloyty established. Mission success.",
+        type: "token_update",
+        payload: { prompt: 0, completion: 0, total: stats.used, budget: stats.budget },
       });
     } catch (err: unknown) {
+      outputCapture.dispose();
       const errorMessage = err instanceof Error ? err.message : String(err);
       this._postMessage({
         type: "error",
-        value: `Execution error: ${errorMessage}`,
+        value: `Hata: ${errorMessage}`,
       });
     }
   }
@@ -543,13 +674,60 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       type: "pipeline_status",
       status: this._pipeline ? { status: "active" } : { status: "standby" },
     });
-    this._postMessage({
-      type: "system",
-      value: "Mission Control UI is ready.",
-    });
+    // Restore chat history
+    if (this._chatHistory.length > 0) {
+      this._view?.webview.postMessage({ type: "chatHistory", messages: this._chatHistory });
+    }
+    this._postMessage({ type: "system", value: "" });
+  }
+
+  private _saveToHistory(role: string, content: string, isError?: boolean): void {
+    if (!this._historyPath || !content.trim()) return;
+    const entry: {role:string;content:string;timestamp:string;isError?:boolean} = {
+      role, content, timestamp: new Date().toISOString(),
+    };
+    if (isError) entry.isError = true;
+    this._chatHistory.push(entry);
+    if (this._chatHistory.length > 200) this._chatHistory = this._chatHistory.slice(-200);
+    try {
+      const dir = path.dirname(this._historyPath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(this._historyPath, JSON.stringify(this._chatHistory, null, 2), "utf8");
+    } catch { /* ignore write errors */ }
+  }
+
+  private async _sendWorkspaceFiles(): Promise<void> {
+    if (!this._view) return;
+    try {
+      const uris = await vscode.workspace.findFiles(
+        "**/*.{ts,tsx,js,jsx,py,rs,go,java,cs,cpp,c,h,md,json,yaml,yml,toml,sh,env}",
+        "**/node_modules/**,**/.git/**,**/dist/**,**/build/**",
+        500,
+      );
+      const root = (vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "").replace(/\\/g, "/").replace(/\/$/, "");
+      const files = uris.map((u) => {
+        const rel = u.fsPath.replace(/\\/g, "/");
+        return root && rel.startsWith(root) ? rel.slice(root.length + 1) : rel;
+      }).sort();
+      // Bypass the typed ExtensionMessage — this is an informational response only
+      void this._view.webview.postMessage({ type: "workspaceFiles", files });
+    } catch (err) {
+      console.error("[ChatViewProvider] findFiles error", err);
+    }
   }
 
   private _postMessage(message: ExtensionMessage) {
+    // Persist chat-relevant messages to history
+    if (message.type === "user" && message.value) {
+      this._saveToHistory("user", message.value);
+    } else if (message.type === "assistantText" && message.content) {
+      this._saveToHistory("assistant", message.content);
+    } else if (message.type === "system" && message.value?.trim()) {
+      this._saveToHistory("system", message.value);
+    } else if (message.type === "error" && message.value) {
+      this._saveToHistory("system", message.value, true);
+    }
+
     if (!this._view) return;
     this._bootMessageGate.enqueue(message, (next) => {
       this._view?.webview.postMessage(next);
@@ -604,10 +782,16 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async _handleAddAccount(): Promise<void> {
+    // Re-try token discovery at call time (workspace may have loaded after constructor)
     if (!this._gatewayAuthToken) {
+      this._gatewayAuthToken = ChatViewProvider._readTokenFromDotEnv(this._extensionUri.fsPath) ?? null;
+    }
+    const token = this._gatewayAuthToken;
+
+    if (!token) {
       this._postMessage({
         type: "error",
-        value: "Gateway auth token missing. Set ALLOY_GATEWAY_TOKEN for add-account flow.",
+        value: "ALLOY_GATEWAY_TOKEN bulunamadı. gateway/.env dosyasında ALLOY_GATEWAY_TOKEN=dev-local-token satırı olmalı ve gateway çalışıyor olmalı.",
       });
       return;
     }
@@ -615,7 +799,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     try {
       const response = await fetch("http://127.0.0.1:51122/api/auth/login", {
         method: "GET",
-        headers: { Authorization: `Bearer ${this._gatewayAuthToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
@@ -632,6 +816,23 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       const normalizedOAuthUrl = normalizeOAuthUrl(oauthUrl);
       await vscode.env.openExternal(vscode.Uri.parse(normalizedOAuthUrl));
       this._postMessage({ type: "system", value: "OAuth flow opened in external browser." });
+
+      // Poll for the new account: reload AccountManager from disk every 3s for up to 45s
+      const pollStart = Date.now();
+      const pollInterval = setInterval(async () => {
+        try {
+          const freshManager = await AccountManager.loadFromDisk();
+          const freshAccounts = freshManager.getAccountsSnapshot();
+          const prev = this._accountManager?.getAccountsSnapshot() ?? [];
+          if (freshAccounts.length > prev.length) {
+            clearInterval(pollInterval);
+            this._accountManager = freshManager;
+            this._sendAccounts();
+          } else if (Date.now() - pollStart > 45_000) {
+            clearInterval(pollInterval); // timeout after 45s
+          }
+        } catch { clearInterval(pollInterval); }
+      }, 3000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       this._postMessage({ type: "error", value: `Add account failed: ${errorMessage}` });
@@ -870,7 +1071,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     if (scope && Array.isArray(scope.paths) && scope.paths.length > 0) {
       return payload;
     }
-
     const selectedPaths = this._resolveSelectedScopePaths();
     return {
       ...payload,
@@ -885,11 +1085,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     const activeFile = vscode.window.activeTextEditor?.document.uri.fsPath;
     if (!workspaceRoot || !activeFile) return [];
-
     const normalizedRoot = workspaceRoot.replace(/\\/g, "/");
     const normalizedFile = activeFile.replace(/\\/g, "/");
     if (!normalizedFile.startsWith(normalizedRoot)) return [];
-
     const relative = normalizedFile.slice(normalizedRoot.length).replace(/^\/+/, "");
     if (!relative) return [];
     const slash = relative.lastIndexOf("/");
@@ -907,24 +1105,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  /**
-   * O7 FIX: Dynamic asset discovery instead of hardcoded hashes.
-   * Reads the ui/dist/assets directory to find the actual .js and .css files.
-   * O2 FIX: CSP font-src URL without quotes.
-   * U2 FIX: Dead getNonce() removed, using crypto.randomBytes directly.
-   */
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    // Determine the base path for assets. Support both sibling 'ui' folder and internal 'ui' folder.
     let distPath = vscode.Uri.joinPath(this._extensionUri, "ui", "dist");
-    
-    // Check if sibling directory exists (standard project structure vs packaged structure)
     const parentUri = vscode.Uri.joinPath(this._extensionUri, "..");
     const siblingDistPath = vscode.Uri.joinPath(parentUri, "ui", "dist");
-
     if (!fs.existsSync(distPath.fsPath) && fs.existsSync(siblingDistPath.fsPath)) {
       distPath = siblingDistPath;
     }
-
     const assetsPath = vscode.Uri.joinPath(distPath, "assets");
     const resolvedAssets = resolveWebviewAssets(distPath.fsPath, assetsPath.fsPath);
     console.log(
@@ -933,23 +1120,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     for (const note of resolvedAssets.notes) {
       console.warn(`[ChatViewProvider] Asset resolver note: ${note}`);
     }
-
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(assetsPath, resolvedAssets.scriptFileName)
-    );
-    const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(assetsPath, resolvedAssets.styleFileName)
-    );
-
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(assetsPath, resolvedAssets.scriptFileName));
+    const styleUri  = webview.asWebviewUri(vscode.Uri.joinPath(assetsPath, resolvedAssets.styleFileName));
     const nonce = crypto.randomBytes(16).toString("base64");
-
     return buildWebviewHtml({
-      webview,
-      scriptUri,
-      styleUri,
-      nonce,
+      webview, scriptUri, styleUri, nonce,
       cspSource: webview.cspSource,
-      extraConnectOrigins: this._cspConnectOrigins
+      extraConnectOrigins: this._cspConnectOrigins,
     });
   }
 }

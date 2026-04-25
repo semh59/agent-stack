@@ -29,18 +29,18 @@ class Settings(BaseSettings):
     ollama_fast_model: str = "gemma4:e2b"
     ollama_prose_model: str = "gemma4:e2b"
     ollama_embed_model: str = "nomic-embed-text"
-    ollama_timeout: float = 120.0
+    ollama_timeout: float = Field(default=120.0, gt=0)
 
     # ---- OpenRouter ----
     openrouter_api_key: str = ""
     openrouter_free_model: str = "meta-llama/llama-3.1-70b-instruct:free"
 
     # ---- Semantic Cache ----
-    semantic_cache_similarity_threshold: float = 0.85
-    semantic_cache_ttl_simple: int = 604_800    # 7 gün
-    semantic_cache_ttl_contextual: int = 86_400  # 1 gün
-    exact_cache_max_size: int = 500
-    exact_cache_default_ttl: int = 86_400
+    semantic_cache_similarity_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    semantic_cache_ttl_simple: int = Field(default=604_800, gt=0)    # 7 gün
+    semantic_cache_ttl_contextual: int = Field(default=86_400, gt=0)  # 1 gün
+    exact_cache_max_size: int = Field(default=500, gt=0)
+    exact_cache_default_ttl: int = Field(default=86_400, gt=0)
 
     # ---- Compression ----
     llmlingua_min_tokens: int = 100
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     # Base port for the Prometheus metrics exporter.
     # server.py (stdio MCP) uses this port; bridge.py binds to metrics_port + 1
     # so they can run side-by-side locally without conflict.
-    metrics_port: int = 9090
+    metrics_port: int = Field(default=9090, ge=1024, le=65535)
 
     # ---- Bridge auth ----
     # Shared secret between the gateway and the HTTP bridge. In production-like

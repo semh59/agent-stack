@@ -1,4 +1,4 @@
-﻿import * as net from "node:net";
+import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -157,6 +157,7 @@ describe("GatewayServer health and oauth preflight routes", () => {
 
   it("returns 401 from POST /api/missions when the active token is expired and refresh fails", async () => {
     const expiredToken: StoredToken = {
+      provider: "google_gemini",
       accessToken: "expired-token",
       refreshToken: "refresh-token",
       expiresAt: Date.now() - 60_000,

@@ -7,8 +7,12 @@ Uzun bileşik mesajlar için "partial hit" sağlar.
 """
 from __future__ import annotations
 
+import logging
+
 from cache.exact import ExactCache
 from cache.semantic import SemanticCache
+
+logger = logging.getLogger(__name__)
 
 
 class PartialCache:
@@ -33,8 +37,8 @@ class PartialCache:
                 # L2 semantic
                 try:
                     hit = await self._semantic.get(chunk, context)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("partial_cache semantic lookup failed for chunk: %s", exc)
             if hit:
                 results.append(hit)
 

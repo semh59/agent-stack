@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import logging
 import time
 from typing import Any
 
 import httpx
 
 from config import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class SemanticCache:
@@ -27,6 +30,8 @@ class SemanticCache:
 
     COLLECTION_NAME = "message_cache"
 
+    CLEANUP_INTERVAL = 3600  # Run cleanup every hour
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._collection: Any = None  # chromadb Collection
@@ -34,6 +39,7 @@ class SemanticCache:
         # Python 3.10+ allows Lock creation outside a running event loop.
         import asyncio as _asyncio
         self._init_lock = _asyncio.Lock()
+        self._cleanup_task: asyncio.Task | None = None  # type: ignore[type-arg]
 
     async def _ensure_collection(self) -> Any:
         """Thread-safe lazy init of ChromaDB collection (C3 fix)."""
@@ -115,7 +121,8 @@ class SemanticCache:
 
             return results["documents"][0][0]
 
-        except Exception:
+        except Exception as exc:
+            logger.debug("semantic_cache.get failed: %s", exc)
             return None  # graceful miss
 
     async def set(
@@ -150,8 +157,54 @@ class SemanticCache:
                     "contextual": int(is_contextual),
                 }],
             )
-        except Exception:
-            pass  # embedding/DB error → silent fail, pipeline continues
+        except Exception as exc:
+            logger.warning("semantic_cache.set failed: %s", exc)  # pipeline continues
+
+    async def start_cleanup_task(self) -> None:
+        """Start the background TTL cleanup task (call once after init)."""
+        if self._cleanup_task is None or self._cleanup_task.done():
+            self._cleanup_task = asyncio.create_task(self._cleanup_loop())
+
+    async def _cleanup_loop(self) -> None:
+        """Periodically remove expired entries from the cache."""
+        while True:
+            await asyncio.sleep(self.CLEANUP_INTERVAL)
+            try:
+                await self._cleanup_expired()
+            except Exception as exc:
+                logger.warning("semantic_cache.cleanup_failed: %s", exc)
+
+    async def _cleanup_expired(self) -> int:
+        """Remove all expired entries. Returns count of removed entries."""
+        try:
+            collection = await self._ensure_collection()
+            now = time.time()
+            # Fetch all entries with metadata
+            all_data = await asyncio.to_thread(
+                lambda: collection.get(include=["metadatas"])
+            )
+            ids = all_data.get("ids", [])
+            metas = all_data.get("metadatas", [])
+            expired_ids = [
+                eid for eid, meta in zip(ids, metas)
+                if meta.get("expires_at", 0.0) < now
+            ]
+            if expired_ids:
+                await asyncio.to_thread(collection.delete, ids=expired_ids)
+                logger.info("semantic_cache_cleaned", removed=len(expired_ids))
+            return len(expired_ids)
+        except Exception as exc:
+            logger.warning("semantic_cache._cleanup_expired failed: %s", exc)
+            return 0
+
+    async def stop_cleanup_task(self) -> None:
+        """Cancel the background cleanup task."""
+        if self._cleanup_task and not self._cleanup_task.done():
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
 
     async def clear(self) -> None:
         """Delete all entries from the collection."""
@@ -160,8 +213,8 @@ class SemanticCache:
             all_ids = await asyncio.to_thread(lambda: collection.get(include=[])["ids"])
             if all_ids:
                 await asyncio.to_thread(collection.delete, ids=all_ids)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("semantic_cache.clear failed: %s", exc)
 
     async def stats(self) -> dict[str, Any]:
         try:

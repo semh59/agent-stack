@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Gateway â€” Ana Orkestrasyon
  *
  * TÃ¼m akÄ±ÅŸÄ± yÃ¶netir:
@@ -11,6 +11,7 @@ import { AuthServer } from "./auth-server";
 import { launchOAuthBrowser } from "./browser-launcher";
 import { TokenStore } from "./token-store";
 import { performHandoff, type HandoffOptions, type HandoffResult } from "./agent-handoff";
+import { GoogleGeminiProvider } from "./google-provider";
 
 /** Mask email for PII safety: "user@gmail.com" â†’ "u***@gmail.com" */
 function maskEmail(email: string): string {
@@ -118,6 +119,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Handof
     timeoutMs: options.authTimeoutMs,
     tokenStore,
     expectedState: authInfo.authorization.state,
+    adapter: new GoogleGeminiProvider(),
   });
 
   // Auth server'Ä± baÅŸlat (arka planda dinler)

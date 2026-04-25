@@ -1,332 +1,190 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Alloy ChatInput — Advanced input with @-context chips, model & skills
-   ═══════════════════════════════════════════════════════════════════ */
-
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Send, Square, Sparkles, FileCode, FolderOpen, MousePointer2, X, AtSign } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/shared";
-import { ModelSelector } from "./ModelSelector";
-import { TokenBadge } from "./TokenBadge";
 import { useChatStore } from "@/store/chatStore";
 
-/* ── Context chip types ──────────────────────────────────────────── */
-
-type ContextType = "file" | "workspace" | "selection";
-
-interface ContextChip {
-  id: string;
-  type: ContextType;
-  label: string;
-}
-
-const CONTEXT_OPTIONS: { type: ContextType; label: string; hint: string; icon: React.ReactNode }[] = [
-  {
-    type: "file",
-    label: "Active File",
-    hint: "Attach current editor file",
-    icon: <FileCode className="w-3.5 h-3.5" />,
-  },
-  {
-    type: "workspace",
-    label: "Workspace",
-    hint: "Attach file tree",
-    icon: <FolderOpen className="w-3.5 h-3.5" />,
-  },
-  {
-    type: "selection",
-    label: "Selection",
-    hint: "Attach selected text",
-    icon: <MousePointer2 className="w-3.5 h-3.5" />,
-  },
-];
-
-/* ── Main component ──────────────────────────────────────────────── */
-
-interface ChatInputProps {
+interface Props {
   onSend: (text: string) => void;
   onStop: () => void;
+  onRequestFiles: () => void;
 }
 
-export function ChatInput({ onSend, onStop }: ChatInputProps) {
-  const [text, setText] = useState("");
-  const [chips, setChips] = useState<ContextChip[]>([]);
-  const [showAtPicker, setShowAtPicker] = useState(false);
-  const [atPickerIdx, setAtPickerIdx] = useState(0);
+function getAtQuery(text: string, pos: number): string | null {
+  const before = text.slice(0, pos);
+  const m = before.match(/@([\w./\\-]*)$/);
+  return m ? m[1] : null;
+}
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const pickerRef = useRef<HTMLDivElement>(null);
-  const { isStreaming, availableSkills } = useChatStore();
+export function ChatInput({ onSend, onStop, onRequestFiles }: Props) {
+  const [text, setText]       = useState("");
+  const [atQuery, setAtQuery] = useState<string | null>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const ref     = useRef<HTMLTextAreaElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
 
-  // Auto-resize textarea
+  const { isStreaming, selectedModel, availableModels, workspaceFiles } = useChatStore();
+  const model = availableModels.find((m) => m.id === selectedModel);
+
   useEffect(() => {
-    const el = textareaRef.current;
+    const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
   }, [text]);
 
-  // Close picker on outside click
-  useEffect(() => {
-    if (!showAtPicker) return;
-    function onDown(e: MouseEvent) {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setShowAtPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [showAtPicker]);
+  const filtered = atQuery != null
+    ? workspaceFiles.filter((f) => f.toLowerCase().includes(atQuery.toLowerCase())).slice(0, 10)
+    : [];
 
-  const addChip = useCallback((type: ContextType) => {
-    setChips((prev) => {
-      if (prev.some((c) => c.type === type)) return prev;
-      const option = CONTEXT_OPTIONS.find((o) => o.type === type)!;
-      return [...prev, { id: `${type}-${Date.now()}`, type, label: option.label }];
-    });
-    setShowAtPicker(false);
-    // Remove the "@" that triggered the picker
-    setText((prev) => prev.replace(/@$/, "").replace(/@(\w*)$/, ""));
-    textareaRef.current?.focus();
-  }, []);
-
-  const removeChip = useCallback((id: string) => {
-    setChips((prev) => prev.filter((c) => c.id !== id));
-  }, []);
-
-  const buildMessageWithContext = useCallback(
-    (raw: string) => {
-      if (chips.length === 0) return raw;
-      const ctxTags = chips.map((c) => `[@${c.type}]`).join(" ");
-      return `${ctxTags} ${raw}`.trim();
-    },
-    [chips]
-  );
-
-  const handleSend = useCallback(() => {
-    const trimmed = text.trim();
-    if (!trimmed || isStreaming) return;
-    onSend(buildMessageWithContext(trimmed));
-    setText("");
-    setChips([]);
-    setShowAtPicker(false);
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-  }, [text, isStreaming, onSend, buildMessageWithContext]);
+  useEffect(() => { setActiveIdx(0); }, [atQuery]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
+    const pos = e.target.selectionStart ?? val.length;
     setText(val);
-    // Detect trailing "@" to open picker
-    if (val.endsWith("@")) {
-      setShowAtPicker(true);
-      setAtPickerIdx(0);
-    } else if (!val.includes("@")) {
-      setShowAtPicker(false);
+    const q = getAtQuery(val, pos);
+    if (q !== null) {
+      setAtQuery(q);
+      if (workspaceFiles.length === 0) onRequestFiles();
+    } else {
+      setAtQuery(null);
     }
-  }, []);
+  }, [workspaceFiles.length, onRequestFiles]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (showAtPicker) {
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          setAtPickerIdx((i) => (i + 1) % CONTEXT_OPTIONS.length);
-          return;
-        }
-        if (e.key === "ArrowUp") {
-          e.preventDefault();
-          setAtPickerIdx((i) => (i - 1 + CONTEXT_OPTIONS.length) % CONTEXT_OPTIONS.length);
-          return;
-        }
-        if (e.key === "Enter" || e.key === "Tab") {
-          e.preventDefault();
-          addChip(CONTEXT_OPTIONS[atPickerIdx].type);
-          return;
-        }
-        if (e.key === "Escape") {
-          setShowAtPicker(false);
-          return;
-        }
-      }
+  const insertFile = useCallback((file: string) => {
+    const ta  = ref.current;
+    const pos = ta?.selectionStart ?? text.length;
+    const before = text.slice(0, pos).replace(/@[\w./\\-]*$/, "@" + file + " ");
+    const after  = text.slice(pos);
+    const next = before + after;
+    setText(next);
+    setAtQuery(null);
+    requestAnimationFrame(() => {
+      if (ta) { ta.focus(); ta.setSelectionRange(before.length, before.length); }
+    });
+  }, [text]);
 
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
-    },
-    [showAtPicker, atPickerIdx, addChip, handleSend]
-  );
+  const send = useCallback(() => {
+    const t = text.trim();
+    if (!t || isStreaming) return;
+    onSend(t);
+    setText("");
+    setAtQuery(null);
+    if (ref.current) ref.current.style.height = "auto";
+  }, [text, isStreaming, onSend]);
+
+  const onKey = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (atQuery !== null && filtered.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setActiveIdx((i) => Math.min(i + 1, filtered.length - 1)); return; }
+      if (e.key === "ArrowUp")   { e.preventDefault(); setActiveIdx((i) => Math.max(i - 1, 0)); return; }
+      if (e.key === "Tab" || e.key === "Enter") { e.preventDefault(); insertFile(filtered[activeIdx] ?? ""); return; }
+      if (e.key === "Escape") { e.preventDefault(); setAtQuery(null); return; }
+    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  }, [atQuery, filtered, activeIdx, insertFile, send]);
+
+  const wrapStyle: React.CSSProperties = {
+    display: "flex", flexDirection: "column",
+    margin: "8px", borderRadius: 8,
+    border: "1px solid " + (isStreaming ? "var(--a-error)" : "var(--a-border)"),
+    background: "var(--a-bg2)", overflow: "visible",
+    transition: "border-color 0.15s", position: "relative",
+  };
+
+  const taStyle: React.CSSProperties = {
+    width: "100%", padding: "10px 12px", fontSize: 13, lineHeight: 1.5,
+    background: "transparent", border: "none", outline: "none", resize: "none",
+    color: "var(--a-text)", minHeight: 40, maxHeight: 160, overflowY: "auto",
+    fontFamily: "inherit",
+  };
+
+  const barStyle: React.CSSProperties = {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "4px 8px", borderTop: "1px solid var(--a-border)",
+  };
+
+  const btnStyle = (primary: boolean, danger?: boolean): React.CSSProperties => ({
+    display: "flex", alignItems: "center", justifyContent: "center",
+    width: 28, height: 28, borderRadius: 6, border: "none", cursor: "pointer",
+    background: danger ? "var(--a-error)" : primary ? "var(--a-accent)" : "transparent",
+    color: (primary || danger) ? "#000" : "var(--a-text2)",
+    fontSize: 13, fontWeight: 700, flexShrink: 0,
+    opacity: (!isStreaming && !text.trim()) ? 0.4 : 1,
+    transition: "opacity 0.15s",
+  });
 
   return (
-    <div className="flex flex-col border-t border-[var(--alloy-border-default)] bg-[var(--alloy-bg-secondary)]">
-      {/* Toolbar */}
-      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-[var(--alloy-border-subtle)]">
-        <ModelSelector />
-        <TokenBadge />
-        <div className="flex-1" />
-        {availableSkills.length > 0 && (
-          <span className="text-[10px] text-[var(--alloy-text-muted)]">
-            {availableSkills.length} skills
-          </span>
-        )}
-        {/* @ shortcut hint */}
-        <button
-          onClick={() => {
-            setText((prev) => prev + "@");
-            setShowAtPicker(true);
-            setAtPickerIdx(0);
-            textareaRef.current?.focus();
-          }}
-          className={cn(
-            "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]",
-            "text-[var(--alloy-text-muted)] hover:text-[var(--alloy-text-secondary)]",
-            "hover:bg-[var(--alloy-bg-hover)] transition-colors duration-100"
-          )}
-          title="Attach context (@)"
-        >
-          <AtSign className="w-3 h-3" />
-        </button>
-      </div>
-
-      {/* Context Chips */}
-      {chips.length > 0 && (
-        <div className="flex flex-wrap gap-1 px-3 pt-1.5">
-          {chips.map((chip) => {
-            const opt = CONTEXT_OPTIONS.find((o) => o.type === chip.type)!;
+    <div style={wrapStyle}>
+      {atQuery !== null && filtered.length > 0 && (
+        <div ref={dropRef} style={{
+          position: "absolute", bottom: "100%", left: 0, right: 0, marginBottom: 4,
+          background: "var(--a-bg2)", border: "1px solid var(--a-border)",
+          borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+          maxHeight: 200, overflowY: "auto", zIndex: 100,
+        }}>
+          <div style={{ padding: "4px 8px 2px", fontSize: 9, color: "var(--a-text3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Dosya — Tab / Enter ile ekle
+          </div>
+          {filtered.map((file, i) => {
+            const parts = file.replace(/\\/g, "/").split("/");
+            const name  = parts[parts.length - 1] ?? file;
+            const dir   = parts.slice(0, -1).join("/");
             return (
-              <span
-                key={chip.id}
-                className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full",
-                  "text-[10px] font-medium border",
-                  "bg-[var(--alloy-accent-subtle)] border-[var(--alloy-accent-muted)] text-[var(--alloy-accent)]"
-                )}
+              <div
+                key={file}
+                onMouseDown={(e) => { e.preventDefault(); insertFile(file); }}
+                onMouseEnter={() => setActiveIdx(i)}
+                style={{
+                  padding: "5px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+                  background: i === activeIdx ? "var(--a-accent-s)" : "transparent",
+                  borderLeft: i === activeIdx ? "2px solid var(--a-accent)" : "2px solid transparent",
+                }}
               >
-                {opt.icon}
-                {chip.label}
-                <button
-                  onClick={() => removeChip(chip.id)}
-                  className="ml-0.5 hover:opacity-60 transition-opacity"
-                >
-                  <X className="w-2.5 h-2.5" />
-                </button>
-              </span>
+                <span style={{ fontSize: 11, color: "var(--a-text)", fontFamily: "monospace", flexShrink: 0 }}>{name}</span>
+                {dir && <span style={{ fontSize: 10, color: "var(--a-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dir}</span>}
+              </div>
             );
           })}
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="flex items-end gap-2 p-2 relative">
-        {/* @-context picker */}
-        {showAtPicker && (
-          <div
-            ref={pickerRef}
-            className={cn(
-              "absolute bottom-full left-2 mb-1 w-52 z-50",
-              "bg-[var(--alloy-bg-elevated)] border border-[var(--alloy-border-default)]",
-              "rounded-lg shadow-[var(--alloy-shadow-lg)] overflow-hidden",
-              "animate-slide-down"
-            )}
+      <textarea
+        ref={ref}
+        value={text}
+        onChange={handleChange}
+        onKeyDown={onKey}
+        placeholder={isStreaming ? "Yanit bekleniyor..." : "Mesaj yazin... (@dosya ile dosya ekle)"}
+        disabled={isStreaming}
+        rows={1}
+        style={taStyle}
+      />
+      <div style={barStyle}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 10, color: "var(--a-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>
+            {model ? model.name : "-"}
+          </span>
+          <span
+            title="Dosya ekle (@)"
+            onClick={() => {
+              if (!ref.current) return;
+              const pos = ref.current.selectionStart;
+              const next = text.slice(0, pos) + "@" + text.slice(pos);
+              setText(next);
+              setAtQuery("");
+              if (workspaceFiles.length === 0) onRequestFiles();
+              requestAnimationFrame(() => {
+                if (ref.current) { ref.current.focus(); ref.current.setSelectionRange(pos + 1, pos + 1); }
+              });
+            }}
+            style={{ fontSize: 11, color: "var(--a-text3)", cursor: "pointer", userSelect: "none", padding: "1px 4px", borderRadius: 3 }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--a-accent)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--a-text3)"; }}
           >
-            <div className="px-2.5 py-1.5 border-b border-[var(--alloy-border-subtle)]">
-              <span className="text-[10px] text-[var(--alloy-text-muted)] uppercase tracking-wide font-semibold">
-                Attach context
-              </span>
-            </div>
-            {CONTEXT_OPTIONS.map((opt, idx) => (
-              <button
-                key={opt.type}
-                onMouseDown={(e) => {
-                  e.preventDefault(); // prevent blur
-                  addChip(opt.type);
-                }}
-                onMouseEnter={() => setAtPickerIdx(idx)}
-                className={cn(
-                  "w-full flex items-start gap-2.5 px-2.5 py-2 text-left transition-colors",
-                  idx === atPickerIdx
-                    ? "bg-[var(--alloy-accent-subtle)]"
-                    : "hover:bg-[var(--alloy-bg-hover)]"
-                )}
-              >
-                <span
-                  className={cn(
-                    "mt-0.5 shrink-0",
-                    idx === atPickerIdx
-                      ? "text-[var(--alloy-accent)]"
-                      : "text-[var(--alloy-text-muted)]"
-                  )}
-                >
-                  {opt.icon}
-                </span>
-                <span>
-                  <span
-                    className={cn(
-                      "block text-[12px] font-medium",
-                      idx === atPickerIdx
-                        ? "text-[var(--alloy-accent)]"
-                        : "text-[var(--alloy-text-primary)]"
-                    )}
-                  >
-                    {opt.label}
-                  </span>
-                  <span className="block text-[10px] text-[var(--alloy-text-muted)]">
-                    {opt.hint}
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="flex-1 relative">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              isStreaming
-                ? "Waiting for response..."
-                : "Ask Alloy anything… type @ to attach context"
-            }
-            disabled={isStreaming}
-            rows={1}
-            className={cn(
-              "w-full resize-none rounded-lg px-3 py-2 pr-8",
-              "bg-[var(--alloy-bg-primary)] border border-[var(--alloy-border-default)]",
-              "text-[13px] text-[var(--alloy-text-primary)] placeholder:text-[var(--alloy-text-muted)]",
-              "focus:border-[var(--alloy-accent)] focus:ring-1 focus:ring-[var(--alloy-accent-muted)]",
-              "transition-all duration-150 outline-none",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              "min-h-[36px] max-h-[200px]"
-            )}
-          />
-          <div className="absolute right-2 bottom-2">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--alloy-text-muted)]" />
-          </div>
+            @
+          </span>
         </div>
-
-        {/* Send / Stop Button */}
         {isStreaming ? (
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={onStop}
-            icon={<Square className="w-3 h-3" />}
-          >
-            Stop
-          </Button>
+          <button type="button" onClick={onStop} style={btnStyle(false, true)} title="Durdur">&#9632;</button>
         ) : (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleSend}
-            disabled={!text.trim() && chips.length === 0}
-            icon={<Send className="w-3 h-3" />}
-          >
-            Send
-          </Button>
+          <button type="button" onClick={send} disabled={!text.trim()} style={btnStyle(true)} title="Gonder">&#8593;</button>
         )}
       </div>
     </div>

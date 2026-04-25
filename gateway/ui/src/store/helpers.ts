@@ -429,7 +429,6 @@ export function withSelectedSessionDerived(
     autonomySession: effectiveSelected ? state.sessionsById?.[effectiveSelected] ?? null : null,
     autonomyTimeline: effectiveSelected ? state.timelineBySession?.[effectiveSelected] ?? [] : [],
     gateStatus: effectiveSelected ? state.gateBySession?.[effectiveSelected] ?? null : null,
-    budgetStatus: effectiveSelected ? state.budgetBySession?.[effectiveSelected] ?? null : null,
-    activeDiff: effectiveSelected ? state.diffBySession?.[effectiveSelected] ?? [] : [],
+    activeDiff: null,
   };
 }

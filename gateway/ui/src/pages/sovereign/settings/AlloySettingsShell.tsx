@@ -1,59 +1,38 @@
-/**
- * Alloy Settings shell — the outer chrome for the full settings console.
- */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import {
-  Cloud,
-  Network,
-  Layers,
-  Server,
-  NotebookPen,
-  Gauge,
-  Database,
-  Palette,
-  RotateCcw,
-  Save,
-  AlertCircle,
-  Users,
+  Cloud, Network, Layers, Server, NotebookPen,
+  Gauge, Database, Palette, RotateCcw, Save, AlertCircle, Users,
 } from "lucide-react";
 
 import { useAlloyStore } from "../../../store/alloyStore";
 import { useToast } from "../../../components/sovereign/Toast";
-import { Card } from "../../../components/sovereign/primitives";
 import { useTranslation } from "react-i18next";
 
-import { ProvidersPage } from "./pages/ProvidersPage";
-import { RoutingPage } from "./pages/RoutingPage";
-import { PipelinePage } from "./pages/PipelinePage";
-import { McpPage } from "./pages/McpPage";
-import { RulesPage } from "./pages/RulesPage";
+import { ProvidersPage }    from "./pages/ProvidersPage";
+import { RoutingPage }      from "./pages/RoutingPage";
+import { PipelinePage }     from "./pages/PipelinePage";
+import { McpPage }          from "./pages/McpPage";
+import { RulesPage }        from "./pages/RulesPage";
 import { ObservabilityPage } from "./pages/ObservabilityPage";
-import { DataPage } from "./pages/DataPage";
-import { AppearancePage } from "./pages/AppearancePage";
-import { AccountsPage } from "./pages/AccountsPage";
+import { DataPage }         from "./pages/DataPage";
+import { AppearancePage }   from "./pages/AppearancePage";
+import { AccountsPage }     from "./pages/AccountsPage";
 
 type PageId =
-  | "providers"
-  | "routing"
-  | "pipeline"
-  | "mcp"
-  | "rules"
-  | "observability"
-  | "data"
-  | "appearance"
-  | "accounts";
+  | "providers" | "routing" | "pipeline" | "mcp" | "rules"
+  | "observability" | "data" | "appearance" | "accounts";
 
 const NAV: Array<{ id: PageId; label: string; icon: ReactNode; sub: string }> = [
-  { id: "providers", label: "Providers", icon: <Cloud size={16} />, sub: "Connect AI Models" },
-  { id: "routing", label: "Routing", icon: <Network size={16} />, sub: "Assign models to tasks" },
-  { id: "pipeline", label: "Pipeline", icon: <Layers size={16} />, sub: "Processing logic" },
-  { id: "mcp", label: "MCP", icon: <Server size={16} />, sub: "Tools & servers" },
-  { id: "rules", label: "Rules", icon: <NotebookPen size={16} />, sub: "System instructions" },
-  { id: "observability", label: "Analytics", icon: <Gauge size={16} />, sub: "Logs & usage" },
-  { id: "data", label: "Data", icon: <Database size={16} />, sub: "Storage" },
-  { id: "appearance", label: "Appearance", icon: <Palette size={16} />, sub: "Theme & display" },
-  { id: "accounts", label: "Accounts", icon: <Users size={16} />, sub: "Logins/Oauth" },
+  { id: "providers",    label: "Sağlayıcılar", icon: <Cloud size={16} />,       sub: "AI modelleri bağla" },
+  { id: "routing",      label: "Yönlendirme",  icon: <Network size={16} />,     sub: "Model atamaları" },
+  { id: "pipeline",     label: "Pipeline",     icon: <Layers size={16} />,      sub: "İşleme mantığı" },
+  { id: "mcp",          label: "MCP",          icon: <Server size={16} />,      sub: "Araçlar ve sunucular" },
+  { id: "rules",        label: "Kurallar",     icon: <NotebookPen size={16} />, sub: "Sistem talimatları" },
+  { id: "observability",label: "Analitik",     icon: <Gauge size={16} />,       sub: "Log ve kullanım" },
+  { id: "data",         label: "Veri",         icon: <Database size={16} />,    sub: "Depolama" },
+  { id: "appearance",   label: "Görünüm",      icon: <Palette size={16} />,     sub: "Tema ve ekran" },
+  { id: "accounts",     label: "Hesaplar",     icon: <Users size={16} />,       sub: "Girişler / OAuth" },
 ];
 
 export function AlloySettingsShell() {
@@ -62,36 +41,21 @@ export function AlloySettingsShell() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { notify } = useToast();
   const {
-    settings,
-    settingsDraftPatch,
-    settingsLoading,
-    settingsSaving,
-    settingsError,
-    loadSettings,
-    saveSettingsDraft,
-    clearSettingsDraft,
-    resetAllSettings,
+    settings, settingsDraftPatch, settingsLoading, settingsSaving, settingsError,
+    loadSettings, saveSettingsDraft, clearSettingsDraft, resetAllSettings,
   } = useAlloyStore();
 
-  useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
+  useEffect(() => { void loadSettings(); }, [loadSettings]);
 
-  const isDirty = useMemo(
-    () => Object.keys(settingsDraftPatch).length > 0,
-    [settingsDraftPatch],
-  );
+  const isDirty = useMemo(() => Object.keys(settingsDraftPatch).length > 0, [settingsDraftPatch]);
+  const dirtyCount = Object.keys(settingsDraftPatch).length;
 
   const onSave = async () => {
     try {
       await saveSettingsDraft();
-      notify({ tone: "success", title: "Settings saved", description: "Changes are now live across the gateway." });
+      notify({ tone: "success", title: "Ayarlar kaydedildi", description: "Değişiklikler ağ geçidine uygulandı." });
     } catch (err) {
-      notify({
-        tone: "error",
-        title: "Could not save settings",
-        description: err instanceof Error ? err.message : String(err),
-      });
+      notify({ tone: "error", title: "Kaydedilemedi", description: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -99,127 +63,103 @@ export function AlloySettingsShell() {
     setShowResetConfirm(false);
     try {
       await resetAllSettings();
-      notify({ tone: "warning", title: t("Reset to defaults"), description: t("Re-enter provider API keys to continue.") });
+      notify({ tone: "warning", title: "Varsayılana sıfırlandı", description: "API anahtarlarını yeniden girin." });
     } catch (err) {
-      notify({
-        tone: "error",
-        title: t("Reset failed"),
-        description: err instanceof Error ? err.message : String(err),
-      });
+      notify({ tone: "error", title: "Sıfırlama başarısız", description: err instanceof Error ? err.message : String(err) });
     }
   };
 
   return (
-    <div className="flex h-full flex-col bg-[var(--color-alloy-bg)] overflow-hidden">
-      <header className="flex items-center justify-between border-b border-white/5 bg-white/[0.02] px-8 py-6 backdrop-blur-md relative overflow-hidden">
-        {/* Animated header background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-alloy-accent)]/5 via-transparent to-transparent opacity-20" />
-        
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-             <div className="h-2 w-2 rounded-full bg-molten animate-pulse shadow-alloy-molten-glow" />
-             <h1 className="text-xs font-bold uppercase tracking-[0.3em] text-white">Application Settings</h1>
-          </div>
-          <p className="mt-1 text-[10px] text-white/30 font-medium tracking-tight">
-            Configure your AI coding experience.
-          </p>
+    <div className="flex h-full flex-col overflow-hidden bg-[var(--color-alloy-bg)]">
+      {/* Top bar */}
+      <div className="flex items-center justify-between border-b border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] px-6 py-3">
+        <div>
+          <h1 className="text-sm font-semibold text-[var(--color-alloy-text)]">Ayarlar</h1>
+          <p className="text-xs text-[var(--color-alloy-text-sec)]">Gateway ve model yapılandırması</p>
         </div>
-        
-        <div className="flex items-center gap-4 relative z-10">
-          <button 
+
+        <div className="flex items-center gap-2">
+          <button
             onClick={() => setShowResetConfirm(true)}
             disabled={settingsSaving}
-            className="flex items-center gap-2 text-[10px] font-bold text-white/40 hover:text-red-400 transition-colors disabled:opacity-20 uppercase tracking-widest"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface-hover)] hover:text-red-600 transition-colors disabled:opacity-40"
           >
-            <RotateCcw size={12} />
-            Reset to default
+            <RotateCcw size={13} />
+            Sıfırla
           </button>
-          
-          <div className="h-4 w-[1px] bg-white/10" />
-          
-          <button 
+
+          <button
             onClick={clearSettingsDraft}
             disabled={!isDirty || settingsSaving}
-            className="text-[10px] font-bold text-white/40 hover:text-white transition-colors disabled:opacity-20 uppercase tracking-widest"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface-hover)] hover:text-[var(--color-alloy-text)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Discard
+            İptal
           </button>
-          
+
           <button
-            onClick={onSave}
+            onClick={() => void onSave()}
             disabled={!isDirty || settingsSaving}
             className={clsx(
-              "flex items-center gap-2 rounded-lg px-6 py-2 text-[10px] font-bold tracking-[0.2em] transition-all active:scale-95 shadow-lg",
-              isDirty 
-                ? "bg-molten text-black shadow-alloy-molten-glow" 
-                : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
+              "flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-medium transition-all disabled:cursor-not-allowed",
+              isDirty
+                ? "bg-[var(--color-alloy-accent)] text-white hover:bg-[var(--color-alloy-accent-hover)]"
+                : "bg-[var(--color-alloy-surface-hover)] text-[var(--color-alloy-text-dim)]",
             )}
           >
-            <Save size={14} />
-            {isDirty ? `Save Changes (${Object.keys(settingsDraftPatch).length})` : "Saved"}
+            {settingsSaving
+              ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              : <Save size={13} />}
+            {isDirty ? `Kaydet (${dirtyCount})` : "Kaydedildi"}
           </button>
         </div>
-      </header>
+      </div>
 
-      {settingsError ? (
-        <div className="mx-8 mt-6 flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/5 px-5 py-3 text-[11px] text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-          <AlertCircle size={14} className="text-red-500" />
-          <span className="font-mono tracking-tight uppercase">{settingsError}</span>
+      {/* Error */}
+      {settingsError && (
+        <div className="mx-6 mt-4 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertCircle size={15} className="shrink-0 text-red-500" />
+          {settingsError}
         </div>
-      ) : null}
+      )}
 
+      {/* Body */}
       <div className="flex min-h-0 flex-1">
-        <nav className="flex w-[280px] shrink-0 flex-col gap-1 border-r border-white/5 bg-black/40 p-4 custom-scrollbar overflow-y-auto">
-          <div className="mb-4 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">System_Nodes</div>
-          
+        {/* Nav */}
+        <nav className="alloy-scroll w-[220px] shrink-0 overflow-y-auto border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] p-3 space-y-0.5">
           {NAV.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setActive(item.id)}
               className={clsx(
-                "group relative flex items-start gap-4 rounded-xl border px-4 py-4 text-left transition-all duration-300",
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
                 active === item.id
-                  ? "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent)]/10 text-white shadow-[inset_0_0_20px_rgba(0,240,255,0.05)]"
-                  : "border-transparent text-white/40 hover:bg-white/[0.03] hover:text-white"
+                  ? "bg-[var(--color-alloy-accent-dim)] text-[var(--color-alloy-accent)]"
+                  : "text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface-hover)] hover:text-[var(--color-alloy-text)]",
               )}
             >
-              {active === item.id && (
-                <div className="absolute left-0 top-4 bottom-4 w-[2px] bg-[var(--color-alloy-accent)] shadow-alloy-glow" />
-              )}
-              
-              <span className={clsx(
-                "mt-0.5 shrink-0 transition-transform group-hover:scale-110",
-                active === item.id ? "text-[var(--color-alloy-accent)]" : "text-white/20"
-              )}>
-                {item.icon}
-              </span>
-              
+              <span className="shrink-0">{item.icon}</span>
               <div className="min-w-0">
-                <span className="block text-xs font-bold tracking-tight uppercase">{t(item.label)}</span>
-                <span className={clsx(
-                  "block text-[10px] leading-tight mt-1 transition-opacity",
-                  active === item.id ? "text-[var(--color-alloy-accent)]/60" : "text-white/10"
-                )}>
-                  {t(item.sub)}
-                </span>
+                <span className="block text-sm font-medium leading-snug">{t(item.label)}</span>
+                <span className="block truncate text-[11px] text-[var(--color-alloy-text-dim)]">{t(item.sub)}</span>
               </div>
             </button>
           ))}
         </nav>
 
-        <div className="min-w-0 flex-1 overflow-y-auto p-10 custom-scrollbar bg-black/20">
-          <div className="max-w-4xl animate-in fade-in slide-in-from-right-4 duration-500">
+        {/* Content */}
+        <div className="alloy-scroll min-w-0 flex-1 overflow-y-auto p-8">
+          <div className="max-w-3xl">
             {settingsLoading && !settings ? (
-              <div className="flex flex-col items-center justify-center h-[400px] text-white/20">
-                 <div className="h-10 w-10 rounded-full border-2 border-t-[var(--color-alloy-accent)] border-white/5 animate-spin mb-4" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest">{t("Syncing_State...")}</span>
+              <div className="flex flex-col items-center justify-center py-24 text-[var(--color-alloy-text-dim)]">
+                <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-alloy-border)] border-t-[var(--color-alloy-accent)]" />
+                <span className="text-sm">Yükleniyor…</span>
               </div>
             ) : !settings ? (
-              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-8 text-center">
-                 <AlertCircle size={32} className="mx-auto mb-4 text-amber-500 opacity-50" />
-                 <h3 className="text-sm font-bold uppercase tracking-widest text-amber-200">{t("Node_Offline")}</h3>
-                 <p className="mt-2 text-xs text-amber-200/40">{t("The configuration bridge did not respond. Check gateway status.")}</p>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center">
+                <AlertCircle size={28} className="mx-auto mb-3 text-amber-500" />
+                <h3 className="text-sm font-semibold text-amber-800">Bağlantı kurulamadı</h3>
+                <p className="mt-1 text-xs text-amber-700">Gateway yanıt vermedi. Durumu kontrol edin.</p>
               </div>
             ) : (
               <ActivePage id={active} />
@@ -228,11 +168,9 @@ export function AlloySettingsShell() {
         </div>
       </div>
 
+      {/* Reset confirmation */}
       {showResetConfirm && (
-        <ResetConfirmation 
-          onConfirm={onReset} 
-          onCancel={() => setShowResetConfirm(false)} 
-        />
+        <ResetConfirmation onConfirm={() => void onReset()} onCancel={() => setShowResetConfirm(false)} />
       )}
     </div>
   );
@@ -240,50 +178,45 @@ export function AlloySettingsShell() {
 
 function ActivePage({ id }: { id: PageId }) {
   switch (id) {
-    case "providers":
-      return <ProvidersPage />;
-    case "routing":
-      return <RoutingPage />;
-    case "pipeline":
-      return <PipelinePage />;
-    case "mcp":
-      return <McpPage />;
-    case "rules":
-      return <RulesPage />;
-    case "observability":
-      return <ObservabilityPage />;
-    case "data":
-      return <DataPage />;
-    case "appearance":
-      return <AppearancePage />;
-    case "accounts":
-      return <AccountsPage />;
-    default: {
-      const exhaustive: never = id;
-      return <>{exhaustive}</>;
-    }
+    case "providers":    return <ProvidersPage />;
+    case "routing":      return <RoutingPage />;
+    case "pipeline":     return <PipelinePage />;
+    case "mcp":          return <McpPage />;
+    case "rules":        return <RulesPage />;
+    case "observability": return <ObservabilityPage />;
+    case "data":         return <DataPage />;
+    case "appearance":   return <AppearancePage />;
+    case "accounts":     return <AccountsPage />;
+    default: { const _x: never = id; return <>{_x}</>; }
   }
 }
 
 function ResetConfirmation({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
-  const { t } = useTranslation();
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <Card className="max-w-sm border-red-500/40 shadow-2xl animate-in zoom-in-95 duration-200" tone="danger">
-        <div className="flex flex-col items-center text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2">
-            <RotateCcw size={24} />
-          </div>
-          <h3 className="text-lg font-display text-white tracking-wide uppercase">{t("Reset All Settings?")}</h3>
-          <p className="text-sm text-red-200/70">
-            {t("This clears ALL saved API keys, routing rules, and provider configurations. This action cannot be undone.")}
-          </p>
-          <div className="flex gap-3 w-full pt-4">
-            <button className="flex-1 px-4 py-2 bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:bg-white/10 hover:text-white transition-all rounded-lg" onClick={onCancel}>{t("Cancel")}</button>
-            <button className="flex-1 px-4 py-2 bg-red-500/20 border border-red-500/20 text-[10px] font-bold uppercase tracking-widest text-red-100 hover:bg-red-500/40 hover:text-white transition-all rounded-lg" onClick={onConfirm}>{t("Reset Everything")}</button>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] p-6 shadow-[var(--shadow-alloy-lg)]">
+        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+          <RotateCcw size={18} className="text-red-600" />
         </div>
-      </Card>
+        <h3 className="text-base font-semibold text-[var(--color-alloy-text)]">Tüm ayarlar sıfırlansın mı?</h3>
+        <p className="mt-1 text-sm text-[var(--color-alloy-text-sec)]">
+          Tüm API anahtarları, yönlendirme kuralları ve yapılandırmalar silinecek. Bu işlem geri alınamaz.
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-lg border border-[var(--color-alloy-border)] px-4 py-2 text-sm font-medium text-[var(--color-alloy-text)] hover:bg-[var(--color-alloy-surface-hover)] transition-colors"
+          >
+            İptal
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+          >
+            Sıfırla
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

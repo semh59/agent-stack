@@ -27,7 +27,7 @@ const {
   transformStreamingPayload,
   createStreamingTransformer,
   transformSseLine,
-} = __testExports;
+} = __testExports as any;
 
 function createMockSignatureStore(): SignatureStore {
   const store = new Map<string, { text: string; signature: string }>();

@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Chat Store — Zustand state management for chat + accounts
-   ═══════════════════════════════════════════════════════════════════ */
-
 import { create } from "zustand";
 import type {
   ChatMessagePayload,
@@ -25,7 +21,7 @@ export interface AccountInfo {
   status: "active" | "error" | "loading";
 }
 
-export type AppView = "chat" | "accounts";
+export type AppView = "chat" | "accounts" | "settings";
 
 interface ChatState {
   // Navigation
@@ -56,6 +52,10 @@ interface ChatState {
   // Accounts
   accounts: AccountInfo[];
   isAddingAccount: boolean;
+  accountError: string | null;
+
+  // Workspace files (for @mention)
+  workspaceFiles: string[];
 
   // Actions
   setActiveView: (view: AppView) => void;
@@ -74,6 +74,8 @@ interface ChatState {
   clearMessages: () => void;
   setAccounts: (accounts: AccountInfo[]) => void;
   setAddingAccount: (adding: boolean) => void;
+  setAccountError: (err: string | null) => void;
+  setWorkspaceFiles: (files: string[]) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -92,12 +94,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isConnected: false,
   accounts: [],
   isAddingAccount: false,
+  accountError: null,
+  workspaceFiles: [],
 
   setActiveView: (view) => set({ activeView: view }),
 
   addMessage: (msg) =>
     set((state) => {
-      // Deduplicate: skip if last message is identical system/error content
       const last = state.messages[state.messages.length - 1];
       if (
         last &&
@@ -170,17 +173,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       ),
     })),
 
-  setSessionId: (id) => set({ sessionId: id }),
-  setSelectedModel: (modelId) => set({ selectedModel: modelId }),
-  setAvailableModels: (models) => set({ availableModels: models }),
-  setAvailableSkills: (skills) => set({ availableSkills: skills }),
+  setSessionId:       (id)      => set({ sessionId: id }),
+  setSelectedModel:   (modelId) => set({ selectedModel: modelId }),
+  setAvailableModels: (models)  => set({ availableModels: models }),
+  setAvailableSkills: (skills)  => set({ availableSkills: skills }),
 
   updateTokenUsage: (usage) =>
     set({
       tokenUsage: {
-        prompt: usage.prompt,
+        prompt:     usage.prompt,
         completion: usage.completion,
-        total: usage.total,
+        total:      usage.total,
       },
       tokenBudget: usage.budget ?? null,
     }),
@@ -210,6 +213,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       tokenUsage: { prompt: 0, completion: 0, total: 0 },
     }),
 
-  setAccounts: (accounts) => set({ accounts }),
-  setAddingAccount: (adding) => set({ isAddingAccount: adding }),
+  setAccounts:      (accounts) => set({ accounts }),
+  setAddingAccount: (adding)   => set({ isAddingAccount: adding }),
+  setAccountError:  (err)      => set({ accountError: err }),
+  setWorkspaceFiles:(files)    => set({ workspaceFiles: files }),
 }));

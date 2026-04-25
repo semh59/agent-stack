@@ -12,9 +12,7 @@ let workspaceIndexer: WorkspaceIndexer | null = null;
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Alloy AI is now active');
 	const config = vscode.workspace.getConfiguration("alloy");
-	// ALLOY_GATEWAY_TOKEN retained as deprecated fallback for users migrating from pre-rebrand.
 	const gatewayAuthToken = process.env.ALLOY_GATEWAY_TOKEN
-		?? process.env.ALLOY_GATEWAY_TOKEN
 		?? config.get<string>("gatewayAuthToken")
 		?? null;
 

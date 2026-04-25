@@ -46,13 +46,21 @@ from metrics import start_metrics_server
 
 server: Server = Server("ai-stack")
 _orchestrator: OptimizationPipeline | None = None
-_orch_lock = asyncio.Lock()
+_orch_lock: asyncio.Lock | None = None
+
+
+def _get_orch_lock() -> asyncio.Lock:
+    """Lazily create Lock to avoid event-loop attachment issues at import time."""
+    global _orch_lock
+    if _orch_lock is None:
+        _orch_lock = asyncio.Lock()
+    return _orch_lock
 
 
 async def _get_orch() -> OptimizationPipeline:
     global _orchestrator
     if _orchestrator is None:
-        async with _orch_lock:
+        async with _get_orch_lock():
             if _orchestrator is None:
                 orch = OptimizationPipeline(settings)
                 await orch.initialize()
@@ -206,6 +214,37 @@ async def list_tools() -> list[mcp_types.Tool]:
 # Tool dispatch
 # ---------------------------------------------------------------------------
 
+def _validate_required(arguments: dict[str, Any], keys: list[str]) -> str | None:
+    """Return an error message if any required key is missing/empty, else None."""
+    for key in keys:
+        val = arguments.get(key)
+        if val is None or (isinstance(val, str) and not val.strip()):
+            return f"Missing or empty required argument: '{key}'"
+    return None
+
+
+def _sanitize_path(path_str: str) -> Path:
+    """Resolve and validate a user-supplied path. Raises ValueError on issues."""
+    p = Path(path_str).resolve()
+    if not p.is_dir():
+        raise ValueError(f"Path does not exist or is not a directory: {p}")
+    return p
+
+
+def _safe_error(exc: Exception) -> str:
+    """Sanitize internal error to avoid leaking implementation details."""
+    msg = str(exc)
+    # Truncate to avoid flooding the client
+    if len(msg) > 200:
+        msg = msg[:200] + "…"
+    # Strip common internal path leaks
+    for prefix in ("Traceback ", "File ", "  "):
+        if msg.startswith(prefix):
+            msg = "Internal error (details sanitized)"
+            break
+    return msg
+
+
 @server.call_tool()
 async def call_tool(
     name: str, arguments: dict[str, Any]
@@ -216,6 +255,9 @@ async def call_tool(
     match name:
         # ---- optimize_context ----
         case "optimize_context":
+            err = _validate_required(arguments, ["message"])
+            if err:
+                return [_text_result({"error": err})]
             result = await orch.optimize(
                 message=arguments["message"],
                 context=arguments.get("context_messages") or [],
@@ -225,21 +267,34 @@ async def call_tool(
 
         # ---- search_docs ----
         case "search_docs":
+            err = _validate_required(arguments, ["query"])
+            if err:
+                return [_text_result({"error": err})]
             if orch.rag_retriever is None:
                 return [_text_result({"error": "RAG component is disabled (missing dependencies or init failure)"})]
+            limit = int(arguments.get("limit", 3))
+            if limit < 1 or limit > 20:
+                return [_text_result({"error": "limit must be between 1 and 20"})]
             chunks = await orch.rag_retriever.search(
                 query=arguments["query"],
-                limit=int(arguments.get("limit", 3)),
+                limit=limit,
             )
             return [_text_result({"results": chunks})]
 
         # ---- index_document ----
         case "index_document":
+            err = _validate_required(arguments, ["content", "path"])
+            if err:
+                return [_text_result({"error": err})]
             if orch.rag_indexer is None:
                 return [_text_result({"error": "RAG component is disabled"})]
+            # Sanitize path — prevent path traversal
+            doc_path = arguments["path"]
+            if ".." in doc_path or doc_path.startswith("/"):
+                return [_text_result({"error": "Invalid document path"})]
             result = await orch.rag_indexer.index(
                 content=arguments["content"],
-                path=arguments["path"],
+                path=doc_path,
             )
             return [_text_result(result)]
 
@@ -247,9 +302,10 @@ async def call_tool(
         case "get_cost_report":
             if orch.cost_tracker is None:
                 return [_text_result({"error": "Cost tracker component is disabled"})]
-            report = await orch.cost_tracker.report(
-                period=arguments.get("period", "today")
-            )
+            period = arguments.get("period", "today")
+            if period not in ("today", "week", "month"):
+                return [_text_result({"error": "period must be one of: today, week, month"})]
+            report = await orch.cost_tracker.report(period=period)
             return [_text_result(report)]
 
         # ---- cache_stats ----
@@ -266,6 +322,8 @@ async def call_tool(
         # ---- clear_cache ----
         case "clear_cache":
             tier = arguments.get("tier", "all")
+            if tier not in ("all", "memory", "disk", "semantic"):
+                return [_text_result({"error": "tier must be one of: all, memory, disk, semantic"})]
             cleared: list[str] = []
             if tier in ("all", "memory") and orch.exact_cache:
                 orch.exact_cache.clear_memory()
@@ -280,6 +338,9 @@ async def call_tool(
 
         # ---- set_model_preference ----
         case "set_model_preference":
+            err = _validate_required(arguments, ["model"])
+            if err:
+                return [_text_result({"error": err})]
             model = arguments["model"]
             reason = arguments.get("reason", "")
             # Store as a session override — orchestrator checks this before MAB
@@ -294,17 +355,27 @@ async def call_tool(
 
         # ---- generate_project_context ----
         case "generate_project_context":
-            root_arg = arguments["project_root"]
+            err = _validate_required(arguments, ["project_root"])
+            if err:
+                return [_text_result({"error": err})]
+
+            # Validate and sanitize project root
+            try:
+                safe_root = _sanitize_path(arguments["project_root"])
+            except ValueError as ve:
+                return [_text_result({"error": _safe_error(ve)})]
+
             force = arguments.get("force", False)
             dry_run = arguments.get("dry_run", False)
 
             script = Path(__file__).parent / "scripts" / "project_init.py"
-            cmd = [sys.executable, str(script), root_arg]
+            cmd = [sys.executable, str(script), str(safe_root)]
             if force:
                 cmd.append("--force")
             if dry_run:
                 cmd.append("--dry-run")
 
+            proc: asyncio.subprocess.Process | None = None
             try:
                 proc = await asyncio.create_subprocess_exec(
                     *cmd,
@@ -315,9 +386,15 @@ async def call_tool(
                 output = stdout.decode('utf-8') + (("\n" + stderr.decode('utf-8')) if stderr else "")
                 return [mcp_types.TextContent(type="text", text=output.strip())]
             except TimeoutError:
+                if proc and proc.returncode is None:
+                    proc.kill()
+                    await proc.wait()
                 return [_text_result({"error": "project_init timed out"})]
             except Exception as exc:
-                return [_text_result({"error": str(exc)})]
+                if proc and proc.returncode is None:
+                    proc.kill()
+                    await proc.wait()
+                return [_text_result({"error": _safe_error(exc)})]
 
         case _:
             return [_text_result({"error": f"Bilinmeyen tool: {name}"})]

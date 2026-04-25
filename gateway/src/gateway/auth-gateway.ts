@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Auth Gateway â€” Dual-Provider Authentication Orchestration
  *
  * Manages authentication across both Google Alloy and Claude Code.
@@ -18,7 +18,7 @@ import {
   type ProviderModel,
   type UnifiedToken,
 } from "./provider-types";
-import { TokenStore } from "./token-store";
+import type { TokenStore } from "./token-store";
 
 // â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -145,14 +145,7 @@ export class AuthGateway {
 
     // For Google, also sync to the legacy TokenStore
     if (session.provider === AIProvider.GOOGLE_GEMINI) {
-      this.tokenStore.addOrUpdateAccount({
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
-        expiresAt: token.expiresAt,
-        email: token.email,
-        projectId: token.projectId,
-        createdAt: token.createdAt,
-      });
+      this.tokenStore.addOrUpdateAccount(token);
     }
 
     return token;
@@ -185,14 +178,7 @@ export class AuthGateway {
 
         // Sync Google refreshes to legacy store
         if (provider === AIProvider.GOOGLE_GEMINI) {
-          this.tokenStore.addOrUpdateAccount({
-            accessToken: refreshed.accessToken,
-            refreshToken: refreshed.refreshToken,
-            expiresAt: refreshed.expiresAt,
-            email: refreshed.email,
-            projectId: refreshed.projectId,
-            createdAt: refreshed.createdAt,
-          });
+          this.tokenStore.addOrUpdateAccount(refreshed);
         }
 
         return refreshed;

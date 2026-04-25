@@ -1,8 +1,7 @@
 import { AIProvider, type ProviderAdapter, type ProviderModel, type ProviderQuota, type UnifiedToken, GOOGLE_GEMINI_MODELS } from "./provider-types";
 import { authorizeGoogleGemini, exchangeGoogleGemini } from "../google-gemini/oauth";
-import { calculateTokenExpiry } from "../plugin/auth";
 
-export class GeminiProviderAdapter implements ProviderAdapter {
+export class GoogleGeminiProvider implements ProviderAdapter {
   readonly provider = AIProvider.GOOGLE_GEMINI;
 
   async getAuthUrl(): Promise<{ url: string; state: string }> {
@@ -45,7 +44,7 @@ export class GeminiProviderAdapter implements ProviderAdapter {
     return [...GOOGLE_GEMINI_MODELS];
   }
 
-  async getQuota(token: UnifiedToken): Promise<ProviderQuota | null> {
+  async getQuota(_token: UnifiedToken): Promise<ProviderQuota | null> {
     // Google doesn't have a simple quota API in the same way Claude does via headers on this specific flow,
     // but we can add logic here later.
     return null;

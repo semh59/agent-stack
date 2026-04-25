@@ -1,387 +1,87 @@
-/* ═══════════════════════════════════════════════════════════════════
-   ALLOY DESIGN TOKEN SYSTEM
-   Premium VS Code Extension Theme — Dark-First, Tungsten Accents
-   ═══════════════════════════════════════════════════════════════════ */
-
 @import "tailwindcss";
 
-/* ── Alloy Color Palette ──────────────────────────────────────────── */
+/* ── Palette ─────────────────────────────────────────────────────── */
 :root {
-  /* Core Brand Colors */
-  --alloy-tungsten-50:  #fef9f0;
-  --alloy-tungsten-100: #fdefd4;
-  --alloy-tungsten-200: #fbdcA8;
-  --alloy-tungsten-300: #f7c46e;
-  --alloy-tungsten-400: #f3a833;
-  --alloy-tungsten-500: #e8951a;
-  --alloy-tungsten-600: #cf7410;
-  --alloy-tungsten-700: #a8550e;
-  --alloy-tungsten-800: #884112;
-  --alloy-tungsten-900: #6f3612;
+  --a-orange:   #e8951a;
+  --a-orange-h: #f3a833;
+  --a-orange-d: #cf7410;
 
-  /* Neutral Slate (Dark-First) */
-  --alloy-neutral-0:    #09090b;
-  --alloy-neutral-50:   #18181b;
-  --alloy-neutral-100:  #27272a;
-  --alloy-neutral-200:  #3f3f46;
-  --alloy-neutral-300:  #52525b;
-  --alloy-neutral-400:  #71717a;
-  --alloy-neutral-500:  #a1a1aa;
-  --alloy-neutral-600:  #d4d4d8;
-  --alloy-neutral-700:  #e4e4e7;
-  --alloy-neutral-800:  #f4f4f5;
-  --alloy-neutral-900:  #fafafa;
+  --a-success: #22c55e;
+  --a-warning: #f59e0b;
+  --a-error:   #ef4444;
+  --a-info:    #3b82f6;
 
-  /* Semantic — Success */
-  --alloy-success-light: #34d399;
-  --alloy-success:       #10b981;
-  --alloy-success-dark:  #059669;
-
-  /* Semantic — Warning */
-  --alloy-warning-light: #fbbf24;
-  --alloy-warning:       #f59e0b;
-  --alloy-warning-dark:  #d97706;
-
-  /* Semantic — Error */
-  --alloy-error-light: #f87171;
-  --alloy-error:       #ef4444;
-  --alloy-error-dark:  #dc2626;
-
-  /* Semantic — Info */
-  --alloy-info-light: #60a5fa;
-  --alloy-info:       #3b82f6;
-  --alloy-info-dark:  #2563eb;
+  /* Dark defaults */
+  --a-bg:       #1e1e1e;
+  --a-bg2:      #252526;
+  --a-bg3:      #2d2d2d;
+  --a-surface:  #333333;
+  --a-border:   #454545;
+  --a-text:     #cccccc;
+  --a-text2:    #9d9d9d;
+  --a-text3:    #6e6e6e;
+  --a-accent:   #e8951a;
+  --a-accent-s: rgba(232,149,26,0.12);
 }
 
-/* ── Dark Theme (Default — VS Code Dark) ──────────────────────────── */
-[data-vscode-theme-kind="vscode-dark"],
-[data-vscode-theme-kind="vscode-high-contrast"],
-:host {
-  --alloy-bg-primary:      var(--alloy-neutral-0);
-  --alloy-bg-secondary:    var(--alloy-neutral-50);
-  --alloy-bg-tertiary:     var(--alloy-neutral-100);
-  --alloy-bg-elevated:     #1e1e22;
-  --alloy-bg-hover:        rgba(255, 255, 255, 0.06);
-  --alloy-bg-active:       rgba(255, 255, 255, 0.1);
-  --alloy-bg-selection:    rgba(232, 149, 26, 0.15);
-
-  --alloy-text-primary:    var(--alloy-neutral-800);
-  --alloy-text-secondary:  var(--alloy-neutral-500);
-  --alloy-text-tertiary:   var(--alloy-neutral-400);
-  --alloy-text-muted:      var(--alloy-neutral-300);
-  --alloy-text-inverse:    var(--alloy-neutral-0);
-
-  --alloy-border-default:  rgba(255, 255, 255, 0.08);
-  --alloy-border-subtle:   rgba(255, 255, 255, 0.04);
-  --alloy-border-strong:   rgba(255, 255, 255, 0.15);
-  --alloy-border-accent:   var(--alloy-tungsten-600);
-
-  --alloy-accent:          var(--alloy-tungsten-500);
-  --alloy-accent-hover:    var(--alloy-tungsten-400);
-  --alloy-accent-muted:    rgba(232, 149, 26, 0.2);
-  --alloy-accent-subtle:   rgba(232, 149, 26, 0.08);
-
-  --alloy-glow-sm:   0 0 8px rgba(232, 149, 26, 0.15);
-  --alloy-glow-md:   0 0 20px rgba(232, 149, 26, 0.12);
-  --alloy-glow-lg:   0 0 40px rgba(232, 149, 26, 0.1);
-
-  --alloy-shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.4);
-  --alloy-shadow-md:  0 4px 12px rgba(0, 0, 0, 0.5);
-  --alloy-shadow-lg:  0 8px 30px rgba(0, 0, 0, 0.6);
-  --alloy-shadow-glow: 0 0 15px rgba(232, 149, 26, 0.2), 0 4px 12px rgba(0, 0, 0, 0.4);
-
-  /* Code Blocks */
-  --alloy-code-bg:        #15151a;
-  --alloy-code-border:    rgba(255, 255, 255, 0.06);
-  --alloy-code-header-bg: rgba(255, 255, 255, 0.04);
-
-  /* Scrollbar */
-  --alloy-scrollbar-track: transparent;
-  --alloy-scrollbar-thumb: rgba(255, 255, 255, 0.1);
-  --alloy-scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
-
-  /* Message Bubbles */
-  --alloy-msg-user-bg:        rgba(232, 149, 26, 0.1);
-  --alloy-msg-user-border:    rgba(232, 149, 26, 0.2);
-  --alloy-msg-assistant-bg:   rgba(255, 255, 255, 0.03);
-  --alloy-msg-assistant-border: rgba(255, 255, 255, 0.06);
-  --alloy-msg-system-bg:      rgba(59, 130, 246, 0.08);
-  --alloy-msg-system-border:  rgba(59, 130, 246, 0.15);
-}
-
-/* ── Light Theme (VS Code Light) ──────────────────────────────────── */
+body[data-vscode-theme-kind="vscode-light"],
 [data-vscode-theme-kind="vscode-light"] {
-  --alloy-bg-primary:      #ffffff;
-  --alloy-bg-secondary:    #f8f8fa;
-  --alloy-bg-tertiary:     #f0f0f3;
-  --alloy-bg-elevated:     #ffffff;
-  --alloy-bg-hover:        rgba(0, 0, 0, 0.04);
-  --alloy-bg-active:       rgba(0, 0, 0, 0.07);
-  --alloy-bg-selection:    rgba(207, 116, 16, 0.1);
-
-  --alloy-text-primary:    #18181b;
-  --alloy-text-secondary:  #52525b;
-  --alloy-text-tertiary:   #71717a;
-  --alloy-text-muted:      #a1a1aa;
-  --alloy-text-inverse:    #fafafa;
-
-  --alloy-border-default:  rgba(0, 0, 0, 0.1);
-  --alloy-border-subtle:   rgba(0, 0, 0, 0.05);
-  --alloy-border-strong:   rgba(0, 0, 0, 0.2);
-  --alloy-border-accent:   var(--alloy-tungsten-600);
-
-  --alloy-accent:          var(--alloy-tungsten-600);
-  --alloy-accent-hover:    var(--alloy-tungsten-500);
-  --alloy-accent-muted:    rgba(207, 116, 16, 0.12);
-  --alloy-accent-subtle:   rgba(207, 116, 16, 0.05);
-
-  --alloy-glow-sm:   0 0 8px rgba(207, 116, 16, 0.1);
-  --alloy-glow-md:   0 0 20px rgba(207, 116, 16, 0.08);
-  --alloy-glow-lg:   0 0 40px rgba(207, 116, 16, 0.06);
-
-  --alloy-shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.06);
-  --alloy-shadow-md:  0 4px 12px rgba(0, 0, 0, 0.08);
-  --alloy-shadow-lg:  0 8px 30px rgba(0, 0, 0, 0.1);
-  --alloy-shadow-glow: 0 0 15px rgba(207, 116, 16, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
-
-  --alloy-code-bg:        #f5f5f7;
-  --alloy-code-border:    rgba(0, 0, 0, 0.08);
-  --alloy-code-header-bg: rgba(0, 0, 0, 0.03);
-
-  --alloy-scrollbar-track: transparent;
-  --alloy-scrollbar-thumb: rgba(0, 0, 0, 0.15);
-  --alloy-scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
-
-  --alloy-msg-user-bg:        rgba(207, 116, 16, 0.06);
-  --alloy-msg-user-border:    rgba(207, 116, 16, 0.15);
-  --alloy-msg-assistant-bg:   rgba(0, 0, 0, 0.02);
-  --alloy-msg-assistant-border: rgba(0, 0, 0, 0.06);
-  --alloy-msg-system-bg:      rgba(59, 130, 246, 0.05);
-  --alloy-msg-system-border:  rgba(59, 130, 246, 0.1);
+  --a-bg:      #f3f3f3;
+  --a-bg2:     #ffffff;
+  --a-bg3:     #e8e8e8;
+  --a-surface: #e0e0e0;
+  --a-border:  #c8c8c8;
+  --a-text:    #1f1f1f;
+  --a-text2:   #616161;
+  --a-text3:   #9e9e9e;
+  --a-accent:  #cf7410;
+  --a-accent-s: rgba(207,116,16,0.10);
 }
 
-/* ── Tailwind v4 Theme Extension ──────────────────────────────────── */
-@theme {
-  --color-alloy-accent: var(--alloy-accent);
-  --color-alloy-accent-hover: var(--alloy-accent-hover);
-  --color-alloy-accent-muted: var(--alloy-accent-muted);
-
-  --color-alloy-bg-primary: var(--alloy-bg-primary);
-  --color-alloy-bg-secondary: var(--alloy-bg-secondary);
-  --color-alloy-bg-tertiary: var(--alloy-bg-tertiary);
-  --color-alloy-bg-elevated: var(--alloy-bg-elevated);
-  --color-alloy-bg-hover: var(--alloy-bg-hover);
-
-  --color-alloy-text-primary: var(--alloy-text-primary);
-  --color-alloy-text-secondary: var(--alloy-text-secondary);
-  --color-alloy-text-tertiary: var(--alloy-text-tertiary);
-  --color-alloy-text-muted: var(--alloy-text-muted);
-
-  --color-alloy-border: var(--alloy-border-default);
-  --color-alloy-border-subtle: var(--alloy-border-subtle);
-  --color-alloy-border-strong: var(--alloy-border-strong);
-
-  --color-alloy-success: var(--alloy-success);
-  --color-alloy-warning: var(--alloy-warning);
-  --color-alloy-error: var(--alloy-error);
-  --color-alloy-info: var(--alloy-info);
-
-  --color-tungsten-400: var(--alloy-tungsten-400);
-  --color-tungsten-500: var(--alloy-tungsten-500);
-  --color-tungsten-600: var(--alloy-tungsten-600);
-
-  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
-
-  --animate-fade-in: fade-in 0.2s ease-out;
-  --animate-slide-up: slide-up 0.25s ease-out;
-  --animate-slide-down: slide-down 0.2s ease-out;
-  --animate-scale-in: scale-in 0.15s ease-out;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-spin-slow: spin 3s linear infinite;
-  --animate-shimmer: shimmer 2s linear infinite;
+body[data-vscode-theme-kind="vscode-high-contrast"],
+[data-vscode-theme-kind="vscode-high-contrast"] {
+  --a-bg:     #000000;
+  --a-bg2:    #0a0a0a;
+  --a-bg3:    #1a1a1a;
+  --a-border: rgba(255,255,255,0.3);
+  --a-text:   #ffffff;
+  --a-text2:  #cccccc;
+  --a-accent: #f3a833;
 }
 
-/* ── Keyframe Animations ──────────────────────────────────────────── */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slide-down {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(232, 149, 26, 0.15); }
-  50%      { box-shadow: 0 0 20px rgba(232, 149, 26, 0.3); }
-}
-
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes typing-dot {
-  0%, 60%, 100% { opacity: 0.2; transform: scale(0.8); }
-  30%           { opacity: 1;   transform: scale(1); }
-}
-
-/* ── Base Styles ──────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
+/* ── Reset ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; overflow: hidden; }
 body {
-  font-family: var(--font-sans);
+  font-family: var(--vscode-font-family, "Segoe UI", system-ui, sans-serif);
   font-size: 13px;
   line-height: 1.5;
-  color: var(--alloy-text-primary);
-  background-color: var(--alloy-bg-primary);
+  color: var(--a-text);
+  background: var(--a-bg);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Scrollbar ────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--a-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--a-text3); }
+
+/* ── Focus ───────────────────────────────────────────────────────── */
+:focus-visible { outline: 1px solid var(--a-accent); outline-offset: 1px; border-radius: 2px; }
+
+/* ── Animations ─────────────────────────────────────────────────── */
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin     { to { transform: rotate(360deg); } }
+@keyframes dot-blink {
+  0%,100% { opacity: 0.2; } 50% { opacity: 1; }
 }
 
-::-webkit-scrollbar-track {
-  background: var(--alloy-scrollbar-track);
-}
+.animate-fade-in  { animation: fade-in  0.12s ease-out; }
+.animate-slide-up { animation: slide-up 0.15s ease-out; }
+.animate-spin     { animation: spin 0.8s linear infinite; }
 
-::-webkit-scrollbar-thumb {
-  background: var(--alloy-scrollbar-thumb);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--alloy-scrollbar-thumb-hover);
-}
-
-/* Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--alloy-scrollbar-thumb) var(--alloy-scrollbar-track);
-}
-
-/* ── Focus Ring ───────────────────────────────────────────────────── */
-:focus-visible {
-  outline: 2px solid var(--alloy-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ── Selection ────────────────────────────────────────────────────── */
-::selection {
-  background: var(--alloy-bg-selection);
-  color: var(--alloy-text-primary);
-}
-
-/* ── Utility Classes ──────────────────────────────────────────────── */
-.alloy-glass {
-  background: var(--alloy-bg-elevated);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--alloy-border-subtle);
-}
-
-.alloy-glow {
-  box-shadow: var(--alloy-shadow-glow);
-}
-
-.alloy-glow-subtle {
-  box-shadow: var(--alloy-glow-sm);
-}
-
-.alloy-text-gradient {
-  background: linear-gradient(135deg, var(--alloy-tungsten-400), var(--alloy-tungsten-600));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.alloy-skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--alloy-bg-tertiary) 25%,
-    var(--alloy-bg-hover) 50%,
-    var(--alloy-bg-tertiary) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
-}
-
-.alloy-border-gradient {
-  border-image: linear-gradient(
-    135deg,
-    var(--alloy-tungsten-600),
-    transparent 60%
-  ) 1;
-}
-
-/* Typing Indicator */
-.alloy-typing-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--alloy-accent);
-  animation: typing-dot 1.4s ease-in-out infinite;
-}
-
-.alloy-typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.alloy-typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-/* Status Dots */
-.alloy-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.alloy-status-dot--active {
-  background: var(--alloy-success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
-}
-
-.alloy-status-dot--idle {
-  background: var(--alloy-neutral-400);
-}
-
-.alloy-status-dot--error {
-  background: var(--alloy-error);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
-}
-
-.alloy-status-dot--warning {
-  background: var(--alloy-warning);
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
-}
-
-.alloy-status-dot--processing {
-  background: var(--alloy-accent);
-  box-shadow: 0 0 6px rgba(232, 149, 26, 0.4);
-  animation: pulse-glow 2s ease-in-out infinite;
-}
+.dot-1 { animation: dot-blink 1.2s 0.0s infinite; }
+.dot-2 { animation: dot-blink 1.2s 0.2s infinite; }
+.dot-3 { animation: dot-blink 1.2s 0.4s infinite; }

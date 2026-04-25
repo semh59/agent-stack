@@ -7,6 +7,8 @@ import { ActivePipelineView } from './pages/ActivePipelineView';
 import { PlanApprovalView } from './pages/PlanApprovalView';
 import { AlloySettingsShell } from './pages/sovereign/settings/AlloySettingsShell';
 import { AlloyChatShell } from './pages/sovereign/chat/AlloyChatShell';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { BuilderPage } from './pages/BuilderPage';
 
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
@@ -21,11 +23,8 @@ function App() {
   const setGatewayToken = useAppStore(state => state.setGatewayToken);
 
   useEffect(() => {
-    // Force sync the gateway token on mount to handle race conditions with script injection
     const token = readGatewayToken();
-    if (token) {
-      setGatewayToken(token);
-    }
+    if (token) setGatewayToken(token);
   }, [setGatewayToken]);
 
   return (
@@ -34,10 +33,21 @@ function App() {
         <HashRouter>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
-            
-            {/* Main Application Routes inside Layout */}
+
             <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
-              <Route path="/" element={<Navigate to="/chat" replace />} />
+              <Route path="/" element={<Navigate to="/projects" replace />} />
+
+              <Route path="/projects" element={
+                <PageErrorBoundary pageName="Projects">
+                  <ProjectsPage />
+                </PageErrorBoundary>
+              } />
+              <Route path="/project/:id" element={
+                <PageErrorBoundary pageName="Builder">
+                  <BuilderPage />
+                </PageErrorBoundary>
+              } />
+
               <Route path="/chat" element={
                 <PageErrorBoundary pageName="Chat">
                   <AlloyChatShell />
@@ -48,7 +58,7 @@ function App() {
                   <DashboardView />
                 </PageErrorBoundary>
               } />
-              
+
               <Route path="/pipeline/history" element={
                 <PageErrorBoundary pageName="Pipeline History">
                   <PipelineHistoryView />
@@ -69,17 +79,16 @@ function App() {
                   <ActivePipelineView />
                 </PageErrorBoundary>
               } />
-              
+
               <Route path="/settings" element={
                 <PageErrorBoundary pageName="Settings">
                   <AlloySettingsShell />
                 </PageErrorBoundary>
               } />
-              
-              {/* Fallback for old routes to Dashboard */}
+
               <Route path="/mission" element={<Navigate to="/dashboard" replace />} />
               <Route path="/accounts" element={<Navigate to="/settings" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/projects" replace />} />
             </Route>
           </Routes>
         </HashRouter>

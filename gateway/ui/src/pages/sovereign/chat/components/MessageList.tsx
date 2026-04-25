@@ -1,45 +1,26 @@
-/**
- * MessageList — the scrollable feed of user / assistant turns.
- *
- * Auto-scrolls to the bottom whenever a new message lands or the pending
- * placeholder resolves. Each turn shows a role label, the rendered body, and a
- * footer with latency + token counts (assistant only).
- */
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { Bot, Sparkles, User as UserIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, MessageSquare, Sparkles, User } from "lucide-react";
 import { useAlloyStore } from "../../../../store/alloyStore";
 import { FormattedMessage } from "./message-format";
-import { ChevronDown, ChevronUp, History } from "lucide-react";
 
 function ThoughtBlock({ content }: { content: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  
+  const [open, setOpen] = useState(false);
   return (
-    <div className="mb-5 overflow-hidden rounded-lg border border-[var(--color-alloy-accent)]/20 bg-black/40 shadow-inner">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-[var(--color-alloy-accent)]/5 transition-all group"
+    <div className="mb-4 overflow-hidden rounded-lg border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface-hover)]">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-[var(--color-alloy-surface-active)] transition-colors"
       >
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <History size={12} className="text-[var(--color-alloy-accent)]" />
-            {isOpen && <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[var(--color-alloy-accent)] animate-ping" />}
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--color-alloy-accent)]/60 group-hover:text-[var(--color-alloy-accent)]">
-            Thought Process
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-bold text-white/10 uppercase tracking-widest">{isOpen ? "COLLAPSE" : "EXPAND"}</span>
-          {isOpen ? <ChevronUp size={12} className="text-[var(--color-alloy-accent)]" /> : <ChevronDown size={12} className="opacity-40" />}
-        </div>
+        <span className="text-xs font-medium text-[var(--color-alloy-text-sec)]">
+          Dusunce sureci
+        </span>
+        {open
+          ? <ChevronUp size={13} className="text-[var(--color-alloy-text-dim)]" />
+          : <ChevronDown size={13} className="text-[var(--color-alloy-text-dim)]" />}
       </button>
-      {isOpen && (
-        <div className="border-t border-white/5 p-5 font-mono text-[11px] leading-relaxed text-white/50 bg-black/40 animate-in fade-in slide-in-from-top-1 duration-300">
-          <div className="mb-2 flex items-center gap-2 text-[9px] font-black text-[var(--color-alloy-accent)] opacity-30">
-            <span className="animate-pulse">&gt;</span> KERNEL_HEURISTICS_ACTIVE
-          </div>
+      {open && (
+        <div className="border-t border-[var(--color-alloy-border)] px-3 py-3 font-mono text-xs leading-relaxed text-[var(--color-alloy-text-sec)]">
           {content}
         </div>
       )}
@@ -47,10 +28,24 @@ function ThoughtBlock({ content }: { content: string }) {
   );
 }
 
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-1 px-1 py-2">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-text-dim)] animate-bounce"
+          style={{ animationDelay: `${i * 0.15}s` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function MessageList() {
   const { messages, activeConversationId, isGenerating } = useAlloyStore();
-
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+
   const messageCount = messages.length;
   const lastContentLen = messages[messages.length - 1]?.content.length ?? 0;
 
@@ -60,73 +55,66 @@ export function MessageList() {
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messageCount, lastContentLen]);
 
-  if (!activeConversationId) {
-    return <EmptyState />;
-  }
-
-  if (messages.length === 0 && !isGenerating) {
-    return <EmptyConversation />;
-  }
+  if (!activeConversationId) return <EmptyState />;
+  if (messages.length === 0 && !isGenerating) return <EmptyConversation />;
 
   return (
     <div
       ref={scrollerRef}
-      className="min-h-0 flex-1 overflow-y-auto custom-scrollbar bg-[var(--color-alloy-bg)]"
+      className="alloy-scroll min-h-0 flex-1 overflow-y-auto bg-[var(--color-alloy-bg)]"
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-10">
+      <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8">
         {messages.map((msg) => (
-          <article
-            key={msg.id}
-            className={clsx(
-              "flex gap-5 animate-in fade-in slide-in-from-bottom-2 duration-400",
-              msg.role === "user" ? "flex-row-reverse" : "flex-row",
-            )}
-          >
-            <div
-              className={clsx(
-                "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-300",
-                msg.role === "user"
-                  ? "border-white/10 bg-[var(--color-alloy-surface)] text-white/40"
-                  : "border-[var(--color-alloy-accent)]/30 bg-[var(--color-alloy-accent-dim)] text-[var(--color-alloy-accent)] shadow-alloy-glow",
-              )}
-            >
-              {msg.role === "user" ? <UserIcon size={14} /> : (
-                <div className="flex h-5 w-5 items-center justify-center rounded-sm bg-molten text-[8px] font-bold text-black">AL</div>
-              )}
+          <article key={msg.id} className={clsx(
+            "flex gap-3",
+            msg.role === "user" ? "flex-row-reverse" : "flex-row",
+          )}>
+            <div className={clsx(
+              "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+              msg.role === "user"
+                ? "bg-[var(--color-alloy-surface-hover)] text-[var(--color-alloy-text-sec)] border border-[var(--color-alloy-border)]"
+                : "bg-[var(--color-alloy-accent)] text-white",
+            )}>
+              {msg.role === "user"
+                ? <User size={13} />
+                : <span className="text-[10px] font-bold">A</span>}
             </div>
-            <div
-              className={clsx(
-                "min-w-0 flex-1 rounded-xl border transition-all duration-300 overflow-hidden",
-                msg.role === "user"
-                  ? "border-white/5 bg-[var(--color-alloy-surface)]/40 px-5 py-4"
-                  : "border-[var(--color-alloy-accent)]/10 bg-black/20 backdrop-blur-sm",
+
+            <div className={clsx(
+              "min-w-0 max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+              msg.role === "user"
+                ? "rounded-tr-sm bg-[var(--color-alloy-accent)] text-white"
+                : "rounded-tl-sm bg-[var(--color-alloy-surface)] border border-[var(--color-alloy-border)] text-[var(--color-alloy-text)]",
+            )}>
+              {msg.role === "model" && msg.content.includes("Thought:") && (
+                <ThoughtBlock content={msg.content.split("Thought:")[1]?.split("\n\n")[0] ?? ""} />
               )}
-            >
-              {msg.role === "model" && (
-                <div className="flex items-center gap-2 border-b border-white/5 bg-white/[0.02] px-5 py-2.5">
-                   <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-accent)] animate-pulse-cyan shadow-alloy-glow" />
-                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-accent)]">Alloy Reasoning &gt;</span>
-                </div>
-              )}
-              <div className="px-5 py-5">
-                {msg.role === "model" && msg.content.includes("Thought:") && (
-                  <ThoughtBlock content={msg.content.split("Thought:")[1]?.split("\n\n")[0] || ""} />
-                )}
-                <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/90">
-                  <FormattedMessage 
-                    content={msg.content.includes("Thought:") ? msg.content.split("Thought:")[1]?.split("\n\n").slice(1).join("\n\n") || msg.content : msg.content} 
-                    role={msg.role} 
-                  />
-                </div>
+              <div className={clsx(
+                "prose max-w-none text-sm",
+                msg.role === "user" ? "prose-invert" : "prose-slate",
+              )}>
+                <FormattedMessage
+                  content={
+                    msg.content.includes("Thought:")
+                      ? msg.content.split("Thought:")[1]?.split("\n\n").slice(1).join("\n\n") ?? msg.content
+                      : msg.content
+                  }
+                  role={msg.role}
+                />
               </div>
             </div>
           </article>
         ))}
-        {isGenerating && messages.length === 0 && (
-           <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-alloy-text-sec)]">
-              <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-alloy-accent)] animate-pulse shadow-alloy-glow" />
-              Initializing agents...
-           </div>
+
+        {isGenerating && (
+          <div className="flex gap-3">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-alloy-accent)] text-[10px] font-bold text-white">
+              A
+            </div>
+            <div className="rounded-2xl rounded-tl-sm border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] px-4 py-3">
+              <TypingIndicator />
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -136,14 +124,13 @@ export function MessageList() {
 function EmptyState() {
   return (
     <div className="flex min-h-0 flex-1 items-center justify-center p-10">
-      <div className="max-w-md space-y-2 text-center">
-        <Bot size={40} className="mx-auto text-[var(--color-alloy-accent)]" />
-        <h2 className="font-display text-xl tracking-wide text-white">
-          Alloy is ready.
-        </h2>
+      <div className="max-w-sm space-y-3 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-alloy-accent-dim)]">
+          <MessageSquare size={22} className="text-[var(--color-alloy-accent)]" />
+        </div>
+        <h2 className="text-base font-semibold text-[var(--color-alloy-text)]">Hazir</h2>
         <p className="text-sm text-[var(--color-alloy-text-sec)]">
-          Start a new conversation from the left rail. Everything you send will
-          flow through the optimization pipeline before touching a model.
+          Soldan yeni bir sohbet baslatın.
         </p>
       </div>
     </div>
@@ -151,20 +138,34 @@ function EmptyState() {
 }
 
 function EmptyConversation() {
+  const { sendMessage } = useAlloyStore();
+  const suggestions = [
+    "Bir Python scripti yaz",
+    "Bu kodu acikla",
+    "Hizli bir ozet cikar",
+  ];
+
   return (
-    <div className="flex min-h-0 flex-1 items-center justify-center p-10">
-      <div className="max-w-md space-y-3 text-center">
-        <Sparkles size={32} className="mx-auto text-[var(--color-alloy-accent)]" />
-        <h2 className="font-display text-lg tracking-wide text-white">
-          New conversation
-        </h2>
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-8 p-10">
+      <div className="max-w-sm space-y-3 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-alloy-accent-dim)]">
+          <Sparkles size={22} className="text-[var(--color-alloy-accent)]" />
+        </div>
+        <h2 className="text-base font-semibold text-[var(--color-alloy-text)]">Ne sormak istersiniz?</h2>
         <p className="text-sm text-[var(--color-alloy-text-sec)]">
-          Your first message auto-names this chat. Try:
-          <br />
-          <span className="mt-2 inline-block italic text-[var(--color-alloy-accent)]">
-            “Write a Python script that watches a folder and uploads new files to S3.”
-          </span>
+          Ilk mesajiniz sohbete otomatik baslik verir.
         </p>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2">
+        {suggestions.map((s) => (
+          <button
+            key={s}
+            onClick={() => void sendMessage(s)}
+            className="rounded-full border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] px-4 py-2 text-sm text-[var(--color-alloy-text-sec)] hover:border-[var(--color-alloy-accent)] hover:text-[var(--color-alloy-accent)] hover:bg-[var(--color-alloy-accent-dim)] transition-colors"
+          >
+            {s}
+          </button>
+        ))}
       </div>
     </div>
   );

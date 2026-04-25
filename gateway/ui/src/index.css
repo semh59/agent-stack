@@ -1,62 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Alloy Masterclass Palette: Industrial Premium */
-  --color-alloy-bg: #0a0a0b;
-  --color-alloy-surface: #121214;
-  --color-alloy-surface-hover: #18191c;
-  --color-alloy-surface-active: #1e1f24;
-  
-  --color-alloy-border: rgba(255, 255, 255, 0.06);
-  --color-alloy-border-bright: rgba(0, 240, 255, 0.15);
-  
-  --color-alloy-accent: #00f0ff;          /* Forge Cyan */
-  --color-alloy-accent-dim: rgba(0, 240, 255, 0.08);
-  --color-alloy-accent-glow: 0 4px 20px rgba(0, 240, 255, 0.2);
-  
-  --color-alloy-molten: #ff8a00;         /* Fusion Orange */
-  --color-alloy-molten-glow: 0 4px 25px rgba(255, 138, 0, 0.3);
-  
-  --color-alloy-text: #f8fafc;
-  --color-alloy-text-sec: rgba(248, 250, 252, 0.7);
-  --color-alloy-text-dim: rgba(248, 250, 252, 0.4);
-  
-  --color-alloy-success: #10b981;        /* Modern Emerald */
-  --color-alloy-warning: #f59e0b;
-  --color-alloy-error: #ef4444;
-  
-  --font-display: "DM Mono", "Outfit", "Inter", sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --font-ui: "Inter", sans-serif;
+  --color-alloy-bg:             #f9fafb;
+  --color-alloy-surface:        #ffffff;
+  --color-alloy-surface-hover:  #f3f4f6;
+  --color-alloy-surface-active: #eff6ff;
 
-  /* Elevations */
-  --shadow-alloy-elevated: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
-  --shadow-alloy-glow: 0 0 40px rgba(0, 240, 255, 0.1);
+  --color-alloy-border:         #e5e7eb;
+  --color-alloy-border-bright:  #d1d5db;
+
+  --color-alloy-accent:         #2563eb;
+  --color-alloy-accent-hover:   #1d4ed8;
+  --color-alloy-accent-dim:     #eff6ff;
+  --color-alloy-accent-ring:    rgba(37, 99, 235, 0.25);
+
+  --color-alloy-text:           #111827;
+  --color-alloy-text-sec:       #6b7280;
+  --color-alloy-text-dim:       #9ca3af;
+
+  --color-alloy-success:        #10b981;
+  --color-alloy-warning:        #f59e0b;
+  --color-alloy-error:          #ef4444;
+
+  --font-body:  "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono:  "JetBrains Mono", "Fira Code", monospace;
+  --font-ui:    "Inter", sans-serif;
+
+  --shadow-alloy-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-alloy-md:      0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-alloy-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-alloy-focus:   0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="dark"] {
+  --color-alloy-bg:             #0f172a;
+  --color-alloy-surface:        #1e293b;
+  --color-alloy-surface-hover:  #293548;
+  --color-alloy-surface-active: #1e3a5f;
+
+  --color-alloy-border:         #334155;
+  --color-alloy-border-bright:  #475569;
+
+  --color-alloy-accent:         #60a5fa;
+  --color-alloy-accent-hover:   #93c5fd;
+  --color-alloy-accent-dim:     rgba(96, 165, 250, 0.12);
+  --color-alloy-accent-ring:    rgba(96, 165, 250, 0.3);
+
+  --color-alloy-text:           #f1f5f9;
+  --color-alloy-text-sec:       #94a3b8;
+  --color-alloy-text-dim:       #64748b;
+
+  --shadow-alloy-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-alloy-md:      0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-alloy-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
-  :root {
-    /* Glassmorphism */
-    --glass-bg: rgba(18, 18, 20, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.04);
-    --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7);
-  }
-
-  [data-theme="light"] {
-    --color-alloy-bg: #f8fafc;
-    --color-alloy-surface: #ffffff;
-    --color-alloy-border: #e2e8f0;
-    --color-alloy-text: #0f172a;
-    --color-alloy-text-sec: #64748b;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 
   body {
     background-color: var(--color-alloy-bg);
-    background-image: 
-      radial-gradient(circle at 50% -20%, rgba(0, 240, 255, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 0% 0%, rgba(255, 138, 0, 0.01) 0%, transparent 30%);
     color: var(--color-alloy-text);
     font-family: var(--font-body);
     font-size: 14px;
@@ -65,62 +69,35 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
-    transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    font-weight: 500;
-    letter-spacing: 0.05em;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    line-height: 1.25;
   }
 
-  code, pre {
-    font-family: var(--font-mono);
-  }
+  code, pre, kbd { font-family: var(--font-mono); }
 }
 
 @layer utilities {
-  .text-shadow-glow {
-    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  .alloy-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-alloy-border) transparent;
   }
-  .border-glass {
-    border: 1px solid var(--color-alloy-border);
-    background: rgba(15, 17, 23, 0.6);
-    backdrop-filter: blur(12px);
-  }
-  .bg-molten {
-    background: linear-gradient(135deg, #ff8a00 0%, #ff4d00 100%);
-    box-shadow: var(--color-alloy-molten-glow);
-  }
-  .animate-pulse-cyan {
-    animation: pulse-cyan 2s infinite ease-in-out;
-  }
-  .alloy-scroll::-webkit-scrollbar {
-    width: 4px;
-  }
-  .alloy-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .alloy-scroll::-webkit-scrollbar-thumb {
-    background: var(--color-alloy-border);
-    border-radius: 10px;
-  }
-  .alloy-scroll::-webkit-scrollbar-thumb:hover {
-    background: var(--color-alloy-accent-dim);
-  }
-}
+  .alloy-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+  .alloy-scroll::-webkit-scrollbar-track { background: transparent; }
+  .alloy-scroll::-webkit-scrollbar-thumb { background: var(--color-alloy-border); border-radius: 9999px; }
+  .alloy-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-alloy-border-bright); }
 
-@keyframes pulse-cyan {
-  0%, 100% { opacity: 0.4; filter: blur(2px); }
-  50% { opacity: 0.8; filter: blur(0px); }
+  .alloy-skeleton {
+    background: linear-gradient(90deg, var(--color-alloy-surface-hover) 25%, var(--color-alloy-border) 50%, var(--color-alloy-surface-hover) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
 }
 
 @keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

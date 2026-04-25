@@ -1,96 +1,96 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Alloy PipelineStatusBar — Compact pipeline progress indicator
-   ═══════════════════════════════════════════════════════════════════ */
-
-import { Activity, CheckCircle2, XCircle, Loader2, Pause } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/shared";
 import { usePipelineStore } from "@/store/pipelineStore";
+
+type StatusKey = "idle" | "standby" | "active" | "running" | "paused" | "completed" | "failed";
+
+const STATUS_CFG: Record<StatusKey, { label: string; color: string; spinning: boolean }> = {
+  idle:      { label: "Bekliyor",      color: "var(--a-text3)",   spinning: false },
+  standby:   { label: "Hazır",         color: "var(--a-text3)",   spinning: false },
+  active:    { label: "Çalışıyor",     color: "var(--a-accent)",  spinning: true  },
+  running:   { label: "Çalışıyor",     color: "var(--a-accent)",  spinning: true  },
+  paused:    { label: "Duraklatıldı",  color: "var(--a-warning)", spinning: false },
+  completed: { label: "Tamamlandı",    color: "var(--a-success)", spinning: false },
+  failed:    { label: "Hata",          color: "var(--a-error)",   spinning: false },
+};
+
+function phaseColor(status: string): string {
+  if (status === "completed") return "var(--a-success)";
+  if (status === "started" || status === "running") return "var(--a-accent)";
+  if (status === "failed") return "var(--a-error)";
+  return "var(--a-border)";
+}
 
 export function PipelineStatusBar() {
   const { pipelineStatus, phases, isPipelineRunning } = usePipelineStore();
 
   if (!pipelineStatus) return null;
 
-  const statusConfig: Record<string, { icon: React.ReactNode; variant: "default" | "processing" | "warning" | "success" | "error"; label: string }> = {
-    idle: { icon: <Activity className="w-3 h-3" />, variant: "default", label: "Idle" },
-    standby: { icon: <Activity className="w-3 h-3" />, variant: "default", label: "Standby" },
-    active: { icon: <Loader2 className="w-3 h-3 animate-spin" />, variant: "processing", label: "Active" },
-    running: { icon: <Loader2 className="w-3 h-3 animate-spin" />, variant: "processing", label: "Running" },
-    paused: { icon: <Pause className="w-3 h-3" />, variant: "warning", label: "Paused" },
-    completed: { icon: <CheckCircle2 className="w-3 h-3" />, variant: "success", label: "Completed" },
-    failed: { icon: <XCircle className="w-3 h-3" />, variant: "error", label: "Failed" },
-  };
-
-  const statusKey = pipelineStatus.status.status;
-  const config = statusConfig[statusKey] ?? statusConfig.idle;
+  const statusKey = (pipelineStatus.status.status ?? "idle") as StatusKey;
+  const cfg = STATUS_CFG[statusKey] ?? STATUS_CFG.idle;
 
   const overallProgress = phases.length > 0
     ? Math.round(
-        phases.reduce((sum, p) => sum + (p.status === "completed" ? 100 : p.progress ?? 0), 0) /
-        phases.length
+        phases.reduce((sum, p) => sum + (p.status === "completed" ? 100 : p.progress ?? 0), 0) / phases.length
       )
     : 0;
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 px-3 py-1.5",
-        "bg-[var(--alloy-bg-secondary)] border-b border-[var(--alloy-border-subtle)]",
-        "text-[var(--alloy-text-secondary)]"
-      )}
-    >
-      <span className="text-[var(--alloy-accent)]">{config.icon}</span>
-      <span className="text-[11px] font-medium">Pipeline</span>
-      <Badge variant={config.variant} size="xs" dot>
-        {config.label}
-      </Badge>
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8,
+      padding: "4px 12px", background: "var(--a-bg2)",
+      borderBottom: "1px solid var(--a-border)", flexShrink: 0,
+    }}>
+      {/* Status indicator */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0, color: cfg.color }}>
+        {cfg.spinning
+          ? <span style={{ fontSize: 10, display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span>
+          : <span style={{ fontSize: 10 }}>◎</span>
+        }
+        <span style={{ fontSize: 10, fontWeight: 500 }}>{cfg.label}</span>
+      </div>
 
-      {/* Phase indicators */}
+      {/* Phases */}
       {phases.length > 0 && (
-        <div className="flex items-center gap-1 ml-2">
-          {phases.map((phase, i) => (
-            <div key={phase.name} className="flex items-center gap-1">
-              <PhaseDot status={phase.status} />
-              <span className="text-[10px] text-[var(--alloy-text-muted)]">{phase.name}</span>
-              {i < phases.length - 1 && (
-                <div className="w-3 h-px bg-[var(--alloy-border-default)]" />
-              )}
-            </div>
-          ))}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
+          <span style={{ color: "var(--a-border)", fontSize: 10 }}>·</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, overflowX: "auto" }}>
+            {phases.map((phase, i) => (
+              <div key={phase.name} style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+                <span style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: phaseColor(phase.status),
+                  display: "inline-block",
+                }} />
+                <span style={{
+                  fontSize: 9,
+                  color: phase.status === "running"
+                    ? "var(--a-text)"
+                    : "var(--a-text3)",
+                }}>
+                  {phase.name}
+                </span>
+                {i < phases.length - 1 && <span style={{ color: "var(--a-text3)", fontSize: 9, opacity: 0.5 }}>›</span>}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="flex-1" />
-
       {/* Progress bar */}
       {isPipelineRunning && (
-        <div className="flex items-center gap-1.5">
-          <div className="w-16 h-1 bg-[var(--alloy-bg-tertiary)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--alloy-accent)] rounded-full transition-all duration-500"
-              style={{ width: `${overallProgress}%` }}
-            />
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0, marginLeft: "auto" }}>
+          <div style={{ width: 40, height: 3, background: "var(--a-bg3)", borderRadius: 99, overflow: "hidden" }}>
+            <div style={{
+              height: "100%", background: "var(--a-accent)", borderRadius: 99,
+              width: `${overallProgress}%`, transition: "width 0.5s ease",
+            }} />
           </div>
-          <span className="text-[10px] font-mono text-[var(--alloy-text-muted)]">
+          <span style={{ fontSize: 10, fontFamily: "monospace", color: "var(--a-accent)", width: 24, textAlign: "right" }}>
             {overallProgress}%
           </span>
         </div>
       )}
-    </div>
-  );
-}
 
-function PhaseDot({ status }: { status: string }) {
-  return (
-    <div
-      className={cn(
-        "w-1.5 h-1.5 rounded-full shrink-0",
-        status === "completed" && "bg-[var(--alloy-success)]",
-        status === "running" && "bg-[var(--alloy-accent)] animate-pulse",
-        status === "failed" && "bg-[var(--alloy-error)]",
-        status === "pending" && "bg-[var(--alloy-text-muted)]"
-      )}
-    />
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
   );
 }

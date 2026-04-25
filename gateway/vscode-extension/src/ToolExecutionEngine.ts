@@ -77,6 +77,21 @@ export class ToolExecutionEngine implements IToolExecutionEngine {
 	}
 
 	/**
+	 * runCommand: Approval gate for shell execution.
+	 * The actual execution is handled by VSCodeTerminalExecutor.
+	 */
+	public async runCommand(command: string): Promise<ToolResult> {
+		try {
+			if (!(await this.requestApproval(`Run command: ${command}`))) {
+				return { success: false, output: 'Command rejected by user.' };
+			}
+			return { success: true, output: 'Command approved' };
+		} catch (err: any) {
+			return { success: false, output: `Policy Error: ${err.message}` };
+		}
+	}
+
+	/**
 	 * Resolve path and check for trait traversal with realpath.
 	 */
 	private async resolvePath(relativePath: string): Promise<string> {

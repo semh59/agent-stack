@@ -4,7 +4,6 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 import * as fs from "fs";
-import * as path from "path";
 import type * as vscode from "vscode";
 
 /* ── Asset Resolution ─────────────────────────────────────────────── */
@@ -47,7 +46,7 @@ export function resolveWebviewAssets(
       strategy = "stable-name";
     } else if (jsFiles.length > 0) {
       // Strategy 2: Use the first JS file found
-      scriptFileName = jsFiles[0];
+      scriptFileName = jsFiles[0]!;
       strategy = "discovered";
       notes.push(`Using discovered JS file: ${jsFiles[0]}`);
     } else {
@@ -57,7 +56,7 @@ export function resolveWebviewAssets(
     if (cssFiles.includes("index.css")) {
       styleFileName = "index.css";
     } else if (cssFiles.length > 0) {
-      styleFileName = cssFiles[0];
+      styleFileName = cssFiles[0]!;
       notes.push(`Using discovered CSS file: ${cssFiles[0]}`);
     } else {
       notes.push("No CSS files found in assets directory — skipping stylesheet");
@@ -86,7 +85,7 @@ export interface BuildHtmlOptions {
  * Includes CSP, nonce, boot gate, and VS Code theme integration.
  */
 export function buildWebviewHtml(options: BuildHtmlOptions): string {
-  const { webview, scriptUri, styleUri, nonce, cspSource, extraConnectOrigins = [] } = options;
+  const { scriptUri, styleUri, nonce, cspSource, extraConnectOrigins = [] } = options;
 
   const connectSources = [
     "'self'",
@@ -192,56 +191,17 @@ export function buildWebviewHtml(options: BuildHtmlOptions): string {
 export class WebviewBootGate<T> {
   private queue: T[] = [];
   private _ready = false;
-  private _sender: ((msg: T) => void) | null = null;
-  private readonly _maxSize: number;
-
-  constructor(maxSize = 400) {
-    this._maxSize = maxSize;
+  private _sendFn: ((msg: T) => void) | null = null;
+  constructor(private readonly _timeoutMs: number = 400) {}
+  enqueue(msg: T, fn: (msg: T) => void): void {
+    this._sendFn = fn;
+    if (this._ready) { fn(msg); } else { this.queue.push(msg); }
   }
-
-  get ready(): boolean {
-    return this._ready;
-  }
-
-  markReady(sender: (msg: T) => void): void {
-    this._sender = sender;
+  markReady(fn: (msg: T) => void): void {
     this._ready = true;
-    while (this.queue.length > 0) {
-      const msg = this.queue.shift()!;
-      this._sender(msg);
-    }
-  }
-
-  enqueue(msg: T, fallbackSender: (msg: T) => void): void {
-    if (this._ready && this._sender) {
-      this._sender(msg);
-    } else {
-      if (this.queue.length >= this._maxSize) {
-        this.queue.shift();
-      }
-      this.queue.push(msg);
-      // Try sending via fallback in case webview is ready but gate isn't marked
-      try {
-        fallbackSender(msg);
-      } catch {
-        // Ignore — will be sent on markReady
-      }
-    }
-  }
-
-  reset(): void {
+    this._sendFn = fn;
+    for (const m of this.queue) fn(m);
     this.queue = [];
-    this._ready = false;
-    this._sender = null;
   }
-}
-
-/* ── Window Type Augmentation ─────────────────────────────────────── */
-declare global {
-  interface Window {
-    __ALLOY_BOOT?: {
-      ready: () => void;
-      fail: (err?: Error) => void;
-    };
-  }
+  reset(): void { this._ready = false; this.queue = []; this._sendFn = null; }
 }

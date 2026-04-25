@@ -99,6 +99,12 @@ class DocumentIndexer:
 
         Returns: {"success": bool, "chunks_indexed": int, "cached": bool}
         """
+        # ── Path traversal protection (defense-in-depth) ──────────
+        if ".." in path or path.startswith("/") or path.startswith("\\"):
+            return {"success": False, "error": "Invalid document path", "path": path}
+        # Normalize separators
+        path = path.replace("\\", "/").lstrip("/")
+
         file_hash = hashlib.sha256(content.encode()).hexdigest()
 
         if self._file_hashes.get(path) == file_hash:

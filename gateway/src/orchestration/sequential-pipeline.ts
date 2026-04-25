@@ -131,8 +131,7 @@ export class SequentialPipeline {
     this.projectRoot = projectRoot;
     this.alloyClient = alloyClient;
     this.memory = overrides.memory ?? new SharedMemory(projectRoot);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.rarv = new RARVEngine(this.memory as unknown as any); // Type alignment planned for future hardening stage
+    this.rarv = new RARVEngine(this.memory);
     this.terminal = overrides.terminal ?? new TerminalExecutor(projectRoot);
     this.verifier = new VerificationEngine(this.terminal);
     this.skillGenerator = new SkillGenerator(projectRoot);
@@ -693,8 +692,6 @@ export class SequentialPipeline {
        failedCount: results.filter(r => r.status === 'failed').length,
        skippedCount: results.filter(r => r.status === 'skipped').length,
        haltedCount: results.filter(r => r.status === 'halted').length,
-       totalTokenUsage: { ...this.cumulativeTokens },
-       totalEstimatedCostUsd: this.cumulativeTokens.estimatedCostUsd,
-     };
+    };
   }
 }

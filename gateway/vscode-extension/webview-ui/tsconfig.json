@@ -11,6 +11,7 @@
     "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    "noEmit": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "baseUrl": ".",
@@ -18,5 +19,10 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/**/*.js",
+    "node_modules",
+    "dist"
+  ]
 }

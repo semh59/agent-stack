@@ -7,12 +7,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "./",
   resolve: {
+    extensions: [".mts", ".ts", ".tsx", ".mjs", ".js", ".jsx", ".json"],
     alias: {
       "@": resolve(__dirname, "src"),
     },
   },
   build: {
-    outDir: resolve(__dirname, "./dist"),
+    outDir: resolve(__dirname, "../ui/dist"),
     emptyOutDir: false,
     rollupOptions: {
       output: {

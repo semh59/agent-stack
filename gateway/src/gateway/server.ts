@@ -46,6 +46,7 @@ import { registerMissionRoutes } from "../api/routers/mission.router";
 import { registerSettingsRoutes } from "../services/settings/routes";
 import { registerOptimizeRoutes } from "./routes/optimize";
 import { registerChatRoutes } from "../api/routers/chat.router";
+import { registerProjectRoutes } from "../api/routers/projects.router";
 import { registerSystemRoutes } from "../api/routers/system.router";
 import { registerAuthRoutes } from "../api/routers/auth.router";
 import { registerAccountsRoutes } from "../api/routers/accounts.router";
@@ -639,6 +640,11 @@ export class GatewayServer {
       getAccountManager: () => this.accountManager,
       chatRepository: this.chatRepository,
       slashCommandRegistry: this.slashCommandRegistry,
+    });
+
+    registerProjectRoutes(this.app, {
+      tokenStore: this.tokenStore,
+      getAccountManager: () => this.accountManager,
     });
 
     registerPrivacyRoutes(this.app, {

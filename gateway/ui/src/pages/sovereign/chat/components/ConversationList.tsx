@@ -1,13 +1,18 @@
-/**
- * ConversationList — left rail that lists all chats, newest first.
- *
- * Each row shows the auto-derived title, a short "updated X ago" timestamp,
- * and a trash icon on hover. The active conversation is highlighted with the
- * accent token so it's obvious at a glance.
- */
 import clsx from "clsx";
-import { MessageSquare, Plus, Trash2, Activity } from "lucide-react";
+import { MessageSquare, Plus, Trash2, SquarePen } from "lucide-react";
 import { useAlloyStore } from "../../../../store/alloyStore";
+
+function timeAgo(date: Date): string {
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1)  return "az once";
+  if (mins < 60) return `${mins}d once`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs}s once`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7)  return `${days}g once`;
+  return date.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+}
 
 export function ConversationList() {
   const {
@@ -15,67 +20,61 @@ export function ConversationList() {
     activeConversationId,
     startNewChat,
     selectConversation,
-    clearHistory
+    clearHistory,
   } = useAlloyStore();
 
   return (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-black/20 backdrop-blur-3xl">
-      <div className="flex items-center justify-between border-b border-white/5 px-4 py-4 bg-white/5">
-        <div className="flex flex-col">
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--color-alloy-accent)]">History</span>
-          <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Storage</span>
-        </div>
+    <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)]">
+      <div className="flex h-14 items-center justify-between border-b border-[var(--color-alloy-border)] px-4">
+        <span className="text-sm font-semibold text-[var(--color-alloy-text)]">Sohbetler</span>
         <button
-          onClick={() => startNewChat()}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--color-alloy-accent)]/20 bg-[var(--color-alloy-accent)]/10 text-[var(--color-alloy-accent)] transition-all hover:bg-[var(--color-alloy-accent)] hover:text-black shadow-alloy-molten-glow"
+          onClick={() => void startNewChat()}
+          title="Yeni sohbet"
+          aria-label="Yeni sohbet"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-accent-dim)] hover:text-[var(--color-alloy-accent)] hover:border-[var(--color-alloy-accent)] transition-colors"
         >
-          <Plus size={14} />
+          <SquarePen size={15} />
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+      <div className="alloy-scroll min-h-0 flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <MessageSquare size={24} className="mx-auto mb-3 text-[var(--color-alloy-border)]" />
-            <p className="text-xs text-[var(--color-alloy-text-sec)]">
-              No history found.
-            </p>
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <MessageSquare size={28} className="mb-3 text-[var(--color-alloy-border)]" />
+            <p className="text-sm text-[var(--color-alloy-text-dim)]">Henuz sohbet yok</p>
+            <button
+              onClick={() => void startNewChat()}
+              className="mt-4 flex items-center gap-1.5 rounded-lg bg-[var(--color-alloy-accent)] px-3 py-2 text-xs font-medium text-white hover:bg-[var(--color-alloy-accent-hover)] transition-colors"
+            >
+              <Plus size={13} />
+              Yeni sohbet
+            </button>
           </div>
         ) : (
-          <ul className="p-2 space-y-1">
+          <ul className="p-2 space-y-0.5">
             {conversations.map((convo) => {
-              const isActive = activeConversationId === convo.id;
+              const active = activeConversationId === convo.id;
               return (
                 <li key={convo.id}>
-                  <div
-                    className={clsx(
-                      "group relative flex cursor-pointer flex-col gap-1 rounded-xl border p-3 transition-all duration-300",
-                      isActive
-                        ? "border-[var(--color-alloy-accent)]/40 bg-[var(--color-alloy-accent)]/10 shadow-[0_0_15px_rgba(0,240,255,0.05)] border-l-4 border-l-[var(--color-alloy-accent)]"
-                        : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10"
-                    )}
+                  <button
                     onClick={() => selectConversation(convo.id)}
+                    className={clsx(
+                      "group flex w-full flex-col gap-1 rounded-lg px-3 py-2.5 text-left transition-colors",
+                      active
+                        ? "bg-[var(--color-alloy-accent-dim)] text-[var(--color-alloy-accent)]"
+                        : "hover:bg-[var(--color-alloy-surface-hover)] text-[var(--color-alloy-text)]",
+                    )}
                   >
-                    <div className="flex items-center justify-between gap-1">
-                      <span className={clsx(
-                        "truncate text-[11px] font-black uppercase tracking-wider",
-                        isActive ? "text-[var(--color-alloy-accent)]" : "text-white/40"
-                      )}>
-                        {isActive && <Activity size={10} className="inline mr-2 animate-pulse" />}
-                        {convo.title}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 border-t border-white/5 pt-2">
-                      <span className="font-mono text-[9px] text-white/20 tracking-tighter">
-                         ID_{new Date(convo.updatedAt).getTime().toString(16).slice(-6).toUpperCase()}
-                      </span>
-                      {isActive ? (
-                        <span className="text-[8px] font-bold text-[var(--color-alloy-accent)] animate-pulse">Current</span>
-                      ) : (
-                        <span className="text-[8px] font-bold text-white/10">Saved</span>
-                      )}
-                    </div>
-                  </div>
+                    <span className={clsx(
+                      "block truncate text-sm font-medium leading-snug",
+                      active ? "text-[var(--color-alloy-accent)]" : "text-[var(--color-alloy-text)]",
+                    )}>
+                      {convo.title || "Yeni sohbet"}
+                    </span>
+                    <span className="text-[11px] text-[var(--color-alloy-text-dim)]">
+                      {timeAgo(new Date(convo.updatedAt))}
+                    </span>
+                  </button>
                 </li>
               );
             })}
@@ -83,15 +82,17 @@ export function ConversationList() {
         )}
       </div>
 
-      <div className="p-3 border-t border-[var(--color-alloy-border)]">
-        <button 
-          onClick={clearHistory}
-          className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-[10px] uppercase tracking-wider text-[var(--color-alloy-text-sec)] transition hover:bg-red-500/10 hover:text-red-400"
-        >
-          <Trash2 size={12} />
-          Wipe Cache
-        </button>
-      </div>
+      {conversations.length > 0 && (
+        <div className="border-t border-[var(--color-alloy-border)] p-2">
+          <button
+            onClick={clearHistory}
+            className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[var(--color-alloy-text-sec)] hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <Trash2 size={13} />
+            Gecmisi temizle
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

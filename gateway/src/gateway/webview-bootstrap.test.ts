@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   buildWebviewHtml,
@@ -42,7 +42,7 @@ function createMockFs(state: {
 
 describe("resolveWebviewAssets", () => {
   it("prefers fixed index.js/index.css when present", () => {
-    const mockFs = createMockFs({
+    createMockFs({
       files: {
         "D:/dist/assets/index.js": "console.log('main')",
         "D:/dist/assets/index.css": "body{}",
@@ -52,14 +52,14 @@ describe("resolveWebviewAssets", () => {
       },
     });
 
-    const resolved = resolveWebviewAssets("D:/dist", "D:/dist/assets", mockFs);
+    const resolved = resolveWebviewAssets("D:/dist", "D:/dist/assets");
     expect(resolved.strategy).toBe("fixed-index");
     expect(resolved.scriptFileName).toBe("index.js");
     expect(resolved.styleFileName).toBe("index.css");
   });
 
   it("falls back to index.html entries when fixed files are missing", () => {
-    const mockFs = createMockFs({
+    createMockFs({
       files: {
         "D:/dist/index.html":
           '<link rel="stylesheet" href="./assets/main-abc.css"><script type="module" src="./assets/main-abc.js"></script>',
@@ -71,14 +71,14 @@ describe("resolveWebviewAssets", () => {
       },
     });
 
-    const resolved = resolveWebviewAssets("D:/dist", "D:/dist/assets", mockFs);
+    const resolved = resolveWebviewAssets("D:/dist", "D:/dist/assets");
     expect(resolved.strategy).toBe("html-entry");
     expect(resolved.scriptFileName).toBe("main-abc.js");
     expect(resolved.styleFileName).toBe("main-abc.css");
   });
 
   it("uses non-vendor assets in fallback scan", () => {
-    const mockFs = createMockFs({
+    createMockFs({
       files: {},
       directories: {
         "D:/dist/assets": [
@@ -91,7 +91,7 @@ describe("resolveWebviewAssets", () => {
       },
     });
 
-    const resolved = resolveWebviewAssets("D:/dist", "D:/dist/assets", mockFs);
+    const resolved = resolveWebviewAssets("D:/dist", "D:/dist/assets");
     expect(resolved.strategy).toBe("fallback-scan");
     expect(resolved.scriptFileName).toBe("app-main.js");
     expect(resolved.styleFileName).toBe("app-main.css");
@@ -101,12 +101,12 @@ describe("resolveWebviewAssets", () => {
 describe("buildWebviewHtml", () => {
   it("generates module script + nonce + csp invariants", () => {
     const html = buildWebviewHtml({
-      title: "Mission Control",
+      webview: { asWebviewUri: (u: any) => u } as any,
       nonce: "nonce123",
       cspSource: "vscode-webview://test",
-      connectSources: ["vscode-webview://test", "http://127.0.0.1:51122"],
-      scriptUri: "vscode-resource:/assets/index.js",
-      styleUri: "vscode-resource:/assets/index.css",
+      extraConnectOrigins: ["vscode-webview://test", "http://127.0.0.1:51122"],
+      scriptUri: { toString: () => "vscode-resource:/assets/index.js" } as any,
+      styleUri: { toString: () => "vscode-resource:/assets/index.css" } as any,
     });
 
     expect(html).toContain(`script-src 'nonce-nonce123' vscode-webview://test`);

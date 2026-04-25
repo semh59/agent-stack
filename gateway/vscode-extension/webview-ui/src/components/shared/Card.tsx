@@ -1,88 +1,24 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Alloy Card — Elevated container with optional header/footer
-   ═══════════════════════════════════════════════════════════════════ */
+/** Card container — inline styles, no Tailwind. */
+import type { ReactNode, CSSProperties } from "react";
 
-import { cn } from "@/lib/utils";
+export interface CardProps { children: ReactNode; style?: CSSProperties; }
 
-export interface CardProps {
-  variant?: "default" | "elevated" | "ghost" | "accent";
-  padding?: "none" | "sm" | "md" | "lg";
-  hover?: boolean;
-  glow?: boolean;
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}
-
-export function Card({
-  variant = "default",
-  padding = "md",
-  hover = false,
-  glow = false,
-  children,
-  className,
-  onClick,
-}: CardProps) {
+export function Card({ children, style }: CardProps) {
   return (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
-      className={cn(
-        "rounded-lg border transition-all duration-150",
-        // Variants
-        variant === "default" && [
-          "bg-[var(--alloy-bg-secondary)] border-[var(--alloy-border-default)]",
-        ],
-        variant === "elevated" && [
-          "bg-[var(--alloy-bg-elevated)] border-[var(--alloy-border-subtle)]",
-          "shadow-[var(--alloy-shadow-md)]",
-        ],
-        variant === "ghost" && [
-          "bg-transparent border-[var(--alloy-border-subtle)]",
-        ],
-        variant === "accent" && [
-          "bg-[var(--alloy-accent-subtle)] border-[var(--alloy-accent-muted)]",
-          glow && "shadow-[var(--alloy-glow-sm)]",
-        ],
-        // Padding
-        padding === "none" && "",
-        padding === "sm" && "p-2",
-        padding === "md" && "p-3",
-        padding === "lg" && "p-4",
-        // Hover
-        hover && "cursor-pointer hover:bg-[var(--alloy-bg-hover)] hover:border-[var(--alloy-border-strong)]",
-        // Glow
-        glow && variant !== "accent" && "shadow-[var(--alloy-glow-sm)]",
-        className
-      )}
-    >
+    <div style={{ borderRadius:8, border:"1px solid var(--a-border)", background:"var(--a-bg2)", padding:12, ...style }}>
       {children}
     </div>
   );
 }
 
-export function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn("flex items-center gap-2 mb-2", className)}>
-      {children}
-    </div>
-  );
+export function CardHeader({ children }: { children: ReactNode }) {
+  return <div style={{ marginBottom:8, paddingBottom:8, borderBottom:"1px solid var(--a-border)" }}>{children}</div>;
 }
 
-export function CardTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <h3 className={cn("text-sm font-semibold text-[var(--alloy-text-primary)]", className)}>
-      {children}
-    </h3>
-  );
+export function CardTitle({ children }: { children: ReactNode }) {
+  return <div style={{ fontSize:13, fontWeight:600, color:"var(--a-text)" }}>{children}</div>;
 }
 
-export function CardDescription({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p className={cn("text-xs text-[var(--alloy-text-tertiary)]", className)}>
-      {children}
-    </p>
-  );
+export function CardDescription({ children }: { children: ReactNode }) {
+  return <div style={{ fontSize:11, color:"var(--a-text3)", marginTop:2 }}>{children}</div>;
 }

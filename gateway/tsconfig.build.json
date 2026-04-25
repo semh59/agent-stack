@@ -6,6 +6,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    // Must be false when noEmit:false — allowImportingTsExtensions requires noEmit:true
     "allowImportingTsExtensions": false
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "index.ts"],

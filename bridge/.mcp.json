@@ -3,9 +3,9 @@
     "ai-stack": {
       "command": "python",
       "args": ["server.py"],
-      "cwd": "d:/PROJECT/bridge",
+      "cwd": "d:/PROJECT/alloy-core/bridge",
       "env": {
-        "PYTHONPATH": "d:/PROJECT/bridge"
+        "PYTHONPATH": "d:/PROJECT/alloy-core/bridge"
       }
     }
   }

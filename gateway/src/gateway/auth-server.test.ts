@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AuthServer } from "./auth-server";
 
 // Test helpers for server readiness synchronization
@@ -36,9 +36,20 @@ describe("AuthServer Security", () => {
     // Use different ports for each test to avoid TIME_WAIT conflicts
     mockPort = 51122 + Math.floor(Math.random() * 100);
 
+    const mockAdapter = {
+      provider: "google_gemini",
+      exchangeCode: vi.fn(),
+      getAvailableModels: vi.fn(),
+      getAuthUrl: vi.fn(),
+      refreshToken: vi.fn(),
+      isTokenValid: vi.fn(),
+      getQuota: vi.fn(),
+    } as any;
+
     authServer = new AuthServer({
       port: mockPort,
       expectedState: "secret-state-123",
+      adapter: mockAdapter,
     });
   });
 
@@ -69,18 +80,33 @@ describe("AuthServer Security", () => {
   it("accepts callback with correct state and calls exchange", async () => {
     const mockState = Buffer.from(JSON.stringify({ verifier: "v", projectId: "p" })).toString("base64url");
 
+    const mockAdapter = {
+      provider: "google_gemini",
+      exchangeCode: vi.fn(),
+      getAvailableModels: vi.fn(),
+      getAuthUrl: vi.fn(),
+      refreshToken: vi.fn(),
+      isTokenValid: vi.fn(),
+      getQuota: vi.fn(),
+    } as any;
+
     authServer = new AuthServer({
       port: mockPort,
       expectedState: mockState,
+      adapter: mockAdapter,
     });
 
-    vi.mocked(exchangeGoogleGemini).mockResolvedValue({
-      type: "success",
-      access: "acc",
-      refresh: "ref",
-      expires: Date.now() + 3600,
-      projectId: "p",
-    });
+    const mockToken = {
+      provider: "google_gemini",
+      accessToken: "acc",
+      refreshToken: "ref",
+      expiresAt: Date.now() + 3600,
+      email: "test@gmail.com",
+      createdAt: Date.now(),
+      availableModels: [],
+    };
+
+    vi.spyOn(authServer["adapter"], "exchangeCode").mockResolvedValue(mockToken as any);
 
     const authPromise = authServer.start();
 

@@ -1,5 +1,5 @@
 import { AIProvider, type ProviderAdapter } from "./provider-types";
-import { GeminiProviderAdapter } from "./google-provider";
+import { GoogleGeminiProvider } from "./google-provider";
 import { ClaudeCodeProvider } from "./claude-provider";
 
 const adapters = new Map<AIProvider, ProviderAdapter>();
@@ -8,7 +8,7 @@ const adapters = new Map<AIProvider, ProviderAdapter>();
  * Register all available provider adapters.
  */
 export function registerDefaultAdapters() {
-  adapters.set(AIProvider.GOOGLE_GEMINI, new GeminiProviderAdapter());
+  adapters.set(AIProvider.GOOGLE_GEMINI, new GoogleGeminiProvider());
   adapters.set(AIProvider.CLAUDE_CODE, new ClaudeCodeProvider());
 }
 

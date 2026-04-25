@@ -6,7 +6,7 @@ build-backend = "setuptools.backends.legacy:build"
 name = "ai-stack-mcp"
 version = "1.0.0"
 description = "Token optimization MCP server for Claude Code"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "mcp>=1.0.0",
     "chromadb>=0.4.22",

@@ -18,7 +18,7 @@ async function main() {
   console.log("\n📁 Gateway Token Store:");
   try {
     const store = new TokenStore();
-    const count = store.getAccountCount();
+    const count = store.getAllAccounts().length;
     if (count > 0) {
       store.clear();
       console.log(`   ✅ ${count} hesap temizlendi.`);

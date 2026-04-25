@@ -50,42 +50,30 @@ export function registerPipelineRoutes(
       ) {
         return reply
           .status(400)
-          .send(
-            apiError("userTask is required and must be a non-empty string"),
-          );
+          .send(apiError("userTask is required and must be a non-empty string", { code: "BAD_REQUEST" }));
       }
       if (userTask.length > MAX_USER_TASK_LENGTH) {
         return reply
           .status(400)
-          .send(
-            apiError(
-              `userTask exceeds maximum length of ${MAX_USER_TASK_LENGTH} characters`,
-            ),
-          );
+          .send(apiError(`userTask exceeds maximum length of ${MAX_USER_TASK_LENGTH} characters`, { code: "BAD_REQUEST" }));
       }
       if (planMode !== undefined && !VALID_PLAN_MODES.has(planMode)) {
         return reply
           .status(400)
-          .send(
-            apiError(
-              `Invalid planMode. Valid values: ${[...VALID_PLAN_MODES].join(", ")}`,
-            ),
-          );
+          .send(apiError(`Invalid planMode. Valid values: ${[...VALID_PLAN_MODES].join(", ")}`, { code: "BAD_REQUEST" }));
       }
 
       const activePipeline = getActivePipeline();
       if (activePipeline) {
         const progress = await activePipeline.getProgress();
         if (progress.state.pipelineStatus === "running") {
-          return reply
-            .status(400)
-            .send(apiError("Pipeline is already running"));
+          return reply.status(409).send(apiError("Pipeline is already running", { code: "CONFLICT" }));
         }
       }
 
       const token = tokenStore.getActiveToken();
       if (!token) {
-        return reply.status(401).send(apiError("No active account"));
+        return reply.status(401).send(apiError("No active account", { code: "UNAUTHORIZED" }));
       }
 
       const accountManager = getAccountManager();
@@ -119,6 +107,6 @@ export function registerPipelineRoutes(
       activePipeline.pause();
       return apiResponse({ stopped: true });
     }
-    return reply.status(400).send(apiError("No active pipeline"));
+    return reply.status(404).send(apiError("No active pipeline", { code: "RESOURCE_NOT_FOUND" }));
   });
 }

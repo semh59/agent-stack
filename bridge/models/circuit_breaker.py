@@ -70,8 +70,14 @@ class CircuitBreaker:
 
     @property
     def state_name(self) -> str:
+        """Note: synchronous read — only use for logging/status, not for decisions."""
         # Use str() to satisfy Pyre that we are calling lower() on a string
         return str(self._state.name).lower()
+
+    @property
+    def failure_count(self) -> int:
+        """Synchronous read of current failure count (for status reporting only)."""
+        return self._failures
 
 
 class ModelCascade:
@@ -170,7 +176,7 @@ class ModelCascade:
         return {
             name: {
                 "state": b.state_name,
-                "failures": b._failures,
+                "failures": b.failure_count,
             }
             for name, b in self.breakers.items()
         }

@@ -13,6 +13,7 @@ Uygulanmaz:
 """
 from __future__ import annotations
 
+import asyncio
 import re
 import threading
 from enum import Enum, auto
@@ -114,12 +115,12 @@ class LLMLinguaCompressor:
     # Public API
     # ------------------------------------------------------------------
 
-    def compress(self, text: str) -> tuple[str, float]:
-        """
-        Compress a single text block.
-        Returns: (compressed_text, savings_percent)
-        savings_percent=0.0 → no compression applied.
-        """
+    # ------------------------------------------------------------------
+    # Sync internals — wrapped by async public API via asyncio.to_thread
+    # ------------------------------------------------------------------
+
+    def _compress_sync(self, text: str) -> tuple[str, float]:
+        """Blocking compress — called inside a thread via asyncio.to_thread."""
         ctype = _detect_content_type(text)
         rate = _compression_rate(ctype, self.settings)
         if rate is None:
@@ -142,11 +143,8 @@ class LLMLinguaCompressor:
         except Exception:
             return text, 0.0
 
-    def compress_sections(self, text: str) -> tuple[str, float]:
-        """
-        Split on code fences, compress only non-code sections.
-        For mixed content (explanation + code).
-        """
+    def _compress_sections_sync(self, text: str) -> tuple[str, float]:
+        """Blocking compress_sections — called inside a thread via asyncio.to_thread."""
         parts = _CODE_FENCE_RE.split(text)
         fences = _CODE_FENCE_RE.findall(text)
 
@@ -155,7 +153,7 @@ class LLMLinguaCompressor:
 
         fence_idx = 0
         for part in parts:
-            compressed_part, _ = self.compress(part)
+            compressed_part, _ = self._compress_sync(part)
             compressed_parts.append(compressed_part)
             if fence_idx < len(fences):
                 compressed_parts.append(fences[fence_idx])  # code fence: untouched
@@ -164,3 +162,22 @@ class LLMLinguaCompressor:
         result = "".join(compressed_parts)
         savings = max(0.0, (1 - len(result) / max(original_len, 1)) * 100)
         return result, savings
+
+    # ------------------------------------------------------------------
+    # Async public API — offloads blocking work to a thread
+    # ------------------------------------------------------------------
+
+    async def compress(self, text: str) -> tuple[str, float]:
+        """
+        Compress a single text block (non-blocking).
+        Returns: (compressed_text, savings_percent)
+        savings_percent=0.0 → no compression applied.
+        """
+        return await asyncio.to_thread(self._compress_sync, text)
+
+    async def compress_sections(self, text: str) -> tuple[str, float]:
+        """
+        Split on code fences, compress only non-code sections (non-blocking).
+        For mixed content (explanation + code).
+        """
+        return await asyncio.to_thread(self._compress_sections_sync, text)

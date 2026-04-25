@@ -97,15 +97,28 @@ tsc-errors.txt
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .eslintcache
 
-# Agent session artefacts
-**/.ai-company/
-**/.opencode_test/
-**/.agent/
-**/tmpclaude-*
+# Debug / audit / lint output (never commit)
+eslint_audit*.txt
+fresh_eslint_errors*.txt
+fresh_tsc_errors*.txt
+test_output*.txt
+trace_output*.txt
+tsc-detailed.txt
+tsc_audit.txt
+tsc_output.txt
+tsc_errors*.txt
+errors.txt
+tmp.txt
+tmp_test*.ts
+tmp_test*.js
 
-# Windows-path accidents
-**/d:/
+# Debug screenshots and images
+*-debug.png
+*-debug.jpg
+screenshots-debug/
+**/screenshots-debug/
+accounts-debug.png
 
-# Benchmark scratch dirs (should live in separate repos)
-sovereign-benchmark-api/
-ultimate-integrity-benchmark/
+# Playwright / test artifacts
+**/test-results/
+playwright-report/

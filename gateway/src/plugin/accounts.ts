@@ -968,37 +968,42 @@ export class AccountManager {
   }
 
   async saveToDisk(): Promise<void> {
-    const claudeIndex = Math.max(0, this.currentAccountIndexByFamily.claude);
-    const geminiIndex = Math.max(0, this.currentAccountIndexByFamily.gemini);
-    
-    const storage: AccountStorageV3 = {
-      version: 3,
-      accounts: this.accounts.map((a) => ({
-        email: a.email,
-        refreshToken: a.parts.refreshToken,
-        projectId: a.parts.projectId,
-        managedProjectId: a.parts.managedProjectId,
-        addedAt: a.addedAt,
-        lastUsed: a.lastUsed,
-        lastSwitchReason: a.lastSwitchReason,
-        rateLimitResetTimes: Object.keys(a.rateLimitResetTimes).length > 0 ? a.rateLimitResetTimes : undefined,
-        coolingDownUntil: a.coolingDownUntil,
-        cooldownReason: a.cooldownReason,
-        fingerprint: a.fingerprint,
-        fingerprintHistory: a.fingerprintHistory?.length ? a.fingerprintHistory : undefined,
-        cachedQuota: a.cachedQuota && Object.keys(a.cachedQuota).length > 0 ? a.cachedQuota : undefined,
-        cachedQuotaUpdatedAt: a.cachedQuotaUpdatedAt,
-        healthScore: getHealthTracker().getScore(a.index),
-      })),
-      activeIndex: claudeIndex,
-      activeIndexByFamily: {
-        claude: claudeIndex,
-        gemini: geminiIndex,
-      },
-    };
+    try {
+      const claudeIndex = Math.max(0, this.currentAccountIndexByFamily.claude);
+      const geminiIndex = Math.max(0, this.currentAccountIndexByFamily.gemini);
 
-    // Use overwrite=true for saveToDisk calls to ensure deletions persist
-    await saveAccounts(storage, true);
+      const storage: AccountStorageV3 = {
+        version: 3,
+        accounts: this.accounts.map((a) => ({
+          email: a.email,
+          refreshToken: a.parts.refreshToken,
+          projectId: a.parts.projectId,
+          managedProjectId: a.parts.managedProjectId,
+          addedAt: a.addedAt,
+          lastUsed: a.lastUsed,
+          lastSwitchReason: a.lastSwitchReason,
+          rateLimitResetTimes: Object.keys(a.rateLimitResetTimes).length > 0 ? a.rateLimitResetTimes : undefined,
+          coolingDownUntil: a.coolingDownUntil,
+          cooldownReason: a.cooldownReason,
+          fingerprint: a.fingerprint,
+          fingerprintHistory: a.fingerprintHistory?.length ? a.fingerprintHistory : undefined,
+          cachedQuota: a.cachedQuota && Object.keys(a.cachedQuota).length > 0 ? a.cachedQuota : undefined,
+          cachedQuotaUpdatedAt: a.cachedQuotaUpdatedAt,
+          healthScore: getHealthTracker().getScore(a.index),
+        })),
+        activeIndex: claudeIndex,
+        activeIndexByFamily: {
+          claude: claudeIndex,
+          gemini: geminiIndex,
+        },
+      };
+
+      // Use overwrite=true for saveToDisk calls to ensure deletions persist
+      await saveAccounts(storage, true);
+    } catch (err) {
+      console.error("[AccountManager] saveToDisk failed:", err);
+      throw err;
+    }
   }
 
   requestSaveToDisk(): void {

@@ -1,108 +1,88 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Alloy FileOpCard — Human-in-the-Loop file operation approval card
-   ═══════════════════════════════════════════════════════════════════ */
-
 import { useState } from "react";
-import { FileEdit, FilePlus, Trash2, Terminal, Check, X, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button, Badge } from "@/components/shared";
 import type { ToolApprovalPayload } from "@/lib/vscode";
 
-interface FileOpCardProps {
+interface Props {
   approval: ToolApprovalPayload;
-  onApprove: (approvalId: string, modified?: string) => void;
-  onReject: (approvalId: string, reason?: string) => void;
+  onApprove: (id: string) => void;
+  onReject:  (id: string) => void;
 }
 
-export function FileOpCard({ approval, onApprove, onReject }: FileOpCardProps) {
+export function FileOpCard({ approval, onApprove, onReject }: Props) {
+  const [note,     setNote]     = useState("");
   const [expanded, setExpanded] = useState(true);
-  const [reason, setReason] = useState("");
 
-  const opIcon: Record<string, React.ReactNode> = {
-    read: <FileEdit className="w-3.5 h-3.5" />,
-    write: <FilePlus className="w-3.5 h-3.5" />,
-    execute: <Terminal className="w-3.5 h-3.5" />,
+  const opLabel: Record<string, string> = { read:"Oku", write:"Yaz", execute:"Çalıştır" };
+
+  const card: React.CSSProperties = {
+    borderRadius:8, border:"1px solid var(--a-border)",
+    background:"var(--a-bg2)", overflow:"hidden", fontSize:12,
   };
-
-  const opVariant: Record<string, "info" | "warning" | "accent"> = {
-    read: "info",
-    write: "warning",
-    execute: "accent",
+  const header: React.CSSProperties = {
+    display:"flex", alignItems:"center", gap:8, padding:"8px 10px",
+    borderBottom: expanded ? "1px solid var(--a-border)" : "none",
+    cursor:"pointer",
+  };
+  const btnBase: React.CSSProperties = {
+    flex:1, padding:"6px", borderRadius:6, border:"1px solid var(--a-border)",
+    fontSize:12, fontWeight:500, cursor:"pointer", transition:"background 0.1s, color 0.1s",
   };
 
   return (
-    <div
-      className={cn(
-        "rounded-xl border overflow-hidden animate-slide-up",
-        "bg-[var(--alloy-bg-secondary)] border-[var(--alloy-border-default)]",
-        "shadow-[var(--alloy-shadow-sm)]"
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-[var(--alloy-bg-tertiary)] border-b border-[var(--alloy-border-subtle)]">
-        <div className="text-[var(--alloy-warning)]">
-          {opIcon[approval.operation]}
-        </div>
-        <span className="text-xs font-medium text-[var(--alloy-text-primary)]">
-          {approval.tool}
+    <div style={card}>
+      <div style={header} onClick={() => setExpanded(!expanded)}>
+        <span style={{ fontSize:10, padding:"2px 6px", borderRadius:3, background:"var(--a-bg3)", color:"var(--a-text2)", fontWeight:600 }}>
+          {opLabel[approval.operation] ?? approval.operation}
         </span>
-        <Badge variant={opVariant[approval.operation]} size="xs">
-          {approval.operation}
-        </Badge>
-        <span className="text-[11px] font-mono text-[var(--alloy-text-secondary)] truncate flex-1">
-          {approval.target}
-        </span>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="p-0.5 text-[var(--alloy-text-muted)] hover:text-[var(--alloy-text-primary)]"
-        >
-          {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
+        <span style={{ fontWeight:600, color:"var(--a-text)", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{approval.tool}</span>
+        <span style={{ fontSize:10, color:"var(--a-text3)", flexShrink:0 }}>Onay bekleniyor</span>
+        <span style={{ color:"var(--a-text3)", fontSize:12 }}>{expanded ? "▲" : "▼"}</span>
       </div>
 
-      {/* Content */}
       {expanded && (
         <>
+          <div style={{ padding:"6px 10px", color:"var(--a-text2)", fontSize:11, fontFamily:"monospace", borderBottom:"1px solid var(--a-border)", wordBreak:"break-all" }}>
+            {approval.target}
+          </div>
+
           {(approval.diff || (approval as { content?: string }).content) && (
-            <div className="border-b border-[var(--alloy-border-subtle)]">
-              <div className="max-h-40 overflow-auto">
-                {approval.diff ? (
-                  <DiffView diff={approval.diff} />
-                ) : (approval as { content?: string }).content ? (
-                  <pre className="p-3 text-[11px] font-mono text-[var(--alloy-text-primary)] whitespace-pre-wrap">
-                    {(approval as { content?: string }).content}
-                  </pre>
-                ) : null}
-              </div>
+            <div style={{ maxHeight:180, overflowY:"auto", borderBottom:"1px solid var(--a-border)" }}>
+              {approval.diff ? <DiffView diff={approval.diff} /> : (
+                <pre style={{ margin:0, padding:10, fontSize:11, fontFamily:"monospace", color:"var(--a-text)", background:"var(--a-bg3)", whiteSpace:"pre-wrap" }}>
+                  {(approval as { content?: string }).content}
+                </pre>
+              )}
             </div>
           )}
 
-          {/* Actions */}
           {!approval.autoApproved && (
-            <div className="flex items-center gap-2 px-3 py-2">
+            <div style={{ padding:"8px 10px", display:"flex", flexDirection:"column", gap:6 }}>
               <input
                 type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Rejection reason (optional)..."
-                className="flex-1 px-2 py-1 text-xs bg-[var(--alloy-bg-primary)] border border-[var(--alloy-border-default)] rounded-md text-[var(--alloy-text-primary)] placeholder:text-[var(--alloy-text-muted)] outline-none focus:border-[var(--alloy-accent)]"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Not ekle (isteğe bağlı)"
+                style={{ width:"100%", padding:"5px 8px", borderRadius:5, border:"1px solid var(--a-border)", background:"var(--a-bg)", color:"var(--a-text)", fontSize:11, outline:"none", boxSizing:"border-box" }}
               />
-              <Button
-                variant="danger"
-                size="xs"
-                icon={<X className="w-3 h-3" />}
-                onClick={() => onReject(approval.approvalId, reason || undefined)}
-              >
-                Reject
-              </Button>
-              <Button
-                variant="primary"
-                size="xs"
-                icon={<Check className="w-3 h-3" />}
-                onClick={() => onApprove(approval.approvalId)}
-              >
-                Approve
-              </Button>
+              <div style={{ display:"flex", gap:6 }}>
+                <button
+                  type="button"
+                  onClick={() => onReject(approval.approvalId)}
+                  style={{ ...btnBase, background:"var(--a-bg3)", color:"var(--a-text2)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.12)"; e.currentTarget.style.color = "var(--a-error)"; e.currentTarget.style.borderColor = "var(--a-error)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--a-bg3)"; e.currentTarget.style.color = "var(--a-text2)"; e.currentTarget.style.borderColor = "var(--a-border)"; }}
+                >
+                  Reddet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onApprove(approval.approvalId)}
+                  style={{ ...btnBase, background:"var(--a-accent)", color:"#000", border:"1px solid var(--a-accent)", fontWeight:600 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--a-orange-h)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--a-accent)"; }}
+                >
+                  Onayla
+                </button>
+              </div>
             </div>
           )}
         </>
@@ -111,27 +91,14 @@ export function FileOpCard({ approval, onApprove, onReject }: FileOpCardProps) {
   );
 }
 
-/* ── Diff View ────────────────────────────────────────────────────── */
-
 function DiffView({ diff }: { diff: string }) {
-  const lines = diff.split("\n");
-
   return (
-    <div className="font-mono text-[11px]">
-      {lines.map((line, i) => (
-        <div
-          key={i}
-          className={cn(
-            "px-3 py-0.5",
-            line.startsWith("+") && "bg-[rgba(16,185,129,0.1)] text-[var(--alloy-success-light)]",
-            line.startsWith("-") && "bg-[rgba(239,68,68,0.1)] text-[var(--alloy-error-light)]",
-            line.startsWith("@@") && "bg-[rgba(59,130,246,0.08)] text-[var(--alloy-info-light)]",
-            !line.startsWith("+") && !line.startsWith("-") && !line.startsWith("@") && "text-[var(--alloy-text-secondary)]"
-          )}
-        >
-          {line}
-        </div>
-      ))}
+    <div style={{ fontFamily:"monospace", fontSize:11 }}>
+      {diff.split("\n").map((line, i) => {
+        const bg    = line.startsWith("+") ? "rgba(34,197,94,0.08)"  : line.startsWith("-") ? "rgba(239,68,68,0.08)"  : "transparent";
+        const color = line.startsWith("+") ? "var(--a-success)"      : line.startsWith("-") ? "var(--a-error)"        : "var(--a-text2)";
+        return <div key={i} style={{ padding:"1px 10px", background:bg, color }}>{line}</div>;
+      })}
     </div>
   );
 }

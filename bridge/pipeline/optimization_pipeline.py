@@ -10,7 +10,7 @@ import json
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable, Protocol, runtime_checkable
 
 import structlog  # type: ignore
 
@@ -19,6 +19,101 @@ from dependencies import check_dependencies, get_capability_report  # type: igno
 
 logger = structlog.get_logger(__name__)
 
+
+# ---------------------------------------------------------------------------
+# Component Protocols — duck-typed, no runtime import required
+# ---------------------------------------------------------------------------
+
+@runtime_checkable
+class CapabilityMatrix(Protocol):
+    semantic_cache: bool
+    rag: bool
+
+
+class ExactCacheProto(Protocol):
+    def get(self, key: str) -> str | None: ...
+    def set(self, key: str, value: str, ttl: float = 0) -> None: ...
+    def clear_memory(self) -> None: ...
+    def clear_disk(self) -> None: ...
+    def stats(self) -> dict[str, Any]: ...
+
+
+class SemanticCacheProto(Protocol):
+    async def get(self, message: str, context: list[str]) -> str | None: ...
+    async def set(self, message: str, context: list[str], response: str, *, is_contextual: bool) -> None: ...
+    async def stats(self) -> dict[str, Any]: ...
+    async def clear(self) -> None: ...
+
+
+class PartialCacheProto(Protocol):
+    async def get(self, message: str, context: list[str]) -> str | None: ...
+
+
+@dataclass
+class _Classification:
+    """Minimal shape returned by MessageRouter.classify()."""
+    message_type: Any
+
+
+class RouterProto(Protocol):
+    def classify(self, message: str) -> _Classification: ...
+
+
+class MABProto(Protocol):
+    async def initialize(self) -> None: ...
+    async def select_layers(self, candidates: list[str]) -> list[str]: ...
+    async def reward(self, layer: str, savings_percent: float) -> None: ...
+    async def _save_state(self) -> None: ...
+
+
+class CostTrackerProto(Protocol):
+    async def log(self, record: Any) -> None: ...
+    async def report(self, *, period: str) -> dict[str, Any]: ...
+
+
+class DedupProto(Protocol):
+    def process(self, text: str, msg_id: int) -> tuple[str, float]: ...
+
+
+@dataclass
+class _CLICleanResult:
+    cleaned: str
+    savings_percent: float
+
+
+class SummarizerProto(Protocol):
+    async def compress_history(self, messages: list[Any]) -> list[Any]: ...
+
+
+class LLMLinguaProto(Protocol):
+    async def compress_sections(self, text: str) -> tuple[str, float]: ...
+
+
+class CavemanProto(Protocol):
+    async def compress(self, text: str) -> tuple[str, float]: ...
+
+
+class RAGIndexerProto(Protocol):
+    async def index(self, *, content: str, path: str) -> dict[str, Any]: ...
+
+
+class RAGRetrieverProto(Protocol):
+    async def search(self, *, query: str, limit: int) -> list[Any]: ...
+    async def build_context_snippet(self, text: str) -> str | None: ...
+
+
+class _CircuitBreaker(Protocol):
+    async def is_open(self) -> bool: ...
+
+
+class ModelCascadeProto(Protocol):
+    breakers: dict[str, _CircuitBreaker]
+    manual_override: str
+
+
+# ---------------------------------------------------------------------------
+# Result type
+# ---------------------------------------------------------------------------
 
 @dataclass
 class OptimizationResult:
@@ -52,6 +147,10 @@ class OptimizationResult:
         )
 
 
+# ---------------------------------------------------------------------------
+# Pipeline
+# ---------------------------------------------------------------------------
+
 class OptimizationPipeline:
     """
     Coordinates the full optimization pipeline.
@@ -63,53 +162,57 @@ class OptimizationPipeline:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._initialized = False
-        self._init_lock: Any = None  # asyncio.Lock — created on first use (event loop safe)
+        self._init_lock: Any = None  # asyncio.Lock — created inside running event loop
 
         # Sub-components — populated in initialize()
-        self.exact_cache: Any = None
-        self.semantic_cache: Any = None
-        self.partial_cache: Any = None
-        self.router: Any = None
-        self.mab: Any = None
-        self.cost_tracker: Any = None
-        self.capability_matrix: Any = None
+        self.exact_cache: ExactCacheProto | None = None
+        self.semantic_cache: SemanticCacheProto | None = None
+        self.partial_cache: PartialCacheProto | None = None
+        self.router: RouterProto | None = None
+        self.mab: MABProto | None = None
+        self.cost_tracker: CostTrackerProto | None = None
+        self.capability_matrix: CapabilityMatrix | None = None
 
         # Cleaning
-        self.cli_cleaner: Any = None
-        self.dedup: Any = None
-        self.summarizer: Any = None
-        self.noise_filter_fn: Any = None
+        self.cli_cleaner: Callable[[str], _CLICleanResult] | None = None
+        self.dedup: DedupProto | None = None
+        self.summarizer: SummarizerProto | None = None
+        self.noise_filter_fn: Callable[[str], str] | None = None
 
         # Compression
-        self.llmlingua: Any = None
-        self.caveman: Any = None
+        self.llmlingua: LLMLinguaProto | None = None
+        self.caveman: CavemanProto | None = None
 
         # RAG
-        self.rag_indexer: Any = None
-        self.rag_retriever: Any = None
+        self.rag_indexer: RAGIndexerProto | None = None
+        self.rag_retriever: RAGRetrieverProto | None = None
 
         # Models
-        self.model_cascade: Any = None
+        self.model_cascade: ModelCascadeProto | None = None
+
+    @property
+    def is_initialized(self) -> bool:
+        """Public read-only accessor for initialization state."""
+        return self._initialized
 
     async def initialize(self) -> None:
         """Lazy-initialize all sub-components. Called once at first tool use."""
-        # Fast path — already initialized (no lock needed for read after init)
         if self._initialized:
             return
-        # Create lock on first call (must happen inside a running event loop)
         import asyncio as _asyncio
         if self._init_lock is None:
             self._init_lock = _asyncio.Lock()
         async with self._init_lock:
-            if self._initialized:  # re-check after acquiring lock
+            if self._initialized:
                 return
 
-            # Run dependency health check
             states, self.capability_matrix = check_dependencies()
             logger.info("deps_checked", report=get_capability_report(self.capability_matrix))
 
             self._init_caches()
             self._init_logic()
+            if self.mab is not None:
+                await self.mab.initialize()
             self._init_cleaning()
             self._init_compression()
             self._init_rag()
@@ -124,7 +227,7 @@ class OptimizationPipeline:
         except Exception as exc:
             _log_warn(f"ExactCache failed: {exc}")
 
-        if self.capability_matrix.semantic_cache:
+        if self.capability_matrix and self.capability_matrix.semantic_cache:
             try:
                 from cache.semantic import SemanticCache  # type: ignore
                 self.semantic_cache = SemanticCache(self.settings)
@@ -196,7 +299,7 @@ class OptimizationPipeline:
             _log_warn(f"Caveman failed: {exc}")
 
     def _init_rag(self) -> None:
-        if self.capability_matrix.rag:
+        if self.capability_matrix and self.capability_matrix.rag:
             try:
                 from rag.indexer import DocumentIndexer  # type: ignore
                 self.rag_indexer = DocumentIndexer(self.settings)
@@ -222,12 +325,7 @@ class OptimizationPipeline:
         context: list[str] | None = None,
         force_layers: list[str] | None = None,
     ) -> OptimizationResult:
-        """
-        Run the full optimization pipeline.
-
-        Returns an OptimizationResult. When sub-components are not yet
-        implemented the message is returned unchanged with 0% savings.
-        """
+        """Run the full optimization pipeline."""
         await self.initialize()
         ctx = context or []
         start = time.monotonic()
@@ -260,10 +358,7 @@ class OptimizationPipeline:
 
         # 3. Layer candidates
         candidates = force_layers or self._layer_candidates(msg_type)
-        if self.mab:
-            ordered = await self.mab.select_layers(candidates)
-        else:
-            ordered = candidates
+        ordered = await self.mab.select_layers(candidates) if self.mab else candidates
 
         # 4. Apply layers
         processed = message
@@ -272,7 +367,7 @@ class OptimizationPipeline:
 
         for layer in ordered:
             result, savings = await self._apply_layer(layer, processed, ctx, msg_id)
-            if savings > 0.5:  # >0.5% savings threshold
+            if savings > 0.5:  # >0.5% threshold
                 if self.mab:
                     await self.mab.reward(layer, savings)
                 applied.append(layer)
@@ -312,13 +407,12 @@ class OptimizationPipeline:
             },
         )
 
-    async def pipeline_status(self) -> dict[str, Any]:
+    async def pipeline_status(self) -> dict[str, str]:
         """Health check for all sub-components."""
         await self.initialize()
 
         status: dict[str, str] = {}
 
-        # Ollama
         try:
             import httpx  # type: ignore
             async with httpx.AsyncClient(timeout=3.0) as client:
@@ -327,20 +421,14 @@ class OptimizationPipeline:
         except Exception:
             status["ollama"] = "unreachable"
 
-        # OpenRouter
         status["openrouter"] = "configured" if self.settings.openrouter_api_key else "no_key"
-
-        # Cache
         status["exact_cache"] = "ok" if self.exact_cache else "unavailable"
         status["semantic_cache"] = "ok" if self.semantic_cache else "unavailable"
-
-        # RAG
         status["rag"] = "ok" if self.rag_indexer else "unavailable"
 
-        # Circuit breaker states
         if self.model_cascade:
             for name, breaker in self.model_cascade.breakers.items():
-                status[f"circuit_{name}"] = "open" if breaker.is_open() else "closed"
+                status[f"circuit_{name}"] = "open" if await breaker.is_open() else "closed"
 
         return status
 
@@ -349,12 +437,10 @@ class OptimizationPipeline:
     # ------------------------------------------------------------------
 
     async def _cache_lookup(self, message: str, context: list[str]) -> str | None:
-        # L1 exact
         if self.exact_cache:
             result = self.exact_cache.get(message)
             if result is not None:
                 return result
-        # L2 semantic
         if self.semantic_cache:
             try:
                 result = await self.semantic_cache.get(message, context)
@@ -362,16 +448,15 @@ class OptimizationPipeline:
                     if self.exact_cache:
                         self.exact_cache.set(message, result)
                     return result
-            except Exception:
-                pass
-        # L3 partial
+            except (ConnectionError, TimeoutError, RuntimeError) as exc:
+                logger.warning("semantic_cache_lookup_failed", error=str(exc))
         if self.partial_cache:
             try:
                 result = await self.partial_cache.get(message, context)
                 if result is not None:
                     return result
-            except Exception:
-                pass
+            except (ConnectionError, TimeoutError, RuntimeError) as exc:
+                logger.warning("partial_cache_lookup_failed", error=str(exc))
         return None
 
     async def _cache_store(
@@ -382,16 +467,14 @@ class OptimizationPipeline:
         is_contextual: bool,
     ) -> None:
         if self.exact_cache:
-            # H4 fix: L1 exact cache uses its own TTL setting, not the semantic ones.
-            # Semantic TTLs (1d/7d) are only for the chromadb collection.
             self.exact_cache.set(message, response, ttl=self.settings.exact_cache_default_ttl)
         if self.semantic_cache:
             try:
                 await self.semantic_cache.set(
                     message, context, response, is_contextual=is_contextual
                 )
-            except Exception:
-                pass
+            except (ConnectionError, TimeoutError, RuntimeError) as exc:
+                logger.warning("semantic_cache_store_failed", error=str(exc))
 
     def _layer_candidates(self, msg_type: str) -> list[str]:
         mapping: dict[str, list[str]] = {
@@ -412,7 +495,6 @@ class OptimizationPipeline:
         context: list[str],
         msg_id: int,
     ) -> tuple[str, float]:
-        """Apply a single layer. Returns (result, savings_percent)."""
         try:
             return await self._dispatch_layer(layer, text, context, msg_id)
         except Exception as exc:
@@ -426,8 +508,6 @@ class OptimizationPipeline:
         context: list[str],
         msg_id: int,
     ) -> tuple[str, float]:
-        """Internal dispatch logic to keep complexity low."""
-        # Simple layers - synchronous or low complexity
         if layer == "cli_cleaner" and self.cli_cleaner:
             res = self.cli_cleaner(text)
             return res.cleaned, res.savings_percent
@@ -437,14 +517,11 @@ class OptimizationPipeline:
             cleaned = self.noise_filter_fn(text)
             savings = max(0.0, (1 - len(cleaned) / max(len(text), 1)) * 100)
             return cleaned, savings
-
-        # Heavy/Async layers
         return await self._dispatch_heavy(layer, text, msg_id)
 
     async def _dispatch_heavy(self, layer: str, text: str, msg_id: int) -> tuple[str, float]:
-        """Decomposed heavy layer dispatch."""
         if layer == "llmlingua" and self.llmlingua:
-            return self.llmlingua.compress_sections(text)
+            return await self.llmlingua.compress_sections(text)
         if layer == "caveman" and self.caveman:
             return await self.caveman.compress(text)
         if layer == "rag" and self.rag_retriever:
@@ -454,17 +531,15 @@ class OptimizationPipeline:
         return text, 0.0
 
     async def _apply_rag(self, text: str) -> tuple[str, float]:
-        snippet = await self.rag_retriever.build_context_snippet(text)
+        snippet = await self.rag_retriever.build_context_snippet(text)  # type: ignore[union-attr]
         if snippet:
-            enriched = f"[Relevant context]\n{snippet}\n\n[Query]\n{text}"
-            return enriched, 1.0
+            return f"[Relevant context]\n{snippet}\n\n[Query]\n{text}", 1.0
         return text, 0.0
 
     async def _apply_summarizer(self, text: str, msg_id: int) -> tuple[str, float]:
         from cleaning.summarizer import Message as SumMsg  # type: ignore
-
         msgs = [SumMsg(id=msg_id, role="user", content=text)]
-        compressed = await self.summarizer.compress_history(msgs)
+        compressed = await self.summarizer.compress_history(msgs)  # type: ignore[union-attr]
         if compressed:
             res_text = compressed[0].content
             savings = max(0.0, (1 - len(res_text) / max(len(text), 1)) * 100)

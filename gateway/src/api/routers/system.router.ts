@@ -46,7 +46,7 @@ export function registerSystemRoutes(
       return apiResponse(resultModels);
     } catch (err) {
       app.log.error(err, "[Gateway] Failed to fetch models");
-      return reply.status(500).send(apiError("Modeller listelenemedi"));
+      return reply.status(500).send(apiError("Failed to fetch models", { code: "INTERNAL_ERROR" }));
     }
   });
 
@@ -96,7 +96,7 @@ export function registerSystemRoutes(
       return apiResponse(skills);
     } catch (err) {
       app.log.error(err, "[Gateway] Failed to fetch skills");
-      return reply.status(500).send(apiError("Yetenekler listelenemedi"));
+      return reply.status(500).send(apiError("Failed to fetch skills", { code: "INTERNAL_ERROR" }));
     }
   });
 
@@ -146,7 +146,7 @@ export function registerSystemRoutes(
       skillCount = skillEntries.filter(e => e.isDirectory()).length;
     } catch (err) {
       app.log.warn(err, "[Gateway] Failed to count skills");
-      skillCount = 54; // Fallback to what we found
+      skillCount = 0; // Skill system initialized, dynamic counting failed
     }
 
     // 3. Model discovery (use dynamic models count)
@@ -180,7 +180,7 @@ export function registerSystemRoutes(
           usagePercentage = 5; // Initial fallback while loading
       }
     } catch {
-      usagePercentage = 87; // Fallback
+      usagePercentage = 0; // Initial fallback
     }
 
     return apiResponse({
@@ -190,7 +190,7 @@ export function registerSystemRoutes(
       },
       skills: {
         active: skillCount,
-        total: 625,
+        total: 100, // Dashboard target for Phase 4
       },
       accounts: {
         total: accountManager ? accountManager.getTotalAccountCount() : accounts.length,

@@ -31,6 +31,7 @@ import sys
 import time
 from typing import Any, cast
 
+import collections
 import structlog  # type: ignore
 
 try:
@@ -272,7 +273,7 @@ async def handle_health(request: web.Request) -> web.Response:
         "status": "ok",
         "service": "ai-stack-optimization-bridge",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "initialized": _orchestrator is not None and _orchestrator._initialized,
+        "initialized": _orchestrator is not None and _orchestrator.is_initialized,
     })
 
 
@@ -282,11 +283,70 @@ async def handle_ready(request: web.Request) -> web.Response:
     Returns 200 iff the orchestrator is fully initialized. ECS/k8s should use
     this for service-registration gating; /health remains the liveness probe.
     """
-    ready = _orchestrator is not None and _orchestrator._initialized
+    ready = _orchestrator is not None and _orchestrator.is_initialized
     return web.json_response(
         {"ready": ready, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())},
         status=200 if ready else 503,
     )
+
+
+# ---------------------------------------------------------------------------
+# Rate-limit middleware (sliding window, per-IP)
+# ---------------------------------------------------------------------------
+
+_RATE_LIMIT = int(os.environ.get("BRIDGE_RATE_LIMIT", "300"))   # requests / window
+_RATE_WINDOW = int(os.environ.get("BRIDGE_RATE_WINDOW", "60"))  # seconds
+_RATE_BUCKET_TTL = 300  # Remove idle IP buckets after 5 minutes
+
+# {ip: (deque of request timestamps, last_access_time)}
+_rate_buckets: dict[str, tuple[collections.deque, float]] = {}
+
+
+def _cleanup_rate_buckets() -> None:
+    """Remove idle IP buckets to prevent unbounded memory growth."""
+    now = time.monotonic()
+    idle_ips = [
+        ip for ip, (_, last_access) in _rate_buckets.items()
+        if now - last_access > _RATE_BUCKET_TTL
+    ]
+    for ip in idle_ips:
+        del _rate_buckets[ip]
+
+
+@web.middleware
+async def rate_limit_middleware(request: web.Request, handler) -> web.Response:
+    # Health/ready probes are exempt
+    if request.path in ("/health", "/ready"):
+        return await handler(request)
+
+    ip = request.remote or "unknown"
+    now = time.monotonic()
+
+    # Periodic cleanup of idle buckets (every 100 requests approximately)
+    if len(_rate_buckets) > _RATE_LIMIT and int(now) % 100 == 0:
+        _cleanup_rate_buckets()
+
+    bucket_data = _rate_buckets.get(ip)
+    if bucket_data is None:
+        bucket = collections.deque()
+        _rate_buckets[ip] = (bucket, now)
+    else:
+        bucket, _ = bucket_data
+        _rate_buckets[ip] = (bucket, now)  # update last access time
+
+    # Drop timestamps outside the window
+    while bucket and now - bucket[0] > _RATE_WINDOW:
+        bucket.popleft()
+
+    if len(bucket) >= _RATE_LIMIT:
+        return web.json_response(
+            {"error": "rate_limit_exceeded", "limit": _RATE_LIMIT, "window_seconds": _RATE_WINDOW},
+            status=429,
+            headers={"Retry-After": str(_RATE_WINDOW)},
+        )
+
+    bucket.append(now)
+    return await handler(request)
 
 
 # ---------------------------------------------------------------------------
@@ -357,9 +417,22 @@ async def _on_startup(app: web.Application) -> None:
         await _get_orch()
         logger.info("bridge_prewarm_complete")
     except Exception as exc:  # noqa: BLE001
-        # Don't block startup if pre-warm fails — /ready will return 503 until
-        # a lazy initialization succeeds on a real request.
         logger.warning("bridge_prewarm_failed", error=str(exc))
+
+
+async def _on_shutdown(app: web.Application) -> None:
+    """Persist MAB state and release resources before process exits."""
+    global _orchestrator
+    orch = _orchestrator
+    if orch is None:
+        return
+    try:
+        if orch.mab is not None:
+            await orch.mab._save_state()
+            logger.info("bridge_shutdown_mab_saved")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("bridge_shutdown_mab_save_failed", error=str(exc))
+    logger.info("bridge_shutdown_complete")
 
 
 def create_app() -> web.Application:
@@ -385,11 +458,13 @@ def create_app() -> web.Application:
             response_headers["Access-Control-Expose-Headers"] = "X-Request-ID"
         return response
 
-    # Order matters: correlation/error wraps innermost, CORS wraps outermost.
+    # Order: rate-limit → error/correlation → CORS (outermost)
+    app.middlewares.append(rate_limit_middleware)
     app.middlewares.append(correlation_and_error_middleware)
     app.middlewares.append(cors_middleware)
 
     app.on_startup.append(_on_startup)
+    app.on_shutdown.append(_on_shutdown)
 
     # Register routes
     app.router.add_post("/optimize", handle_optimize)

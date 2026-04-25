@@ -286,7 +286,7 @@ def internal_error(error):
 
 
 if __name__ == "__main__":
-    host = os.environ.get("SERVER_HOST", "0.0.0.0")
+    host = os.environ.get("SERVER_HOST", "127.0.0.1")  # Docker sets SERVER_HOST=0.0.0.0 explicitly
     port = int(os.environ.get("SERVER_PORT", 5000))
     debug = os.environ.get("FLASK_ENV") == "development"
 

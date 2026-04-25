@@ -1,155 +1,128 @@
 /**
- * Lightweight message renderer.
- *
- * We deliberately do not pull in a full Markdown parser — chat replies from
- * the optimize bridge follow a constrained shape (headings via **bold**,
- * fenced code blocks, and plain paragraphs). Keeping the renderer local keeps
- * the bundle small and lets us enforce safe escaping.
- *
- * Supported constructs:
- *   ```lang\n…\n```            → <pre><code>
- *   `inline`                    → <code>
- *   **bold**                    → <strong>
- *   blank line                  → paragraph break
- *
- * Untrusted content is HTML-escaped before any tag replacement, so we never
- * hand raw HTML to the DOM.
+ * message-format.tsx — renders AI message content with basic markdown-lite support.
+ * Handles code blocks, inline code, bold, and plain text.
  */
-import { useMemo, type ReactNode } from "react";
-import clsx from "clsx";
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+
+interface CodeBlockProps {
+  code: string;
+  lang?: string;
 }
 
-type Block =
-  | { kind: "code"; lang?: string; text: string }
-  | { kind: "prose"; text: string };
+function CodeBlock({ code, lang }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false);
 
-function parseBlocks(raw: string): Block[] {
-  const blocks: Block[] = [];
-  const lines = raw.split("\n");
-  let i = 0;
-  let buffer: string[] = [];
-
-  const flushProse = () => {
-    if (buffer.length === 0) return;
-    blocks.push({ kind: "prose", text: buffer.join("\n").trim() });
-    buffer = [];
-  };
-
-  while (i < lines.length) {
-    const line = lines[i]!;
-    const fenceMatch = /^```([\w-]*)\s*$/.exec(line.trimStart());
-    if (fenceMatch) {
-      flushProse();
-      const lang = fenceMatch[1] || undefined;
-      i++;
-      const code: string[] = [];
-      while (i < lines.length && !/^```\s*$/.test(lines[i]!.trimStart())) {
-        code.push(lines[i]!);
-        i++;
-      }
-      // consume closing fence (if any)
-      if (i < lines.length) i++;
-      blocks.push({ kind: "code", lang, text: code.join("\n") });
-      continue;
-    }
-    buffer.push(line);
-    i++;
-  }
-  flushProse();
-  return blocks;
-}
-
-/** Inline transforms inside a prose block. Returns an array of React nodes. */
-function renderInline(escaped: string, keyPrefix: string): ReactNode[] {
-  // `inline`
-  const codeSplit = escaped.split(/(`[^`]+`)/g);
-  const withCode: ReactNode[] = codeSplit.map((chunk, idx) => {
-    if (chunk.startsWith("`") && chunk.endsWith("`") && chunk.length > 1) {
-      return (
-        <code
-          key={`${keyPrefix}-c-${idx}`}
-          className="rounded bg-[var(--color-alloy-bg)] px-1.5 py-0.5 font-mono text-[0.85em] text-[var(--color-alloy-accent)]"
-        >
-          {chunk.slice(1, -1)}
-        </code>
-      );
-    }
-    // bold inside remaining text
-    const boldSplit = chunk.split(/(\*\*[^*]+\*\*)/g);
-    return boldSplit.map((piece, j) => {
-      if (piece.startsWith("**") && piece.endsWith("**") && piece.length > 4) {
-        return (
-          <strong key={`${keyPrefix}-b-${idx}-${j}`} className="font-semibold text-white">
-            {piece.slice(2, -2)}
-          </strong>
-        );
-      }
-      return <span key={`${keyPrefix}-t-${idx}-${j}`}>{piece}</span>;
-    });
-  });
-  return withCode;
-}
-
-export interface FormattedMessageProps {
-  content: string;
-  role: "user" | "model" | "system";
-}
-
-export function FormattedMessage({ content, role }: FormattedMessageProps) {
-  const blocks = useMemo(() => parseBlocks(content), [content]);
-
-  if (content.trim().length === 0) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-[var(--color-alloy-text-sec)]">
-        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[var(--color-alloy-accent)]" />
-        <span>thinking…</span>
-      </div>
-    );
+  function handleCopy() {
+    void navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
-    <div className="space-y-3 text-sm leading-relaxed">
-      {blocks.map((block, idx) => {
-        if (block.kind === "code") {
+    <div className="my-2 rounded-xl overflow-hidden border border-[var(--color-alloy-border)]">
+      <div className="flex items-center justify-between bg-[var(--color-alloy-surface-hover)] px-3 py-1.5">
+        <span className="text-[11px] font-mono text-[var(--color-alloy-text-dim)]">{lang || "code"}</span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1 rounded px-2 py-0.5 text-[11px] text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface)] transition-colors"
+        >
+          {copied ? <Check size={11} className="text-[var(--color-alloy-success)]" /> : <Copy size={11} />}
+          {copied ? "Kopyalandi" : "Kopyala"}
+        </button>
+      </div>
+      <pre className="overflow-x-auto bg-[var(--color-alloy-bg)] p-4 text-[12px] font-mono text-[var(--color-alloy-text)] leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
+interface Segment {
+  type: "text" | "code" | "codeblock";
+  content: string;
+  lang?: string;
+}
+
+function parseContent(text: string): Segment[] {
+  const segments: Segment[] = [];
+  const codeBlockRe = /```(\w*)\n?([\s\S]*?)```/g;
+  const inlineCodeRe = /`([^`]+)`/g;
+
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  // Replace code blocks first
+  while ((match = codeBlockRe.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: "text", content: text.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: "codeblock", content: match[2].trim(), lang: match[1] || undefined });
+    lastIndex = match.index + match[0].length;
+  }
+
+  const remaining = text.slice(lastIndex);
+  if (remaining) {
+    // Handle inline code in remaining text
+    let li = 0;
+    while ((match = inlineCodeRe.exec(remaining)) !== null) {
+      if (match.index > li) {
+        segments.push({ type: "text", content: remaining.slice(li, match.index) });
+      }
+      segments.push({ type: "code", content: match[1] });
+      li = match.index + match[0].length;
+    }
+    if (li < remaining.length) {
+      segments.push({ type: "text", content: remaining.slice(li) });
+    }
+  }
+
+  return segments.length > 0 ? segments : [{ type: "text", content: text }];
+}
+
+function renderText(text: string): React.ReactNode {
+  // Bold: **text**
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+interface FormattedMessageProps {
+  content: string;
+  className?: string;
+}
+
+export function FormattedMessage({ content, className = "" }: FormattedMessageProps) {
+  const segments = parseContent(content);
+
+  return (
+    <div className={`text-[13px] leading-relaxed ${className}`}>
+      {segments.map((seg, i) => {
+        if (seg.type === "codeblock") {
+          return <CodeBlock key={i} code={seg.content} lang={seg.lang} />;
+        }
+        if (seg.type === "code") {
           return (
-            <pre
-              key={idx}
-              className="overflow-x-auto rounded-lg border border-white/5 bg-black/40 px-5 py-4 font-mono text-[11px] leading-relaxed text-white/80 shadow-alloy-elevated"
-            >
-              {block.lang ? (
-                <div className="mb-3 border-b border-white/5 pb-1.5 font-mono text-[9px] font-bold uppercase tracking-widest text-[var(--color-alloy-accent)] opacity-60">
-                  {block.lang} // AL.CODE_SURFACE
-                </div>
-              ) : null}
-              <code className="text-[var(--color-alloy-accent)]/90">{block.text}</code>
-            </pre>
+            <code key={i} className="rounded bg-[var(--color-alloy-surface-hover)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--color-alloy-accent)]">
+              {seg.content}
+            </code>
           );
         }
-        const paragraphs = block.text.split(/\n{2,}/g).filter((p) => p.length > 0);
         return (
-          <div key={idx} className="space-y-4">
-            {paragraphs.map((para, pIdx) => (
-              <p
-                key={pIdx}
-                className={clsx(
-                  "leading-[1.6] text-[13px]",
-                  role === "user"
-                    ? "text-white/90"
-                    : "text-[var(--color-alloy-text)] opacity-90"
-                )}
-              >
-                {renderInline(escapeHtml(para), `p-${idx}-${pIdx}`)}
-              </p>
+          <span key={i}>
+            {seg.content.split("\n").map((line, j, arr) => (
+              <span key={j}>
+                {renderText(line)}
+                {j < arr.length - 1 && <br />}
+              </span>
             ))}
-          </div>
+          </span>
         );
       })}
     </div>

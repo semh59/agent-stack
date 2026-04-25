@@ -1,5 +1,6 @@
-﻿import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TokenStore, type StoredToken } from './token-store';
+import { AIProvider } from './provider-types';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -12,6 +13,7 @@ describe('TokenStore - Race Condition Prevention', () => {
   let tempStorePath: string;
 
   const mockToken: StoredToken = {
+    provider: AIProvider.GOOGLE_GEMINI,
     accessToken: 'mock-access-token-123',
     refreshToken: 'mock-refresh-token-456',
     expiresAt: Date.now() + 3600000,
@@ -148,6 +150,7 @@ describe('TokenStore - Race Condition Prevention', () => {
 
   it('uses email as lock key for different accounts', async () => {
     const token2: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'access-2',
       refreshToken: 'refresh-2',
       expiresAt: Date.now() + 3600000,
@@ -194,10 +197,11 @@ describe('TokenStore - Race Condition Prevention', () => {
 
   it('handles anonymous token (no email) with default lock key', async () => {
     const anonToken: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'access-token',
       refreshToken: 'refresh-token',
       expiresAt: Date.now() + 3600000,
-      email: undefined,
+      email: '',
       projectId: undefined,
       createdAt: Date.now(),
     };
@@ -263,6 +267,7 @@ describe('TokenStore - File Permissions & Security', () => {
 
     const store = new TokenStore(customStorePath);
     const mockToken: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'token',
       refreshToken: 'refresh',
       expiresAt: Date.now() + 3600000,
@@ -291,6 +296,7 @@ describe('TokenStore - File Permissions & Security', () => {
 
   it('stores encrypted token data', () => {
     const mockToken: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'secret-access-token',
       refreshToken: 'secret-refresh-token',
       expiresAt: Date.now() + 3600000,
@@ -340,6 +346,7 @@ describe('TokenStore - Token Expiry & Validation', () => {
   it('detects expired tokens with 5-minute buffer', () => {
     const now = Date.now();
     const almostExpiredToken: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'token',
       refreshToken: 'refresh',
       expiresAt: now + 2 * 60 * 1000, // 2 minutes from now
@@ -358,6 +365,7 @@ describe('TokenStore - Token Expiry & Validation', () => {
   it('accepts tokens with sufficient validity', () => {
     const now = Date.now();
     const validToken: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'token',
       refreshToken: 'refresh',
       expiresAt: now + 30 * 60 * 1000, // 30 minutes from now
@@ -375,6 +383,7 @@ describe('TokenStore - Token Expiry & Validation', () => {
 
   it('auto-refreshes expired token in getValidAccessToken', async () => {
     const expiredToken: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'old-token',
       refreshToken: 'refresh-token',
       expiresAt: Date.now() - 1000, // Already expired
@@ -417,6 +426,7 @@ describe('TokenStore - Multi-Account Management', () => {
 
   it('manages multiple accounts independently', () => {
     const token1: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'access-1',
       refreshToken: 'refresh-1',
       expiresAt: Date.now() + 3600000,
@@ -426,6 +436,7 @@ describe('TokenStore - Multi-Account Management', () => {
     };
 
     const token2: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'access-2',
       refreshToken: 'refresh-2',
       expiresAt: Date.now() + 3600000,
@@ -437,7 +448,7 @@ describe('TokenStore - Multi-Account Management', () => {
     tokenStore.addOrUpdateAccount(token1);
     tokenStore.addOrUpdateAccount(token2);
 
-    expect(tokenStore.getAccountCount()).toBe(2);
+    expect(tokenStore.getAllAccounts().length).toBe(2);
 
     const accounts = tokenStore.getAllAccounts();
     expect(accounts).toContainEqual(expect.objectContaining({ email: 'user1@example.com' }));
@@ -446,6 +457,7 @@ describe('TokenStore - Multi-Account Management', () => {
 
   it('updates existing account instead of duplicating', () => {
     const token1: StoredToken = {
+      provider: AIProvider.GOOGLE_GEMINI,
       accessToken: 'access-1',
       refreshToken: 'refresh-1',
       expiresAt: Date.now() + 3600000,
@@ -455,7 +467,7 @@ describe('TokenStore - Multi-Account Management', () => {
     };
 
     tokenStore.addOrUpdateAccount(token1);
-    expect(tokenStore.getAccountCount()).toBe(1);
+    expect(tokenStore.getAllAccounts().length).toBe(1);
 
     // Update same email
     const token1Updated: StoredToken = {
@@ -467,7 +479,7 @@ describe('TokenStore - Multi-Account Management', () => {
     tokenStore.addOrUpdateAccount(token1Updated);
 
     // Should still be 1 account
-    expect(tokenStore.getAccountCount()).toBe(1);
+    expect(tokenStore.getAllAccounts().length).toBe(1);
 
     // Should have updated values
     const active = tokenStore.getActiveToken();

@@ -12,6 +12,7 @@
 
 import { AuthServer } from "../src/gateway/auth-server";
 import { launchOAuthBrowser } from "../src/gateway/browser-launcher";
+import { GoogleGeminiProvider } from "../src/gateway/google-provider";
 import { loadAccounts, saveAccounts, type AccountStorageV3, type AccountMetadataV3 } from "../src/plugin/storage";
 
 async function main() {
@@ -45,10 +46,11 @@ async function main() {
   const authInfo = await launchOAuthBrowser();
 
   const authServer = new AuthServer({
-    port: 51121,
-    timeoutMs: 300_000, // 5 dakika
-    expectedState: authInfo.authorization.state,
-  });
+     port: 51121,
+     timeoutMs: 300_000, // 5 dakika
+     expectedState: authInfo.authorization.state,
+     adapter: new GoogleGeminiProvider(),
+   });
 
   const authResult = await authServer.start();
 

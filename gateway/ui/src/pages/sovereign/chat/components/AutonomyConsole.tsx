@@ -1,69 +1,58 @@
-import React from 'react';
-import { Target, ShieldCheck, Gauge } from 'lucide-react';
-import { useAlloyStore } from '../../../../store/alloyStore';
-import clsx from 'clsx';
+/**
+ * AutonomyConsole — shows live pipeline phase statuses as a compact status strip.
+ */
 
-export function AutonomyConsole() {
-  const { autonomyLevel, setAutonomyLevel, messages } = useAlloyStore();
-  
-  const lastModelMsg = [...messages].reverse().find(m => m.role === 'model');
-  const reasoning = lastModelMsg?.content.includes('Thought:') 
-    ? lastModelMsg.content.split('Thought:')[1]?.split('\n')[0] 
-    : "Analyzing project structure and dependency graph...";
+import { CheckCircle2, Circle, Loader2, AlertCircle } from "lucide-react";
 
-  return (
-    <div className="flex h-[44px] items-center justify-between border-b border-[var(--color-alloy-border)] bg-black/40 px-6 backdrop-blur-xl z-20">
-      <div className="flex items-center gap-4 overflow-hidden flex-1">
-        <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-[var(--color-alloy-accent)]/20 bg-[var(--color-alloy-accent)]/5">
-          <div className="flex h-1.5 w-1.5 rounded-full bg-molten animate-pulse shadow-alloy-molten-glow" />
-          <span className="text-[9px] font-black uppercase tracking-tighter text-[var(--color-alloy-accent)]">AI is coding</span>
-        </div>
-        <span className="truncate text-[10px] font-mono text-white/50 italic max-w-[600px] border-l border-white/10 pl-4">
-          {reasoning}
-        </span>
-      </div>
+type PhaseStatus = "idle" | "started" | "completed" | "error";
 
-      <div className="flex items-center gap-4 ml-6 shrink-0">
-        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/60 p-1 shadow-inner">
-          <LevelButton 
-            active={autonomyLevel === 'manual'} 
-            onClick={() => setAutonomyLevel('manual')}
-            label="Manual"
-            icon={<Target size={11} />}
-          />
-          <div className="h-4 w-[1px] bg-white/5 mx-0.5" />
-          <LevelButton 
-            active={autonomyLevel === 'balanced'} 
-            onClick={() => setAutonomyLevel('balanced')}
-            label="Supervised"
-            icon={<ShieldCheck size={11} />}
-          />
-          <div className="h-4 w-[1px] bg-white/5 mx-0.5" />
-          <LevelButton 
-            active={autonomyLevel === 'autonomous'} 
-            onClick={() => setAutonomyLevel('autonomous')}
-            label="Autonomous"
-            icon={<Gauge size={11} />}
-          />
-        </div>
-      </div>
-    </div>
-  );
+interface Phase {
+  name: string;
+  status: PhaseStatus;
+  progress?: number;
 }
 
-function LevelButton({ active, onClick, label, icon }: { active: boolean, onClick: () => void, label: string, icon: React.ReactNode }) {
+interface AutonomyConsoleProps {
+  phases: Phase[];
+  className?: string;
+}
+
+function PhaseIcon({ status }: { status: PhaseStatus }) {
+  switch (status) {
+    case "completed": return <CheckCircle2 size={13} className="text-[var(--color-alloy-success)] shrink-0" />;
+    case "started":   return <Loader2 size={13} className="text-[var(--color-alloy-accent)] animate-spin shrink-0" />;
+    case "error":     return <AlertCircle size={13} className="text-[var(--color-alloy-error)] shrink-0" />;
+    default:          return <Circle size={13} className="text-[var(--color-alloy-text-dim)] shrink-0" />;
+  }
+}
+
+export function AutonomyConsole({ phases, className = "" }: AutonomyConsoleProps) {
+  if (phases.length === 0) return null;
+
   return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        "flex items-center gap-2 rounded-md px-3 py-1.5 text-[9px] font-black tracking-[0.2em] transition-all",
-        active 
-          ? "bg-[var(--color-alloy-accent)] text-black shadow-alloy-molten-glow scale-[1.02] border border-white/20" 
-          : "text-[var(--color-alloy-text-sec)] hover:bg-white/5 hover:text-white border border-transparent"
-      )}
-    >
-      <span className={clsx("transition-opacity", active ? "opacity-100" : "opacity-40")}>{icon}</span>
-      {label}
-    </button>
+    <div className={`rounded-xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] overflow-hidden ${className}`}>
+      <div className="border-b border-[var(--color-alloy-border)] px-3 py-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-alloy-text-dim)]">
+          Pipeline Durumu
+        </span>
+      </div>
+      <div className="flex flex-col divide-y divide-[var(--color-alloy-border)]">
+        {phases.map((phase) => (
+          <div key={phase.name} className="flex items-center gap-2.5 px-3 py-2">
+            <PhaseIcon status={phase.status} />
+            <span className="flex-1 text-[12px] text-[var(--color-alloy-text)]">{phase.name}</span>
+            {phase.status === "started" && phase.progress !== undefined && (
+              <span className="text-[11px] text-[var(--color-alloy-text-dim)]">{phase.progress}%</span>
+            )}
+            {phase.status === "completed" && (
+              <span className="text-[11px] text-[var(--color-alloy-success)]">Tamamlandi</span>
+            )}
+            {phase.status === "error" && (
+              <span className="text-[11px] text-[var(--color-alloy-error)]">Hata</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
