@@ -1,6 +1,6 @@
 # MCP
 mcp==1.0.0
-aiohttp==3.9.0
+aiohttp>=3.9.0
 
 # Semantic Cache
 chromadb==0.5.3
@@ -14,12 +14,12 @@ llmlingua==0.2.2
 spacy==3.7.0
 
 # HTTP (Ollama + OpenRouter)
-httpx==0.27.0
-tenacity==8.2.0
+httpx>=0.27.0
+tenacity>=8.2.3
 
 # Config
-pydantic==2.7.1
-pydantic-settings==2.2.1
+pydantic>=2.8.0
+pydantic-settings>=2.3.0
 python-dotenv==1.0.0
 
 # Logging

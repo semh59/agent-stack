@@ -7,8 +7,9 @@ Rigorous unit and integration tests for:
 - Semantic Pruning (Logic preservation)
 - Prefix Caching (Shared state)
 """
-from pathlib import Path
 import unittest
+from pathlib import Path
+
 
 # Mock settings
 class MockSettings:

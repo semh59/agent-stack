@@ -28,14 +28,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 
-# Install everything (need dev deps for typecheck in CI; tsx is pulled as dep below)
-RUN npm ci
+# Install everything
+RUN npm install
 
-# tsx is a runtime requirement but not in package.json; pin it here so the
-# runtime image does not depend on the network at boot time.
-RUN npm install --no-save tsx@4.19.2
+# tsx is a runtime requirement
+RUN npm install tsx@4.19.2
 
 # ---- Stage 2: optional typecheck (catches drift before ship) ----
 FROM deps AS typecheck
@@ -61,7 +60,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV NODE_ENV=production \
     NODE_OPTIONS=--enable-source-maps \
     ALLOY_GATEWAY_PORT=3000 \
-    ALLOY_GATEWAY_HOST=0.0.0.0
+    ALLOY_GATEWAY_HOST=0.0.0.0 \
+    PATH="/app/node_modules/.bin:${PATH}" \
+    XDG_CONFIG_HOME=/data/.config \
+    XDG_DATA_HOME=/data/.local/share
 
 COPY --from=deps    --chown=gateway:gateway /app/node_modules ./node_modules
 COPY                --chown=gateway:gateway package.json tsconfig.json tsconfig.build.json ./
@@ -73,7 +75,7 @@ COPY                --chown=gateway:gateway scripts ./scripts
 # `npm prune --omit=dev` respects `--no-save` installs, so tsx stays.
 RUN npm prune --omit=dev --no-audit --no-fund
 
-RUN mkdir -p /data && chown gateway:gateway /data
+RUN mkdir -p /data/.config /data/.local/share /app/.npm && chown -R gateway:gateway /data /app/.npm
 VOLUME ["/data"]
 
 USER gateway
@@ -81,7 +83,7 @@ USER gateway
 EXPOSE 3000
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["npx", "tsx", "src/main.ts"]
+CMD ["tsx", "src/main.ts"]
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
   CMD curl --fail --silent --max-time 3 http://localhost:3000/api/health || exit 1

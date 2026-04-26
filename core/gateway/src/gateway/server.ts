@@ -375,11 +375,16 @@ export class GatewayServer {
     const extensionUiDistPath = path.join(this.projectRoot, "vscode-extension", "ui", "dist");
     let serveIndexWithToken: ((request: FastifyRequest, reply: FastifyReply) => Promise<void>) | null = null;
 
+    const repoRoot = path.join(this.projectRoot, "..", "..");
+    const interfaceUiDistPath = path.join(repoRoot, "interface", "extension", "ui", "dist");
+
     let rootPath = "";
     try {
       const fsSync = await import('node:fs');
-      // Prioritize the Extension UI Dist as it's the primary build target in vite.config.ts
-      if (fsSync.existsSync(extensionUiDistPath)) {
+      // Prioritize the Extension UI Dist
+      if (fsSync.existsSync(interfaceUiDistPath)) {
+        rootPath = interfaceUiDistPath;
+      } else if (fsSync.existsSync(extensionUiDistPath)) {
         rootPath = extensionUiDistPath;
       } else if (fsSync.existsSync(uiDistPath)) {
         rootPath = uiDistPath;

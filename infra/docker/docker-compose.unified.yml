@@ -32,7 +32,7 @@ services:
   # ── Gateway (TypeScript) ──────────────────────────────────────────────────
   gateway:
     build:
-      context: ./core/gateway
+      context: ../../core/gateway
       dockerfile: Dockerfile
     container_name: alloy-gateway
     restart: unless-stopped
@@ -71,7 +71,7 @@ services:
   # ── Optimization Bridge (Python) ──────────────────────────────────────────
   optimization-bridge:
     build:
-      context: ./core/bridge
+      context: ../../core/bridge
       dockerfile: Dockerfile
     container_name: alloy-optimization
     restart: unless-stopped
@@ -101,53 +101,53 @@ services:
       retries: 5
 
   # ── Ollama (Full profile only) ────────────────────────────────────────────
-  ollama:
-    image: ollama/ollama:latest
-    container_name: alloy-ollama
-    restart: unless-stopped
-    profiles:
-      - full
-    networks:
-      - alloy-net
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-      - ./core/bridge/scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
-    entrypoint: ["/bin/bash", "/entrypoint.sh"]
-    environment:
-      OLLAMA_HOST: "0.0.0.0"
-      SKIP_MODEL_PULL: "${SKIP_MODEL_PULL:-0}"
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      start_period: 120s
-      retries: 5
+#   ollama:
+#     image: ollama/ollama:latest
+#     container_name: alloy-ollama
+#     restart: unless-stopped
+#     profiles:
+#       - full
+#     networks:
+#       - alloy-net
+#     ports:
+#       - "11434:11434"
+#     volumes:
+#       - ollama-data:/root/.ollama
+#       - ../../core/bridge/scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
+#     entrypoint: ["/bin/bash", "/entrypoint.sh"]
+#     environment:
+#       OLLAMA_HOST: "0.0.0.0"
+#       SKIP_MODEL_PULL: "${SKIP_MODEL_PULL:-0}"
+#     healthcheck:
+#       test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+#       interval: 30s
+#       timeout: 10s
+#       start_period: 120s
+#       retries: 5
 
-  # ── Caveman Service (Full profile only) ───────────────────────────────────
-  caveman-service:
-    build:
-      context: ./core/bridge
-      dockerfile: Dockerfile.caveman
-    container_name: alloy-caveman
-    restart: unless-stopped
-    profiles:
-      - full
-    networks:
-      - alloy-net
-    ports:
-      - "5000:5000"
-    depends_on:
-      ollama:
-        condition: service_healthy
-    environment:
-      ALLOY_OLLAMA_URL: "http://ollama:11434"
-      SERVER_HOST: "0.0.0.0"
-      SERVER_PORT: "5000"
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:5000/health"]
-      interval: 20s
-      timeout: 5s
-      start_period: 15s
-      retries: 3
+#   # ── Caveman Service (Full profile only) ───────────────────────────────────
+#   caveman-service:
+#     build:
+#       context: ../../core/bridge
+#       dockerfile: Dockerfile.caveman
+#     container_name: alloy-caveman
+#     restart: unless-stopped
+#     profiles:
+#       - full
+#     networks:
+#       - alloy-net
+#     ports:
+#       - "5000:5000"
+#     depends_on:
+#       ollama:
+#         condition: service_healthy
+#     environment:
+#       ALLOY_OLLAMA_URL: "http://ollama:11434"
+#       SERVER_HOST: "0.0.0.0"
+#       SERVER_PORT: "5000"
+#     healthcheck:
+#       test: ["CMD", "curl", "-sf", "http://localhost:5000/health"]
+#       interval: 20s
+#       timeout: 5s
+#       start_period: 15s
+#       retries: 3
