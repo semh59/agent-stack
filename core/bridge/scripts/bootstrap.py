@@ -15,15 +15,15 @@ def run_command(cmd: list[str]):
 
 def main():
     logger.info("Initializing Alloy AI Environment...")
-    
+
     # 1. Download spaCy model
     logger.info("Downloading spaCy model: en_core_web_sm...")
     run_command([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
-    
+
     # 2. Check for other essential resources
     logger.info("Verifying environment...")
     # Add future checks here (e.g., LanceDB path creation, etc.)
-    
+
     logger.info("Environment bootstrap complete!")
 
 if __name__ == "__main__":

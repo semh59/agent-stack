@@ -16,7 +16,7 @@ from config import Settings
 logger = logging.getLogger(__name__)
 
 class PrefixCacheManager:
-    
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._cache: dict[str, dict[str, Any]] = {} # hash -> {content, last_used}

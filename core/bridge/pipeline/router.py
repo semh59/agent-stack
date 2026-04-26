@@ -222,17 +222,17 @@ class MessageRouter:
     def _matches_local(self, text: str) -> bool:
         """Heuristic check for simple factual/local questions."""
         lower = text.lower().strip()
-        
+
         # Short phrases or common local tasks
         if len(lower) < 100:
             local_starters = [
-                "hey", "hi", "hello", "what is", "who is", "where is", 
+                "hey", "hi", "hello", "what is", "who is", "where is",
                 "how to", "tell me", "explain", "summarize", "list",
                 "show me", "can you", "do you know"
             ]
             if any(lower.startswith(s) for s in local_starters):
                 return True
-                
+
         # Known simple factual patterns
         patterns = [
             r"what (is|are) [^?]+",
@@ -242,11 +242,11 @@ class MessageRouter:
             r"translate [^?]+ to [^?]+",
             r"(give me|list) \d+ [^?]+",
         ]
-        
+
         for p in patterns:
             if re.search(p, lower):
                 return True
-                
+
         return False
 
     def _layers(self, t: MessageType) -> list[str]:

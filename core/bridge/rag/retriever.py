@@ -29,11 +29,11 @@ class DocumentRetriever:
         try:
             table = await self.indexer._get_table()
             query_embedding = await self.indexer._embed(query)
-            
+
             # Extract to standalone function to avoid Any/Unknown issues in to_thread
             def fetch_dense_sync(tbl: Any, emb: list[float], l: int):
                 return tbl.search(emb).limit(l * 2).to_list()
-                
+
             vector_results = await asyncio.to_thread(fetch_dense_sync, table, query_embedding, limit)
 
             dense_hits = []
@@ -63,14 +63,14 @@ class DocumentRetriever:
             bm = self._bm25
         if not bm:
             return []
-            
+
         tokenized_query = query.lower().split()
         scores = bm.get_scores(tokenized_query)
-        
+
         # Proper indexing for top-n
         score_indices = sorted(range(len(scores)), key=lambda i: float(scores[i]), reverse=True)
         top_n = score_indices[0:limit]
-        
+
         hits = []
         max_score = max(scores) if len(scores) > 0 else 1.0
         for i in top_n:

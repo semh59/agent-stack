@@ -57,7 +57,7 @@ def check_dependencies() -> tuple[list[DependencyStatus], CapabilityMatrix]:
         spec = importlib.util.find_spec(name)
         installed = spec is not None
         version = None
-        
+
         if installed:
             try:
                 pkg = importlib.import_module(name)
@@ -73,7 +73,7 @@ def check_dependencies() -> tuple[list[DependencyStatus], CapabilityMatrix]:
                 matrix.missing_critical.append(name)
             else:
                 matrix.missing_optional.append(name)
-        
+
     # Build Capability Matrix
     matrix.core_mcp = _is_ok(statuses, "mcp")
     matrix.semantic_cache = _is_ok(statuses, "chromadb")
@@ -98,10 +98,10 @@ def get_capability_report(matrix: CapabilityMatrix) -> str:
     lines.append(f"LLMLingua:        {'[OK]' if matrix.advanced_compression else '[DISABLED]'}")
     lines.append(f"Data Analysis:    {'[OK]' if matrix.data_analysis else '[DISABLED]'}")
     lines.append(f"Metrics:          {'[OK]' if matrix.metrics else '[DISABLED]'}")
-    
+
     if matrix.missing_optional:
         lines.append(f"\nMissing optional: {', '.join(matrix.missing_optional)}")
     if matrix.missing_critical:
         lines.append(f"\nCRITICAL MISSING: {', '.join(matrix.missing_critical)}")
-        
+
     return "\n".join(lines)

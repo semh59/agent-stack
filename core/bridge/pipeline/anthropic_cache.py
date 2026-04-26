@@ -8,11 +8,11 @@ logger = structlog.get_logger(__name__)
 class AnthropicPromptCache:
     """
     Hyper-Optimized Anthropic Prompt Caching (2026 Edition).
-    
-    Strategically selects up to 4 cache breakpoints using a prioritized 
+
+    Strategically selects up to 4 cache breakpoints using a prioritized
     importance heuristic to maximize cache hit rates for multi-turn sessions.
     """
-    
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.max_breakpoints = 4
@@ -27,7 +27,7 @@ class AnthropicPromptCache:
 
         # Explicitly type to satisfy strict analyzers
         candidates: list[tuple[int, int]] = []
-        
+
         # 1. System Prompt (Highest Priority)
         first_msg = messages[0]
         if first_msg.get("role") == "system":
@@ -40,7 +40,7 @@ class AnthropicPromptCache:
             msg = messages[i]
             content = msg.get("content", "")
             text_len = len(content) if isinstance(content, str) else 0
-            
+
             # If message > 1000 chars, it's a context block
             if text_len > 1000:
                 candidates.append((i, 50 + min(text_len // 100, 40)))
@@ -51,12 +51,12 @@ class AnthropicPromptCache:
 
         # Sort by priority score and take top 4
         candidates.sort(key=lambda x: x[1], reverse=True)
-        
+
         # Cast to avoid "SupportsIndex" false positives
         limit = self.max_breakpoints
         subset = candidates[0:limit]
         top_indices = [int(item[0]) for item in subset]
-        
+
         logger.debug("anthropic_cache_plan", top_indices=top_indices)
 
         for idx in top_indices:
@@ -64,7 +64,7 @@ class AnthropicPromptCache:
             target = messages[idx]
             if isinstance(target, dict):
                 target["content"] = self._inject_cache_control(target["content"])
-            
+
         return messages
 
     def _inject_cache_control(self, content: Any) -> Any:

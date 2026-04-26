@@ -19,7 +19,7 @@ def main():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     print("Building bridge.py into an Edge binary...")
-    
+
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--name", "bridge-edge",
@@ -39,7 +39,7 @@ def main():
     ]
 
     subprocess.check_call(cmd)
-    
+
     dist_dir = root_dir / "dist"
     print(f"Compilation finished. Executable is waiting in: {dist_dir}")
 

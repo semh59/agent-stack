@@ -148,7 +148,7 @@ class CavemanCompressor:
             mode = self.detector.get_compression_mode(text)
 
         # Phase 4.3 Fix: Prevent GPU VRAM Exhaustion
-        # If the text is massive (>12000 chars / ~3k tokens), Ollama will likely 
+        # If the text is massive (>12000 chars / ~3k tokens), Ollama will likely
         # timeout during prompt ingestion, creating a zombie session that drains VRAM.
         if len(text) > 12000 and mode != "lite":
             mode = "lite"

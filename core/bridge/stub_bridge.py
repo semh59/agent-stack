@@ -33,7 +33,7 @@ class StubBridgeHandler(http.server.BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
-            
+
             message = data.get("message", "")
             self.send_response(200)
             self.send_header('Content-type', 'application/json')

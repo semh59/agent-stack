@@ -58,12 +58,17 @@ def _get_orch_lock() -> asyncio.Lock:
 
 
 async def _get_orch() -> OptimizationPipeline:
+    """
+    Lazily initializes the OptimizationPipeline.
+    Tool Deferral: Only intensive components are loaded upon first meaningful tool call.
+    """
     global _orchestrator
     if _orchestrator is None:
         async with _get_orch_lock():
             if _orchestrator is None:
+                logger.info("mcp_tool_orchestrator_lazy_init")
                 orch = OptimizationPipeline(settings)
-                await orch.initialize()
+                # Note: initialize() is called inside each tool to ensure deferred loading
                 _orchestrator = orch
     return _orchestrator
 
@@ -421,7 +426,7 @@ def _text_result(data: dict[str, Any]) -> mcp_types.TextContent:
 async def main() -> None:
     # Start metrics server if possible
     start_metrics_server(settings.metrics_port)
-    
+
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
             read_stream,

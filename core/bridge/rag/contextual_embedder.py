@@ -16,7 +16,7 @@ from config import Settings
 logger = logging.getLogger(__name__)
 
 class ContextualEmbedder:
-    
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
@@ -26,14 +26,14 @@ class ContextualEmbedder:
         """
         if not chunks:
             return []
-            
+
         file_summary = await self._generate_file_summary(content, path)
-        
+
         contextualized = []
         for chunk in chunks:
             # Prepend context: [File Path] [File/Module Purpose] [Chunk Content]
             contextualized.append(f"[File: {path}]\n[Context: {file_summary}]\n\n{chunk}")
-            
+
         return contextualized
 
     async def _generate_file_summary(self, content: str, path: str) -> str:
@@ -42,13 +42,13 @@ class ContextualEmbedder:
         """
         # Limit content for summary generation to avoid token overflow
         preview = content[0:8000]
-        
+
         prompt = (
             f"Provide a concise 1-sentence summary of the following file's purpose: {path}\n\n"
             f"File content:\n{preview}\n\n"
             "Summary (1 sentence):"
         )
-        
+
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 r = await client.post(

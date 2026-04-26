@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     google_api_key: str = ""
     cohere_api_key: str = ""
+    groq_api_key: str = ""
+    cerebras_api_key: str = ""
+    sambanova_api_key: str = ""
+    mistral_api_key: str = ""
+    deepseek_api_key: str = ""
+    together_api_key: str = ""
+    fireworks_api_key: str = ""
 
     # ---- Ollama ----
     ollama_url: str = "http://localhost:11434"
@@ -63,6 +70,10 @@ class Settings(BaseSettings):
     mab_epsilon: float = 0.10
     mab_reward_threshold: float = 5.0  # adjusted for higher sensitivity
     mab_alpha: float = 1.0             # LinUCB exploration parameter
+
+    # ---- RAG & Explorer ----
+    reranker_model: str = "BAAI/bge-reranker-base"
+    explorer_max_depth: int = 2
 
     # ---- Logging ----
     log_level: str = "INFO"

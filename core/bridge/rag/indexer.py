@@ -133,15 +133,15 @@ class DocumentIndexer:
                     return chunks
             except Exception as exc:
                 logger.warning(f"AST chunking failed for {path}, falling back: {exc}")
-        
+
         paragraphs = [p.strip() for p in content.split("\n\n") if len(p.strip()) > 50]
         if len(paragraphs) >= 3:
             return self._merge_paragraphs(paragraphs)
-        
+
         words = content.split()
         if not words:
             return []
-            
+
         size = self.CHUNK_SIZE
         step = size - self.OVERLAP
         chunks_list: list[str] = []

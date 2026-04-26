@@ -25,7 +25,7 @@ class CodeGraph:
     def get_neighbors(self, entity: str, depth: int = 1) -> set[str]:
         if depth <= 0 or entity not in self.nodes:
             return set()
-        
+
         neighbors = set(self.nodes[entity])
         if depth > 1:
             for n in list(neighbors):
@@ -36,12 +36,12 @@ class CodeGraph:
         """Parses a Python file and extracts entity relationships."""
         try:
             tree = ast.parse(content)
-            
+
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                     entity_name = f"{path.name}::{node.name}"
                     self.add_dependency(path.name, entity_name)
-                    
+
                     # Track internal calls (simple heuristic)
                     for sub in ast.walk(node):
                         if isinstance(sub, ast.Call):
@@ -55,7 +55,7 @@ class CodeGraph:
                             elif isinstance(func, ast.Subscript):
                                 # Handle something[key]()
                                 pass
-                
+
                 elif isinstance(node, (ast.Import, ast.ImportFrom)):
                     # Track cross-file imports
                     targets = []
@@ -63,11 +63,11 @@ class CodeGraph:
                         targets = [n.name for n in node.names]
                     else:
                         targets = [node.module] if node.module else []
-                        
+
                     for t in targets:
                         if t is not None:
                             self.add_dependency(path.name, str(t))
-                        
+
         except Exception as e:
             logger.warning("graph_parse_failed", path=str(path), error=str(e))
 

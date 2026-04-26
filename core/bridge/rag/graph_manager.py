@@ -15,15 +15,15 @@ from config import Settings
 logger = logging.getLogger(__name__)
 
 class CodeGraphManager:
-    
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.graph = nx.DiGraph()
-        
+
     def add_dependency(self, source: str, target: str, rel_type: str = "dependency") -> None:
         """Add a dependency edge between symbols or files."""
         self.graph.add_edge(source, target, relation=rel_type)
-        
+
     def get_pagerank(self) -> dict[str, float]:
         """Calculate PageRank for all nodes in the graph."""
         try:
@@ -31,12 +31,12 @@ class CodeGraphManager:
         except Exception as exc:
             logger.warning(f"PageRank calculation failed: {exc}")
             return {}
-            
+
     def get_neighborhood(self, node: str, depth: int = 1) -> list[str]:
         """Get nodes within a certain distance from the target node."""
         if node not in self.graph:
             return []
-            
+
         # Simple BFS/DFS to get neighbors
         try:
             nodes = nx.single_source_shortest_path_length(self.graph, node, cutoff=depth)

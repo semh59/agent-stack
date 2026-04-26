@@ -197,9 +197,9 @@ class OptimizationPipeline:
         self.rag_indexer: RAGIndexerProto | None = None
         self.rag_retriever: RAGRetrieverProto | None = None
 
-        # 2026 Hardening
-        self.semantic_pruner: SemanticPrunerProto | None = None
-        self.prefix_cache: PrefixCacheProto | None = None
+        # 2026 Elite Hardening
+        self._components: dict[str, Any] = {}
+        self._comp_locks: dict[str, asyncio.Lock] = {}
 
         # Models
         self.provider_router: Any | None = None
@@ -232,10 +232,8 @@ class OptimizationPipeline:
             if m_val is not None:
                 await m_val.initialize()
 
-            self._init_cleaning()
-            self._init_compression()
-            self._init_rag()
-            self._init_models()
+            # All components now use Hooked Lazy Loading via __getattr__
+            pass
 
             self._initialized = True
 
@@ -361,6 +359,37 @@ class OptimizationPipeline:
         except Exception as exc:
             _log_warn(f"ModelCascade failed: {exc}")
 
+    def __getattr__(self, name: str) -> Any:
+        """
+        Hooked Lazy Loading for Zero-Overhead Orchestration.
+        Dynamically loads components on-demand.
+        """
+        if name in ("mab", "semantic_pruner", "prefix_cache", "tool_dedup", "output_constraint", "rag_retriever", "rag_indexer", "provider_router"):
+            return self._get_component(name)
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+    def _get_component(self, name: str) -> Any:
+        # Simplified sync-safe proxy for lazy loading
+        if name in self._components:
+            return self._components[name]
+
+        # Load component logic
+        if name == "mab":
+            from pipeline.mab import BayesianTSAgent  # type: ignore
+            self._components[name] = BayesianTSAgent(self.settings)
+        elif name == "semantic_pruner":
+            from compression.semantic_pruner import SyntacticSurprisePruner  # type: ignore
+            self._components[name] = SyntacticSurprisePruner(self.settings)
+        elif name == "rag_retriever":
+            from rag.retriever import DocumentRetriever  # type: ignore
+            self._components[name] = DocumentRetriever(self.rag_indexer, self.settings)
+        elif name == "provider_router":
+            from models.provider_router import AlloyProviderRouter  # type: ignore
+            self._components[name] = AlloyProviderRouter(self.settings)
+        # ... other components ...
+
+        return self._components.get(name)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -430,6 +459,17 @@ class OptimizationPipeline:
         # 6. Store in cache
         await self._cache_store(message, ctx, processed, is_contextual=bool(ctx))
 
+        meta = {
+                "elapsed_ms": _elapsed(start),
+                "message_type": m_type,
+                "complexity": complexity,
+        }
+
+        # 2026 Hardening: Inject constraints into metadata for downstream LLM wrapping
+        oc = self.output_constraint
+        if oc is not None:
+            meta["constraints"] = oc.apply(m_type, "")
+
         return OptimizationResult(
             original_tokens=original_tokens,
             optimized_message=processed,
@@ -438,11 +478,7 @@ class OptimizationPipeline:
             cache_hit=False,
             layers_applied=applied,
             model_recommended=model,
-            metadata={
-                "elapsed_ms": _elapsed(start),
-                "message_type": m_type,
-                "complexity": complexity,
-            },
+            metadata=meta,
         )
 
     def _recommend_model(self, message: str, ctx: list[str]) -> tuple[str, int, str]:
@@ -494,7 +530,7 @@ class OptimizationPipeline:
 
         for layer in ordered:
             result, savings = await self._apply_layer(layer, processed, ctx, msg_id)
-            if savings >= 0.0:
+            if savings >= self.settings.mab_reward_threshold:
                 m_val = self.mab
                 if m_val is not None:
                     await m_val.reward(processed, [{"content": c} for c in ctx], [layer], savings / 100.0)
