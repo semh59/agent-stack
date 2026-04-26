@@ -87,6 +87,7 @@ class ThompsonSamplingMAB:
         """Load persisted arm state from SQLite. Non-blocking."""
         try:
             async with aiosqlite.connect(self._db_path) as db:
+                await db.execute("PRAGMA journal_mode=WAL")
                 await db.execute(_SCHEMA)
                 await db.commit()
                 async with db.execute("SELECT name, alpha, beta FROM mab_state") as cur:
@@ -137,6 +138,7 @@ class ThompsonSamplingMAB:
         """Persist arm state. Must be called with self._lock held."""
         try:
             async with aiosqlite.connect(self._db_path) as db:
+                await db.execute("PRAGMA journal_mode=WAL")
                 await db.execute(_SCHEMA)
                 await db.executemany(
                     "INSERT OR REPLACE INTO mab_state (name, alpha, beta) VALUES (?, ?, ?)",

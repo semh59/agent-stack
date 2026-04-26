@@ -17,11 +17,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/alloy-ai/agent-stack"
+    "url": "https://github.com/alloy-ai/alloy-core"
   },
-  "homepage": "https://github.com/alloy-ai/agent-stack#readme",
+  "homepage": "https://github.com/alloy-ai/alloy-core#readme",
   "bugs": {
-    "url": "https://github.com/alloy-ai/agent-stack/issues"
+    "url": "https://github.com/alloy-ai/alloy-core/issues"
   },
   "engines": {
     "vscode": "^1.90.0"
@@ -44,7 +44,7 @@
   "extensionKind": [
     "workspace"
   ],
-  "qna": "https://github.com/alloy-ai/agent-stack/discussions",
+  "qna": "https://github.com/alloy-ai/alloy-core/discussions",
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {

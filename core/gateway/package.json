@@ -9,11 +9,11 @@
     "author": "Alloy AI contributors",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/alloy-ai/agent-stack.git"
+        "url": "git+https://github.com/alloy-ai/alloy-core.git"
     },
-    "homepage": "https://github.com/alloy-ai/agent-stack#readme",
+    "homepage": "https://github.com/alloy-ai/alloy-core#readme",
     "bugs": {
-        "url": "https://github.com/alloy-ai/agent-stack/issues"
+        "url": "https://github.com/alloy-ai/alloy-core/issues"
     },
     "keywords": [
         "alloy",

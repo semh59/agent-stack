@@ -98,8 +98,17 @@ class RAGIndexerProto(Protocol):
 
 
 class RAGRetrieverProto(Protocol):
-    async def search(self, *, query: str, limit: int) -> list[Any]: ...
-    async def build_context_snippet(self, text: str) -> str | None: ...
+    async def search(self, query: str, limit: int) -> list[Any]: ...
+    async def build_context_snippet(self, query: str, limit: int) -> str | None: ...
+
+
+class SemanticPrunerProto(Protocol):
+    def prune(self, text: str, intensity: float | None = None) -> tuple[str, float]: ...
+
+
+class PrefixCacheProto(Protocol):
+    def get_prefix(self, content: str) -> str | None: ...
+    def store_prefix(self, content: str) -> None: ...
 
 
 class _CircuitBreaker(Protocol):
@@ -186,6 +195,10 @@ class OptimizationPipeline:
         # RAG
         self.rag_indexer: RAGIndexerProto | None = None
         self.rag_retriever: RAGRetrieverProto | None = None
+
+        # 2026 Hardening
+        self.semantic_pruner: SemanticPrunerProto | None = None
+        self.prefix_cache: PrefixCacheProto | None = None
 
         # Models
         self.model_cascade: ModelCascadeProto | None = None
@@ -298,6 +311,18 @@ class OptimizationPipeline:
         except Exception as exc:
             _log_warn(f"Caveman failed: {exc}")
 
+        try:
+            from compression.semantic_pruner import SemanticPruner  # type: ignore
+            self.semantic_pruner = SemanticPruner(self.settings)
+        except Exception as exc:
+            _log_warn(f"SemanticPruner failed: {exc}")
+
+        try:
+            from pipeline.prefix_cache_manager import PrefixCacheManager  # type: ignore
+            self.prefix_cache = PrefixCacheManager(self.settings)
+        except Exception as exc:
+            _log_warn(f"PrefixCacheManager failed: {exc}")
+
     def _init_rag(self) -> None:
         if self.capability_matrix and self.capability_matrix.rag:
             try:
@@ -344,6 +369,12 @@ class OptimizationPipeline:
                 model_recommended="cached",
                 metadata={"elapsed_ms": _elapsed(start)},
             )
+            
+        # 1b. Prefix Cache (2026 Spec)
+        if self.prefix_cache is not None and ctx:
+            long_context = "\n".join(ctx)
+            if len(long_context) > 1000:
+                self.prefix_cache.store_prefix(long_context)
 
         # 2. Classify + complexity
         msg_type = "unknown"
@@ -367,7 +398,7 @@ class OptimizationPipeline:
 
         for layer in ordered:
             result, savings = await self._apply_layer(layer, processed, ctx, msg_id)
-            if savings > 0.5:  # >0.5% threshold
+            if savings > 5.0:  # >5.0% threshold (Masterpiece Optimization)
                 if self.mab:
                     await self.mab.reward(layer, savings)
                 applied.append(layer)
@@ -479,12 +510,12 @@ class OptimizationPipeline:
     def _layer_candidates(self, msg_type: str) -> list[str]:
         mapping: dict[str, list[str]] = {
             "cli_command":      ["cli_cleaner", "noise_filter"],
-            "data_analysis":    ["dedup", "rag", "llmlingua", "summarizer"],
-            "prose_reasoning":  ["noise_filter", "caveman", "llmlingua", "summarizer"],
-            "code_generation":  ["dedup", "noise_filter", "llmlingua"],
+            "data_analysis":    ["dedup", "rag", "llmlingua", "summarizer", "semantic_pruning"],
+            "prose_reasoning":  ["noise_filter", "caveman", "llmlingua", "summarizer", "semantic_pruning"],
+            "code_generation":  ["dedup", "noise_filter", "llmlingua", "semantic_pruning"],
             "query":            ["rag", "summarizer"],
             "local_answerable": [],
-            "unknown":          ["noise_filter"],
+            "unknown":          ["noise_filter", "semantic_pruning"],
         }
         return mapping.get(msg_type, ["noise_filter"])
 
@@ -528,6 +559,8 @@ class OptimizationPipeline:
             return await self._apply_rag(text)
         if layer == "summarizer" and self.summarizer:
             return await self._apply_summarizer(text, msg_id)
+        if layer == "semantic_pruning" and self.semantic_pruner:
+            return self.semantic_pruner.prune(text)
         return text, 0.0
 
     async def _apply_rag(self, text: str) -> tuple[str, float]:

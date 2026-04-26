@@ -12,14 +12,14 @@ from __future__ import annotations
 
 import asyncio
 import time
-import structlog
+import structlog  # type: ignore
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
-from config import Settings
-from models.ollama import OllamaClient
-from models.openrouter import OpenRouterClient, RateLimitError
+from config import Settings  # type: ignore
+from models.ollama import OllamaClient  # type: ignore
+from models.openrouter import OpenRouterClient, RateLimitError  # type: ignore
 
 logger = structlog.get_logger(__name__)
 
@@ -43,15 +43,17 @@ class CircuitBreaker:
 
     async def is_open(self) -> bool:
         async with self._lock:
-            if self._state == BreakerState.OPEN:
-                if time.time() - self._opened_at >= self.reset_timeout:
-                    logger.info("breaker_half_open", name=self.name)
-                    self._state = BreakerState.HALF_OPEN
-                    return False
-                return True
-            else:
+            if self._state != BreakerState.OPEN:
                 return False
-        return False  # Redundant final return to satisfy Pyre
+
+            if time.time() - self._opened_at >= self.reset_timeout:
+                logger.info("breaker_half_open", name=self.name)
+                self._state = BreakerState.HALF_OPEN
+                return False
+
+            return True
+
+        return False
 
     async def record_success(self) -> None:
         async with self._lock:

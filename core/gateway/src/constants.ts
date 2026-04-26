@@ -80,7 +80,7 @@ export const ALLOY_DEFAULT_PROJECT_ID = "rising-fact-p41fc";
  * This version MUST be kept in sync with Google's supported Alloy versions.
  * Using an outdated version will cause "This version of Alloy is no longer supported" errors.
  * 
- * @see https://github.com/alloy-ai/agent-stack/issues/324
+ * @see https://github.com/alloy-ai/alloy-core/issues/324
  */
 export const ALLOY_VERSION = "1.15.8" as const;
 

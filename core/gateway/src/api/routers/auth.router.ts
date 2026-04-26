@@ -63,6 +63,7 @@ export function registerAuthRoutes(
         });
         activeAuthServer = currentServer;
         
+        app.log.info({ port: callbackPort }, "[GatewayAuthRouter] Starting AuthServer...");
         currentServer.start().then(async (result) => {
           if (activeAuthServer === currentServer) {
             activeAuthServer = null;

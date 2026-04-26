@@ -58,15 +58,11 @@ alloy-core/
 ├── infra/docker/docker-compose.unified.yml  # Birleşik Docker Compose
 ├── package.json                     # Monorepo root package.json
 ├── package-lock.json
-├── README.md                        # Proje tanıtım dosyası
-│
-├── core/
-│   ├── gateway/                     # 🟦 TypeScript/Fastify AI Gateway
-│   └── bridge/                      # 🐍 Python/aiohttp Optimizasyon Köprüsü
-├── interface/
-│   ├── console/                     # ⚛️ React + Vite Dashboard
-│   └── extension/                   # 🧩 VS Code Extension
+├── README.md                        # Proje tanıtım dosyası (root)
 ├── docs/                            # 📚 Platform dokümantasyonu
+│   ├── README.md                    # Dokümantasyon girişi (bu dizin)
+│   ├── MAP.md                       # Detaylı proje haritası (bu dosya)
+│   └── ...
 ├── infra/
 │   ├── terraform/                   # ☁️ AWS IaC
 │   └── docker/                      # 🐳 Docker Compose & Dockerfile'lar

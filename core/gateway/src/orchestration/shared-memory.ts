@@ -318,16 +318,18 @@ export class SharedMemory {
   }
 
   public async appendLog(agent: string, message: string, metadata: Record<string, unknown> = {}): Promise<void> {
-    const logPath = path.join(this.rootDir, 'logs', this.sessionId, 'timeline.jsonl');
-    const entry = JSON.stringify({
-      timestamp: new Date().toISOString(),
-      agent,
-      message,
-      ...metadata
-    }) + '\n';
-    
-    await fs.mkdir(path.dirname(logPath), { recursive: true });
-    await fs.appendFile(logPath, entry, 'utf-8');
+    await this.lock.acquire('logs', async () => {
+      const logPath = path.join(this.rootDir, 'logs', this.sessionId, 'timeline.jsonl');
+      const entry = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        agent,
+        message,
+        ...metadata
+      }) + '\n';
+      
+      await fs.mkdir(path.dirname(logPath), { recursive: true });
+      await fs.appendFile(logPath, entry, 'utf-8');
+    });
   }
 
   public async readLogTail(limit: number = 20): Promise<Record<string, unknown>[]> {
@@ -346,12 +348,14 @@ export class SharedMemory {
   }
 
   public async writeAgentOutput(agent: string, filename: string, content: string): Promise<string[]> {
-    const outputPath = path.join(this.rootDir, 'logs', this.sessionId, filename);
-    await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, content, 'utf-8');
-    
-    await this.appendLog(agent, `Output generated: ${filename}`, { file: filename });
-    return [filename];
+    return await this.lock.acquire(`output:${filename}`, async () => {
+      const outputPath = path.join(this.rootDir, 'logs', this.sessionId, filename);
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      await fs.writeFile(outputPath, content, 'utf-8');
+      
+      await this.appendLog(agent, `Output generated: ${filename}`, { file: filename });
+      return [filename];
+    });
   }
 
   public async readAgentOutput(filename: string): Promise<string | null> {
@@ -391,5 +395,42 @@ export class SharedMemory {
       [`${role}_context`]: JSON.stringify(state ?? {}).slice(0, 2000),
       recent_logs: JSON.stringify(logs),
     };
+  }
+
+  // --- Restored Missing Methods (from Audit) ---
+
+  public async getSummary(): Promise<string> {
+    const state = await this.getState();
+    return state.userTask || '';
+  }
+
+  public async setSummary(summary: string): Promise<void> {
+    await this.updateState({ userTask: summary });
+  }
+
+  public async getPlan(): Promise<string> {
+    const state = await this.getState();
+    return state.architecture || ''; // architecture often stores the high-level plan
+  }
+
+  public async setPlan(plan: string): Promise<void> {
+    await this.updateState({ architecture: plan });
+  }
+
+  public async getJournal(): Promise<Record<string, unknown>[]> {
+    return this.getTimeline();
+  }
+
+  public async appendJournal(agent: string, message: string, metadata?: Record<string, unknown>): Promise<void> {
+    await this.appendLog(agent, message, metadata);
+  }
+
+  public async getScopedValue(scope: string, key: string): Promise<unknown> {
+    const state = (await this.getState()) as unknown as Record<string, unknown>;
+    return state[`${scope}_${key}`];
+  }
+
+  public async setScopedValue(scope: string, key: string, value: unknown): Promise<void> {
+    await this.updateState({ [`${scope}_${key}`]: value } as Partial<PipelineState>);
   }
 }

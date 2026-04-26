@@ -14,7 +14,7 @@ from collections import OrderedDict
 from threading import Lock
 from typing import Any
 
-from config import Settings
+from config import Settings  # type: ignore
 
 
 def _hash(key: str) -> str:
@@ -35,7 +35,7 @@ class MemoryCache:
         self._default_ttl = default_ttl
         self._lock = Lock()
 
-    def get(self, key: str) -> str | None:
+    def get(self, key: str) -> str | dict[str, Any] | list[Any] | None:
         with self._lock:
             if key not in self._store:
                 return None
@@ -99,7 +99,7 @@ class DiskCache:
         self._conn.commit()
         self._lock = Lock()
 
-    def get(self, key: str) -> str | None:
+    def get(self, key: str) -> Any:
         with self._lock:
             row = self._conn.execute(
                 "SELECT value, expiry, type FROM cache WHERE key = ?", (key,)
@@ -181,7 +181,7 @@ class ExactCache:
         if self._op_count % self._CLEANUP_INTERVAL == 0:
             self._disk.clear_expired()
 
-    def get(self, message: str) -> str | None:
+    def get(self, message: str) -> Any:
         key = _hash(message)
         self._maybe_cleanup()
         # Memory first

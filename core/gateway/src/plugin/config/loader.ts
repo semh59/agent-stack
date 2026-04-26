@@ -28,8 +28,8 @@ const log = createLogger("config");
  */
 function getConfigDir(): string {
   // 1. Check for explicit override via env var
-  if (process.env.Alloy_CONFIG_DIR) {
-    return process.env.Alloy_CONFIG_DIR;
+  if (process.env.ALLOY_CONFIG_DIR) {
+    return process.env.ALLOY_CONFIG_DIR;
   }
 
   // 2. Use ~/.config/Alloy on all platforms (including Windows)
@@ -119,55 +119,55 @@ function applyEnvOverrides(config: AlloyGatewayConfig): AlloyGatewayConfig {
   return {
     ...config,
 
-    // Alloy_ALLOY_QUIET=1
-    quiet_mode: env.Alloy_ALLOY_QUIET === "1" || env.Alloy_ALLOY_QUIET === "true"
+    // ALLOY_QUIET=1
+    quiet_mode: env.ALLOY_QUIET === "1" || env.ALLOY_QUIET === "true"
       ? true
       : config.quiet_mode,
 
-    // Alloy_ALLOY_DEBUG=1 or any truthy value
-    debug: env.Alloy_ALLOY_DEBUG
-      ? env.Alloy_ALLOY_DEBUG !== "0" && env.Alloy_ALLOY_DEBUG !== "false"
+    // ALLOY_DEBUG=1 or any truthy value
+    debug: env.ALLOY_DEBUG
+      ? env.ALLOY_DEBUG !== "0" && env.ALLOY_DEBUG !== "false"
       : config.debug,
 
-    // Alloy_ALLOY_LOG_DIR=/path/to/logs
-    log_dir: env.Alloy_ALLOY_LOG_DIR || config.log_dir,
+    // ALLOY_LOG_DIR=/path/to/logs
+    log_dir: env.ALLOY_LOG_DIR || config.log_dir,
 
-    // Alloy_ALLOY_SESSION_RECOVERY=0 to disable
+    // ALLOY_SESSION_RECOVERY=0 to disable
     session_recovery:
-      env.Alloy_ALLOY_SESSION_RECOVERY === "0" ||
-      env.Alloy_ALLOY_SESSION_RECOVERY === "false"
+      env.ALLOY_SESSION_RECOVERY === "0" ||
+      env.ALLOY_SESSION_RECOVERY === "false"
         ? false
         : config.session_recovery,
 
-    // Alloy_ALLOY_AUTO_RESUME=0 to disable auto-continue after recovery
+    // ALLOY_AUTO_RESUME=0 to disable auto-continue after recovery
     auto_resume:
-      env.Alloy_ALLOY_AUTO_RESUME === "0" ||
-      env.Alloy_ALLOY_AUTO_RESUME === "false"
+      env.ALLOY_AUTO_RESUME === "0" ||
+      env.ALLOY_AUTO_RESUME === "false"
         ? false
-        : env.Alloy_ALLOY_AUTO_RESUME === "1" ||
-          env.Alloy_ALLOY_AUTO_RESUME === "true"
+        : env.ALLOY_AUTO_RESUME === "1" ||
+          env.ALLOY_AUTO_RESUME === "true"
           ? true
           : config.auto_resume,
 
-    // Alloy_ALLOY_RESUME_TEXT to customize resume text
-    resume_text: env.Alloy_ALLOY_RESUME_TEXT || config.resume_text,
+    // ALLOY_RESUME_TEXT to customize resume text
+    resume_text: env.ALLOY_RESUME_TEXT || config.resume_text,
 
-    // Alloy_ALLOY_AUTO_UPDATE=0 to disable
+    // ALLOY_AUTO_UPDATE=0 to disable
     auto_update:
-      env.Alloy_ALLOY_AUTO_UPDATE === "0" ||
-      env.Alloy_ALLOY_AUTO_UPDATE === "false"
+      env.ALLOY_AUTO_UPDATE === "0" ||
+      env.ALLOY_AUTO_UPDATE === "false"
         ? false
         : config.auto_update,
 
-    // Alloy_ALLOY_ACCOUNT_SELECTION_STRATEGY=sticky|round-robin|hybrid
-    account_selection_strategy: env.Alloy_ALLOY_ACCOUNT_SELECTION_STRATEGY
-      ? AccountSelectionStrategySchema.catch('sticky').parse(env.Alloy_ALLOY_ACCOUNT_SELECTION_STRATEGY)
+    // ALLOY_ACCOUNT_SELECTION_STRATEGY=sticky|round-robin|hybrid
+    account_selection_strategy: env.ALLOY_ACCOUNT_SELECTION_STRATEGY
+      ? AccountSelectionStrategySchema.catch('sticky').parse(env.ALLOY_ACCOUNT_SELECTION_STRATEGY)
       : config.account_selection_strategy,
 
-    // Alloy_ALLOY_PID_OFFSET_ENABLED=1
+    // ALLOY_PID_OFFSET_ENABLED=1
     pid_offset_enabled:
-      env.Alloy_ALLOY_PID_OFFSET_ENABLED === "1" ||
-      env.Alloy_ALLOY_PID_OFFSET_ENABLED === "true"
+      env.ALLOY_PID_OFFSET_ENABLED === "1" ||
+      env.ALLOY_PID_OFFSET_ENABLED === "true"
         ? true
         : config.pid_offset_enabled,
 

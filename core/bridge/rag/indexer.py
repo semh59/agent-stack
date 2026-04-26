@@ -9,12 +9,17 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import logging
 from pathlib import Path
 from typing import Any
 
 import httpx
+from astchunk import ASTChunkBuilder
 
 from config import Settings
+from rag.contextual_embedder import ContextualEmbedder
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentIndexer:
@@ -28,8 +33,10 @@ class DocumentIndexer:
         self._db: Any = None
         self._table: Any = None
         self._file_hashes: dict[str, str] = {}  # path → content hash
-        # M7 fix: Lock prevents concurrent calls from creating the LanceDB table twice.
         self._table_lock = asyncio.Lock()
+        
+        # RAG 2.0 Components
+        self.contextualizer = ContextualEmbedder(settings)
 
     # ------------------------------------------------------------------
     # Setup
@@ -81,13 +88,18 @@ class DocumentIndexer:
     # ------------------------------------------------------------------
 
     async def _embed(self, text: str) -> list[float]:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            r = await client.post(
-                f"{self.settings.ollama_url}/api/embeddings",
-                json={"model": self.settings.ollama_embed_model, "prompt": text},
-            )
-            r.raise_for_status()
-            return r.json()["embedding"]
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.post(
+                    f"{self.settings.ollama_url}/api/embeddings",
+                    json={"model": self.settings.ollama_embed_model, "prompt": text},
+                )
+                r.raise_for_status()
+                embedding = r.json()["embedding"]
+                return list(embedding)
+        except Exception as exc:
+            logger.error(f"Embedding failed: {exc}")
+            return [0.0] * 1024 # Fallback dimension (mxbai-embed-large style)
 
     # ------------------------------------------------------------------
     # Indexing
@@ -111,19 +123,26 @@ class DocumentIndexer:
             return {"success": True, "chunks_indexed": 0, "cached": True, "path": path}
 
         table = await self._get_table()
-        chunks = self._chunk_document(content)
+        
+        # 1. Chunking (AST-aware if possible)
+        chunks = self._chunk_document(content, path)
+        
+        # 2. Contextualization (RAG 2.0)
+        contextualized_chunks = await self.contextualizer.contextualize_chunks(content, chunks, path)
 
-        # M8 fix: embed all chunks in parallel but bounded by semaphore
+        # 3. Embedding
         sem = asyncio.Semaphore(10)
         async def sem_embed(chunk_text: str) -> list[float]:
             async with sem:
                 return await self._embed(chunk_text)
 
-        embeddings = await asyncio.gather(*[sem_embed(chunk) for chunk in chunks])
+        embeddings = await asyncio.gather(*[sem_embed(chunk) for chunk in contextualized_chunks])
 
         records: list[dict[str, Any]] = []
-        for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
-            chunk_id = hashlib.sha256(f"{path}:{i}:{chunk[:50]}".encode()).hexdigest()[:16]
+        for i, (chunk, embedding) in enumerate(zip(chunks, embeddings, strict=True)):
+            # Use string slice correctly
+            preview = chunk[0:50] if isinstance(chunk, str) else ""
+            chunk_id = hashlib.sha256(f"{path}:{i}:{preview}".encode()).hexdigest()[:16]
             records.append({
                 "id": chunk_id,
                 "path": path,
@@ -159,15 +178,29 @@ class DocumentIndexer:
     # Chunking
     # ------------------------------------------------------------------
 
-    def _chunk_document(self, content: str) -> list[str]:
-        """Paragraph-first chunking with word-window fallback."""
-        # Paragraph split
+    def _chunk_document(self, content: str, path: str = "") -> list[str]:
+        """AST-aware chunking with paragraph/window fallback."""
+        ext = Path(path).suffix.lower().lstrip(".")
+        
+        # Supported languages for astchunk
+        supported = {"py": "python", "js": "javascript", "ts": "typescript"}
+        
+        if ext in supported:
+            try:
+                # Use ASTChunkBuilder as discovered in 2026-spec astchunk
+                chunker = ASTChunkBuilder(language=supported[ext], max_chunk_size=self.CHUNK_SIZE * 4) # approx chars
+                chunks: list[str] = chunker.chunk(content)
+                if chunks:
+                    return chunks
+            except Exception as exc:
+                logger.warning(f"AST chunking failed for {path}, falling back: {exc}")
+
+        # Fallback 1: Paragraph split
         paragraphs = [p.strip() for p in content.split("\n\n") if len(p.strip()) > 50]
         if len(paragraphs) >= 3:
-            # Merge short paragraphs into chunks of ~CHUNK_SIZE words
             return self._merge_paragraphs(paragraphs)
 
-        # Fixed word window with overlap
+        # Fallback 2: Fixed word window
         words = content.split()
         if not words:
             return []

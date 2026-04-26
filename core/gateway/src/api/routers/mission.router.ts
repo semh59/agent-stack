@@ -5,7 +5,8 @@ import type {
   preHandlerHookHandler,
 } from "fastify";
 import type { MissionModel, MissionState } from "../../models/mission.model";
-import { MissionService, MissionServiceError } from "../../services/mission.service";
+import type { MissionService } from "../../services/mission.service";
+import { MissionServiceError } from "../../services/mission.service";
 import { apiError, apiResponse, sendMappedApiError } from "../../gateway/rest-response";
 
 import { z } from "zod";
@@ -135,7 +136,10 @@ function mapRuntimeStateToMissionState(state: string): MissionState {
 }
 
 function projectResumeState(mission: MissionModel): MissionState {
-  const timeline = mission.timeline;
+  const timeline = mission.timeline || [];
+  if (!Array.isArray(timeline)) {
+    return "received";
+  }
   for (let index = timeline.length - 1; index >= 0; index -= 1) {
     const entry = timeline[index];
     if (!entry || entry.state === "paused") {

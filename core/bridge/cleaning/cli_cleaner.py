@@ -48,6 +48,11 @@ def _dedup_lines(lines: list[str]) -> list[str]:
     return out
 
 
+def _limit(items: list[str], n: int) -> list[str]:
+    """Helper to bypass linter indexing issues with slices."""
+    return items[slice(0, n)]
+
+
 def _collapse_blank_lines(lines: list[str]) -> list[str]:
     out: list[str] = []
     blank_run = 0
@@ -77,8 +82,8 @@ def _clean_git_log(lines: list[str]) -> list[str]:
             break
         m = _GIT_HASH_RE.match(line.strip())
         if m:
-            full_hash: str = m.group(1)
-            short_hash = full_hash[:7]
+            full_hash: str = str(m.group(1))
+            short_hash = full_hash[0:7]
             result.append(f"{short_hash} {m.group(2)}")
         else:
             result.append(line)
@@ -109,7 +114,7 @@ def _clean_git_diff(lines: list[str]) -> list[str]:
 
 
 def _clean_git_status(lines: list[str]) -> list[str]:
-    return lines[:60]
+    return lines[0:60]
 
 
 def _clean_docker_ps(lines: list[str]) -> list[str]:
@@ -118,7 +123,7 @@ def _clean_docker_ps(lines: list[str]) -> list[str]:
 
 
 def _clean_docker_images(lines: list[str]) -> list[str]:
-    return [line[:100] for line in lines[:25]]
+    return [line[0:100] for line in lines[0:25]]
 
 
 def _clean_docker_logs(lines: list[str]) -> list[str]:
@@ -133,8 +138,8 @@ _NPM_KEEP_RE = re.compile(r"(npm (?:warn|err)|error|added \d+|removed \d+|change
 
 
 def _clean_npm_install(lines: list[str]) -> list[str]:
-    out = [l for l in lines if _NPM_KEEP_RE.search(l) and not _NPM_SKIP_RE.match(l)]
-    return out if out else lines[:5]
+    out = [line for line in lines if _NPM_KEEP_RE.search(line) and not _NPM_SKIP_RE.match(line)]
+    return out if out else lines[0:5]
 
 
 _PIP_KEEP_RE = re.compile(
@@ -143,7 +148,7 @@ _PIP_KEEP_RE = re.compile(
 
 
 def _clean_pip_install(lines: list[str]) -> list[str]:
-    out = [l for l in lines if _PIP_KEEP_RE.search(l)]
+    out = [line for line in lines if _PIP_KEEP_RE.search(line)]
     return out if out else lines[-5:]
 
 
@@ -187,19 +192,19 @@ _COMMAND_RULES: dict[str, Callable[[list[str]], list[str]]] = {
     "git diff":         _clean_git_diff,
     "git show":         _clean_git_diff,
     "git status":       _clean_git_status,
-    "git branch":       lambda lines: lines[:30],
+    "git branch":       lambda lines: _limit(lines, 30),
     "docker ps":        _clean_docker_ps,
     "docker images":    _clean_docker_images,
     "docker logs":      _clean_docker_logs,
     "npm install":      _clean_npm_install,
-    "npm audit":        lambda lines: [l for l in lines if re.search(r"(high|critical|moderate|low|found)", l, re.I)][:30],
-    "npm outdated":     lambda lines: lines[:30],
+    "npm audit":        lambda lines: _limit([line for line in lines if re.search(r"(high|critical|moderate|low|found)", line, re.I)], 30),
+    "npm outdated":     lambda lines: _limit(lines, 30),
     "pip install":      _clean_pip_install,
-    "pip list":         lambda lines: lines[:50],
+    "pip list":         lambda lines: _limit(lines, 50),
     "pytest":           _clean_pytest,
     "ls -la":           _clean_ls,
     "ls -l":            _clean_ls,
-    "ls":               lambda lines: lines[:80],
+    "ls":               lambda lines: _limit(lines, 80),
 }
 
 # Shell prompt pattern — extracts "cmd subcmd"

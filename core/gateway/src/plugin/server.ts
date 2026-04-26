@@ -114,7 +114,7 @@ function isRemoteEnvironment(): boolean {
  */
 function getBindAddress(): string {
   // Allow user override via environment variable
-  const envBind = process.env.Alloy_ALLOY_OAUTH_BIND;
+  const envBind = process.env.ALLOY_OAUTH_BIND;
   if (envBind) {
     return envBind;
   }

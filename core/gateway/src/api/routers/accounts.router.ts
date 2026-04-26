@@ -102,7 +102,11 @@ export function registerAccountsRoutes(
           app.log.info(`[Gateway] Found account in pool: ${target.email}. Deleting...`);
           poolDeleted = accountManager.removeAccountByEmail(target.email || "");
           if (poolDeleted) {
-            await accountManager.saveToDisk();
+            try {
+        await accountManager.saveToDisk();
+      } catch (err) {
+        request.log.error(err, "Failed to persist account pool to disk after update");
+      }
             app.log.info(`[Gateway] Successfully deleted ${decodedEmail} from AccountManager pool.`);
           }
         }

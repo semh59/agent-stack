@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from config import Settings
+from config import Settings  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class Classification:
 _CLI_PREFIXES = frozenset({
     "git", "docker", "npm", "yarn", "cargo", "kubectl", "aws", "gcloud",
     "python", "pip", "poetry", "gh", "psql", "pnpm", "tsc", "pytest",
+    "make", "go", "rustc", "deno", "bun", "supabase", "vercel",
 })
 
 
@@ -62,7 +63,7 @@ class MessageRouter:
         self.semantic_enabled = False
 
         try:
-            from sklearn.feature_extraction.text import TfidfVectorizer
+            from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
             self.vectorizer = TfidfVectorizer(stop_words="english")
             self.centers = {
                 MessageType.CLI_COMMAND: (
@@ -115,8 +116,8 @@ class MessageRouter:
 
         if self.semantic_enabled:
             try:
-                import numpy as np
-                from sklearn.metrics.pairwise import cosine_similarity
+                import numpy as np  # type: ignore
+                from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
 
                 query_vec = self.vectorizer.transform([normalized.lower()])
                 sims = cosine_similarity(query_vec, self.vector_space)[0]
@@ -180,7 +181,8 @@ class MessageRouter:
         else:
             conf = raw
 
-        return best, round(conf, 4), f"Heuristic ({conf:.2f})"
+        conf_val = float(f"{conf:.4f}")
+        return best, conf_val, f"Heuristic ({conf:.2f})"
 
     def _matches_cli(self, m: str) -> bool:
         return bool(re.search(
@@ -217,12 +219,35 @@ class MessageRouter:
             m, re.I | re.M,
         ))
 
-    def _matches_local(self, m: str) -> bool:
-        """Simple factual questions that a small local model can answer."""
-        return bool(re.search(
-            r"^(?:what is|what are|define|who is|when was|where is)\b",
-            m, re.I,
-        ) and len(m.split()) < 20)
+    def _matches_local(self, text: str) -> bool:
+        """Heuristic check for simple factual/local questions."""
+        lower = text.lower().strip()
+        
+        # Short phrases or common local tasks
+        if len(lower) < 100:
+            local_starters = [
+                "hey", "hi", "hello", "what is", "who is", "where is", 
+                "how to", "tell me", "explain", "summarize", "list",
+                "show me", "can you", "do you know"
+            ]
+            if any(lower.startswith(s) for s in local_starters):
+                return True
+                
+        # Known simple factual patterns
+        patterns = [
+            r"what (is|are) [^?]+",
+            r"how (do|does) [^?]+",
+            r"who (is|was) [^?]+",
+            r"define [^?]+",
+            r"translate [^?]+ to [^?]+",
+            r"(give me|list) \d+ [^?]+",
+        ]
+        
+        for p in patterns:
+            if re.search(p, lower):
+                return True
+                
+        return False
 
     def _layers(self, t: MessageType) -> list[str]:
         mapping: dict[MessageType, list[str]] = {
@@ -239,8 +264,8 @@ class MessageRouter:
     def update_centers(self, message_type: MessageType, text: str) -> None:
         if self.semantic_enabled and message_type in self.centers:
             current = self.centers[message_type]
-            merged = f"{text} {current}"
-            self.centers[message_type] = merged[:2000]
+            merged_str = str(f"{text} {current}")
+            self.centers[message_type] = merged_str[slice(0, 2000)]
             self.vector_space = self.vectorizer.fit_transform(list(self.centers.values()))
 
 
