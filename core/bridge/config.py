@@ -24,16 +24,27 @@ class Settings(BaseSettings):
     mab_db: Path | None = None
     costs_db: Path | None = None
 
+    # ---- Provider Keys ----
+    anthropic_api_key: str = ""
+    openai_api_key: str = ""
+    google_api_key: str = ""
+    cohere_api_key: str = ""
+
     # ---- Ollama ----
     ollama_url: str = "http://localhost:11434"
-    ollama_fast_model: str = "gemma4:e2b"
-    ollama_prose_model: str = "gemma4:e2b"
+    ollama_fast_model: str = "gemma2:2b"
+    ollama_prose_model: str = "gemma2:9b"
     ollama_embed_model: str = "nomic-embed-text"
     ollama_timeout: float = Field(default=120.0, gt=0)
 
     # ---- OpenRouter ----
     openrouter_api_key: str = ""
     openrouter_free_model: str = "meta-llama/llama-3.1-70b-instruct:free"
+
+    # ---- Router ----
+    router_strategy: str = "usage-based-routing-v2"
+    router_num_retries: int = 3
+    router_timeout: float = 60.0
 
     # ---- Semantic Cache ----
     semantic_cache_similarity_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
@@ -48,9 +59,10 @@ class Settings(BaseSettings):
     llmlingua_rate_technical: float = 0.40
     llmlingua_rate_critical: float = 0.20
 
-    # ---- MAB ----
+    # ---- MAB (LinUCB) ----
     mab_epsilon: float = 0.10
-    mab_reward_threshold: float = 0.20  # savings fraction
+    mab_reward_threshold: float = 5.0  # adjusted for higher sensitivity
+    mab_alpha: float = 1.0             # LinUCB exploration parameter
 
     # ---- Logging ----
     log_level: str = "INFO"
@@ -60,11 +72,6 @@ class Settings(BaseSettings):
     # server.py (stdio MCP) uses this port; bridge.py binds to metrics_port + 1
     # so they can run side-by-side locally without conflict.
     metrics_port: int = Field(default=9090, ge=1024, le=65535)
-
-    # ---- Bridge auth ----
-    # Shared secret between the gateway and the HTTP bridge. In production-like
-    # environments (APP_ENV=production|staging) this MUST be set; dev falls back
-    # to an ephemeral token. See bridge.py for the startup contract.
     bridge_secret: str = ""
 
     # ---- Deployment hints ----

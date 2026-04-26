@@ -2,15 +2,20 @@
 mcp==1.0.0
 aiohttp>=3.9.0
 
+# Router & Model Management
+litellm==1.40.0
+
 # Semantic Cache
 chromadb==0.5.3
 
-# RAG
+# RAG & Chunking
 lancedb==0.5.0
 pyarrow==14.0.0
+astchunk==0.1.5
+rank-bm25==0.2.2
 
 # Compression
-llmlingua==0.2.2
+llmlingua2==0.1.0
 spacy==3.7.0
 
 # HTTP (Ollama + OpenRouter)
@@ -26,9 +31,12 @@ python-dotenv==1.0.0
 structlog==23.2.0
 prometheus-client==0.17.0
 
-# ML (Router)
+# ML & Performance
 scikit-learn==1.3.2
-numpy==1.26.4
+numpy>=2.0.0
+transformers>=4.40.0
+torch>=2.2.0
+scipy>=1.12.0
 
 # Test
 pytest>=7.4.0

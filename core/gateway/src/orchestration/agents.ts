@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 
@@ -333,7 +333,7 @@ export const AGENTS: AgentDefinition[] = [
     order: 18,
     role: "devops",
     name: "DevOps Engineer",
-    emoji: "ğŸš€",
+    emoji: "🚀",
     layer: AgentLayer.OUTPUT,
     preferredModel: PreferredModel.SONNET,
     inputFiles: ["architecture.md", "code-review.md", "security-audit.md", "performance-report.md"],
@@ -344,6 +344,34 @@ export const AGENTS: AgentDefinition[] = [
     backtrackTargets: ['backend', 'security'],
     outputValidation: ['Build Status', 'Deployment Config', 'Rollback Plan', 'Deployment Checklist'],
     haltConditions: ['Production deployment requires human approval'],
+  },
+  {
+    order: 19,
+    role: "qa_edgecase",
+    name: "QA Edge-Case Specialist",
+    emoji: "🧪",
+    layer: AgentLayer.QUALITY,
+    preferredModel: PreferredModel.OPUS,
+    inputFiles: ["backend-report.md", "frontend-report.md", "api-contracts.md"],
+    outputFiles: ["edge-case-audit.md"],
+    estimatedMinutes: 8,
+    systemPrompt: getPrompt("qa_edgecase"),
+    backtrackTargets: ["backend", "frontend", "api_designer"],
+    outputValidation: ["Race Conditions", "Input Stress Tests", "State Recovery"],
+  },
+  {
+    order: 20,
+    role: "rag_specialist",
+    name: "RAG & Context Specialist",
+    emoji: "🧠",
+    layer: AgentLayer.QUALITY,
+    preferredModel: PreferredModel.SONNET,
+    inputFiles: ["architecture.md", "documentation.md", "backend-report.md"],
+    outputFiles: ["context-optimization.md"],
+    estimatedMinutes: 5,
+    systemPrompt: getPrompt("rag_specialist"),
+    backtrackTargets: ["architect", "docs"],
+    outputValidation: ["AST Correspondence", "Noise Pruning", "Citation Integrity"],
   },
 ];
 

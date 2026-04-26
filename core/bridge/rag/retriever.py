@@ -1,55 +1,40 @@
-"""
-RAG Document Retriever — semantic search over LanceDB.
-
-Returns top-k chunks for a query.
-build_context_snippet() formats results for direct injection into context.
-"""
 from __future__ import annotations
-
 import asyncio
-import logging
+from pathlib import Path
 from typing import Any
-
+import structlog # type: ignore
 from rank_bm25 import BM25Okapi # type: ignore
 
-from config import Settings
+from config import Settings # type: ignore
 from rag.indexer import DocumentIndexer
 from rag.reranker import DocumentReranker
 from rag.agentic_explorer import AgenticExplorer
+from rag.graph import CodeGraph
 
-logger = logging.getLogger(__name__)
-
+logger = structlog.get_logger(__name__)
 
 class DocumentRetriever:
-
     def __init__(self, indexer: DocumentIndexer, settings: Settings) -> None:
         self.indexer = indexer
         self.settings = settings
-        
-        # RAG 2.0 Components
         self.reranker = DocumentReranker(settings)
         self.explorer = AgenticExplorer(self, settings)
         self._bm25: BM25Okapi | None = None
         self._corpus: list[str] = []
         self._corpus_metadata: list[dict[str, Any]] = []
+        self.graph = CodeGraph(settings)
+        self.graph.load()
 
     async def search(self, query: str, limit: int = 3) -> list[dict[str, Any]]:
-        """
-        Perform hybrid search (Dense + Sparse) followed by Reranking.
-        """
         try:
-            # 1. Dense (Semantic) Search
             table = await self.indexer._get_table()
             query_embedding = await self.indexer._embed(query)
             
-            # Using to_thread for LanceDB synchronous calls
-            vector_results = await asyncio.to_thread(
-                lambda: (
-                    table.search(query_embedding)
-                    .limit(limit * 2)
-                    .to_list()
-                )
-            )
+            # Extract to standalone function to avoid Any/Unknown issues in to_thread
+            def fetch_dense_sync(tbl: Any, emb: list[float], l: int):
+                return tbl.search(emb).limit(l * 2).to_list()
+                
+            vector_results = await asyncio.to_thread(fetch_dense_sync, table, query_embedding, limit)
 
             dense_hits = []
             for r in vector_results:
@@ -62,102 +47,97 @@ class DocumentRetriever:
                         "source": "dense"
                     })
 
-            # 2. Sparse (BM25) Search
-            # In a real 2026 system, we'd maintain the BM25 index incrementally.
-            # For now, we'll fetch some candidate documents and score them.
             sparse_hits = await self._sparse_search(query, limit=limit)
-
-            # 3. Merge results (Reciprocal Rank Fusion - simplified)
             combined = self._merge_results(dense_hits, sparse_hits)
-
-            # 4. Reranking (Cross-Encoder)
+            combined = await self._augment_with_graph(combined)
             reranked = await self.reranker.rerank(query, combined, limit=limit)
-
             return reranked
         except Exception as exc:
-            logger.error(f"Hybrid search failed: {exc}")
+            logger.error("hybrid_search_failed", error=str(exc))
             return []
 
     async def _sparse_search(self, query: str, limit: int) -> list[dict[str, Any]]:
-        """Local keyword search using BM25."""
-        if not self._bm25:
-            # Initialize corpus from indexed data if needed
+        bm = self._bm25
+        if not bm:
             await self._refresh_bm25_index()
-            
-        if not self._bm25:
+            bm = self._bm25
+        if not bm:
             return []
             
         tokenized_query = query.lower().split()
-        scores = self._bm25.get_scores(tokenized_query)
+        scores = bm.get_scores(tokenized_query)
         
-        # Get top-k indices
-        top_n = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:limit]
+        # Proper indexing for top-n
+        score_indices = sorted(range(len(scores)), key=lambda i: float(scores[i]), reverse=True)
+        top_n = score_indices[0:limit]
         
         hits = []
+        max_score = max(scores) if len(scores) > 0 else 1.0
         for i in top_n:
-            if scores[i] > 0:
+            if float(scores[i]) > 0:
                 meta = self._corpus_metadata[i]
                 hits.append({
                     "path": meta["path"],
                     "chunk": self._corpus[i],
-                    "score": float(scores[i]) / (max(scores) or 1.0),
+                    "score": float(scores[i]) / (max_score or 1.0),
                     "source": "sparse"
                 })
         return hits
 
     async def _refresh_bm25_index(self) -> None:
-        """Fetch all chunks from DB and build BM25 index."""
         try:
             table = await self.indexer._get_table()
-            
-            def fetch_all():
-                return table.search().to_list()
-                
-            all_records = await asyncio.to_thread(fetch_all)
-            
-            self._corpus = [r["chunk"] for r in all_records]
-            self._corpus_metadata = [{"path": r["path"]} for r in all_records]
-            
+            def fetch_all_sync(tbl: Any):
+                return tbl.search().to_list()
+            all_records = await asyncio.to_thread(fetch_all_sync, table)
+            self._corpus = [str(r["chunk"]) for r in all_records]
+            self._corpus_metadata = [{"path": str(r["path"])} for r in all_records]
             tokenized_corpus = [doc.lower().split() for doc in self._corpus]
             self._bm25 = BM25Okapi(tokenized_corpus)
         except Exception as exc:
-            logger.warning(f"BM25 index refresh failed: {exc}")
+            logger.warning("bm25_refresh_failed", error=str(exc))
 
     def _merge_results(self, dense: list[dict[str, Any]], sparse: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Simple RRF-like merge."""
         seen = {}
         for h in dense + sparse:
-            path_chunk = f"{h['path']}:{h['chunk'][:100]}"
+            chunk_slice = str(h['chunk'])[0:100]
+            path_chunk = f"{h['path']}:{chunk_slice}"
             if path_chunk not in seen:
                 seen[path_chunk] = h
             else:
-                # Average scores if hit by both
-                seen[path_chunk]["score"] = (seen[path_chunk]["score"] + h["score"]) / 2
+                s1 = float(seen[path_chunk]["score"])
+                s2 = float(h["score"])
+                seen[path_chunk]["score"] = (s1 + s2) / 2
                 seen[path_chunk]["source"] = "hybrid"
         return list(seen.values())
 
+    async def _augment_with_graph(self, hits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        augmented = list(hits)
+        seen_paths = {h["path"] for h in hits}
+        for h in hits:
+            path_val = str(h["path"])
+            neighbors = self.graph.get_neighbors(Path(path_val).name, depth=1)
+            for n in neighbors:
+                if "." in n and n not in seen_paths:
+                    extra_chunks = await self.search_by_path(n, limit=2)
+                    for ec in extra_chunks:
+                        ec["score"] = float(h["score"]) * 0.8
+                        ec["source"] = "graph_neighbor"
+                        augmented.append(ec)
+                        seen_paths.add(n)
+        return augmented
+
     async def build_context_snippet(self, query: str, limit: int = 3) -> str:
-        """
-        Format top-k chunks as a context snippet, augmented by agentic exploration.
-        """
-        # Quantum Hardening: use AgenticExplorer instead of simple search for complex queries
+        # Agency explorer handles logic
         return await self.explorer.build_quantum_context(query, limit=limit)
 
     async def search_by_path(self, path_pattern: str, limit: int = 20) -> list[dict[str, Any]]:
-        """Return all indexed chunks for a given file path (exact or prefix match)."""
         try:
             table = await self.indexer._get_table()
             safe = path_pattern.replace("'", "''")
-            
-            def fetch_by_path():
-                return (
-                    table.search()
-                    .where(f"path LIKE '{safe}%'")
-                    .limit(limit)
-                    .to_list()
-                )
-                
-            results = await asyncio.to_thread(fetch_by_path)
+            def fetch_match_sync(tbl: Any, p: str, l: int):
+                return tbl.search().where(f"path LIKE '{p}%'").limit(l).to_list()
+            results = await asyncio.to_thread(fetch_match_sync, table, safe, limit)
             return [{"path": str(r["path"]), "chunk": str(r["chunk"])} for r in results]
         except Exception:
             return []
