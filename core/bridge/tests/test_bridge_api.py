@@ -51,12 +51,10 @@ class BridgeAPITestCase(AioHTTPTestCase):
         
         # 2. Fire Request
         resp = await self.client.request("POST", '/optimize', json=payload, headers=headers)
-        
-        # In aiohttp tests, response text is awaited
-        text = await resp.text()
-        self.assertEqual(resp.status, 200, f"Expected 200, got: {text}")
-        
+
+        # Read body once — calling both text() and json() consumes the stream twice
         data = await resp.json()
+        self.assertEqual(resp.status, 200, f"Expected 200, got: {data}")
         
         # 3. Assert TAS specific fields
         self.assertGreater(data["savings_percent"], 0)

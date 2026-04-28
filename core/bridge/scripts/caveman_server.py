@@ -202,7 +202,7 @@ async def _async_compress(text: str, mode: str) -> tuple[str, float] | None:
     try:
         from config import Settings
         s = Settings(ollama_url=CONFIG["ollama_url"])
-        from compression.caveman import CavemanCompressor
+        from alloy_compression.caveman import CavemanCompressor
         compressor = CavemanCompressor(s)
         compressed, savings = await compressor.compress(text, mode=mode)  # type: ignore[arg-type]
         if savings > 0:

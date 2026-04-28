@@ -58,7 +58,7 @@ class CodeGraph:
                 continue
             
             try:
-                content = py_file.read_text(encoding="utf-8", errors="ignore")
+                content = py_file.read_text(encoding="utf-8-sig", errors="ignore")  # utf-8-sig strips BOM
                 self.parse_file(py_file, content, root_dir)
             except Exception as e:
                 logger.warning("graph_file_skip", path=str(py_file), error=str(e))

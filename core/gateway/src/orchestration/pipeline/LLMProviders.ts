@@ -274,11 +274,11 @@ export class SpeculativeProvider implements ILLMProvider {
       throw new Error(`Speculative Bridge API Error ${res.status}: ${body.slice(0, 500)}`);
     }
 
-    const data = await res.json() as { consensus_text?: string, winner?: { content?: string, total_tokens?: number }, error?: string };
-    
-    // Ensure we handle timeouts or fallback models safely
-    const text = data?.consensus_text || data?.winner?.content || data?.error || "[Speculative failed]";
-    const total_tokens = data?.winner?.total_tokens || 0;
+    // Python bridge returns: { winner_model, response, latency_ms, cancelled_tasks }
+    const data = await res.json() as { response?: string; winner_model?: string; latency_ms?: number; cancelled_tasks?: number; error?: string };
+
+    const text = data?.response || data?.error || "[Speculative failed]";
+    const total_tokens = 0; // bridge does not return token counts for speculative
     
     const tokenUsage: TokenUsage = {
       promptTokens: total_tokens,

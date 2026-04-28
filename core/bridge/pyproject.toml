@@ -28,10 +28,15 @@ dependencies = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# Empirical scripts (empirical_*.py) are standalone benchmarks, NOT collected by pytest.
+# Run manually: python tests/empirical_chaos_integration.py
+# Chaos and API tests require live bridge: pytest tests/test_bridge_api.py -m integration
+collect_ignore_glob = ["tests/empirical_*.py", "tests/quantum_test_suite.py", "tests/deep_integration_test.py"]
 markers = [
     "unit: fast unit tests",
-    "integration: integration tests (require Ollama)",
+    "integration: integration tests (require live bridge/Ollama)",
     "slow: slow tests",
+    "chaos: chaos engineering tests",
 ]
 
 [tool.mypy]

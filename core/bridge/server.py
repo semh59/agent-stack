@@ -281,6 +281,8 @@ async def call_tool(
 ) -> list[mcp_types.TextContent]:
 
     orch = await _get_orch()
+    # Tüm tool'lar için bileşenlerin initialize edildiğini garanti et (idempotent)
+    await orch.initialize()
 
     match name:
         # ---- optimize_context ----

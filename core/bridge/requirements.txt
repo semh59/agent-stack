@@ -43,6 +43,10 @@ scipy
 # Reranker (required by rag/reranker.py CrossEncoder)
 sentence-transformers>=3.0.0
 
+# Rust acceleration (optional — falls back to Python AST if not compiled)
+# To enable: cd rust_core && maturin develop --release
+# alloy-rust-core  # uncomment after maturin build
+
 # Test
 pytest>=7.4.0
 pytest-asyncio>=0.23.0

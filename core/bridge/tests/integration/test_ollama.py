@@ -75,7 +75,7 @@ def test_ollama_models_available():
 @pytest.mark.asyncio
 async def test_caveman_lite_mode(tmp_settings):
     """LITE mode never calls Ollama â€” always works."""
-    from compression.caveman import CavemanCompressor
+    from alloy_compression.caveman import CavemanCompressor
     comp = CavemanCompressor(tmp_settings)
     prose = (
         "You should really just basically ensure that the system is "
@@ -99,7 +99,7 @@ async def test_caveman_full_mode_with_ollama(tmp_settings):
 
     from config import Settings
     settings = Settings(ollama_url=OLLAMA_URL)
-    from compression.caveman import CavemanCompressor
+    from alloy_compression.caveman import CavemanCompressor
     comp = CavemanCompressor(settings)
     prose = (
         "Actually, you should basically just really make sure that you "

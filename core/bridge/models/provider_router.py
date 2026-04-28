@@ -46,7 +46,7 @@ def _build_model_list(settings: Settings) -> list[dict[str, Any]]:
             "model": f"ollama/{settings.ollama_prose_model}",
             "api_base": settings.ollama_url,
         },
-        "model_info": {"tier": 0, "intent": ["reasoning", "coding"]},
+        "model_info": {"tier": "free", "alloy_tier": 0, "intent": ["reasoning", "coding"]},
     })
 
     # Tier 1 â€” Groq
@@ -185,7 +185,7 @@ class AlloyProviderRouter:
         self._model_list = _build_model_list(self.settings)
         # _model_list hiÃ§ boÅŸ olmaz: tier0 (Ollama) key gerektirmez, her zaman eklenir.
         # Sadece cloud key sayÄ±sÄ±nÄ± logluyoruz.
-        cloud_count = sum(1 for m in self._model_list if m["model_info"]["alloy_tier"] > 0)
+        cloud_count = sum(1 for m in self._model_list if m.get("model_info", {}).get("alloy_tier", 0) > 0)
         logger.info("provider_router_model_list", total=len(self._model_list), cloud=cloud_count)
 
         try:

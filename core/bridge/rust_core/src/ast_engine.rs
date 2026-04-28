@@ -24,8 +24,9 @@ impl NativeContextAnalyzer {
         }
     }
 
-    /// Parallel extraction of structural anchors using Rayon iterative mapping.
-    /// This operates natively on String slices without copying strings into memory.
+    /// Fast line-level structural anchor extraction using Rayon parallel iteration.
+    /// Detects def/class/import lines via prefix matching (not full AST parsing).
+    /// For full AST fidelity, use Python's ast module via ResonanceEngine fallback.
     pub fn extract_anchors(&self, source_code: &str) -> PyResult<Vec<(String, String)>> {
         let lines: Vec<&str> = source_code.lines().collect();
         
