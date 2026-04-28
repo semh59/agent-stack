@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-Project Context Initializer — generates CLAUDE.md, rules, and workflows
+Project Context Initializer â€” generates CLAUDE.md, rules, and workflows
 for any project opened in Claude Code.
 
 Detects:
-  - Language/framework (Python, Node, Go, Rust, Java…)
+  - Language/framework (Python, Node, Go, Rust, Javaâ€¦)
   - Architecture (monolith, microservice, monorepo, library)
   - Microservices via docker-compose, multiple sub-package manifests
   - Build/test/start commands
@@ -316,7 +316,7 @@ def _parse_docker_compose(root: Path) -> list[dict[str, Any]]:
             import yaml  # type: ignore[import]
             data = yaml.safe_load(f.read_text(encoding="utf-8"))
         except ImportError:
-            # yaml not available — parse crudely
+            # yaml not available â€” parse crudely
             data = _crude_yaml_parse(f)
         except Exception:
             return []
@@ -573,11 +573,11 @@ def generate_root_claude_md(info: ProjectInfo) -> str:
     if info.services:
         rows: list[str] = []
         for s in info.services:
-            port_str = str(s.port) if s.port else "—"
+            port_str = str(s.port) if s.port else "â€”"
             if s.frameworks:
                 fw_str = ", ".join(s.frameworks[i] for i in range(min(2, len(s.frameworks))))
             else:
-                fw_str = "—"
+                fw_str = "â€”"
             path_str = s.path if s.path != "." else "(root)"
             rows.append(f"| `{s.name}` | `{path_str}` | {s.language} | {fw_str} | {port_str} |")
         svc_table = (
@@ -631,7 +631,7 @@ def generate_root_claude_md(info: ProjectInfo) -> str:
 
         - Always read `CLAUDE.md` in a service subdirectory before editing that service.
         - Run tests before committing: `{info.commands.get("test", "see Commands above")}`
-        - Do not hardcode secrets — use environment variables / config layer.
+        - Do not hardcode secrets â€” use environment variables / config layer.
         """)
 
 
@@ -704,7 +704,7 @@ def generate_rules(info: ProjectInfo) -> dict[str, str]:
 
             ## Service Boundaries
             - Do NOT add business logic to a service other than its designated responsibility.
-            - Do NOT call a downstream service's database directly — go through its API.
+            - Do NOT call a downstream service's database directly â€” go through its API.
             - Services: {", ".join(svc_names)}
 
             ## Communication
@@ -722,7 +722,7 @@ def generate_rules(info: ProjectInfo) -> dict[str, str]:
             # Architecture Rules
 
             ## Package Boundaries
-            - Do NOT import from a sibling package's internal (`src/`) modules — only from its public API.
+            - Do NOT import from a sibling package's internal (`src/`) modules â€” only from its public API.
             - Shared utilities go in a dedicated `packages/shared` or `libs/` directory.
             - Each package must maintain its own test suite.
             """)
@@ -740,30 +740,30 @@ def generate_rules(info: ProjectInfo) -> dict[str, str]:
     standards: list[str] = []
     if "Python" in info.languages:
         standards += [
-            "All I/O must be `async/await` — no blocking calls on the event loop.",
+            "All I/O must be `async/await` â€” no blocking calls on the event loop.",
             "Type annotations required on all public functions and class attributes.",
             "Use `httpx.AsyncClient` with explicit `timeout=` on every HTTP call.",
             "Pydantic models for all structured data (API bodies, config, responses).",
             "No bare `except Exception` without re-raise or structured log at WARNING+.",
-            "Use `structlog` for structured logging — never `print()` in production code.",
+            "Use `structlog` for structured logging â€” never `print()` in production code.",
         ]
     if "Node.js" in info.languages:
         standards += [
-            "TypeScript strict mode — no `any` without a comment explaining why.",
+            "TypeScript strict mode â€” no `any` without a comment explaining why.",
             "Async/await over callbacks and raw Promise chains.",
             "Zod or equivalent for runtime schema validation at API boundaries.",
-            "No `console.log` in production code — use a logger (pino, winston).",
+            "No `console.log` in production code â€” use a logger (pino, winston).",
         ]
     if "Go" in info.languages:
         standards += [
-            "Always check and handle errors — no `_` discards on errors.",
+            "Always check and handle errors â€” no `_` discards on errors.",
             "Context propagation: every function that does I/O takes `ctx context.Context` as first param.",
             "No global mutable state.",
         ]
 
     anti_patterns: list[str] = [
         "Do NOT hardcode secrets, tokens, or passwords.",
-        "Do NOT write code that only handles the happy path — always consider failure modes.",
+        "Do NOT write code that only handles the happy path â€” always consider failure modes.",
         "Do NOT create helpers or abstractions for one-time use.",
         "Do NOT add comments that just restate what the code does.",
         "Do NOT skip tests for bug fixes.",
@@ -791,7 +791,7 @@ def generate_rules(info: ProjectInfo) -> dict[str, str]:
 
         - Never log secrets, tokens, passwords, or PII.
         - Validate all external input at system boundaries (API, file upload, CLI args).
-        - SQL queries must use parameterized statements — no string formatting of user input.
+        - SQL queries must use parameterized statements â€” no string formatting of user input.
         - HTTP clients must verify TLS certificates (no `verify=False` without documented reason).
         - Dependency versions must be pinned in lock files.
         - Do NOT disable security linters or ignore security warnings without a comment explaining why.
@@ -840,7 +840,7 @@ def generate_commands(info: ProjectInfo) -> dict[str, str]:
         1. Reproduce the issue with a minimal test case.
         2. Add targeted logging (use `structlog` / logger, not print).
         3. Check recent changes: `git log --oneline -20`
-        4. Isolate the failing component — run just that service/module.
+        4. Isolate the failing component â€” run just that service/module.
         5. Check external dependencies (DB, cache, third-party APIs) are reachable.
 
         Useful commands:
@@ -857,7 +857,7 @@ def generate_commands(info: ProjectInfo) -> dict[str, str]:
         # Add a New Feature
 
         1. Read the relevant service's `CLAUDE.md` and architecture rules.
-        2. Write the test first (or alongside) — do not add untested code.
+        2. Write the test first (or alongside) â€” do not add untested code.
         3. Implement the feature in the correct layer (no mixing I/O with business logic).
         4. Update CLAUDE.md if the feature changes architecture or conventions.
         5. Run the full test suite:
@@ -1020,12 +1020,12 @@ def run(project_root: Path, dry_run: bool = False, force: bool = False) -> None:
     for filename, content in generate_commands(info).items():
         w.write(f".claude/commands/{filename}", content)
 
-    # .claude/settings.json (only if it doesn't exist — never force-overwrite settings)
+    # .claude/settings.json (only if it doesn't exist â€” never force-overwrite settings)
     settings_path = project_root / ".claude" / "settings.json"
     if not settings_path.exists():
         w.write_json(".claude/settings.json", generate_claude_settings(project_root))
     else:
-        print("  [skip] .claude/settings.json — already exists, not touched")
+        print("  [skip] .claude/settings.json â€” already exists, not touched")
 
     w.report()
     bootstrap_spacy()
@@ -1086,10 +1086,10 @@ def main() -> None:
     if args.check_only:
         sys.exit(0 if (root / "CLAUDE.md").exists() else 1)
 
-    # --auto: idempotent hook mode — only run if CLAUDE.md is missing
+    # --auto: idempotent hook mode â€” only run if CLAUDE.md is missing
     if args.auto:
         if (root / "CLAUDE.md").exists():
-            sys.exit(0)   # already initialised — silent no-op
+            sys.exit(0)   # already initialised â€” silent no-op
         run(root, dry_run=False, force=False)
         return
 

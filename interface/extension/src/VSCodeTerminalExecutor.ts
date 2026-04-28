@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { TerminalExecutor, CommandResult, TerminalOptions } from '../../src/orchestration/terminal-executor';
+import { TerminalExecutor, CommandResult, TerminalOptions } from '../../../core/gateway/src/orchestration/terminal-executor';
 
 export class VSCodeTerminalExecutor extends TerminalExecutor {
 	constructor(projectRoot: string) {

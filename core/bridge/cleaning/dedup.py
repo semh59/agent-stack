@@ -1,13 +1,13 @@
-"""
-Code Deduplicator — AST-aware file tracking + diff delivery.
+﻿"""
+Code Deduplicator â€” AST-aware file tracking + diff delivery.
 
-Mantık:
-  İlk kez görülen dosya → tam içerik gönder
-  Değişmemiş (hash aynı) → "already in context" bildirimi, içerik gönderme
-  Değişmiş → unified diff (diff < %50 orijinal boyut ise diff, değilse tam)
-  Spesifik fonksiyon sorulmuş → sadece o bloğu çıkar
+MantÄ±k:
+  Ä°lk kez gÃ¶rÃ¼len dosya â†’ tam iÃ§erik gÃ¶nder
+  DeÄŸiÅŸmemiÅŸ (hash aynÄ±) â†’ "already in context" bildirimi, iÃ§erik gÃ¶nderme
+  DeÄŸiÅŸmiÅŸ â†’ unified diff (diff < %50 orijinal boyut ise diff, deÄŸilse tam)
+  Spesifik fonksiyon sorulmuÅŸ â†’ sadece o bloÄŸu Ã§Ä±kar
 
-Registry session-scoped (in-memory, restart ile sıfırlanır).
+Registry session-scoped (in-memory, restart ile sÄ±fÄ±rlanÄ±r).
 """
 from __future__ import annotations
 
@@ -148,13 +148,13 @@ class CodeDeduplicator:
         record = self.registry[file_path]
 
         if record.content_hash == current_hash:
-            # File unchanged — skip content
+            # File unchanged â€” skip content
             return (
-                f"# [unchanged: {file_path} — already in context "
+                f"# [unchanged: {file_path} â€” already in context "
                 f"from message #{record.last_sent_at}]"
             )
 
-        # File changed — send diff
+        # File changed â€” send diff
         diff_lines = list(
             difflib.unified_diff(
                 record.full_content.splitlines(keepends=True),
@@ -171,5 +171,5 @@ class CodeDeduplicator:
         record.full_content = code
 
         if diff_lines and len(diff_lines) < len(code.splitlines()) * 0.5:
-            return "".join(diff_lines)  # diff is shorter — use it
-        return code  # diff is large — send full file
+            return "".join(diff_lines)  # diff is shorter â€” use it
+        return code  # diff is large â€” send full file

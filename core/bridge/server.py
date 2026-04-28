@@ -1,10 +1,10 @@
-"""
-AI Stack MCP Server — entry point.
+﻿"""
+AI Stack MCP Server â€” entry point.
 
-Claude Code bağlandığında stdio üzerinden tool çağrıları alır.
-Tüm optimizasyon işlemleri bu server üzerinden yürür.
+Claude Code baÄŸlandÄ±ÄŸÄ±nda stdio Ã¼zerinden tool Ã§aÄŸrÄ±larÄ± alÄ±r.
+TÃ¼m optimizasyon iÅŸlemleri bu server Ã¼zerinden yÃ¼rÃ¼r.
 
-Kullanım:
+KullanÄ±m:
   python server.py
 
 .mcp.json ile Claude Code'a entegre olur:
@@ -30,15 +30,19 @@ try:
     from mcp import types as mcp_types
 except ImportError as exc:
     print(
-        f"[bridge] mcp paketi bulunamadı: {exc}\n"
+        f"[bridge] mcp paketi bulunamadÄ±: {exc}\n"
         "  pip install mcp",
         file=sys.stderr,
     )
     sys.exit(1)
 
+import structlog
+
 from config import settings
 from pipeline.optimization_pipeline import OptimizationPipeline
 from metrics import start_metrics_server
+
+logger = structlog.get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # Server instance
@@ -83,9 +87,9 @@ async def list_tools() -> list[mcp_types.Tool]:
         mcp_types.Tool(
             name="optimize_context",
             description=(
-                "Token optimizasyonu uygula. Mesajı temizler, sıkıştırır, "
-                "cache'e bakar ve hangi modelin kullanılması gerektiğini söyler. "
-                "Optimized metin + token tasarruf raporu döner."
+                "Token optimizasyonu uygula. MesajÄ± temizler, sÄ±kÄ±ÅŸtÄ±rÄ±r, "
+                "cache'e bakar ve hangi modelin kullanÄ±lmasÄ± gerektiÄŸini sÃ¶yler. "
+                "Optimized metin + token tasarruf raporu dÃ¶ner."
             ),
             inputSchema={
                 "type": "object",
@@ -97,13 +101,13 @@ async def list_tools() -> list[mcp_types.Tool]:
                     "context_messages": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Önceki mesajlar (semantik cache bağlamı için)",
+                        "description": "Ã–nceki mesajlar (semantik cache baÄŸlamÄ± iÃ§in)",
                         "default": [],
                     },
                     "force_layers": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Zorla uygulanacak katmanlar (test/debug için)",
+                        "description": "Zorla uygulanacak katmanlar (test/debug iÃ§in)",
                         "default": None,
                     },
                 },
@@ -112,7 +116,7 @@ async def list_tools() -> list[mcp_types.Tool]:
         ),
         mcp_types.Tool(
             name="search_docs",
-            description="RAG ile belge içinde semantik arama yap.",
+            description="RAG ile belge iÃ§inde semantik arama yap.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -124,19 +128,19 @@ async def list_tools() -> list[mcp_types.Tool]:
         ),
         mcp_types.Tool(
             name="index_document",
-            description="Belgeyi RAG indeksine ekle veya güncelle (hash ile dedup).",
+            description="Belgeyi RAG indeksine ekle veya gÃ¼ncelle (hash ile dedup).",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "content": {"type": "string"},
-                    "path": {"type": "string", "description": "Belge yolu (tanımlayıcı)"},
+                    "path": {"type": "string", "description": "Belge yolu (tanÄ±mlayÄ±cÄ±)"},
                 },
                 "required": ["content", "path"],
             },
         ),
         mcp_types.Tool(
             name="get_cost_report",
-            description="Token tasarruf raporu döner (günlük/haftalık/aylık).",
+            description="Token tasarruf raporu dÃ¶ner (gÃ¼nlÃ¼k/haftalÄ±k/aylÄ±k).",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -181,31 +185,52 @@ async def list_tools() -> list[mcp_types.Tool]:
         ),
         mcp_types.Tool(
             name="get_pipeline_status",
-            description="Tüm servislerin durumunu döner (Ollama, OpenRouter, cache, circuit breakers).",
+            description="TÃ¼m servislerin durumunu dÃ¶ner (Ollama, OpenRouter, cache, circuit breakers).",
             inputSchema={"type": "object", "properties": {}},
+        ),
+        mcp_types.Tool(
+            name="start_project",
+            description=(
+                "KullanÄ±cÄ±nÄ±n aÃ§Ä±kladÄ±ÄŸÄ± projeyi analiz eder, spec Ã¼retir ve "
+                "Gateway'e gÃ¶rev planÄ± gÃ¶nderir. Tek cÃ¼mlelik aÃ§Ä±klama yeterli."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "description": "Ne yapmak istediÄŸinizi aÃ§Ä±klayÄ±n",
+                    },
+                    "gateway_url": {
+                        "type": "string",
+                        "default": "http://localhost:3000",
+                    },
+                },
+                "required": ["description"],
+            },
         ),
         mcp_types.Tool(
             name="generate_project_context",
             description=(
-                "Bir proje klasörünü analiz eder; CLAUDE.md, .claude/rules/ ve .claude/commands/ "
-                "dosyalarını otomatik üretir. Mikroservis projelerinde her servis için ayrı CLAUDE.md "
-                "oluşturur. Proje tipi, framework, komutlar ve CI/CD otomatik tespit edilir."
+                "Bir proje klasÃ¶rÃ¼nÃ¼ analiz eder; CLAUDE.md, .claude/rules/ ve .claude/commands/ "
+                "dosyalarÄ±nÄ± otomatik Ã¼retir. Mikroservis projelerinde her servis iÃ§in ayrÄ± CLAUDE.md "
+                "oluÅŸturur. Proje tipi, framework, komutlar ve CI/CD otomatik tespit edilir."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "project_root": {
                         "type": "string",
-                        "description": "Analiz edilecek proje kök dizini (mutlak yol)",
+                        "description": "Analiz edilecek proje kÃ¶k dizini (mutlak yol)",
                     },
                     "force": {
                         "type": "boolean",
-                        "description": "Var olan dosyaların üzerine yaz (default: false)",
+                        "description": "Var olan dosyalarÄ±n Ã¼zerine yaz (default: false)",
                         "default": False,
                     },
                     "dry_run": {
                         "type": "boolean",
-                        "description": "Dosya yazmadan sadece ne yazılacağını göster",
+                        "description": "Dosya yazmadan sadece ne yazÄ±lacaÄŸÄ±nÄ± gÃ¶ster",
                         "default": False,
                     },
                 },
@@ -241,7 +266,7 @@ def _safe_error(exc: Exception) -> str:
     msg = str(exc)
     # Truncate to avoid flooding the client
     if len(msg) > 200:
-        msg = msg[:200] + "…"
+        msg = msg[:200] + "â€¦"
     # Strip common internal path leaks
     for prefix in ("Traceback ", "File ", "  "):
         if msg.startswith(prefix):
@@ -293,7 +318,7 @@ async def call_tool(
                 return [_text_result({"error": err})]
             if orch.rag_indexer is None:
                 return [_text_result({"error": "RAG component is disabled"})]
-            # Sanitize path — prevent path traversal
+            # Sanitize path â€” prevent path traversal
             doc_path = arguments["path"]
             if ".." in doc_path or doc_path.startswith("/"):
                 return [_text_result({"error": "Invalid document path"})]
@@ -321,7 +346,7 @@ async def call_tool(
             if orch.semantic_cache:
                 stats["semantic"] = await orch.semantic_cache.stats()
             if not stats:
-                stats["status"] = "cache bileşenleri henüz başlatılmadı"
+                stats["status"] = "cache bileÅŸenleri henÃ¼z baÅŸlatÄ±lmadÄ±"
             return [_text_result(stats)]
 
         # ---- clear_cache ----
@@ -348,7 +373,7 @@ async def call_tool(
                 return [_text_result({"error": err})]
             model = arguments["model"]
             reason = arguments.get("reason", "")
-            # Store as a session override — orchestrator checks this before MAB
+            # Store as a session override â€” orchestrator checks this before MAB
             if orch.model_cascade:
                 orch.model_cascade.manual_override = model
             return [_text_result({"set": model, "reason": reason})]
@@ -400,6 +425,34 @@ async def call_tool(
                     proc.kill()
                     await proc.wait()
                 return [_text_result({"error": _safe_error(exc)})]
+
+        # ---- start_project ----
+        case "start_project":
+            err = _validate_required(arguments, ["description"])
+            if err:
+                return [_text_result({"error": err})]
+            await orch.initialize()
+
+            from pipeline.discovery_agent import DiscoveryAgent  # type: ignore
+            from pipeline.spec_generator import SpecGenerator    # type: ignore
+            from pipeline.decomposer import Decomposer           # type: ignore
+
+            router = getattr(orch, "provider_router", None)
+            if router is None:
+                return [_text_result({"error": "provider_router not initialized"})]
+
+            da   = DiscoveryAgent(router)
+            sg   = SpecGenerator(router)
+            dc   = Decomposer(router)
+
+            ctx  = await da.discover(arguments["description"])
+            spec = await sg.generate(ctx)
+            plan = await dc.decompose(spec)
+
+            return [mcp_types.TextContent(
+                type="text",
+                text=json.dumps(plan.to_gateway_payload(), ensure_ascii=False, indent=2),
+            )]
 
         case _:
             return [_text_result({"error": f"Bilinmeyen tool: {name}"})]

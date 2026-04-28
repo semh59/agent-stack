@@ -52,6 +52,7 @@ import { registerAccountsRoutes } from "../api/routers/accounts.router";
 import { registerPipelineRoutes } from "../api/routers/pipeline.router";
 import { registerAutonomyRoutes } from "../api/routers/autonomy.router";
 import { registerPrivacyRoutes } from "../api/routers/privacy.router";
+import { registerProjectsRoutes } from "../api/routers/projects.router";
 import type { MissionModel } from "../models/mission.model";
 import type { AuthServer } from "./auth-server";
 
@@ -450,19 +451,6 @@ export class GatewayServer {
       return reply.status(404).type("text/plain").send("Not Found");
     });
 
-    this.app.setErrorHandler((error: Error & { statusCode?: number; code?: string }, request, reply) => {
-      if (reply.sent) return;
-
-
-      request.log.error(error, `[Global Error Boundary] Unhandled fastify crash: ${request.method} ${request.url}`);
-      
-      return reply.status(error.statusCode ?? 500).send(
-        apiError(error.message || "Internal Server Error", {
-          code: error.code || (error.statusCode && error.statusCode >= 500 ? "INTERNAL_ERROR" : "BAD_REQUEST"),
-        })
-      );
-    });
-
     // 2. Authentication hook for API + WebSocket endpoints
     this.app.addHook("onRequest", async (request, reply) => {
       const rawUrl = request.raw.url ?? "";
@@ -653,6 +641,12 @@ export class GatewayServer {
 
     registerPrivacyRoutes(this.app, {
       ledger: orchestratorService(this.projectRoot).getSharedMemory().getPrivacyLedger(),
+    });
+
+    registerProjectsRoutes(this.app, {
+      projectRoot: this.projectRoot,
+      tokenStore: this.tokenStore,
+      getAccountManager: () => this.accountManager,
     });
 
 

@@ -1,4 +1,4 @@
-"""Tests for cleaning/dedup.py"""
+﻿"""Tests for cleaning/dedup.py"""
 import pytest
 from cleaning.dedup import CodeDeduplicator
 
@@ -35,7 +35,7 @@ def test_changed_file_sends_diff(dedup):
 
     dedup.process(msg1, msg_id=1)
     result, savings = dedup.process(msg2, msg_id=2)
-    # Either diff or full content — either way it should contain the new value
+    # Either diff or full content â€” either way it should contain the new value
     assert "99" in result
 
 

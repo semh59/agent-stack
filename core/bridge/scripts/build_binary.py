@@ -1,4 +1,4 @@
-"""
+﻿"""
 Edge Binary Compilation Script (PyInstaller)
 Generates a standalone executable for bridge.py.
 """

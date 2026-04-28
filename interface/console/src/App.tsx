@@ -6,14 +6,14 @@ import { PipelineHistoryView } from './pages/PipelineHistoryView';
 import { ActivePipelineView } from './pages/ActivePipelineView';
 import { PlanApprovalView } from './pages/PlanApprovalView';
 import { AlloySettingsShell } from './pages/alloy/settings/AlloySettingsShell';
-import { AlloyChatShell } from './pages/alloy/chat/AlloyChatShell';
+import { AlloyChatShell } from './pages/alloy/AlloyChatShell';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { BuilderPage } from './pages/BuilderPage';
 
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { AuthGuard } from './components/AuthGuard';
-import { ToastProvider } from './components/alloy/Toast';
+import { ToastProvider } from './components/sovereign/Toast';
 
 import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';

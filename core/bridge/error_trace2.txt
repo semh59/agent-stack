@@ -1,0 +1,48 @@
+﻿
+===========================================================
+ Phase 8: Deep Integration Test (Distillation + Speculative) 
+===========================================================
+2026-04-28 10:55:47 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 10:55:52 [warning  ] legacy_warn                    message="AlloyProviderRouter failed: 'alloy_tier'"
+2026-04-28 10:55:52 [info     ] mab_bayesian_state_loaded
+2026-04-28 10:55:52 [info     ] distillation_buffer_initialized db=C:\Users\semih\.bridge\distillation_buffer.db
+
+[STEP 1: Triggering OptimizationPipeline (TAS + Distillation)]
+ -> Pre-computation Context Size: 800 characters
+ -> Optimized Context Size: 277 characters
+ -> Token Savings Achieved: 65.5%
+
+[STEP 2: Verifying Continuous Distillation DB Capture]
+python : Traceback (most recent call last):
+At line:1 char:1
++ python tests/empirical_phase8_integration.py 2>&1 | Out-Fil
+e -Encodin ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most 
+    recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_pha
+se8_integration.py", line 102, in <module>
+    asyncio.run(run_integration_test())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\base_events.py", line 719, in run_until_complet
+e
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_pha
+se8_integration.py", line 65, in run_integration_test
+    assert row is not None, "Distillation DB did not capture 
+the experience!"
+           ^^^^^^^^^^^^^^^
+AssertionError: Distillation DB did not capture the experienc
+e!

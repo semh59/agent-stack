@@ -1,0 +1,58 @@
+﻿
+===========================================================
+ Phase 8: Deep Integration Test (Distillation + Speculative) 
+===========================================================
+2026-04-28 11:37:42 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 11:37:48 [warning  ] legacy_warn                    message="AlloyProviderRouter failed: 'alloy_tier'"
+2026-04-28 11:37:48 [info     ] mab_bayesian_state_loaded
+2026-04-28 11:37:48 [info     ] distillation_buffer_initialized db=C:\Users\semih\.bridge\distillation_buffer.db
+
+[STEP 1: Triggering OptimizationPipeline (TAS + Distillation)]
+python : Traceback (most recent call last):
+At line:1 char:1
++ python tests/empirical_phase8_integration.py 2>&1 | Out-Fil
+e -Encodin ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most 
+    recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_pha
+se8_integration.py", line 115, in <module>
+    asyncio.run(run_integration_test())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\base_events.py", line 719, in run_until_complet
+e
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_pha
+se8_integration.py", line 48, in run_integration_test
+    result = await pipe.optimize(
+             ^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "D:\PROJECT\alloy-core\core\bridge\pipeline\optimizati
+on_pipeline.py", line 468, in optimize
+    processed, applied = await self._apply_optimizations(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "D:\PROJECT\alloy-core\core\bridge\pipeline\optimizati
+on_pipeline.py", line 589, in _apply_optimizations
+    await m_val.reward(processed, [{"content": c} for c in ct
+x], [layer], savings / 100.0)
+  File "D:\PROJECT\alloy-core\core\bridge\pipeline\mab.py", l
+ine 140, in reward
+    data["Sigma_inv"] += (x @ x.T) / (self.sigma ** 2)
+ValueError: output array is read-only

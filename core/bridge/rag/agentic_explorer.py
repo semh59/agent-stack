@@ -1,5 +1,5 @@
 """
-Spectral Agentic Explorer — RAG 2.0 PageRank-lite Traversal.
+Spectral Agentic Explorer â€” RAG 2.0 PageRank-lite Traversal.
 
 Instead of BFS, this agent uses Spectral Influence Ranking to determine
 which structural neighbors (classes/methods) are most central to the
@@ -17,7 +17,7 @@ from rag.graph import CodeGraph
 
 logger = structlog.get_logger(__name__)
 
-class SpectralExplorer:
+class AgenticExplorer:
 
     def __init__(self, retriever: Any, settings: Settings) -> None:
         self.retriever = retriever

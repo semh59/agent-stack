@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "commonjs",
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022"],
     "sourceMap": true,
     "outDir": "out",
-    "rootDir": "../",
+    "rootDir": "../..",
     "strict": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false
   },
-  "exclude": ["node_modules", ".vscode-test", "webview-ui"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", ".vscode-test", "webview-ui", "out"]
 }

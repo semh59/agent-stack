@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Section, Field, Input, Button } from "../../../../components/Alloy/primitives";
+import { Section, Field, Input, Button } from "../../../../components/sovereign/primitives";
 import { Plug, Plus, Trash2 } from "lucide-react";
 
 interface McpServer {

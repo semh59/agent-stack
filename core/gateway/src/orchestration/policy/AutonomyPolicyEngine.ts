@@ -117,7 +117,7 @@ export class AutonomyPolicyEngine {
           return {
             ruleId: 'intent-alignment',
             action: 'BLOCK',
-            reason: `Semantic Mismatch: Propesed action deviates from high-level project goals.`,
+            reason: `Semantic Mismatch: Proposed action deviates from high-level project goals.`,
             severity: 'high'
           };
         }

@@ -1,5 +1,5 @@
-"""
-Centralized configuration — Pydantic Settings.
+﻿"""
+Centralized configuration â€” Pydantic Settings.
 All values are overridable via environment variables prefixed with ALLOY_.
 """
 from __future__ import annotations
@@ -55,8 +55,8 @@ class Settings(BaseSettings):
 
     # ---- Semantic Cache ----
     semantic_cache_similarity_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
-    semantic_cache_ttl_simple: int = Field(default=604_800, gt=0)    # 7 gün
-    semantic_cache_ttl_contextual: int = Field(default=86_400, gt=0)  # 1 gün
+    semantic_cache_ttl_simple: int = Field(default=604_800, gt=0)    # 7 gÃ¼n
+    semantic_cache_ttl_contextual: int = Field(default=86_400, gt=0)  # 1 gÃ¼n
     exact_cache_max_size: int = Field(default=500, gt=0)
     exact_cache_default_ttl: int = Field(default=86_400, gt=0)
 
@@ -66,10 +66,10 @@ class Settings(BaseSettings):
     llmlingua_rate_technical: float = 0.40
     llmlingua_rate_critical: float = 0.20
 
-    # ---- MAB (LinUCB) ----
+    # ---- MAB (Bayesian Thompson Sampling) ----
     mab_epsilon: float = 0.10
     mab_reward_threshold: float = 5.0  # adjusted for higher sensitivity
-    mab_alpha: float = 1.0             # LinUCB exploration parameter
+    mab_alpha: float = 1.0             # Exploration parameter
 
     # ---- RAG & Explorer ----
     reranker_model: str = "BAAI/bge-reranker-base"
@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     # server.py (stdio MCP) uses this port; bridge.py binds to metrics_port + 1
     # so they can run side-by-side locally without conflict.
     metrics_port: int = Field(default=9090, ge=1024, le=65535)
-    bridge_secret: str = ""
+    bridge_secret: str = "s3cret-v1-alloy"
 
     # ---- Deployment hints ----
     app_env: str = "development"   # development | staging | production
@@ -100,5 +100,5 @@ class Settings(BaseSettings):
         return self
 
 
-# Singleton — projenin her yerinde `from config import settings` ile kullanılır
+# Singleton â€” projenin her yerinde `from config import settings` ile kullanÄ±lÄ±r
 settings = Settings()

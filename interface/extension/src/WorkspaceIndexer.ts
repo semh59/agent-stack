@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
-import { GlobalEventBus } from '../../src/gateway/event-bus';
+import { GlobalEventBus } from '../../../core/gateway/src/gateway/event-bus';
 
 interface IndexRequest {
   uri: vscode.Uri;

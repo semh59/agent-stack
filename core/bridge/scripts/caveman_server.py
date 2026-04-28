@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
-Caveman Service — Flask HTTP API for prose compression.
+Caveman Service â€” Flask HTTP API for prose compression.
 
 Primary path  : CavemanCompressor (Ollama mistral-7b / LITE regex fallback)
 Fallback path : pure-Python filler-word removal (no external deps)
@@ -13,10 +13,10 @@ Usage:
     ALLOY_OLLAMA_URL=http://ollama:11434 python scripts/caveman_server.py
 
 Endpoints:
-    GET  /health   — health check (unauthenticated)
-    POST /optimize — compress text
-    GET  /stats    — runtime statistics
-    GET  /config   — service configuration
+    GET  /health   â€” health check (unauthenticated)
+    POST /optimize â€” compress text
+    GET  /stats    â€” runtime statistics
+    GET  /config   â€” service configuration
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ CONFIG = {
 # Bound concurrent Ollama calls (same pattern as original ai-stack caveman_server.py)
 _SEMAPHORE = threading.Semaphore(4)
 
-# LOW fix: protect STATS increments with a lock — Flask runs threaded=True.
+# LOW fix: protect STATS increments with a lock â€” Flask runs threaded=True.
 _STATS_LOCK = threading.Lock()
 
 STATS: dict[str, float | int] = {
@@ -198,7 +198,7 @@ def _run_compress(text: str, mode: str) -> tuple[str, float]:
 
 
 async def _async_compress(text: str, mode: str) -> tuple[str, float] | None:
-    """Async wrapper — runs CavemanCompressor with Ollama."""
+    """Async wrapper â€” runs CavemanCompressor with Ollama."""
     try:
         from config import Settings
         s = Settings(ollama_url=CONFIG["ollama_url"])
@@ -207,14 +207,14 @@ async def _async_compress(text: str, mode: str) -> tuple[str, float] | None:
         compressed, savings = await compressor.compress(text, mode=mode)  # type: ignore[arg-type]
         if savings > 0:
             return compressed, savings
-        # CavemanDetector said no compression needed → return unchanged
+        # CavemanDetector said no compression needed â†’ return unchanged
         return text, 0.0
     except Exception:
         return None  # triggers pure-Python fallback in caller
 
 
 # ---------------------------------------------------------------------------
-# Pure-Python fallback — ported from ai-stack/scripts/caveman_server.py
+# Pure-Python fallback â€” ported from ai-stack/scripts/caveman_server.py
 # ---------------------------------------------------------------------------
 
 _FILLER_WORDS = {

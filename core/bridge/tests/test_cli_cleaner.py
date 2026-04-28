@@ -1,4 +1,4 @@
-"""Tests for cleaning/cli_cleaner.py"""
+﻿"""Tests for cleaning/cli_cleaner.py"""
 import pytest
 from cleaning.cli_cleaner import clean, detect_command, _strip_ansi
 

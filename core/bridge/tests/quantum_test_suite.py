@@ -1,5 +1,5 @@
 """
-Quantum Deep Testing Suite — Verification for 2026 Hardening.
+Quantum Deep Testing Suite â€” Verification for 2026 Hardening.
 
 Rigorous unit and integration tests for:
 - AST-Aware Chunking (Tree-sitter)
@@ -7,8 +7,15 @@ Rigorous unit and integration tests for:
 - Semantic Pruning (Logic preservation)
 - Prefix Caching (Shared state)
 """
-import unittest
 from pathlib import Path
+import sys
+
+# Add bridge root to sys.path to resolve internal modules correctly
+root = Path(__file__).resolve().parent.parent
+if str(root) not in sys.path:
+    sys.path.insert(0, str(root))
+
+import unittest
 
 
 # Mock settings
@@ -71,7 +78,18 @@ class TestQuantumHardening(unittest.IsolatedAsyncioTestCase):
 
     def test_semantic_pruning(self):
         """Verify logic preservation after pruning noise."""
-        from compression.semantic_pruner import SemanticPruner  # type: ignore
+        import importlib.util
+        from pathlib import Path
+        
+        # Absolute path bypass for persistent resolution issues
+        bridge_root = Path(__file__).resolve().parent.parent
+        pruner_path = bridge_root / "alloy_compression" / "semantic_pruner.py"
+        
+        spec = importlib.util.spec_from_file_location("alloy_compression.semantic_pruner", str(pruner_path))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        SemanticPruner = mod.SyntacticSurprisePruner
+        
         pruner = SemanticPruner(self.settings)
 
         code = (

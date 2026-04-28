@@ -1,0 +1,224 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.1, pluggy-1.6.0
+rootdir: D:\PROJECT\alloy-core\core\bridge
+configfile: pyproject.toml
+plugins: anyio-4.12.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, respx-0.22.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 21 items
+
+tests\test_rcf_production.py F.F                                         [ 14%]
+tests\test_resonance.py .                                                [ 19%]
+tests\test_mab.py EEEEEEEE                                               [ 57%]
+tests\test_bridge_production.py .....                                    [ 80%]
+tests\quantum_test_suite.py ...F                                         [100%]
+
+=================================== ERRORS ====================================
+_________________ ERROR at setup of test_agent_instantiation __________________
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 15
+  def test_agent_instantiation(agent):
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+_____________ ERROR at setup of test_get_features_from_ctx_shape ______________
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 22
+  def test_get_features_from_ctx_shape(agent):
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+____________ ERROR at setup of test_get_features_from_ctx_defaults ____________
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 28
+  def test_get_features_from_ctx_defaults(agent):
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+______ ERROR at setup of test_select_layers_returns_subset_of_candidates ______
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 35
+  @pytest.mark.asyncio
+  async def test_select_layers_returns_subset_of_candidates(agent):
+      """select_layers must only return items that were in candidates."""
+      candidates = ["rag", "llmlingua", "caveman"]
+      result = await agent.select_layers(candidates, {"intent_code": 1, "prompt_tokens": 500})
+      assert isinstance(result, list)
+      assert all(item in candidates for item in result)
+      assert len(result) >= 1  # fallback guarantees at least 1
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+______ ERROR at setup of test_select_layers_fallback_on_empty_candidates ______
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 45
+  @pytest.mark.asyncio
+  async def test_select_layers_fallback_on_empty_candidates(agent):
+      """Empty candidates should return empty list (not crash)."""
+      result = await agent.select_layers([], {})
+      assert result == []
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+_______ ERROR at setup of test_select_layers_unknown_candidates_ignored _______
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 52
+  @pytest.mark.asyncio
+  async def test_select_layers_unknown_candidates_ignored(agent):
+      """Candidates not in agent.models should still be handled by fallback."""
+      result = await agent.select_layers(["unknown_layer"], {})
+      # Fallback: return all candidates when nothing selected
+      assert result == ["unknown_layer"]
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+_________________ ERROR at setup of test_reward_updates_model _________________
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 60
+  @pytest.mark.asyncio
+  async def test_reward_updates_model(agent):
+      """reward() should update mu for the specified layers."""
+      ctx = [{"role": "user", "content": "fix the bug"}]
+      mu_before = agent.models["llmlingua"]["mu"].copy()
+      await agent.reward("test message", ctx, ["llmlingua"], savings=0.4)
+      mu_after = agent.models["llmlingua"]["mu"]
+      # mu should have changed after a significant reward
+      assert not np.allclose(mu_before, mu_after)
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+___________ ERROR at setup of test_reward_skipped_on_small_savings ____________
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 71
+  @pytest.mark.asyncio
+  async def test_reward_skipped_on_small_savings(agent):
+      """reward() should be a no-op when savings < 0.01."""
+      ctx = []
+      mu_before = agent.models["rag"]["mu"].copy()
+      await agent.reward("msg", ctx, ["rag"], savings=0.005)
+      assert np.allclose(mu_before, agent.models["rag"]["mu"])
+file D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py, line 10
+  @pytest.fixture
+  def agent(tmp_settings):
+E       fixture 'tmp_settings' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, agent, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, class_mocker, cov, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mocker, module_mocker, monkeypatch, no_cover, package_mocker, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, respx_mock, session_mocker, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\PROJECT\alloy-core\core\bridge\tests\test_mab.py:10
+================================== FAILURES ===================================
+______________ TestRCFProduction.test_rcf_meta_grammar_presence _______________
+
+self = <tests.test_rcf_production.TestRCFProduction testMethod=test_rcf_meta_grammar_presence>
+
+    def test_rcf_meta_grammar_presence(self):
+        """Verify the RCF Unfolding Meta-Grammar is injected into agent prompts."""
+        agent = DiscoveryAgent(None) # type: ignore
+        prompt = DiscoveryAgent.SYSTEM_PROMPT
+>       self.assertIn("RCF Unfolding Meta-Grammar", prompt)
+E       AssertionError: 'RCF Unfolding Meta-Grammar' not found in "Sen bir yaz─▒l─▒m dan─▒┼şman─▒s─▒n. Kullan─▒c─▒n─▒n ne yapmak istedi─şini anlamak i├ğin k─▒sa, net sorular sor. Teknik jargondan ka├ğ─▒n. Maksimum 3 soru sor, her biri tek c├╝mle.\n\nRCF NOTU: Ba─şlam i├ğinde {'@rcf': '...', 'delta': {...}} format─▒nda katlanm─▒┼ş veriler alabilirsin. Bunlar─▒ bilinen yap─▒lar ├╝zerine delta bilgilerini ekleyerek zihninde geri a├ğ ve tam ba─şlamla yan─▒t ver."
+
+tests\test_rcf_production.py:55: AssertionError
+---------------------------- Captured stdout call -----------------------------
+2026-04-27 23:45:43 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-27 23:45:43 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-27 23:45:43 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-27 23:45:43 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-27 23:45:43 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-27 23:45:48 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-27 23:45:48 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-27 23:45:48 [info     ] mab_bayesian_state_loaded
+------------------------------ Captured log call ------------------------------
+WARNING  asyncio:base_events.py:2041 Executing <Task pending name='Task-1' coro=<TestRCFProduction.asyncSetUp() running at D:\PROJECT\alloy-core\core\bridge\tests\test_rcf_production.py:14> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:459> cb=[_run_until_complete_cb() at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:181] created at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py:109> took 19.213 seconds
+____________ TestRCFProduction.test_rcf_pipeline_folding_fidelity _____________
+
+self = <tests.test_rcf_production.TestRCFProduction testMethod=test_rcf_pipeline_folding_fidelity>
+
+        async def test_rcf_pipeline_folding_fidelity(self):
+            """Verify end-to-end folding in the optimization pipeline."""
+            # Setup: Pre-load the registry with motifs from bridge.py
+            bridge_source = Path("bridge.py").read_text(encoding='utf-8')
+            self.pipeline.resonance_engine.extract_motifs(bridge_source)
+    
+            # Test Input: A block that definitely exists in bridge.py
+            # such as the health check or a standard init
+            sample_code = """
+    def _get_bridge_secret() -> str:
+        \"\"\"Fetches or generates the bridge secret.\"\"\"
+        return os.environ.get("ALLOY_BRIDGE_SECRET", "s3cret-v1-alloy")
+    """
+            result = await self.pipeline.optimize(
+                message=sample_code.strip(),
+                force_layers=["rcf_folding"]
+            )
+    
+>           self.assertIn("@rcf", result.optimized_message, "RCF folding did not trigger")
+E           AssertionError: '@rcf' not found in 'def _get_bridge_secret() -> str:\n    """Fetches or generates the bridge secret."""\n    return os.environ.get("ALLOY_BRIDGE_SECRET", "s3cret-v1-alloy")' : RCF folding did not trigger
+
+tests\test_rcf_production.py:47: AssertionError
+---------------------------- Captured stdout call -----------------------------
+2026-04-27 23:45:48 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-27 23:45:48 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-27 23:45:48 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-27 23:45:48 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-27 23:45:48 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-27 23:45:48 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-27 23:45:48 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-27 23:45:48 [info     ] mab_bayesian_state_loaded
+------------------------------ Captured log call ------------------------------
+WARNING  asyncio:base_events.py:2041 Executing <Task pending name='Task-10' coro=<TestRCFProduction.test_rcf_pipeline_folding_fidelity() running at D:\PROJECT\alloy-core\core\bridge\tests\test_rcf_production.py:42> cb=[_run_until_complete_cb() at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:181] created at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py:109> took 0.581 seconds
+_________________ TestQuantumHardening.test_semantic_pruning __________________
+
+self = <tests.quantum_test_suite.TestQuantumHardening testMethod=test_semantic_pruning>
+
+    def test_semantic_pruning(self):
+        """Verify logic preservation after pruning noise."""
+>       from compression.semantic_pruner import SemanticPruner  # type: ignore
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'compression.semantic_pruner'
+
+tests\quantum_test_suite.py:74: ModuleNotFoundError
+============================== warnings summary ===============================
+tests/test_rcf_production.py::TestRCFProduction::test_rcf_meta_grammar_presence
+  C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_rcf_production.py::TestRCFProduction::test_rcf_meta_grammar_presence
+FAILED tests/test_rcf_production.py::TestRCFProduction::test_rcf_pipeline_folding_fidelity
+FAILED tests/quantum_test_suite.py::TestQuantumHardening::test_semantic_pruning
+ERROR tests/test_mab.py::test_agent_instantiation
+ERROR tests/test_mab.py::test_get_features_from_ctx_shape
+ERROR tests/test_mab.py::test_get_features_from_ctx_defaults
+ERROR tests/test_mab.py::test_select_layers_returns_subset_of_candidates
+ERROR tests/test_mab.py::test_select_layers_fallback_on_empty_candidates
+ERROR tests/test_mab.py::test_select_layers_unknown_candidates_ignored
+ERROR tests/test_mab.py::test_reward_updates_model
+ERROR tests/test_mab.py::test_reward_skipped_on_small_savings
+============= 3 failed, 10 passed, 1 warning, 8 errors in 21.09s ==============

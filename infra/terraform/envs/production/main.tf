@@ -60,13 +60,23 @@ resource "aws_iam_role_policy_attachment" "execution_managed" {
 # Allow execution role to read the secrets we wire into the tasks.
 data "aws_iam_policy_document" "secrets_read" {
   statement {
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = [
+    actions = ["secretsmanager:GetSecretValue"]
+    # compact() filters out any empty-string ARNs (optional providers not configured)
+    resources = compact([
       var.gateway_auth_token_arn,
       var.bridge_secret_arn,
       var.claude_api_key_arn,
       var.openrouter_key_arn,
-    ]
+      var.anthropic_api_key_arn,
+      var.openai_api_key_arn,
+      var.google_api_key_arn,
+      var.groq_api_key_arn,
+      var.mistral_api_key_arn,
+      var.cohere_api_key_arn,
+      var.together_api_key_arn,
+      var.deepseek_api_key_arn,
+      var.cerebras_api_key_arn,
+    ])
   }
 }
 
@@ -252,10 +262,21 @@ module "bridge" {
     LOG_LEVEL              = "WARNING"
   }
 
-  secrets = {
-    ALLOY_BRIDGE_SECRET        = var.bridge_secret_arn
-    ALLOY_OPENROUTER_API_KEY   = var.openrouter_key_arn
-  }
+  secrets = merge(
+    {
+      ALLOY_BRIDGE_SECRET      = var.bridge_secret_arn
+      ALLOY_OPENROUTER_API_KEY = var.openrouter_key_arn
+    },
+    var.anthropic_api_key_arn != "" ? { ALLOY_ANTHROPIC_API_KEY = var.anthropic_api_key_arn } : {},
+    var.openai_api_key_arn    != "" ? { ALLOY_OPENAI_API_KEY    = var.openai_api_key_arn    } : {},
+    var.google_api_key_arn    != "" ? { ALLOY_GOOGLE_API_KEY    = var.google_api_key_arn    } : {},
+    var.groq_api_key_arn      != "" ? { ALLOY_GROQ_API_KEY      = var.groq_api_key_arn      } : {},
+    var.mistral_api_key_arn   != "" ? { ALLOY_MISTRAL_API_KEY   = var.mistral_api_key_arn   } : {},
+    var.cohere_api_key_arn    != "" ? { ALLOY_COHERE_API_KEY    = var.cohere_api_key_arn    } : {},
+    var.together_api_key_arn  != "" ? { ALLOY_TOGETHER_API_KEY  = var.together_api_key_arn  } : {},
+    var.deepseek_api_key_arn  != "" ? { ALLOY_DEEPSEEK_API_KEY  = var.deepseek_api_key_arn  } : {},
+    var.cerebras_api_key_arn  != "" ? { ALLOY_CEREBRAS_API_KEY  = var.cerebras_api_key_arn  } : {},
+  )
 
   tags = local.common_tags
 }

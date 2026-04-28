@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Section, Button } from "../../../../components/Alloy/primitives";
+import { Section, Button } from "../../../../components/sovereign/primitives";
 import { Shield, Plus, Trash2 } from "lucide-react";
 
 interface Rule {

@@ -1,9 +1,9 @@
-"""
-L3 Cache — Partial / Chunk-based.
+﻿"""
+L3 Cache â€” Partial / Chunk-based.
 
-Mesajı chunk'lara böler, her chunk'ı L1/L2'de arar.
-En az MIN_CHUNKS chunk bulunursa birleştirip döner.
-Uzun bileşik mesajlar için "partial hit" sağlar.
+MesajÄ± chunk'lara bÃ¶ler, her chunk'Ä± L1/L2'de arar.
+En az MIN_CHUNKS chunk bulunursa birleÅŸtirip dÃ¶ner.
+Uzun bileÅŸik mesajlar iÃ§in "partial hit" saÄŸlar.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class PartialCache:
 
     CHUNK_SIZE = 200   # kelime
-    MIN_CHUNKS = 1     # H6 fix: 2→1 so short docs with a single chunk still get a partial hit
+    MIN_CHUNKS = 1     # H6 fix: 2â†’1 so short docs with a single chunk still get a partial hit
 
     def __init__(self, exact: ExactCache, semantic: SemanticCache) -> None:
         self._exact = exact
@@ -47,7 +47,7 @@ class PartialCache:
         return None
 
     def _split_chunks(self, message: str) -> list[str]:
-        """Paragraf öncelikli, yoksa sabit kelime sayısı."""
+        """Paragraf Ã¶ncelikli, yoksa sabit kelime sayÄ±sÄ±."""
         paragraphs = [p.strip() for p in message.split("\n\n") if len(p.strip()) > 30]
         if len(paragraphs) >= self.MIN_CHUNKS:
             return paragraphs

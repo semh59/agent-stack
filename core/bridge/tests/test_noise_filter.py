@@ -1,11 +1,11 @@
-"""Tests for cleaning/noise_filter.py"""
+﻿"""Tests for cleaning/noise_filter.py"""
 from cleaning.noise_filter import filter_noise
 
 
 def test_removes_short_acks():
-    msg = "tamam\nBurada bazı önemli bilgi var.\nok"
+    msg = "tamam\nBurada bazÄ± Ã¶nemli bilgi var.\nok"
     result = filter_noise(msg)
-    assert "önemli bilgi" in result
+    assert "Ã¶nemli bilgi" in result
     # Acknowledgements should be removed
     lines = [l.strip() for l in result.splitlines() if l.strip()]
     assert "tamam" not in lines

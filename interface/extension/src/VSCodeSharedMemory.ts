@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { SharedMemory } from '../../src/orchestration/shared-memory';
+import { SharedMemory } from '../../../core/gateway/src/orchestration/shared-memory';
 
 export class VSCodeSharedMemory extends SharedMemory {
 	constructor(projectRoot: string) {

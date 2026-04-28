@@ -1,5 +1,5 @@
-"""
-Integration tests — require Ollama running at ALLOY_OLLAMA_URL.
+﻿"""
+Integration tests â€” require Ollama running at ALLOY_OLLAMA_URL.
 
 Mark: @pytest.mark.integration
 Run:  pytest tests/integration/ -v -m integration
@@ -74,7 +74,7 @@ def test_ollama_models_available():
 @skip_if_no_ollama
 @pytest.mark.asyncio
 async def test_caveman_lite_mode(tmp_settings):
-    """LITE mode never calls Ollama — always works."""
+    """LITE mode never calls Ollama â€” always works."""
     from compression.caveman import CavemanCompressor
     comp = CavemanCompressor(tmp_settings)
     prose = (
@@ -90,7 +90,7 @@ async def test_caveman_lite_mode(tmp_settings):
 @pytest.mark.asyncio
 @pytest.mark.timeout(180)
 async def test_caveman_full_mode_with_ollama(tmp_settings):
-    """FULL mode calls Ollama — requires service running."""
+    """FULL mode calls Ollama â€” requires service running."""
     # Check generation model available
     r = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=5.0)
     models = {m["name"] for m in r.json().get("models", [])}
@@ -108,7 +108,7 @@ async def test_caveman_full_mode_with_ollama(tmp_settings):
         "and working as expected in all situations. " * 2
     )
     result, savings = await comp.compress(prose, mode="full")
-    # Fallback to lite if Ollama can't compress — still check it ran
+    # Fallback to lite if Ollama can't compress â€” still check it ran
     assert isinstance(result, str)
     assert len(result) > 0
 
@@ -162,7 +162,7 @@ async def test_semantic_cache_set_get(tmp_settings):
 
     # Very similar query should also hit (high similarity)
     result2 = await cache.get("What is France's capital city?", [])
-    # May or may not hit depending on threshold — just verify no crash
+    # May or may not hit depending on threshold â€” just verify no crash
     assert result2 is None or isinstance(result2, str)
 
 
@@ -175,7 +175,7 @@ async def test_semantic_cache_set_get(tmp_settings):
 @pytest.mark.asyncio
 @pytest.mark.timeout(180)
 async def test_orchestrator_optimize_cli_command():
-    """CLI command input → cli_cleaner layer applied."""
+    """CLI command input â†’ cli_cleaner layer applied."""
     from config import Settings
     settings = Settings(ollama_url=OLLAMA_URL)
     from pipeline.optimization_pipeline import OptimizationPipeline
@@ -188,7 +188,7 @@ async def test_orchestrator_optimize_cli_command():
     )
     result = await orch.optimize(git_log)
     assert result.original_tokens > 0
-    # cli_cleaner should truncate to ≤10 commits
+    # cli_cleaner should truncate to â‰¤10 commits
     lines = [line for line in result.optimized_message.splitlines() if line.strip()]
     assert len(lines) <= 12  # 10 commits + possible header/truncation note
 

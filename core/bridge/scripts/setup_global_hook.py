@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Global Claude Code Hook Kurulumu.
 
-Bu script ~/.claude/settings.json dosyasına bir UserPromptSubmit hook ekler.
-Hook şunu yapar:
-  - Her proje oturumu başlangıcında (ilk prompt'ta) project_init.py'ı çalıştırır.
-  - Eğer CLAUDE.md yoksa → generate eder.
-  - Eğer varsa → sessizce geçer (exit 0).
+Bu script ~/.claude/settings.json dosyasÄ±na bir UserPromptSubmit hook ekler.
+Hook ÅŸunu yapar:
+  - Her proje oturumu baÅŸlangÄ±cÄ±nda (ilk prompt'ta) project_init.py'Ä± Ã§alÄ±ÅŸtÄ±rÄ±r.
+  - EÄŸer CLAUDE.md yoksa â†’ generate eder.
+  - EÄŸer varsa â†’ sessizce geÃ§er (exit 0).
 
-Bu sayede herhangi bir projeyi Claude Code'da açtığında CLAUDE.md + rules +
-workflows otomatik oluşur.
+Bu sayede herhangi bir projeyi Claude Code'da aÃ§tÄ±ÄŸÄ±nda CLAUDE.md + rules +
+workflows otomatik oluÅŸur.
 
 Usage:
   python setup_global_hook.py [--mcp-server-path /path/to/bridge]
@@ -35,7 +35,7 @@ def load_settings(path: Path) -> dict:
         try:
             return json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
-            print(f"Warning: could not parse {path} — starting fresh", file=sys.stderr)
+            print(f"Warning: could not parse {path} â€” starting fresh", file=sys.stderr)
     return {}
 
 
@@ -52,7 +52,7 @@ def hook_command(mcp_server_path: Path) -> str:
       - Checking if CLAUDE.md already exists (idempotent)
       - Generating files only when needed
 
-    This avoids any bash-specific syntax — works on Windows cmd, PowerShell,
+    This avoids any bash-specific syntax â€” works on Windows cmd, PowerShell,
     and bash equally.
     """
     script = mcp_server_path / "scripts" / "project_init.py"
@@ -111,7 +111,7 @@ def uninstall_hook(mcp_server_path: Path) -> None:
     after = len(hooks["UserPromptSubmit"])
 
     if before == after:
-        print("Hook not found — nothing to uninstall.")
+        print("Hook not found â€” nothing to uninstall.")
         return
 
     save_settings(settings_path, settings)

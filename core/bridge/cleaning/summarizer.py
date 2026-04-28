@@ -1,18 +1,18 @@
-"""
-Conversation Summarizer — sliding window context compression.
+﻿"""
+Conversation Summarizer â€” sliding window context compression.
 
 Pencere stratejisi:
   msg 1-10  (en yeni): tam metin korunur
-  msg 11-20:           Ollama özeti (kararlar + sonuçlar)
-  msg 21-30:           meta özet (dosyalar, ne üzerinde çalışıldı)
-  msg 30+:             sadece PRESERVE pattern'leri tut, diğerlerini at
+  msg 11-20:           Ollama Ã¶zeti (kararlar + sonuÃ§lar)
+  msg 21-30:           meta Ã¶zet (dosyalar, ne Ã¼zerinde Ã§alÄ±ÅŸÄ±ldÄ±)
+  msg 30+:             sadece PRESERVE pattern'leri tut, diÄŸerlerini at
 
-PRESERVE edilen içerik (asla özetlenmeyen):
-  - Hata mesajları / stack trace'ler
-  - "bunu yapma" türü kararlar
+PRESERVE edilen iÃ§erik (asla Ã¶zetlenmeyen):
+  - Hata mesajlarÄ± / stack trace'ler
+  - "bunu yapma" tÃ¼rÃ¼ kararlar
   - Dosya isimleri (.py, .ts vb.)
   - TODO/FIXME/NOTE etiketleri
-  - Teknik terimler (büyük harf blokları)
+  - Teknik terimler (bÃ¼yÃ¼k harf bloklarÄ±)
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from config import Settings
 
 logger = logging.getLogger(__name__)
 
-# Maximum input length in characters — prevents OOM / timeout on huge inputs.
+# Maximum input length in characters â€” prevents OOM / timeout on huge inputs.
 MAX_INPUT_CHARS = 50_000
 
 
@@ -41,7 +41,7 @@ class Message:
 # M3 fix: added Turkish error words, Python exception prefix variants, and file extensions
 _PRESERVE_PATTERNS = [
     re.compile(r"(Error:|Exception:|FAILED|Traceback|AssertionError|ValueError:|TypeError:|KeyError:)", re.I),
-    re.compile(r"\b(Hata|Başarısız|Uyarı|hata|uyarı)\b"),              # Turkish error terms
+    re.compile(r"\b(Hata|BaÅŸarÄ±sÄ±z|UyarÄ±|hata|uyarÄ±)\b"),              # Turkish error terms
     re.compile(r"\b(yapma|kullanma|silme|don[' ]?t|avoid|never|bunu)\b", re.I),
     re.compile(r"\b\w+\.(py|ts|js|go|rs|json|yaml|yml|toml|md|cpp|c|h|rb|java)\b"),
     re.compile(r"(TODO:|FIXME:|NOTE:|HACK:|BUG:|XXX:)"),
@@ -153,5 +153,5 @@ class ConversationSummarizer:
                 r.raise_for_status()
                 return r.json()["response"].strip()
         except Exception:
-            # Ollama unavailable — crude truncation
+            # Ollama unavailable â€” crude truncation
             return fallback_content[:200] + ("..." if len(fallback_content) > 200 else "")

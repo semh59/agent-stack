@@ -1,0 +1,190 @@
+﻿2026-04-28 15:07:27 [info     ] chaos_suite_initiated
+2026-04-28 15:07:27 [info     ] chaos_test_started             vector=1_concurrency_panic
+2026-04-28 15:07:27 [info     ] distillation_buffer_initialized db=distillation_buffer.db
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=58 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] distillation_triggered         r_len=60 sav=10.0
+2026-04-28 15:07:27 [info     ] distillation_inserting_sqlite
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:27 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:28 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:29 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:30 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:30 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:30 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:30 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:30 [info     ] experience_recorded            intent=chaos_test savings=10.0
+2026-04-28 15:07:30 [info     ] chaos_vector_1_passed          db_hits=50 latency=2.671s status=SOTA_STABLE
+python : Traceback (most recent call last):
+At line:1 char:1
++ python tests/empirical_chaos_integration.py 2>&1 | Out-File
+ -Encoding ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most 
+    recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_cha
+os_integration.py", line 111, in <module>
+    asyncio.run(execute_chaos_suite())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\base_events.py", line 719, in run_until_complet
+e
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_cha
+os_integration.py", line 104, in execute_chaos_suite
+    await test_vector_1_concurrency_panic()
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_cha
+os_integration.py", line 57, in test_vector_1_concurrency_pan
+ic
+    await buffer.close()
+          ^^^^^^^^^^^^
+AttributeError: 'DistillationBuffer' object has no attribute 
+'close'

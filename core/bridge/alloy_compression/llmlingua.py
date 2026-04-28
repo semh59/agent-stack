@@ -1,15 +1,15 @@
-"""
-LLMLingua 2 — selective prompt compression.
+﻿"""
+LLMLingua 2 â€” selective prompt compression.
 
-Uygulanır:
+UygulanÄ±r:
   - 500+ token system promptlar
-  - Uzun doküman referansları (README, spec)
-  - Tekrarlayan açıklama blokları (PROSE, SYSTEM_PROMPT, DOC_REFERENCE)
+  - Uzun dokÃ¼man referanslarÄ± (README, spec)
+  - Tekrarlayan aÃ§Ä±klama bloklarÄ± (PROSE, SYSTEM_PROMPT, DOC_REFERENCE)
 
 Uygulanmaz:
-  - Kod blokları (``` ... ```)
-  - Hata mesajları / stack trace'ler
-  - 100 token altı kısa mesajlar (overhead değmez)
+  - Kod bloklarÄ± (``` ... ```)
+  - Hata mesajlarÄ± / stack trace'ler
+  - 100 token altÄ± kÄ±sa mesajlar (overhead deÄŸmez)
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ class ContentType(Enum):
     CODE_BLOCK = auto()
     ERROR_MSG = auto()
     STACK_TRACE = auto()
-    SHORT_MSG = auto()      # <100 tokens — skip
+    SHORT_MSG = auto()      # <100 tokens â€” skip
     PROSE = auto()
     SYSTEM_PROMPT = auto()
     DOC_REFERENCE = auto()
@@ -74,7 +74,7 @@ def _compression_rate(ctype: ContentType, settings: Settings) -> float | None:
         ContentType.SYSTEM_PROMPT: settings.llmlingua_rate_general,
         ContentType.DOC_REFERENCE: settings.llmlingua_rate_technical,
     }
-    return mapping.get(ctype)  # CODE_BLOCK, ERROR_MSG, STACK_TRACE, SHORT_MSG → None
+    return mapping.get(ctype)  # CODE_BLOCK, ERROR_MSG, STACK_TRACE, SHORT_MSG â†’ None
 
 
 class LLMLinguaCompressor:
@@ -108,7 +108,7 @@ class LLMLinguaCompressor:
                 )
             except ImportError as exc:
                 raise RuntimeError(
-                    f"llmlingua yüklü değil: {exc}  — pip install llmlingua"
+                    f"llmlingua yÃ¼klÃ¼ deÄŸil: {exc}  â€” pip install llmlingua"
                 ) from exc
 
     # ------------------------------------------------------------------
@@ -116,11 +116,11 @@ class LLMLinguaCompressor:
     # ------------------------------------------------------------------
 
     # ------------------------------------------------------------------
-    # Sync internals — wrapped by async public API via asyncio.to_thread
+    # Sync internals â€” wrapped by async public API via asyncio.to_thread
     # ------------------------------------------------------------------
 
     def _compress_sync(self, text: str) -> tuple[str, float]:
-        """Blocking compress — called inside a thread via asyncio.to_thread."""
+        """Blocking compress â€” called inside a thread via asyncio.to_thread."""
         ctype = _detect_content_type(text)
         rate = _compression_rate(ctype, self.settings)
         if rate is None:
@@ -144,7 +144,7 @@ class LLMLinguaCompressor:
             return text, 0.0
 
     def _compress_sections_sync(self, text: str) -> tuple[str, float]:
-        """Blocking compress_sections — called inside a thread via asyncio.to_thread."""
+        """Blocking compress_sections â€” called inside a thread via asyncio.to_thread."""
         parts = _CODE_FENCE_RE.split(text)
         fences = _CODE_FENCE_RE.findall(text)
 
@@ -164,14 +164,14 @@ class LLMLinguaCompressor:
         return result, savings
 
     # ------------------------------------------------------------------
-    # Async public API — offloads blocking work to a thread
+    # Async public API â€” offloads blocking work to a thread
     # ------------------------------------------------------------------
 
     async def compress(self, text: str) -> tuple[str, float]:
         """
         Compress a single text block (non-blocking).
         Returns: (compressed_text, savings_percent)
-        savings_percent=0.0 → no compression applied.
+        savings_percent=0.0 â†’ no compression applied.
         """
         return await asyncio.to_thread(self._compress_sync, text)
 

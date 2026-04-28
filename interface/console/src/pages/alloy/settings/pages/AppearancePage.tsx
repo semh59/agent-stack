@@ -1,4 +1,4 @@
-import { Section, Row, Switch } from "../../../../components/Alloy/primitives";
+import { Section, Row, Switch } from "../../../../components/sovereign/primitives";
 import { Palette } from "lucide-react";
 import { useAppStore } from "../../../../store/appStore";
 

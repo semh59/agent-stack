@@ -1,4 +1,4 @@
-import { Section } from "../../../../components/Alloy/primitives";
+import { Section } from "../../../../components/sovereign/primitives";
 import { Database, Trash2 } from "lucide-react";
 
 export function DataPage() {

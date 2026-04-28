@@ -1,5 +1,5 @@
-"""
-Graph Manager — RAG 2.0 Codebase Intelligence.
+﻿"""
+Graph Manager â€” RAG 2.0 Codebase Intelligence.
 
 Builds and maintains a dependency graph using networkx.
 Supports PageRank for symbol ranking and subgraph traversal.

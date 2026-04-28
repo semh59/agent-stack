@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import WS from 'ws';
-import { GlobalEventBus } from '../../src/gateway/event-bus';
+import { GlobalEventBus } from '../../../core/gateway/src/gateway/event-bus';
 
 export class MCPToolBridge {
   private readonly websocketUrl: string;

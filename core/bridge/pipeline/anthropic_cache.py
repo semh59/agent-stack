@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 import structlog  # type: ignore
 from typing import Any, cast
 from config import Settings  # type: ignore

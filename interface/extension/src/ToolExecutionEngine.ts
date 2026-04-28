@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import type { IToolExecutionEngine, ToolResult, ApprovalRequest } from '../../src/orchestration/tool-execution-engine';
+import type { IToolExecutionEngine, ToolResult, ApprovalRequest } from '../../../core/gateway/src/orchestration/tool-execution-engine';
 
 /**
  * ToolExecutionEngine: The "Binary Bridge" of Alloy AI.

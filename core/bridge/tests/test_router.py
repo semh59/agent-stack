@@ -1,4 +1,4 @@
-"""Tests for pipeline/router.py"""
+﻿"""Tests for pipeline/router.py"""
 import pytest
 from pipeline.router import MessageRouter, MessageType, complexity_score, model_recommendation
 from config import Settings

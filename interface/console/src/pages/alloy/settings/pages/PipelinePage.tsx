@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Section, Row, Switch, Field, Input, Button } from "../../../../components/Alloy/primitives";
+import { Section, Row, Switch, Field, Input, Button } from "../../../../components/sovereign/primitives";
 import { Zap } from "lucide-react";
 
 export function PipelinePage() {

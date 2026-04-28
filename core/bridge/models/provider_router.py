@@ -1,107 +1,286 @@
-import asyncio
+"""
+AlloyProviderRouter â€” LiteLLM Router tabanlÄ± multi-provider yÃ¶nlendirme.
+
+Tier sistemi (config.py'deki tÃ¼m key'ler kullanÄ±lÄ±r):
+  Tier 0: Ollama          â€” lokal, $0
+  Tier 1: Groq / Cerebras / SambaNova  â€” free, yÃ¼ksek TPS
+  Tier 2: Gemini Flash / Mistral       â€” generous free tier
+  Tier 3: OpenRouter                   â€” 30+ free model
+  Tier 4: DeepSeek                     â€” ucuz, rate limit yok
+  Tier 5: Claude Haiku                 â€” Ã¼cretli, son Ã§are
+"""
+from __future__ import annotations
+
+import os
 import time
-import structlog
-from typing import Any, Dict, List
+from typing import Any
+
 import litellm
-from rank_bm25 import BM25Okapi
+import structlog
 
 from config import Settings
 
 logger = structlog.get_logger(__name__)
 
+# LiteLLM verbose/debug Ã§Ä±ktÄ±sÄ±nÄ± kapat (tÃ¼m sÃ¼rÃ¼mlerde Ã§alÄ±ÅŸÄ±r)
+os.environ.setdefault("LITELLM_LOG", "ERROR")
+litellm.set_verbose = False
+
+
+def _build_model_list(settings: Settings) -> list[dict[str, Any]]:
+    """Config key'lerine gÃ¶re aktif provider'larÄ± model_list'e ekle."""
+    models: list[dict[str, Any]] = []
+
+    # Tier 0 â€” Ollama (her zaman eklenir, key gerekmez)
+    models.append({
+        "model_name": "tier0-fast",
+        "litellm_params": {
+            "model": f"ollama/{settings.ollama_fast_model}",
+            "api_base": settings.ollama_url,
+        },
+        "model_info": {"tier": "free", "alloy_tier": 0, "intent": ["fast", "cheap"]},
+    })
+    models.append({
+        "model_name": "tier0-prose",
+        "litellm_params": {
+            "model": f"ollama/{settings.ollama_prose_model}",
+            "api_base": settings.ollama_url,
+        },
+        "model_info": {"tier": 0, "intent": ["reasoning", "coding"]},
+    })
+
+    # Tier 1 â€” Groq
+    if settings.groq_api_key:
+        models.append({
+            "model_name": "tier1-groq",
+            "litellm_params": {
+                "model": "groq/llama-3.1-70b-versatile",
+                "api_key": settings.groq_api_key,
+                "rpm": 30,
+                "tpm": 6000,
+            },
+            "model_info": {"tier": "free", "alloy_tier": 1, "intent": ["reasoning", "coding", "fast"]},
+        })
+
+    # Tier 1 â€” Cerebras
+    if settings.cerebras_api_key:
+        models.append({
+            "model_name": "tier1-cerebras",
+            "litellm_params": {
+                "model": "cerebras/llama3.1-70b",
+                "api_key": settings.cerebras_api_key,
+                "tpm": 1_000_000,
+            },
+            "model_info": {"tier": "free", "alloy_tier": 1, "intent": ["fast", "coding"]},
+        })
+
+    # Tier 1 â€” SambaNova
+    if settings.sambanova_api_key:
+        models.append({
+            "model_name": "tier1-sambanova",
+            "litellm_params": {
+                "model": "sambanova/Meta-Llama-3.1-70B-Instruct",
+                "api_key": settings.sambanova_api_key,
+            },
+            "model_info": {"tier": "free", "alloy_tier": 1, "intent": ["reasoning", "fast"]},
+        })
+
+    # Tier 2 â€” Gemini Flash
+    if settings.google_api_key:
+        models.append({
+            "model_name": "tier2-gemini-flash",
+            "litellm_params": {
+                "model": "gemini/gemini-1.5-flash",
+                "api_key": settings.google_api_key,
+                "rpm": 1500,
+            },
+            "model_info": {"tier": "free", "alloy_tier": 2, "intent": ["reasoning", "fast", "coding"]},
+        })
+
+    # Tier 2 â€” Mistral (Codestral kod iÃ§in)
+    if settings.mistral_api_key:
+        models.append({
+            "model_name": "tier2-mistral",
+            "litellm_params": {
+                "model": "mistral/codestral-latest",
+                "api_key": settings.mistral_api_key,
+            },
+            "model_info": {"tier": "free", "alloy_tier": 2, "intent": ["coding"]},
+        })
+
+    # Tier 3 â€” OpenRouter
+    if settings.openrouter_api_key:
+        models.append({
+            "model_name": "tier3-openrouter",
+            "litellm_params": {
+                "model": f"openrouter/{settings.openrouter_free_model}",
+                "api_key": settings.openrouter_api_key,
+                "api_base": "https://openrouter.ai/api/v1",
+            },
+            "model_info": {"tier": "free", "alloy_tier": 3, "intent": ["reasoning", "cheap"]},
+        })
+
+    # Tier 4 â€” DeepSeek
+    if settings.deepseek_api_key:
+        models.append({
+            "model_name": "tier4-deepseek",
+            "litellm_params": {
+                "model": "deepseek/deepseek-chat",
+                "api_key": settings.deepseek_api_key,
+            },
+            "model_info": {"tier": "paid", "alloy_tier": 4, "intent": ["reasoning", "coding", "cheap"]},
+        })
+
+    # Tier 4 â€” Together
+    if settings.together_api_key:
+        models.append({
+            "model_name": "tier4-together",
+            "litellm_params": {
+                "model": "together_ai/meta-llama/Llama-3-70b-chat-hf",
+                "api_key": settings.together_api_key,
+            },
+            "model_info": {"tier": "paid", "alloy_tier": 4, "intent": ["reasoning"]},
+        })
+
+    # Tier 5 â€” Claude Haiku (son Ã§are, Ã¼cretli)
+    if settings.anthropic_api_key:
+        models.append({
+            "model_name": "tier5-claude",
+            "litellm_params": {
+                "model": "claude-haiku-4-5-20251001",
+                "api_key": settings.anthropic_api_key,
+            },
+            "model_info": {"tier": "paid", "alloy_tier": 5, "intent": ["reasoning", "coding"]},
+        })
+
+    return models
+
+
+# Intent â†’ tercih edilen tier listesi (dÃ¼ÅŸÃ¼kten yÃ¼kseÄŸe)
+_INTENT_TIER_ORDER: dict[str, list[str]] = {
+    "fast":      ["tier0-fast", "tier1-cerebras", "tier1-groq", "tier2-gemini-flash", "tier3-openrouter"],
+    "coding":    ["tier0-prose", "tier2-mistral", "tier1-groq", "tier1-cerebras", "tier4-deepseek", "tier5-claude"],
+    "reasoning": ["tier0-prose", "tier1-groq", "tier2-gemini-flash", "tier3-openrouter", "tier4-deepseek", "tier5-claude"],
+    "cheap":     ["tier0-fast", "tier1-cerebras", "tier3-openrouter", "tier4-deepseek"],
+}
+
+
 class AlloyProviderRouter:
     """
-    2026-SOTA Pareto-Optimal Provider Router with Dynamic Model Discovery.
-    Balances Accuracy, Latency, and Cost across 15+ providers.
+    LiteLLM Router tabanlÄ± provider yÃ¶nlendirme.
+    - Tier sistemi: Ollama â†’ free cloud â†’ cheap cloud â†’ paid
+    - Otomatik rate limit tracking, cooldown, cascade fallback
+    - Her provider key varlÄ±ÄŸÄ±na gÃ¶re dinamik model_list
     """
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.dynamic_models: Dict[str, List[str]] = {}
+        self._router: litellm.Router | None = None
+        self._model_list: list[dict[str, Any]] = []
         self._last_discovery = 0.0
-        self._discovery_interval = 3600  # 1 hour
+        self._discovery_interval = 3600.0
+        self._build_router()
 
-        # Capability Matrix: [Accuracy, Latency, Cost, Reliability]
-        self.capabilities = {
-            "claude-3-5-sonnet-20241022": [0.95, 0.90, 0.40, 0.95],
-            "gpt-4o-2024-08-06":         [0.94, 0.85, 0.45, 0.98],
-            "gemini-1.5-pro":           [0.92, 0.80, 0.30, 0.90],
-            "groq:llama-3.1-70b-versatile": [0.88, 0.99, 0.10, 0.85],
-            "deepseek-chat":            [0.90, 0.75, 0.05, 0.80],
-            "mistral-large-latest":     [0.91, 0.82, 0.35, 0.92],
-        }
-
-        # 2026 Polish: Standardize names
-        if hasattr(self.settings, "custom_model_capabilities"):
-             self.capabilities.update(self.settings.custom_model_capabilities)
-
-    async def discover_models(self) -> None:
-        """
-        Dynamically fetch available models from providers via LiteLLM.
-        Ensures we always use the latest SOTA versions.
-        """
-        now = time.time()
-        if now - self._last_discovery < self._discovery_interval:
-            return
+    def _build_router(self) -> None:
+        self._model_list = _build_model_list(self.settings)
+        # _model_list hiÃ§ boÅŸ olmaz: tier0 (Ollama) key gerektirmez, her zaman eklenir.
+        # Sadece cloud key sayÄ±sÄ±nÄ± logluyoruz.
+        cloud_count = sum(1 for m in self._model_list if m["model_info"]["alloy_tier"] > 0)
+        logger.info("provider_router_model_list", total=len(self._model_list), cloud=cloud_count)
 
         try:
-            # Native LiteLLM model list fetch
-            # models = litellm.get_valid_models()
-            # In a production 2026 environment, we filters for 'latest' or specific date patterns
-            logger.info("dynamic_model_discovery_triggered")
-            self._last_discovery = now
+            self._router = litellm.Router(
+                model_list=self._model_list,
+                routing_strategy=self.settings.router_strategy,
+                num_retries=self.settings.router_num_retries,
+                timeout=self.settings.router_timeout,
+                retry_after=5,
+                allowed_fails=2,
+                cooldown_time=60,
+                set_verbose=False,
+            )
+            logger.info(
+                "provider_router_built",
+                model_count=len(self._model_list),
+                models=[m["model_name"] for m in self._model_list],
+            )
         except Exception as exc:
-            logger.warning("discovery_failed", error=str(exc))
+            logger.error("provider_router_build_failed", error=str(exc))
+            self._router = None
 
     def select_optimal_model(self, intent: str) -> str:
         """
-        Multi-objective selection based on intent.
-        Intents: 'reasoning', 'coding', 'fast', 'cheap'
+        Intent'e gÃ¶re en uygun model adÄ±nÄ± dÃ¶ner.
+        Router'da kayÄ±tlÄ± modeller arasÄ±ndan tier sÄ±rasÄ±yla seÃ§er.
         """
-        # Weights: [Accuracy, Latency, Cost, Reliability]
-        weights = [0.5, 0.2, 0.1, 0.2]
-        if intent == "coding":
-            weights = [0.7, 0.1, 0.0, 0.2]
-        elif intent == "fast":
-            weights = [0.2, 0.7, 0.1, 0.0]
-        elif intent == "cheap":
-            weights = [0.1, 0.1, 0.7, 0.1]
+        tier_order = _INTENT_TIER_ORDER.get(intent, _INTENT_TIER_ORDER["reasoning"])
+        registered = {m["model_name"] for m in self._model_list}
+        for candidate in tier_order:
+            if candidate in registered:
+                return candidate
+        # Fallback â€” her zaman tier0 var
+        return self._model_list[0]["model_name"] if self._model_list else "ollama/qwen2.5-7b"
 
-        best_model = "gpt-4o-2024-08-06"
-        max_score = -1.0
-
-        for model, caps in self.capabilities.items():
-            score = float(sum(weights[i] * caps[i] for i in range(4)))
-            if score > max_score:
-                max_score = score
-                best_model = model
-
-        return best_model
-
-    async def route_call(self, model: str, messages: List[Dict[str, str]], **kwargs) -> Any:
+    async def route_call(
+        self,
+        model: str,
+        messages: list[dict[str, str]],
+        **kwargs: Any,
+    ) -> Any:
         """
-        Executes the LLM call with LiteLLM fallbacks and circuit breakers.
+        LiteLLM Router Ã¼zerinden LLM Ã§aÄŸrÄ±sÄ± yapar.
+        Router: rate limit tracking, cooldown, cascade fallback saÄŸlar.
         """
+        router = self._router
+        if router is None:
+            logger.error("provider_router_not_initialized")
+            raise RuntimeError("AlloyProviderRouter: Router baÅŸlatÄ±lamadÄ±")
+
         try:
-            response = await litellm.acompletion(
+            response = await router.acompletion(
                 model=model,
                 messages=messages,
-                api_key=self._get_api_key(model),
-                **kwargs
+                **kwargs,
             )
             return response
         except Exception as exc:
-            logger.error("routing_failed", model=model, error=str(exc))
-            # Automatic fallback to Gemini or Ollama
-            return await litellm.acompletion(
-                model="gemini-1.5-pro",
-                messages=messages,
-                api_key=self.settings.google_api_key,
-                **kwargs
-            )
+            logger.error("route_call_failed", model=model, error=str(exc))
+            raise
 
     def _get_api_key(self, model: str) -> str:
-        if "claude" in model: return self.settings.anthropic_api_key
-        if "gpt" in model: return self.settings.openai_api_key
-        if "gemini" in model: return self.settings.google_api_key
-        if "groq" in model: return getattr(self.settings, "groq_api_key", "")
+        """Model adÄ±na gÃ¶re API key dÃ¶ner. Router'dan baÄŸÄ±msÄ±z doÄŸrudan Ã§aÄŸrÄ±lar iÃ§in."""
+        m = model.lower()
+        if "claude" in m or "anthropic" in m:
+            return self.settings.anthropic_api_key
+        if "gpt" in m or "openai" in m:
+            return self.settings.openai_api_key
+        if "gemini" in m or "google" in m:
+            return self.settings.google_api_key
+        if "groq" in m:
+            return self.settings.groq_api_key
+        if "cerebras" in m:
+            return self.settings.cerebras_api_key
+        if "sambanova" in m:
+            return self.settings.sambanova_api_key
+        if "mistral" in m or "codestral" in m:
+            return self.settings.mistral_api_key
+        if "deepseek" in m:
+            return self.settings.deepseek_api_key
+        if "together" in m:
+            return self.settings.together_api_key
+        if "fireworks" in m:
+            return self.settings.fireworks_api_key
+        if "openrouter" in m:
+            return self.settings.openrouter_api_key
+        if "cohere" in m:
+            return self.settings.cohere_api_key
         return ""
+
+    async def discover_models(self) -> None:
+        """Router'Ä± periyodik olarak yeniden inÅŸa et (yeni key'ler .env'den okunabilir)."""
+        now = time.time()
+        if now - self._last_discovery < self._discovery_interval:
+            return
+        self._last_discovery = now
+        logger.info("provider_router_rediscovery")
+        self._build_router()

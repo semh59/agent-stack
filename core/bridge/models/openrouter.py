@@ -1,4 +1,4 @@
-"""
+﻿"""
 OpenRouter cloud fallback client.
 
 Free tier models (as of 2026):
@@ -59,7 +59,7 @@ class OpenRouterClient:
 
             if r.status_code == 429:
                 retry_after = int(r.headers.get("retry-after", "60"))
-                raise RateLimitError(f"Rate limit — retry after {retry_after}s", retry_after)
+                raise RateLimitError(f"Rate limit â€” retry after {retry_after}s", retry_after)
 
             r.raise_for_status()
             return r.json()["choices"][0]["message"]["content"]

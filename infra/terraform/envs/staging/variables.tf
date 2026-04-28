@@ -47,3 +47,59 @@ variable "openrouter_key_arn" {
   type        = string
   description = "Secrets Manager ARN for ALLOY_OPENROUTER_API_KEY."
 }
+
+# ── Optional provider keys (leave as "" to omit from task secrets) ────────────
+
+variable "anthropic_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_ANTHROPIC_API_KEY."
+  default     = ""
+}
+
+variable "openai_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_OPENAI_API_KEY."
+  default     = ""
+}
+
+variable "google_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_GOOGLE_API_KEY."
+  default     = ""
+}
+
+variable "groq_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_GROQ_API_KEY."
+  default     = ""
+}
+
+variable "mistral_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_MISTRAL_API_KEY."
+  default     = ""
+}
+
+variable "cohere_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_COHERE_API_KEY."
+  default     = ""
+}
+
+variable "together_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_TOGETHER_API_KEY."
+  default     = ""
+}
+
+variable "deepseek_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_DEEPSEEK_API_KEY."
+  default     = ""
+}
+
+variable "cerebras_api_key_arn" {
+  type        = string
+  description = "Secrets Manager ARN for ALLOY_CEREBRAS_API_KEY."
+  default     = ""
+}

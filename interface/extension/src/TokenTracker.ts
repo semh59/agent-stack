@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { GlobalEventBus } from '../../src/gateway/event-bus';
+import { GlobalEventBus } from '../../../core/gateway/src/gateway/event-bus';
 
 export interface CostTrackerStats {
   used: number;

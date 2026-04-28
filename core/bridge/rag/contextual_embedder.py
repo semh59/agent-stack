@@ -1,5 +1,5 @@
-"""
-Contextual Embedder — RAG 2.0 Enhancement.
+﻿"""
+Contextual Embedder â€” RAG 2.0 Enhancement.
 
 Augments code chunks with contextual summaries (file-level + class-level)
 before embedding to preserve semantic meaning in isolated snippets.

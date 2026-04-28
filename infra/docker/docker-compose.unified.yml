@@ -86,11 +86,22 @@ services:
       APP_ENV: "${APP_ENV:-production}"
       ALLOY_DATA_DIR: "/data"
       ALLOY_OLLAMA_URL: "http://ollama:11434"
-      ALLOY_OPENROUTER_API_KEY: "${ALLOY_OPENROUTER_API_KEY:-}"
       ALLOY_BRIDGE_SECRET: "${BRIDGE_SECRET:?Set BRIDGE_SECRET}"
       BRIDGE_CORS_ORIGIN: "${BRIDGE_CORS_ORIGIN:-https://alloy.example.com}"
       PYTHONPATH: "/app"
       LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+
+      # ── Provider API keys (set only those you use) ────────────────────────
+      ALLOY_OPENROUTER_API_KEY: "${ALLOY_OPENROUTER_API_KEY:-}"
+      ALLOY_ANTHROPIC_API_KEY: "${ALLOY_ANTHROPIC_API_KEY:-}"
+      ALLOY_OPENAI_API_KEY: "${ALLOY_OPENAI_API_KEY:-}"
+      ALLOY_GOOGLE_API_KEY: "${ALLOY_GOOGLE_API_KEY:-}"
+      ALLOY_GROQ_API_KEY: "${ALLOY_GROQ_API_KEY:-}"
+      ALLOY_MISTRAL_API_KEY: "${ALLOY_MISTRAL_API_KEY:-}"
+      ALLOY_COHERE_API_KEY: "${ALLOY_COHERE_API_KEY:-}"
+      ALLOY_TOGETHER_API_KEY: "${ALLOY_TOGETHER_API_KEY:-}"
+      ALLOY_DEEPSEEK_API_KEY: "${ALLOY_DEEPSEEK_API_KEY:-}"
+      ALLOY_CEREBRAS_API_KEY: "${ALLOY_CEREBRAS_API_KEY:-}"
     # Override default CMD to run bridge instead of MCP server
     command: ["python", "bridge.py", "--port", "9100", "--host", "0.0.0.0"]
     healthcheck:

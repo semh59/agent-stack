@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Section, Button, Badge } from "../../../../components/Alloy/primitives";
+import { Section, Button, Badge } from "../../../../components/sovereign/primitives";
 import { Users, Plus, Trash2, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useAppStore } from "../../../../store/appStore";
 
 export function AccountsPage() {
-  const { accounts, activeAccount, fetchAccounts, addAccount, removeAccount, setActiveAccount } = useAppStore();
+  const { accounts, activeAccount, fetchAccounts, addAccount, removeAccount, selectAccount } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
 
@@ -69,7 +69,7 @@ export function AccountsPage() {
                     {acc.isValid ? "Aktif" : "Gecersiz"}
                   </span>
                   {acc.email === activeAccount && (
-                    <Badge tone="blue" className="ml-1">Aktif</Badge>
+                    <Badge tone="accent" className="ml-1">Aktif</Badge>
                   )}
                 </div>
               </div>
@@ -77,7 +77,7 @@ export function AccountsPage() {
                 {acc.email !== activeAccount && (
                   <button
                     type="button"
-                    onClick={() => setActiveAccount(acc.email)}
+                    onClick={() => void selectAccount(acc.email)}
                     className="rounded-lg border border-[var(--color-alloy-border)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface-hover)] transition-colors"
                   >
                     Sec

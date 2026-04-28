@@ -56,9 +56,19 @@ function resolveRateLimitBucket(request: FastifyRequest): string {
 
 export function registerFormatWrapperMiddleware(app: FastifyInstance): void {
   app.setErrorHandler(async (error, request, reply) => {
+    if (reply.sent) return;
+
     if (pathFromRequest(request).startsWith("/ws/")) {
       reply.status((error as { statusCode?: number }).statusCode ?? 500);
       return error;
+    }
+
+    // Log unhandled errors (5xx) as errors; client errors (4xx) as warnings
+    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
+    if (statusCode >= 500) {
+      request.log.error(error, `[Error Boundary] ${request.method} ${request.url}`);
+    } else {
+      request.log.warn({ err: error.message }, `[Error Boundary] ${request.method} ${request.url}`);
     }
 
     const mapped = mapErrorToApi(error);

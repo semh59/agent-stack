@@ -1,4 +1,4 @@
-"""
+﻿"""
 Dependency health check and Capability Matrix for Agent Stack MCP.
 Validates all core and optional libraries.
 """
@@ -47,7 +47,7 @@ def check_dependencies() -> tuple[list[DependencyStatus], CapabilityMatrix]:
         ("spacy", False, "NLP cleaning/detection"),
         ("sklearn", False, "Semantic routing / ML"),
         ("prometheus_client", False, "Metrics server"),
-        ("aiohttp", False, "HTTP bridge server"),
+        ("aiohttp", True, "HTTP bridge server (bridge.py requires it)"),
     ]
 
     statuses: list[DependencyStatus] = []

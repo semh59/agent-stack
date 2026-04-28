@@ -1,5 +1,5 @@
 """
-HTTP Bridge — Gateway ↔ Optimization Engine communication layer.
+HTTP Bridge â€” Gateway â†” Optimization Engine communication layer.
 
 Exposes the MCP optimization pipeline as REST endpoints for the
 TypeScript Gateway to consume. Runs alongside (or instead of) the
@@ -10,15 +10,15 @@ Usage:
     python bridge.py --port 9200        # custom port
 
 The Gateway calls these endpoints:
-    POST /optimize          → optimize_context
-    POST /search            → search_docs
-    POST /index             → index_document
-    GET  /cost-report       → get_cost_report
-    GET  /cache-stats       → cache_stats
-    POST /cache-clear       → clear_cache
-    POST /model-preference  → set_model_preference
-    GET  /status            → get_pipeline_status
-    GET  /health            → liveness probe
+    POST /optimize          â†’ optimize_context
+    POST /search            â†’ search_docs
+    POST /index             â†’ index_document
+    GET  /cost-report       â†’ get_cost_report
+    GET  /cache-stats       â†’ cache_stats
+    POST /cache-clear       â†’ clear_cache
+    POST /model-preference  â†’ set_model_preference
+    GET  /status            â†’ get_pipeline_status
+    GET  /health            â†’ liveness probe
 """
 from __future__ import annotations
 
@@ -69,49 +69,23 @@ async def _get_orch() -> OptimizationPipeline:
 
 
 # ---------------------------------------------------------------------------
-# Auth validation (lightweight — Gateway does the real auth)
-# ---------------------------------------------------------------------------
-
+# Auth validation (lightweight â€” Gateway does the real auth)
 _APP_ENV = os.environ.get("APP_ENV", os.environ.get("NODE_ENV", "development")).lower()
 _IS_PRODUCTION_LIKE = _APP_ENV in {"production", "staging"}
 
-_BRIDGE_SECRET = (
-    getattr(settings, "bridge_secret", None)
-    or os.environ.get("ALLOY_BRIDGE_SECRET", "")
-    or ""
-).strip()
+def _get_bridge_secret() -> str:
+    """Dynamically resolve the bridge secret from settings or environment."""
+    return getattr(settings, "bridge_secret", "").strip()
 
-if not _BRIDGE_SECRET:
-    if _IS_PRODUCTION_LIKE:
-        # Cloud / staging: NEVER generate an ephemeral file-based secret.
-        # - filesystem may be read-only
-        # - gateway (separate container/pod) cannot read it
-        # - rotation story is nonexistent
-        logger.error(
-            "bridge_secret_missing",
-            app_env=_APP_ENV,
-            hint="Set ALLOY_BRIDGE_SECRET. Refusing to start in production-like mode.",
-        )
-        sys.exit(78)  # EX_CONFIG — see sysexits.h
-
-    # Dev-only fallback. Flag it loudly so it cannot be mistaken for prod behavior.
-    import secrets as _sec
-    _BRIDGE_SECRET = _sec.token_hex(32)
-    secret_path = settings.data_dir / ".bridge_secret"
-    try:
-        secret_path.write_text(_BRIDGE_SECRET, encoding="utf-8")
-        try:
-            secret_path.chmod(0o600)
-        except Exception:
-            # chmod fails on Windows; non-fatal in dev.
-            pass
-        logger.warning(
-            "bridge_secret_generated_dev",
-            path=str(secret_path),
-            message="Dev-only: ephemeral secret generated. DO NOT USE IN PRODUCTION.",
-        )
-    except Exception as e:
-        logger.warning("bridge_secret_write_failed", path=str(secret_path), error=str(e))
+# Hardened: Refuse to boot in production if secret is missing or is the known default
+_secret = _get_bridge_secret()
+if _IS_PRODUCTION_LIKE and (not _secret or _secret == "s3cret-v1-alloy"):
+    logger.error(
+        "bridge_secret_unsafe",
+        app_env=_APP_ENV,
+        hint="Set a strong ALLOY_BRIDGE_SECRET. Known defaults are forbidden in production.",
+    )
+    sys.exit(78)
 
 def _check_auth(request: web.Request) -> bool:
     """
@@ -120,9 +94,11 @@ def _check_auth(request: web.Request) -> bool:
     """
     import hmac
     token = request.headers.get("X-Bridge-Secret", "")
-    if not token or not _BRIDGE_SECRET:
+    secret = _get_bridge_secret()
+    if not token or not secret:
         return False
-    return hmac.compare_digest(token.encode("utf-8"), _BRIDGE_SECRET.encode("utf-8"))
+    # constant-time compare
+    return hmac.compare_digest(token.encode("utf-8"), secret.encode("utf-8"))
 
 
 def _auth_guard(handler):
@@ -144,7 +120,7 @@ def _auth_guard(handler):
 
 @_auth_guard
 async def handle_optimize(request: web.Request) -> web.Response:
-    """POST /optimize — Full optimization pipeline."""
+    """POST /optimize â€” Full optimization pipeline."""
     body = await request.json()
     orch = await _get_orch()
 
@@ -164,8 +140,37 @@ async def handle_optimize(request: web.Request) -> web.Response:
 
 
 @_auth_guard
+async def handle_speculative(request: web.Request) -> web.Response:
+    """POST /speculative --- Parallel Speculative Consensus Execution."""
+    from pipeline.speculative import SpeculativeConsensusRouter
+    
+    body = await request.json()
+    message = body.get("message", "")
+    intent = body.get("intent", "code_generation")
+    manifest = body.get("manifest", [])
+    
+    if not message:
+        return web.json_response({"error": "message is required"}, status=400)
+    if not manifest:
+        return web.json_response({"error": "models manifest is required for speculative execution"}, status=400)
+
+    # Initialize speculative router dynamically
+    router = SpeculativeConsensusRouter(settings)
+    try:
+        result = await router.execute_parallel(
+            context=message,
+            intent=intent,
+            models=manifest,
+        )
+    finally:
+        await router.close()
+
+    return web.json_response(result)
+
+
+@_auth_guard
 async def handle_search(request: web.Request) -> web.Response:
-    """POST /search — RAG document search."""
+    """POST /search â€” RAG document search."""
     body = await request.json()
     orch = await _get_orch()
 
@@ -181,7 +186,7 @@ async def handle_search(request: web.Request) -> web.Response:
 
 @_auth_guard
 async def handle_index(request: web.Request) -> web.Response:
-    """POST /index — Index a document for RAG."""
+    """POST /index â€” Index a document for RAG."""
     body = await request.json()
     orch = await _get_orch()
 
@@ -197,7 +202,7 @@ async def handle_index(request: web.Request) -> web.Response:
 
 @_auth_guard
 async def handle_cost_report(request: web.Request) -> web.Response:
-    """GET /cost-report — Token savings report."""
+    """GET /cost-report â€” Token savings report."""
     orch = await _get_orch()
 
     if orch.cost_tracker is None:
@@ -210,7 +215,7 @@ async def handle_cost_report(request: web.Request) -> web.Response:
 
 @_auth_guard
 async def handle_cache_stats(request: web.Request) -> web.Response:
-    """GET /cache-stats — Cache hit rate and fill status."""
+    """GET /cache-stats â€” Cache hit rate and fill status."""
     orch = await _get_orch()
 
     stats: dict[str, Any] = {}
@@ -226,7 +231,7 @@ async def handle_cache_stats(request: web.Request) -> web.Response:
 
 @_auth_guard
 async def handle_cache_clear(request: web.Request) -> web.Response:
-    """POST /cache-clear — Clear cache tiers."""
+    """POST /cache-clear â€” Clear cache tiers."""
     body = await request.json()
     orch = await _get_orch()
 
@@ -247,7 +252,7 @@ async def handle_cache_clear(request: web.Request) -> web.Response:
 
 @_auth_guard
 async def handle_model_preference(request: web.Request) -> web.Response:
-    """POST /model-preference — Set model override."""
+    """POST /model-preference â€” Set model override."""
     body = await request.json()
     orch = await _get_orch()
 
@@ -261,14 +266,14 @@ async def handle_model_preference(request: web.Request) -> web.Response:
 
 @_auth_guard
 async def handle_status(request: web.Request) -> web.Response:
-    """GET /status — Pipeline health check."""
+    """GET /status â€” Pipeline health check."""
     orch = await _get_orch()
     status = await orch.pipeline_status()
     return web.json_response(status)
 
 
 async def handle_health(request: web.Request) -> web.Response:
-    """GET /health — Liveness probe (no auth required)."""
+    """GET /health â€” Liveness probe (no auth required)."""
     return web.json_response({
         "status": "ok",
         "service": "ai-stack-optimization-bridge",
@@ -279,7 +284,7 @@ async def handle_health(request: web.Request) -> web.Response:
 
 async def handle_ready(request: web.Request) -> web.Response:
     """
-    GET /ready — Readiness probe (no auth).
+    GET /ready â€” Readiness probe (no auth).
     Returns 200 iff the orchestrator is fully initialized. ECS/k8s should use
     this for service-registration gating; /health remains the liveness probe.
     """
@@ -386,7 +391,7 @@ async def correlation_and_error_middleware(
             status=504,
             headers={"X-Request-ID": rid},
         )
-    except Exception as exc:  # noqa: BLE001 — last-chance handler
+    except Exception as exc:  # noqa: BLE001 â€” last-chance handler
         log.exception("unhandled_error", error=str(exc), error_type=type(exc).__name__)
         return web.json_response(
             {
@@ -458,7 +463,7 @@ def create_app() -> web.Application:
             response_headers["Access-Control-Expose-Headers"] = "X-Request-ID"
         return response
 
-    # Order: rate-limit → error/correlation → CORS (outermost)
+    # Order: rate-limit â†’ error/correlation â†’ CORS (outermost)
     app.middlewares.append(rate_limit_middleware)
     app.middlewares.append(correlation_and_error_middleware)
     app.middlewares.append(cors_middleware)
@@ -468,6 +473,7 @@ def create_app() -> web.Application:
 
     # Register routes
     app.router.add_post("/optimize", handle_optimize)
+    app.router.add_post("/speculative", handle_speculative)
     app.router.add_post("/search", handle_search)
     app.router.add_post("/index", handle_index)
     app.router.add_get("/cost-report", handle_cost_report)

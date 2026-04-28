@@ -1,5 +1,5 @@
-"""
-Skill Manager — ported from ai-stack agent/skill_manager.py.
+﻿"""
+Skill Manager â€” ported from ai-stack agent/skill_manager.py.
 Import paths updated; no Claude API dependency.
 """
 from __future__ import annotations

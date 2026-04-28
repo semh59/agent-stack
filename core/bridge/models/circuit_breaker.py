@@ -1,12 +1,12 @@
-"""
+﻿"""
 Circuit Breaker + Model Cascade.
 
-Her model için bağımsız devre:
-  CLOSED    → normal çalışma
-  OPEN      → bypass (reset_timeout sonrası HALF_OPEN'a geçer)
-  HALF_OPEN → bir deneme yap, başarılı → CLOSED, başarısız → OPEN
+Her model iÃ§in baÄŸÄ±msÄ±z devre:
+  CLOSED    â†’ normal Ã§alÄ±ÅŸma
+  OPEN      â†’ bypass (reset_timeout sonrasÄ± HALF_OPEN'a geÃ§er)
+  HALF_OPEN â†’ bir deneme yap, baÅŸarÄ±lÄ± â†’ CLOSED, baÅŸarÄ±sÄ±z â†’ OPEN
 
-Kaskad: Ollama → OpenRouter → pass-through (Claude Code'un kendi bağlantısı)
+Kaskad: Ollama â†’ OpenRouter â†’ pass-through (Claude Code'un kendi baÄŸlantÄ±sÄ±)
 """
 from __future__ import annotations
 
@@ -72,7 +72,7 @@ class CircuitBreaker:
 
     @property
     def state_name(self) -> str:
-        """Note: synchronous read — only use for logging/status, not for decisions."""
+        """Note: synchronous read â€” only use for logging/status, not for decisions."""
         # Use str() to satisfy Pyre that we are calling lower() on a string
         return str(self._state.name).lower()
 
@@ -84,7 +84,7 @@ class CircuitBreaker:
 
 class ModelCascade:
     """
-    Tries models in order: Ollama → OpenRouter → pass-through.
+    Tries models in order: Ollama â†’ OpenRouter â†’ pass-through.
 
     pass-through: returns empty string.
     Caller (orchestrator) interprets "" as "optimization only, Claude Code handles inference".
@@ -107,7 +107,7 @@ class ModelCascade:
         Returns response string, or "" for pass-through.
 
         H8 fix: when manual_override is set, only try that provider.
-        Failures do NOT cascade to other providers — the override is explicit.
+        Failures do NOT cascade to other providers â€” the override is explicit.
         """
         # H8 fix: manual_override pins the provider; no fallthrough on failure.
         if self.manual_override:

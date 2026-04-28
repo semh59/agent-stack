@@ -10,7 +10,7 @@ import {
   Input,
   SecretInput,
   Switch,
-} from "../../../../components/Alloy/primitives";
+} from "../../../../components/sovereign/primitives";
 import { useAlloyStore } from "../../../../store/alloyStore";
 import { getAtPath, isSecretSet, useEffectiveSettings } from "../useEffectiveSettings";
 import type { ChangeEvent } from "react";

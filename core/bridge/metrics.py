@@ -1,6 +1,6 @@
-"""
-Prometheus metrics — ported from ai-stack metrics.py (birebir).
-Null-object pattern: tüm metrikler no-op eğer prometheus_client yüklü değilse.
+﻿"""
+Prometheus metrics â€” ported from ai-stack metrics.py (birebir).
+Null-object pattern: tÃ¼m metrikler no-op eÄŸer prometheus_client yÃ¼klÃ¼ deÄŸilse.
 """
 from __future__ import annotations
 

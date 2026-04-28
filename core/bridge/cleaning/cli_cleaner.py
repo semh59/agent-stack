@@ -1,15 +1,15 @@
-"""
-CLI Output Cleaner — deterministic, zero-dependency RTK replacement.
+﻿"""
+CLI Output Cleaner â€” deterministic, zero-dependency RTK replacement.
 
-Temizlenen içerik:
-  - ANSI escape kodları
-  - git log: son 10 commit, hash 7 karaktere kısaltılır
-  - git diff: max 200 satır, context satırları azaltılır
-  - docker ps/images: önemli sütunlar tutulur
-  - npm/pip install: sadece error/warn satırları
-  - pytest: sadece FAILED/ERROR + özet satırı
-  - Tekrar eden satırlar dedup edilir
-  - Boş satır blokları tek boş satıra indirilir
+Temizlenen iÃ§erik:
+  - ANSI escape kodlarÄ±
+  - git log: son 10 commit, hash 7 karaktere kÄ±saltÄ±lÄ±r
+  - git diff: max 200 satÄ±r, context satÄ±rlarÄ± azaltÄ±lÄ±r
+  - docker ps/images: Ã¶nemli sÃ¼tunlar tutulur
+  - npm/pip install: sadece error/warn satÄ±rlarÄ±
+  - pytest: sadece FAILED/ERROR + Ã¶zet satÄ±rÄ±
+  - Tekrar eden satÄ±rlar dedup edilir
+  - BoÅŸ satÄ±r bloklarÄ± tek boÅŸ satÄ±ra indirilir
 """
 from __future__ import annotations
 
@@ -118,7 +118,7 @@ def _clean_git_status(lines: list[str]) -> list[str]:
 
 
 def _clean_docker_ps(lines: list[str]) -> list[str]:
-    """Keep CONTAINER ID, NAMES, STATUS — truncate each line to 100 chars."""
+    """Keep CONTAINER ID, NAMES, STATUS â€” truncate each line to 100 chars."""
     return [line[:100] for line in lines[:30]]
 
 
@@ -132,7 +132,7 @@ def _clean_docker_logs(lines: list[str]) -> list[str]:
 
 
 _NPM_SKIP_RE = re.compile(
-    r"^\s*([\⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏▸▾►◄]|npm timing|npm http|^added \d|reify:|idealTree)"
+    r"^\s*([\â ‹â ™â ¹â ¸â ¼â ´â ¦â §â ‡â â–¸â–¾â–ºâ—„]|npm timing|npm http|^added \d|reify:|idealTree)"
 )
 _NPM_KEEP_RE = re.compile(r"(npm (?:warn|err)|error|added \d+|removed \d+|changed \d+)", re.I)
 
@@ -207,7 +207,7 @@ _COMMAND_RULES: dict[str, Callable[[list[str]], list[str]]] = {
     "ls":               lambda lines: _limit(lines, 80),
 }
 
-# Shell prompt pattern — extracts "cmd subcmd"
+# Shell prompt pattern â€” extracts "cmd subcmd"
 _PROMPT_RE = re.compile(r"[\$#>]\s*([\w.-]+)\s+([\w.-]+)")
 
 
@@ -243,7 +243,7 @@ def detect_command(text: str) -> str | None:
 def clean(text: str) -> CleanResult:
     """
     Main entry point.
-    Detect command → apply cleaner → dedup → collapse blanks.
+    Detect command â†’ apply cleaner â†’ dedup â†’ collapse blanks.
     """
     lines = text.splitlines()
     original_count = len(lines)

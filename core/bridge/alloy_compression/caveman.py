@@ -1,12 +1,12 @@
-"""
-Caveman Compressor — prose minimization via Ollama.
+﻿"""
+Caveman Compressor â€” prose minimization via Ollama.
 
 Three modes:
-  LITE  — deterministik filler word removal (spaCy-free, saf regex)
-  FULL  — Ollama mistral-7b ile yeniden yaz, anlamı koru
-  ULTRA — Ollama → sadece madde listesine indir
+  LITE  â€” deterministik filler word removal (spaCy-free, saf regex)
+  FULL  â€” Ollama mistral-7b ile yeniden yaz, anlamÄ± koru
+  ULTRA â€” Ollama â†’ sadece madde listesine indir
 
-CavemanDetector mevcut ai-stack caveman_adapter/detector.py'dan portlanmıştır.
+CavemanDetector mevcut ai-stack caveman_adapter/detector.py'dan portlanmÄ±ÅŸtÄ±r.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from config import Settings
 
 
 # ---------------------------------------------------------------------------
-# Detector — ported from caveman_adapter/detector.py
+# Detector â€” ported from caveman_adapter/detector.py
 # ---------------------------------------------------------------------------
 
 
@@ -73,10 +73,10 @@ class CavemanDetector:
 
 
 # ---------------------------------------------------------------------------
-# LITE mode — deterministic filler word removal
+# LITE mode â€” deterministic filler word removal
 # ---------------------------------------------------------------------------
 
-# Single authoritative filler word source — keeps _analyze_filler_words() in sync.
+# Single authoritative filler word source â€” keeps _analyze_filler_words() in sync.
 _FILLER_WORDS: frozenset[str] = frozenset({
     "very", "really", "quite", "just", "simply", "basically",
     "actually", "literally", "certainly", "definitely", "probably",
@@ -178,7 +178,7 @@ class CavemanCompressor:
                 return compressed, savings
 
         except (httpx.ConnectError, httpx.TimeoutException):
-            # Ollama erişilemez → LITE'a düş
+            # Ollama eriÅŸilemez â†’ LITE'a dÃ¼ÅŸ
             return _lite_compress(text)
         except Exception:
             return text, 0.0

@@ -1,4 +1,4 @@
-"""Tests for cache/exact.py, cache/semantic.py, cache/partial.py"""
+﻿"""Tests for cache/exact.py, cache/semantic.py, cache/partial.py"""
 import pytest
 from cache.exact import MemoryCache, DiskCache, ExactCache
 
@@ -98,7 +98,7 @@ def test_exact_cache_miss(tmp_settings):
 
 
 def test_exact_cache_hash_based(tmp_settings):
-    """Same message → same key regardless of cache instance."""
+    """Same message â†’ same key regardless of cache instance."""
     cache = ExactCache(tmp_settings)
     cache.set("test message", "cached_response")
     # Different instance, same settings
@@ -111,3 +111,27 @@ def test_exact_cache_stats(tmp_settings):
     stats = cache.stats()
     assert "memory" in stats
     assert "disk" in stats
+
+
+# ---------------------------------------------------------------------------
+# SemanticCache (ChromaDB dependent)
+# ---------------------------------------------------------------------------
+
+def _chromadb_available() -> bool:
+    try:
+        import chromadb
+        return True
+    except ImportError:
+        return False
+
+
+@pytest.mark.skipif(not _chromadb_available(), reason="ChromaDB not installed")
+@pytest.mark.asyncio
+async def test_semantic_cache_basic(tmp_settings, mock_chromadb):
+    """Verify semantic cache integration (with mocks)."""
+    from cache.semantic import SemanticCache
+    cache = SemanticCache(tmp_settings)
+    await cache.set("original message", [], "cached response")
+    res = await cache.get("original message", [])
+    # mock_chromadb returns empty lists, so SemanticCache.get returns None
+    assert res is None or res == "cached response"

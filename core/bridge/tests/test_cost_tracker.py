@@ -1,4 +1,4 @@
-"""Tests for pipeline/cost_tracker.py"""
+﻿"""Tests for pipeline/cost_tracker.py"""
 import pytest
 import time
 from pipeline.cost_tracker import CostTracker, CostRecord

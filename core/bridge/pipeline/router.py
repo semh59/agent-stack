@@ -1,23 +1,24 @@
-"""
-Message Router — mevcut ai-stack router.py portlanmış ve genişletilmiştir.
+﻿"""
+Message Router â€” mevcut ai-stack router.py portlanmÄ±ÅŸ ve geniÅŸletilmiÅŸtir.
 
 Eklemeler:
   - LOCAL_ANSWERABLE message type (Ollama yeterli)
-  - complexity_score() — 0-10 puan
-  - model_recommendation() — puana göre model seç
+  - complexity_score() â€” 0-10 puan
+  - model_recommendation() â€” puana gÃ¶re model seÃ§
 """
 from __future__ import annotations
 
-import logging
 import math
 import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+import structlog  # type: ignore
+
 from config import Settings  # type: ignore
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class MessageType(Enum):
@@ -93,7 +94,7 @@ class MessageRouter:
             self.vector_space = self.vectorizer.fit_transform(texts)
             self.semantic_enabled = True
         except ImportError:
-            logger.warning("sklearn not found — semantic routing disabled")
+            logger.warning("sklearn not found â€” semantic routing disabled")
 
     def classify(self, message: str, confidence_threshold: float | None = None) -> Classification:
         threshold = confidence_threshold or self.confidence_threshold

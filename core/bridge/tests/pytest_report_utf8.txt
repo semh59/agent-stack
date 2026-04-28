@@ -1,0 +1,124 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.1, pluggy-1.6.0
+rootdir: D:\PROJECT\alloy-core\core\bridge
+configfile: pyproject.toml
+plugins: anyio-4.12.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, respx-0.22.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 21 items
+
+tests\test_rcf_production.py FFF                                         [ 14%]
+tests\test_resonance.py .                                                [ 19%]
+tests\test_mab.py ........                                               [ 57%]
+tests\test_bridge_production.py .....                                    [ 80%]
+tests\quantum_test_suite.py ...F                                         [100%]
+
+================================== FAILURES ===================================
+______________ TestRCFProduction.test_rcf_meta_grammar_presence _______________
+
+self = <tests.test_rcf_production.TestRCFProduction testMethod=test_rcf_meta_grammar_presence>
+
+    def test_rcf_meta_grammar_presence(self):
+        """Verify the RCF Unfolding Meta-Grammar is injected into agent prompts."""
+        agent = DiscoveryAgent(None) # type: ignore
+>       prompt = agent.system_prompt
+                 ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'DiscoveryAgent' object has no attribute 'system_prompt'
+
+tests\test_rcf_production.py:54: AttributeError
+---------------------------- Captured stdout call -----------------------------
+2026-04-27 23:43:42 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-27 23:43:42 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-27 23:43:42 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-27 23:43:42 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-27 23:43:42 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-27 23:43:47 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-27 23:43:47 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-27 23:43:47 [info     ] mab_bayesian_state_loaded
+------------------------------ Captured log call ------------------------------
+WARNING  asyncio:base_events.py:2041 Executing <Task pending name='Task-1' coro=<TestRCFProduction.asyncSetUp() running at D:\PROJECT\alloy-core\core\bridge\tests\test_rcf_production.py:14> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:459> cb=[_run_until_complete_cb() at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:181] created at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py:109> took 19.449 seconds
+______________ TestRCFProduction.test_rcf_motif_extraction_self _______________
+
+self = <tests.test_rcf_production.TestRCFProduction testMethod=test_rcf_motif_extraction_self>
+
+    def test_rcf_motif_extraction_self(self):
+        """Verify ResonanceEngine can fingerprint its own core logic."""
+        source = Path("pipeline/resonance_engine.py").read_text(encoding='utf-8')
+        ids = self.engine.extract_motifs(source)
+        self.assertGreater(len(ids), 0, "No motifs extracted from resonance_engine.py")
+    
+        # Verify specific method motif
+        # The extract_motifs method should be detected
+>       self.assertIn("extract_motifs", [m.metadata.get("name", "") for m in self.engine.registry.values()])
+E       AssertionError: 'extract_motifs' not found in ['', '', '', '', '', '', '', '', '', '', '']
+
+tests\test_rcf_production.py:27: AssertionError
+---------------------------- Captured stdout call -----------------------------
+2026-04-27 23:43:47 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-27 23:43:47 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-27 23:43:47 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-27 23:43:47 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-27 23:43:47 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-27 23:43:47 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-27 23:43:47 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-27 23:43:47 [info     ] mab_bayesian_state_loaded
+____________ TestRCFProduction.test_rcf_pipeline_folding_fidelity _____________
+
+self = <tests.test_rcf_production.TestRCFProduction testMethod=test_rcf_pipeline_folding_fidelity>
+
+        async def test_rcf_pipeline_folding_fidelity(self):
+            """Verify end-to-end folding in the optimization pipeline."""
+            # Setup: Pre-load the registry with motifs from bridge.py
+            bridge_source = Path("bridge.py").read_text(encoding='utf-8')
+            self.pipeline.resonance_engine.extract_motifs(bridge_source)
+    
+            # Test Input: A block that definitely exists in bridge.py
+            # such as the health check or a standard init
+            sample_code = """
+    def _get_bridge_secret() -> str:
+        \"\"\"Fetches or generates the bridge secret.\"\"\"
+        return os.environ.get("ALLOY_BRIDGE_SECRET", "s3cret-v1-alloy")
+    """
+            result = await self.pipeline.optimize(
+                message=sample_code.strip(),
+                force_layers=["rcf_folding"]
+            )
+    
+>           self.assertIn("@rcf", result.optimized_content, "RCF folding did not trigger")
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'OptimizationResult' object has no attribute 'optimized_content'
+
+tests\test_rcf_production.py:47: AttributeError
+---------------------------- Captured stdout call -----------------------------
+2026-04-27 23:43:47 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-27 23:43:47 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-27 23:43:47 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-27 23:43:47 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-27 23:43:47 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-27 23:43:47 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-27 23:43:47 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-27 23:43:47 [info     ] mab_bayesian_state_loaded
+------------------------------ Captured log call ------------------------------
+WARNING  asyncio:base_events.py:2041 Executing <Task pending name='Task-10' coro=<TestRCFProduction.test_rcf_pipeline_folding_fidelity() running at D:\PROJECT\alloy-core\core\bridge\tests\test_rcf_production.py:42> cb=[_run_until_complete_cb() at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:181] created at C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py:109> took 0.570 seconds
+_________________ TestQuantumHardening.test_semantic_pruning __________________
+
+self = <tests.quantum_test_suite.TestQuantumHardening testMethod=test_semantic_pruning>
+
+    def test_semantic_pruning(self):
+        """Verify logic preservation after pruning noise."""
+>       from compression.semantic_pruner import SemanticPruner  # type: ignore
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ModuleNotFoundError: No module named 'compression.semantic_pruner'
+
+tests\quantum_test_suite.py:74: ModuleNotFoundError
+============================== warnings summary ===============================
+tests/test_rcf_production.py::TestRCFProduction::test_rcf_meta_grammar_presence
+  C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_rcf_production.py::TestRCFProduction::test_rcf_meta_grammar_presence
+FAILED tests/test_rcf_production.py::TestRCFProduction::test_rcf_motif_extraction_self
+FAILED tests/test_rcf_production.py::TestRCFProduction::test_rcf_pipeline_folding_fidelity
+FAILED tests/quantum_test_suite.py::TestQuantumHardening::test_semantic_pruning
+================== 4 failed, 17 passed, 1 warning in 21.34s ===================

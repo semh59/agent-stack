@@ -28,7 +28,10 @@ in high-entropy 2026-era environments.
         self.lmbda = 1.0  # Precision prior
         self.sigma = 0.5  # Noise standard deviation
 
-        self.actions = ["exact_cache", "semantic_cache", "rag", "compression"]
+        self.actions = [
+            "rag", "llmlingua", "caveman", "cli_cleaner", "noise_filter",
+            "dedup", "summarizer", "semantic_pruning", "rcf_folding", "tas_ghosting"
+        ]
 
         # models[action] = {mu, Sigma_inv}
         self.models: dict[str, dict[str, Any]] = {
@@ -77,22 +80,34 @@ in high-entropy 2026-era environments.
             await db.commit()
 
     def _get_features(self, context: list[dict[str, Any]], message: str) -> np.ndarray:
-        # 2026-SOTA Normalized Feature Mapping
+        # Used by reward() â€” context is list[dict], message is the processed text.
         intent_val = 1.0 if any(kw in message.lower() for kw in ["code", "fix", "err"]) else 0.2
         complexity = float(min(len(message) / 1000, 1.0))
         has_code = 1.0 if "```" in message else 0.0
         depth = float(min(len(context) / 20, 1.0))
         return np.array([intent_val, complexity, has_code, depth]).reshape((self.dim, 1))
 
-    async def select_layers(self, message: str, context: list[dict[str, Any]]) -> list[str]:
+    def _get_features_from_ctx(self, context: dict[str, Any]) -> np.ndarray:
+        # Used by select_layers() â€” context is the dict produced by _apply_optimizations.
+        # Keys: intent_code (0|1), prompt_tokens (int), has_code (bool), history_depth (int)
+        intent_val = 1.0 if context.get("intent_code", 0) else 0.2
+        complexity = float(min(context.get("prompt_tokens", 0) / 4000, 1.0))
+        has_code = 1.0 if context.get("has_code", False) else 0.0
+        depth = float(min(context.get("history_depth", 0) / 20, 1.0))
+        return np.array([intent_val, complexity, has_code, depth]).reshape((self.dim, 1))
+
+    async def select_layers(self, candidates: list[str], context: dict[str, Any]) -> list[str]:
         """
         Action selection via Thompson Sampling.
         Samples from theta ~ N(mu, Sigma) and chooses actions with positive expected utility.
+        Only returns actions that are present in `candidates`.
         """
-        x = self._get_features(context, message)
+        x = self._get_features_from_ctx(context)
         selected = []
 
         for action, data in self.models.items():
+            if action not in candidates:
+                continue
             mu = data["mu"]
             # Sigma = Sigma_inv^-1. In O(d^2) for small d=4, explicit inversion is fine.
             Sigma = np.linalg.inv(data["Sigma_inv"])
@@ -100,12 +115,13 @@ in high-entropy 2026-era environments.
             # 2026 ELITE: Sample from posterior
             theta_sampled = np.random.multivariate_normal(mu.flatten(), Sigma).reshape((self.dim, 1))
 
-            p_expected = float(theta_sampled.T @ x)
+            p_expected = float((theta_sampled.T @ x).item())
             if p_expected > 0.4:  # Probability-based utility threshold
                 selected.append(action)
 
+        # Fallback: if bandit selects nothing, return all candidates
         if not selected:
-            selected = ["exact_cache"]
+            selected = list(candidates)
         return selected
 
     async def reward(self, message: str, context: list[dict[str, Any]], layers: list[str], savings: float) -> None:
@@ -119,14 +135,19 @@ in high-entropy 2026-era environments.
         for action in layers:
             data = self.models[action]
 
-            # Update Precision Matrix (Sigma_inv)
+            # Bayesian RLS posterior update
             # Sigma_inv_new = Sigma_inv_old + x * x^T / sigma^2
-            data["Sigma_inv"] += (x @ x.T) / (self.sigma ** 2)
+            Sigma_inv_old = data["Sigma_inv"]
+            natural_param = Sigma_inv_old @ data["mu"]  # b_old = Sigma_inv_old @ mu_old
 
-            # Update Mean (mu)
-            # mu_new = Sigma_new * (Sigma_inv_old * mu_old + reward * x / sigma^2)
+            data["Sigma_inv"] = Sigma_inv_old + (x @ x.T) / (self.sigma ** 2)
+
+            # mu_new = Sigma_new @ (b_old + reward * x / sigma^2)
             Sigma_new = np.linalg.inv(data["Sigma_inv"])
-            data["mu"] = Sigma_new @ (data["Sigma_inv"] @ data["mu"] + (savings * x) / (self.sigma ** 2))
+            data["mu"] = Sigma_new @ (natural_param + (savings * x) / (self.sigma ** 2))
 
         if np.random.rand() < 0.05:
-            await self._save_state()
+            try:
+                await self._save_state()
+            except Exception as e:
+                logger.debug("mab_save_skipped", error=str(e))

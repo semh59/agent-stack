@@ -1,5 +1,5 @@
-"""
-Reranker — RAG 2.0 Precision Enhancement.
+﻿"""
+Reranker â€” RAG 2.0 Precision Enhancement.
 
 Uses a cross-encoder model to re-score retrieval results,
 ensuring only the most relevant context is passed to the LLM.

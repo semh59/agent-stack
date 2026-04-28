@@ -23,7 +23,7 @@ logger = structlog.get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Component Protocols — duck-typed, no runtime import required
+# Component Protocols â€” duck-typed, no runtime import required
 # ---------------------------------------------------------------------------
 
 @runtime_checkable
@@ -127,7 +127,7 @@ class ModelCascadeProto(Protocol):
 
 @dataclass
 class OptimizationResult:
-    """Result returned by optimize() — serialised to JSON for MCP tool response."""
+    """Result returned by optimize() â€” serialised to JSON for MCP tool response."""
 
     original_tokens: int
     optimized_message: str
@@ -165,16 +165,16 @@ class OptimizationPipeline:
     """
     Coordinates the full optimization pipeline.
 
-    Adım 1: stub — returns message unchanged, records timing.
-    Adım 10: full implementation with cache, MAB, all layers.
+    AdÄ±m 1: stub â€” returns message unchanged, records timing.
+    AdÄ±m 10: full implementation with cache, MAB, all layers.
     """
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._initialized = False
-        self._init_lock: Any = None  # asyncio.Lock — created inside running event loop
+        self._init_lock: Any = None  # asyncio.Lock â€” created inside running event loop
 
-        # Sub-components — populated in initialize()
+        # Sub-components â€” populated in initialize()
         self.exact_cache: ExactCacheProto | None = None
         self.semantic_cache: SemanticCacheProto | None = None
         self.partial_cache: PartialCacheProto | None = None
@@ -192,6 +192,8 @@ class OptimizationPipeline:
         # Compression
         self.llmlingua: LLMLinguaProto | None = None
         self.caveman: CavemanProto | None = None
+        self.semantic_pruner: SemanticPrunerProto | None = None
+        self.prefix_cache: PrefixCacheProto | None = None
 
         # RAG
         self.rag_indexer: RAGIndexerProto | None = None
@@ -200,10 +202,12 @@ class OptimizationPipeline:
         # 2026 Elite Hardening
         self._components: dict[str, Any] = {}
         self._comp_locks: dict[str, asyncio.Lock] = {}
+        self._bg_tasks: set[asyncio.Task] = set()
 
         # Models
         self.provider_router: Any | None = None
         self.model_cascade: ModelCascadeProto | None = None
+        self.resonance_engine: Any | None = None
 
     @property
     def is_initialized(self) -> bool:
@@ -227,13 +231,14 @@ class OptimizationPipeline:
 
             self._init_caches()
             self._init_logic()
+            self._init_cleaning()
+            self._init_compression()
+            self._init_rag()
+            self._init_models()
 
             m_val = self.mab
             if m_val is not None:
                 await m_val.initialize()
-
-            # All components now use Hooked Lazy Loading via __getattr__
-            pass
 
             self._initialized = True
 
@@ -274,10 +279,10 @@ class OptimizationPipeline:
             _log_warn(f"Router failed: {exc}")
 
         try:
-            from pipeline.mab import LinUCBAgent  # type: ignore
-            self.mab = LinUCBAgent(self.settings)
+            from pipeline.mab import BayesianTSAgent  # type: ignore
+            self.mab = BayesianTSAgent(self.settings)
         except Exception as exc:
-            _log_warn(f"MAB (LinUCB) failed: {exc}")
+            _log_warn(f"MAB (BayesianTS) failed: {exc}")
 
         try:
             from pipeline.cost_tracker import CostTracker  # type: ignore
@@ -312,28 +317,34 @@ class OptimizationPipeline:
 
     def _init_compression(self) -> None:
         try:
-            from compression.llmlingua import LLMLinguaCompressor  # type: ignore
+            from alloy_compression.llmlingua import LLMLinguaCompressor  # type: ignore
             self.llmlingua = LLMLinguaCompressor(self.settings)
         except Exception as exc:
             _log_warn(f"LLMLingua failed: {exc}")
 
         try:
-            from compression.caveman import CavemanCompressor  # type: ignore
+            from alloy_compression.caveman import CavemanCompressor  # type: ignore
             self.caveman = CavemanCompressor(self.settings)
         except Exception as exc:
             _log_warn(f"Caveman failed: {exc}")
 
         try:
-            from compression.semantic_pruner import SemanticPruner  # type: ignore
-            self.semantic_pruner = SemanticPruner(self.settings)
+            from alloy_compression.semantic_pruner import SyntacticSurprisePruner  # type: ignore
+            self.semantic_pruner = SyntacticSurprisePruner(self.settings)
         except Exception as exc:
-            _log_warn(f"SemanticPruner failed: {exc}")
+            _log_warn(f"SyntacticSurprisePruner failed: {exc}")
 
         try:
             from pipeline.prefix_cache_manager import PrefixCacheManager  # type: ignore
             self.prefix_cache = PrefixCacheManager(self.settings)
         except Exception as exc:
             _log_warn(f"PrefixCacheManager failed: {exc}")
+
+        try:
+            from pipeline.resonance_engine import ResonanceEngine  # type: ignore
+            self.resonance_engine = ResonanceEngine()
+        except Exception as exc:
+            _log_warn(f"ResonanceEngine failed: {exc}")
 
     def _init_rag(self) -> None:
         cm = self.capability_matrix
@@ -364,11 +375,11 @@ class OptimizationPipeline:
         Hooked Lazy Loading for Zero-Overhead Orchestration.
         Dynamically loads components on-demand.
         """
-        if name in ("mab", "semantic_pruner", "prefix_cache", "tool_dedup", "output_constraint", "rag_retriever", "rag_indexer", "provider_router"):
+        if name in ("mab", "semantic_pruner", "prefix_cache", "tool_dedup", "output_constraint", "rag_retriever", "rag_indexer", "provider_router", "resonance_engine", "tas_registry", "distillation_buffer"):
             return self._get_component(name)
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-    def _get_component(self, name: str) -> Any:
+    def _get_component(self, name: str) -> Any:  # noqa: C901, PLR0911, PLR0912
         # Simplified sync-safe proxy for lazy loading
         if name in self._components:
             return self._components[name]
@@ -378,7 +389,7 @@ class OptimizationPipeline:
             from pipeline.mab import BayesianTSAgent  # type: ignore
             self._components[name] = BayesianTSAgent(self.settings)
         elif name == "semantic_pruner":
-            from compression.semantic_pruner import SyntacticSurprisePruner  # type: ignore
+            from alloy_compression.semantic_pruner import SyntacticSurprisePruner  # type: ignore
             self._components[name] = SyntacticSurprisePruner(self.settings)
         elif name == "rag_retriever":
             from rag.retriever import DocumentRetriever  # type: ignore
@@ -386,7 +397,29 @@ class OptimizationPipeline:
         elif name == "provider_router":
             from models.provider_router import AlloyProviderRouter  # type: ignore
             self._components[name] = AlloyProviderRouter(self.settings)
-        # ... other components ...
+        elif name == "tool_dedup":
+            from cleaning.tool_output_dedup import ToolOutputDeduplicator  # type: ignore
+            self._components[name] = ToolOutputDeduplicator()
+        elif name == "output_constraint":
+            from pipeline.output_constraint import OutputConstraintLayer  # type: ignore
+            self._components[name] = OutputConstraintLayer()
+        elif name == "prefix_cache":
+            from pipeline.prefix_cache_manager import PrefixCacheManager  # type: ignore
+            self._components[name] = PrefixCacheManager(self.settings)
+        elif name == "resonance_engine":
+            from pipeline.resonance_engine import ResonanceEngine  # type: ignore
+            self._components[name] = ResonanceEngine()
+        elif name == "tas_registry":
+            from rag.anchor_registry import AnchorRegistry  # type: ignore
+            from rag.graph import CodeGraph  # type: ignore
+            graph = CodeGraph(self.settings)
+            graph.load()
+            reg = AnchorRegistry(self.settings, graph)
+            reg.load()
+            self._components[name] = reg
+        elif name == "distillation_buffer":
+            from pipeline.distillation import DistillationBuffer  # type: ignore
+            self._components[name] = DistillationBuffer(self.settings)
 
         return self._components.get(name)
 
@@ -456,8 +489,25 @@ class OptimizationPipeline:
                 layers_applied=applied,
             ))
 
-        # 6. Store in cache
-        await self._cache_store(message, ctx, processed, is_contextual=bool(ctx))
+        # 5. Continuous Distillation (background)
+        dist_buffer = self.distillation_buffer
+        if dist_buffer is not None:
+            task = asyncio.create_task(
+                dist_buffer.record_experience(
+                    intent=m_type.name.lower() if hasattr(m_type, 'name') else str(m_type),
+                    model=model or "default",
+                    messages=[
+                        {"role": "system", "content": "You are Alloy MISA."},
+                        {"role": "user", "content": "\n".join(ctx) + "\n" + str(message)}
+                    ],
+                    response=processed,
+                    complexity=complexity or 5.0,
+                    savings=total_savings,
+                    anchors=applied
+                )
+            )
+            self._bg_tasks.add(task)
+            task.add_done_callback(self._bg_tasks.discard)
 
         meta = {
                 "elapsed_ms": _elapsed(start),
@@ -602,8 +652,8 @@ class OptimizationPipeline:
         mapping: dict[str, list[str]] = {
             "cli_command":      ["cli_cleaner", "noise_filter"],
             "data_analysis":    ["dedup", "rag", "llmlingua", "summarizer", "semantic_pruning"],
-            "prose_reasoning":  ["noise_filter", "caveman", "llmlingua", "summarizer", "semantic_pruning"],
-            "code_generation":  ["dedup", "noise_filter", "llmlingua", "semantic_pruning"],
+            "prose_reasoning":  ["noise_filter", "caveman", "llmlingua", "summarizer", "semantic_pruning", "tas_ghosting", "rcf_folding"],
+            "code_generation":  ["dedup", "noise_filter", "llmlingua", "semantic_pruning", "tas_ghosting", "rcf_folding"],
             "query":            ["rag", "summarizer"],
             "local_answerable": [],
             "unknown":          ["noise_filter", "semantic_pruning"],
@@ -650,9 +700,16 @@ class OptimizationPipeline:
         if layer == "summarizer" and self.summarizer:
             return await self._apply_summarizer(text, msg_id)
 
-        sp = self.semantic_pruner
-        if layer == "semantic_pruning" and sp is not None:
-            return sp.prune(text)
+        if layer == "semantic_pruning":
+            sp = self.semantic_pruner
+            if sp is not None:
+                return sp.prune(text)
+
+        if layer == "rcf_folding" and self.resonance_engine:
+            return await self._apply_rcf(text)
+
+        if layer == "tas_ghosting" and self.tas_registry:
+            return await self._apply_tas(text)
 
         return text, 0.0
 
@@ -676,13 +733,37 @@ class OptimizationPipeline:
                 return res_text, savings
         return text, 0.0
 
+    async def _apply_rcf(self, text: str) -> tuple[str, float]:
+        engine = self.resonance_engine
+        if engine is not None:
+            # Registry'yi doldur — SyntaxError içeren metinler için extract_motifs() [] döndürür (güvenli)
+            engine.extract_motifs(text)
+            # Sınıf ve fonksiyonları katlamayı dene
+            folded = engine.fold_block(text)
+            if isinstance(folded, dict) and "@rcf" in folded:
+                res_text = json.dumps(folded, ensure_ascii=False)
+                savings = max(0.0, (1 - len(res_text) / max(len(text), 1)) * 100)
+                return res_text, savings
+        return text, 0.0
+
+    async def _apply_tas(self, text: str) -> tuple[str, float]:
+        reg = self.tas_registry
+        if reg is not None:
+            anchors = reg.detect_anchors(text)
+            if anchors:
+                # Ghost the first matching anchor (naive approach for MVP)
+                res_text = reg.ghost_context(text, anchors[0])
+                savings = max(0.0, (1 - len(res_text) / max(len(text), 1)) * 100)
+                return res_text, savings
+        return text, 0.0
+
 
 # ------------------------------------------------------------------
 # Utilities
 # ------------------------------------------------------------------
 
 def _count_tokens(text: str) -> int:
-    """Rough token estimate (1 token ≈ 4 chars)."""
+    """Rough token estimate (1 token â‰ˆ 4 chars)."""
     return max(1, len(text) // 4)
 
 

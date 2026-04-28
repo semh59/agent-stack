@@ -1,5 +1,5 @@
-"""
-Workflow Engine — ported from ai-stack agent/workflow_engine.py.
+﻿"""
+Workflow Engine â€” ported from ai-stack agent/workflow_engine.py.
 
 Changes vs original:
   - Removed ai_stack.context_mode_adapter.mcp_client dependency

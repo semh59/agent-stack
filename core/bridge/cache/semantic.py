@@ -1,5 +1,5 @@
-"""
-L2 Cache — Semantic (ChromaDB + nomic-embed-text via Ollama).
+﻿"""
+L2 Cache â€” Semantic (ChromaDB + nomic-embed-text via Ollama).
 
 Hit threshold: cosine similarity >= settings.semantic_cache_similarity_threshold (default 0.85)
 Embed text: message + last 3 context messages joined with " ||| "
@@ -65,7 +65,7 @@ class SemanticCache:
                     metadata={"hnsw:space": "cosine"},
                 )
             except ImportError as exc:
-                raise RuntimeError(f"chromadb yüklü değil: {exc}") from exc
+                raise RuntimeError(f"chromadb yÃ¼klÃ¼ deÄŸil: {exc}") from exc
         return self._collection
 
     # ------------------------------------------------------------------
@@ -84,7 +84,7 @@ class SemanticCache:
 
     @staticmethod
     def _build_embed_text(message: str, context: list[str]) -> str:
-        """Son 3 context mesajı + asıl mesaj — bağlamla birlikte embed."""
+        """Son 3 context mesajÄ± + asÄ±l mesaj â€” baÄŸlamla birlikte embed."""
         recent = context[-3:] if len(context) >= 3 else context
         return " ||| ".join(recent + [message])
 
@@ -119,7 +119,7 @@ class SemanticCache:
             meta = results["metadatas"][0][0]
             expires_at = meta.get("expires_at", 0.0)
             if expires_at < time.time():
-                # Expired — delete and return miss
+                # Expired â€” delete and return miss
                 await asyncio.to_thread(collection.delete, ids=[ids[0]])
                 return None
 
@@ -137,7 +137,7 @@ class SemanticCache:
         is_contextual: bool = False,
         ttl: int | None = None,
     ) -> None:
-        """Store message → response pair with embedding."""
+        """Store message â†’ response pair with embedding."""
         if ttl is None:
             ttl = (
                 self.settings.semantic_cache_ttl_contextual

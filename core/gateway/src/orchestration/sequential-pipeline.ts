@@ -27,7 +27,7 @@ import {
 export { PlanMode };
 export type { AgentResult, PipelineResult };
 import { CircuitBreaker } from "./pipeline/CircuitBreaker";
-import { GeminiProvider, AnthropicProvider, OpenAIProvider } from "./pipeline/LLMProviders";
+import { GeminiProvider, AnthropicProvider, OpenAIProvider, SpeculativeProvider } from "./pipeline/LLMProviders";
 import type { ILLMProvider } from "./pipeline/ILLMProvider";
 import { AgentExecutor } from "./pipeline/AgentExecutor";
 import { DependencyGraph } from "./DependencyGraph";
@@ -158,6 +158,7 @@ export class SequentialPipeline {
     this.providers.set("gemini", new GeminiProvider());
     this.providers.set("anthropic", new AnthropicProvider());
     this.providers.set("openai", new OpenAIProvider());
+    this.providers.set("speculative", new SpeculativeProvider(`http://${overrides.optimizer?.['config']?.bridgeHost ?? '127.0.0.1'}:9100`));
     
     // Phase 4 Services
     this.timeline = new TimelineAggregator(projectRoot, this.sessionId);
@@ -288,7 +289,7 @@ export class SequentialPipeline {
       
       if (this.paused) {
         await this.memory.updateState({ pipelineStatus: 'paused', currentAgent: null });
-        // await this.saveWorkflow(agentResults, stages, stageIndex); // TODO: Adapt workflow saving for parallel
+        await this.saveWorkflow(agentResults);
         this.running = false;
         return this.buildResult(agentResults, startTime, 'paused');
       }
@@ -427,7 +428,14 @@ export class SequentialPipeline {
       const context = await this.agentExecutor.gatherContext(agent, userTask);
       const prompt = await this.agentExecutor.buildPrompt(agent, context, userTask, options.extraSkills);
 
-      const providerKey = this.detectProvider(options.modelOverride ?? agent.preferredModel);
+      let targetModel = options.modelOverride ?? agent.preferredModel;
+      
+      // Phase 8: Hardened routing. Pipe all DEVELOPMENT-layer tasks through Speculative Consensus if not explicitly overridden.
+      if (!options.modelOverride && agent.layer === AgentLayer.DEVELOPMENT) {
+          targetModel = "speculative";
+      }
+
+      const providerKey = this.detectProvider(targetModel);
       const provider = this.providers.get(providerKey) || this.providers.get("gemini")!;
 
       this.circuitBreaker.check(providerKey);
@@ -451,10 +459,18 @@ export class SequentialPipeline {
       );
       this.timeline.setContext(agent.role, this.epoch);
 
+      const agentReasoning = [
+        `Agent: ${agent.role}`,
+        `Layer: ${agent.layer}`,
+        `Preferred model: ${agent.preferredModel}`,
+        `Output files: ${agent.outputFiles.join(', ')}`,
+        `Estimated minutes: ${agent.estimatedMinutes}`,
+      ].join('\n');
+
       const semanticViolation = await this.autonomyPolicy.verifySemanticIntent(
-        'Reasoning extraction placeholder', 
-        prompt.slice(0, 500) + `\n\n[RECENT_HISTORY]\n${recentHistory}`, 
-        userTask, 
+        agentReasoning,
+        prompt.slice(0, 500) + `\n\n[RECENT_HISTORY]\n${recentHistory}`,
+        userTask,
         shadowValidator
       );
 
@@ -568,6 +584,7 @@ export class SequentialPipeline {
 
   private detectProvider(model: string): string {
     const lower = model.toLowerCase();
+    if (lower === 'speculative') return 'speculative';
     if (lower.includes('claude') || lower.includes('opus') || lower.includes('sonnet') || lower.includes('anthropic')) return 'anthropic';
     if (lower.includes('gpt') || lower.includes('o1') || lower.includes('o3') || lower.includes('openai')) return 'openai';
     return 'gemini'; // default: gemini

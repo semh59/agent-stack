@@ -1,4 +1,4 @@
-import { Section } from "../../../../components/Alloy/primitives";
+import { Section } from "../../../../components/sovereign/primitives";
 import { Activity } from "lucide-react";
 
 export function ObservabilityPage() {

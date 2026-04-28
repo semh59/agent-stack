@@ -1,5 +1,5 @@
-"""
-Ollama local model client — async HTTP.
+﻿"""
+Ollama local model client â€” async HTTP.
 """
 from __future__ import annotations
 

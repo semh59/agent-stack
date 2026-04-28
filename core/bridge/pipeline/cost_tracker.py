@@ -1,11 +1,11 @@
-"""
-Cost Tracker — SQLite WAL token savings log.
+﻿"""
+Cost Tracker â€” SQLite WAL token savings log.
 
-Her istek için tam maliyet kaydı:
+Her istek iÃ§in tam maliyet kaydÄ±:
   original_tokens, sent_tokens, model_used, savings_percent,
   cache_hit, layers_applied, response_quality (nullable)
 
-get_cost_report() → günlük/haftalık/aylık özet
+get_cost_report() â†’ gÃ¼nlÃ¼k/haftalÄ±k/aylÄ±k Ã¶zet
 """
 from __future__ import annotations
 

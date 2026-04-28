@@ -1,0 +1,65 @@
+﻿
+===========================================================
+ Phase 8: Deep Integration Test (Distillation + Speculative) 
+===========================================================
+2026-04-28 10:53:43 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 10:53:48 [warning  ] legacy_warn                    message="AlloyProviderRouter failed: 'alloy_tier'"
+2026-04-28 10:53:48 [info     ] mab_bayesian_state_loaded
+
+[STEP 1: Triggering OptimizationPipeline (TAS + Distillation)]
+ -> Pre-computation Context Size: 800 characters
+ -> Optimized Context Size: 277 characters
+ -> Token Savings Achieved: 65.5%
+
+[STEP 2: Verifying Continuous Distillation DB Capture]
+python : Traceback (most recent call last):
+At line:1 char:1
++ python tests/empirical_phase8_integration.py 2>&1 | Out-Fil
+e -Encodin ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most 
+    recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_pha
+se8_integration.py", line 99, in <module>
+    asyncio.run(run_integration_test())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\asyncio\base_events.py", line 719, in run_until_complet
+e
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\PROJECT\alloy-core\core\bridge\tests\empirical_pha
+se8_integration.py", line 60, in run_integration_test
+    async with db.execute("SELECT id, savings_percent FROM ex
+perience_logs ORDER BY id DESC LIMIT 1") as cursor:
+               ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\site-packages\aiosqlite\context.py", line 41, in __aent
+er__
+    self._obj = await self._coro
+                ^^^^^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\site-packages\aiosqlite\core.py", line 183, in execute
+    cursor = await self._execute(self._conn.execute, sql, par
+ameters)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\site-packages\aiosqlite\core.py", line 122, in _execute
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\semih\AppData\Local\Programs\Python\Python31
+4\Lib\site-packages\aiosqlite\core.py", line 105, in run
+    result = function()
+sqlite3.OperationalError: no such table: experience_logs

@@ -1,6 +1,9 @@
-"""Tests for compression/caveman.py"""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import pytest
-from compression.caveman import CavemanDetector, CavemanCompressor, _lite_compress
+from alloy_compression.caveman import CavemanDetector, CavemanCompressor, _lite_compress
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +63,7 @@ def test_lite_preserves_non_filler():
 
 
 # ---------------------------------------------------------------------------
-# Compressor (LITE mode — no Ollama needed)
+# Compressor (LITE mode â€” no Ollama needed)
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio

@@ -222,3 +222,70 @@ export class OpenAIProvider implements ILLMProvider {
     return { output: text, tokenUsage };
   }
 }
+
+/**
+ * Speculative Consensus Provider — routes directly to the Python Bridge's Speculative engine.
+ */
+export class SpeculativeProvider implements ILLMProvider {
+  readonly name = "speculative";
+  
+  constructor(private bridgeUrl: string = "http://127.0.0.1:9100") {}
+
+  async execute(
+    agent: AgentDefinition,
+    systemPrompt: string,
+    userPrompt: string,
+    model: string,
+    options: {
+      temperature: number;
+      maxOutputTokens: number;
+      timeoutMs: number;
+      fetchFn?: typeof fetch;
+    }
+  ): Promise<LLMProviderResult> {
+    const fetchFn = options.fetchFn ?? fetch;
+    
+    // Convert system/user prompt into a unified context for speculative router
+    const combinedMessage = `<system>\n${systemPrompt}\n</system>\n\n<user>\n${userPrompt}\n</user>`;
+    
+    // Retrieve manifest from models list if available or use a default competitive manifest
+    const manifest = [
+      { id: "gemini-2.0-flash", provider: "google" },
+      { id: "claude-haiku", provider: "anthropic" },
+      { id: "gpt-4o-mini", provider: "openai" }
+    ];
+
+    const res = await fetchFn(`${this.bridgeUrl}/speculative`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "X-Bridge-Secret": process.env.ALLOY_BRIDGE_SECRET || ""
+      },
+      body: JSON.stringify({
+        message: combinedMessage,
+        intent: "code_generation",
+        manifest: manifest
+      }),
+      signal: AbortSignal.timeout(options.timeoutMs),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`Speculative Bridge API Error ${res.status}: ${body.slice(0, 500)}`);
+    }
+
+    const data = await res.json() as { consensus_text?: string, winner?: { content?: string, total_tokens?: number }, error?: string };
+    
+    // Ensure we handle timeouts or fallback models safely
+    const text = data?.consensus_text || data?.winner?.content || data?.error || "[Speculative failed]";
+    const total_tokens = data?.winner?.total_tokens || 0;
+    
+    const tokenUsage: TokenUsage = {
+      promptTokens: total_tokens,
+      completionTokens: 0,
+      totalTokens: total_tokens,
+      estimatedCostUsd: total_tokens * 0.000_005,
+    };
+    return { output: text, tokenUsage };
+  }
+}

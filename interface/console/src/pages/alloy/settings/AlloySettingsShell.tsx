@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import { useAlloyStore } from "../../../store/alloyStore";
-import { useToast } from "../../../components/Alloy/Toast";
+import { useToast } from "../../../components/sovereign/Toast";
 import { useTranslation } from "react-i18next";
 
 import { ProvidersPage }    from "./pages/ProvidersPage";

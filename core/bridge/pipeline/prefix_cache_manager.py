@@ -1,5 +1,5 @@
-"""
-Prefix Cache Manager — 2026-spec Performance.
+﻿"""
+Prefix Cache Manager â€” 2026-spec Performance.
 
 Manages shared KV-cache prefixes to reduce latency and token usage
 across repetitive sessions and common project instructions.

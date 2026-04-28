@@ -1,0 +1,32 @@
+﻿
+===========================================================
+ Phase 8: Deep Integration Test (Distillation + Speculative) 
+===========================================================
+2026-04-28 11:38:56 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 11:39:00 [warning  ] legacy_warn                    message="AlloyProviderRouter failed: 'alloy_tier'"
+2026-04-28 11:39:00 [info     ] mab_bayesian_state_loaded
+2026-04-28 11:39:00 [info     ] distillation_buffer_initialized db=C:\Users\semih\.bridge\distillation_buffer.db
+
+[STEP 1: Triggering OptimizationPipeline (TAS + Distillation)]
+!!! TRACE: dist_buffer is <pipeline.distillation.DistillationBuffer object at 0x000002869355B380> !!!
+!!! TRACE: dist_buffer is NOT None. Creating background task... !!!
+ -> Pre-computation Context Size: 838 characters
+ -> Optimized Context Size: 277 characters
+ -> Token Savings Achieved: 66.9%
+2026-04-28 11:39:01 [info     ] distillation_triggered         r_len=277 sav=66.98564593301435
+2026-04-28 11:39:01 [info     ] distillation_inserting_sqlite
+2026-04-28 11:39:01 [info     ] experience_recorded            intent=cli_command savings=66.99
+
+[STEP 2: Verifying Continuous Distillation DB Capture]
+ SUCCESS: Distillation logged task with savings: 66.98564593301435%
+
+[STEP 3: Dispatching to Speculative Consensus Router]
+2026-04-28 11:39:02 [info     ] speculative_ast_rejected       elapsed=206.57 model=ollama/llama-3-8b-fail_syntax
+2026-04-28 11:39:02 [info     ] speculative_consensus_winner   cancelled_losers=1 elapsed=810.3 winner=groq/llama-3-70b-perfect
+ -> WINNER Accepted:          groq/llama-3-70b-perfect
+ -> Resolution Latency:       810.30 ms
+ -> Models Cancelled:         1
+
+===========================================================
+ ALL DEEP INTEGRATION TESTS PASSED 
+===========================================================

@@ -1,12 +1,12 @@
-"""
-Noise Filter — remove low-value content Claude Code automatically adds.
+﻿"""
+Noise Filter â€” remove low-value content Claude Code automatically adds.
 
 Temizlenenler:
-  - Ham JSON tool result blokları → kısa özet
-  - Stack trace'lerin body'si → sadece son hata satırı
-  - Tekrar eden <document> header'ları
-  - Onay mesajları (tamam, ok, anladım vb.)
-  - Aynı içeriğin tekrar eden blokları
+  - Ham JSON tool result bloklarÄ± â†’ kÄ±sa Ã¶zet
+  - Stack trace'lerin body'si â†’ sadece son hata satÄ±rÄ±
+  - Tekrar eden <document> header'larÄ±
+  - Onay mesajlarÄ± (tamam, ok, anladÄ±m vb.)
+  - AynÄ± iÃ§eriÄŸin tekrar eden bloklarÄ±
 """
 from __future__ import annotations
 
@@ -89,7 +89,7 @@ _SECTION_HEADER_RE = re.compile(
 # ---------------------------------------------------------------------------
 
 _SHORT_ACK_RE = re.compile(
-    r"^(tamam|tamamdır|ok|anladım|evet|hayır|teşekkürler?|sure|got it|understood|okay)[.!\s]*$",
+    r"^(tamam|tamamdÄ±r|ok|anladÄ±m|evet|hayÄ±r|teÅŸekkÃ¼rler?|sure|got it|understood|okay)[.!\s]*$",
     re.I | re.M,
 )
 

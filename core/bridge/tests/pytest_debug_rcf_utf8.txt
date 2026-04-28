@@ -1,0 +1,93 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.1, pluggy-1.6.0
+rootdir: D:\PROJECT\alloy-core\core\bridge
+configfile: pyproject.toml
+plugins: anyio-4.12.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, respx-0.22.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 3 items
+
+tests\test_rcf_production.py 2026-04-28 00:26:36 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 00:26:36 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-28 00:26:36 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-28 00:26:36 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-28 00:26:36 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-28 00:26:41 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-28 00:26:41 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-28 00:26:41 [info     ] mab_bayesian_state_loaded
+.2026-04-28 00:26:41 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 00:26:41 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-28 00:26:41 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-28 00:26:41 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-28 00:26:41 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-28 00:26:41 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-28 00:26:41 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-28 00:26:41 [info     ] mab_bayesian_state_loaded
+.2026-04-28 00:26:41 [info     ] deps_checked                   report='--- AI Stack Capability Matrix ---\nCore MCP:         [OK]\nSemantic Cache:   [OK]\nRAG:              [OK]\nLLMLingua:        [OK]\nData Analysis:    [OK]\nMetrics:          [OK]'
+2026-04-28 00:26:41 [warning  ] legacy_warn                    message="LLMLingua failed: No module named 'compression.llmlingua'"
+2026-04-28 00:26:41 [warning  ] legacy_warn                    message="Caveman failed: No module named 'compression.caveman'"
+2026-04-28 00:26:41 [warning  ] legacy_warn                    message="SyntacticSurprisePruner failed: No module named 'compression.semantic_pruner'"
+2026-04-28 00:26:41 [error    ] rag_init_failed                error="cannot import name 'AgenticExplorer' from 'rag.agentic_explorer' (D:\\PROJECT\\alloy-core\\core\\bridge\\rag\\agentic_explorer.py)"
+2026-04-28 00:26:41 [info     ] provider_router_model_list     cloud=0 total=2
+2026-04-28 00:26:41 [error    ] provider_router_build_failed   error="1 validation error for ModelInfo\ntier\n  Input should be 'free' or 'paid' [type=literal_error, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/literal_error"
+2026-04-28 00:26:41 [info     ] mab_bayesian_state_loaded
+F
+
+================================== FAILURES ===================================
+____________ TestRCFProduction.test_rcf_pipeline_folding_fidelity _____________
+
+self = <tests.test_rcf_production.TestRCFProduction testMethod=test_rcf_pipeline_folding_fidelity>
+
+    async def test_rcf_pipeline_folding_fidelity(self):
+        """Verify end-to-end folding in the optimization pipeline."""
+        # Setup: Pre-load the registry with motifs from bridge.py
+        bridge_source = Path("bridge.py").read_text(encoding='utf-8')
+        self.pipeline.resonance_engine.extract_motifs(bridge_source)
+    
+        # Test Input: A simpler block that we definitely just extracted
+        # Use ast.unparse to avoid formatting mismatches
+>       tree = ast.parse(bridge_source)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rcf_production.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+source = '\ufeff"""\nHTTP Bridge ÔÇö Gateway Ôåö Optimization Engine communication layer.\n\nExposes the MCP optimization pipel...t=args.port, print=lambda msg: logger.debug("aiohttp_msg", message=msg))\n\n\nif __name__ == "__main__":\n    main()\n'
+filename = '<unknown>', mode = 'exec'
+
+    def parse(source, filename='<unknown>', mode='exec', *,
+              type_comments=False, feature_version=None, optimize=-1):
+        """
+        Parse the source into an AST node.
+        Equivalent to compile(source, filename, mode, PyCF_ONLY_AST).
+        Pass type_comments=True to get back type comments where the syntax allows.
+        """
+        flags = PyCF_ONLY_AST
+        if optimize > 0:
+            flags |= PyCF_OPTIMIZED_AST
+        if type_comments:
+            flags |= PyCF_TYPE_COMMENTS
+        if feature_version is None:
+            feature_version = -1
+        elif isinstance(feature_version, tuple):
+            major, minor = feature_version  # Should be a 2-tuple.
+            if major != 3:
+                raise ValueError(f"Unsupported major version: {major}")
+            feature_version = minor
+        # Else it should be an int giving the minor version for 3.x.
+>       return compile(source, filename, mode, flags,
+                       _feature_version=feature_version, optimize=optimize)
+E         File "<unknown>", line 1
+E           \ufeff"""
+E           ^
+E       SyntaxError: invalid non-printable character U+FEFF
+
+C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\ast.py:46: SyntaxError
+============================== warnings summary ===============================
+tests/test_rcf_production.py::TestRCFProduction::test_rcf_meta_grammar_presence
+  C:\Users\semih\AppData\Local\Programs\Python\Python314\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_rcf_production.py::TestRCFProduction::test_rcf_pipeline_folding_fidelity
+=================== 1 failed, 2 passed, 1 warning in 20.15s ===================

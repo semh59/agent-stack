@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unit tests for the bridge's handlers + middleware.
 
 We avoid spinning up an HTTP server (which conflicts with pytest-asyncio's
@@ -30,7 +30,7 @@ def bridge_module(monkeypatch, tmp_path):
     sys.path.insert(0, str(ROOT))
 
     for modname in list(sys.modules):
-        if modname == "bridge":
+        if modname in ("bridge", "config") or modname.startswith(("bridge.", "config.")):
             del sys.modules[modname]
 
     return importlib.import_module("bridge")
@@ -40,8 +40,15 @@ def bridge_module(monkeypatch, tmp_path):
 def fake_orchestrator():
     orch = MagicMock()
     orch._initialized = True
+    orch.is_initialized = True  # Mocked property
     orch.optimize = AsyncMock()
     orch.pipeline_status = AsyncMock(return_value={"ok": True})
+    orch.rag_indexer = MagicMock()
+    orch.cost_tracker = MagicMock()
+    orch.exact_cache = MagicMock()
+    orch.semantic_cache = MagicMock()
+    orch.partial_cache = MagicMock()
+    orch.model_cascade = MagicMock()
     return orch
 
 

@@ -1,7 +1,7 @@
-"""
-L1 Cache — Memory LRU + SQLite Disk.
+﻿"""
+L1 Cache â€” Memory LRU + SQLite Disk.
 
-Mevcut ai-stack projesindeki cache/memory.py ve cache/disk.py portlanmıştır.
+Mevcut ai-stack projesindeki cache/memory.py ve cache/disk.py portlanmÄ±ÅŸtÄ±r.
 Hash-based exact match, sub-millisecond lookup.
 """
 from __future__ import annotations
@@ -155,12 +155,12 @@ class DiskCache:
 
 
 # ---------------------------------------------------------------------------
-# ExactCache — unified L1
+# ExactCache â€” unified L1
 # ---------------------------------------------------------------------------
 
 
 class ExactCache:
-    """L1 two-tier cache: memory LRU → disk SQLite."""
+    """L1 two-tier cache: memory LRU â†’ disk SQLite."""
 
     # M4 fix: run disk cleanup every N operations to prevent unbounded DB growth.
     _CLEANUP_INTERVAL = 500

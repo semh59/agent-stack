@@ -1,0 +1,4 @@
+﻿2026-04-28 13:18:10 [info     ] benchmark_start                context_lines=10000
+2026-04-28 13:18:10 [warning  ] rust_engine_unavailable        reason='alloy_rust_core wheels not compiled in environment. Fallback simulated.'
+2026-04-28 13:18:10 [info     ] python_ast_stats               anchors_found=3000 latency_ms=310.40ms
+2026-04-28 13:18:10 [info     ] benchmark_result               status="Python SOTA Fallback operational. Build native rust_core using 'maturin develop' for maximum speedup."

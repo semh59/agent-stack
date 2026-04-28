@@ -39,7 +39,8 @@ export interface MissionSlice {
   diffBySession: Record<string, string[]>;
   planArtifactsBySession: Record<string, AutonomySessionArtifacts | null>;
   snapshotMetaBySession: Record<string, AppState["snapshotMetaBySession"][string]>;
-  analyticsBySession: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  analyticsBySession: Record<string, any>;
 
   startAutonomySession: (input: StartAutonomySessionInput) => Promise<void>;
   fetchAutonomySessions: () => Promise<void>;

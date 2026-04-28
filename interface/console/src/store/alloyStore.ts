@@ -15,11 +15,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import {
   createAlloySettingsSlice,
   type AlloySettingsSlice,
-} from "./slices/Alloy/settingsSlice";
+} from "./slices/alloy/settingsSlice";
 import {
   createAlloyChatSlice,
   type AlloyChatSlice,
-} from "./slices/Alloy/chatSlice";
+} from "./slices/alloy/chatSlice";
 
 export type AlloyState = AlloySettingsSlice & AlloyChatSlice;
 

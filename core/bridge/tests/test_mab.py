@@ -1,68 +1,77 @@
-"""Tests for pipeline/mab.py — Thompson Sampling MAB.
+﻿"""Tests for pipeline/mab.py â€” Bayesian Thompson Sampling MAB.
 
-select_layers and reward are coroutines — these tests must await them.
+select_layers and reward are coroutines â€” these tests must await them.
 """
 import pytest
-from pipeline.mab import ThompsonSamplingMAB, MABArm
+import numpy as np
+from pipeline.mab import BayesianTSAgent
 
 
-def test_mab_arm_sample_range():
-    arm = MABArm(name="test", alpha=2.0, beta=1.0)
-    for _ in range(100):
-        s = arm.sample()
-        assert 0.0 <= s <= 1.0
+@pytest.fixture
+def agent(tmp_settings):
+    return BayesianTSAgent(tmp_settings)
 
 
-def test_mab_arm_update_reward():
-    arm = MABArm(name="test")
-    initial_alpha = arm.alpha
-    arm.update(0.5, threshold=0.20)   # savings 50% >= threshold 20%
-    assert arm.alpha > initial_alpha
+def test_agent_instantiation(agent):
+    """BayesianTSAgent should initialise with dim=4 and default actions."""
+    assert agent.dim == 4
+    assert "rag" in agent.models
+    assert "llmlingua" in agent.models
 
 
-def test_mab_arm_update_no_reward():
-    arm = MABArm(name="test")
-    initial_beta = arm.beta
-    arm.update(0.05, threshold=0.20)  # savings 5% < threshold 20%
-    assert arm.beta > initial_beta
+def test_get_features_from_ctx_shape(agent):
+    ctx = {"intent_code": 1, "prompt_tokens": 200, "has_code": True, "history_depth": 5}
+    x = agent._get_features_from_ctx(ctx)
+    assert x.shape == (4, 1)
 
 
-@pytest.mark.asyncio
-async def test_mab_select_layers_returns_candidates(tmp_settings):
-    mab = ThompsonSamplingMAB(tmp_settings)
-    candidates = ["cli_cleaner", "dedup", "caveman"]
-    result = await mab.select_layers(candidates)
-    assert set(result) == set(candidates)
-    assert len(result) == 3
+def test_get_features_from_ctx_defaults(agent):
+    x = agent._get_features_from_ctx({})
+    assert x.shape == (4, 1)
+    # intent_val should default to 0.2 when intent_code is falsy
+    assert x[0].item() == pytest.approx(0.2)
 
 
 @pytest.mark.asyncio
-async def test_mab_select_empty(tmp_settings):
-    mab = ThompsonSamplingMAB(tmp_settings)
-    assert await mab.select_layers([]) == []
+async def test_select_layers_returns_subset_of_candidates(agent):
+    """select_layers must only return items that were in candidates."""
+    candidates = ["rag", "llmlingua", "caveman"]
+    result = await agent.select_layers(candidates, {"intent_code": 1, "prompt_tokens": 500})
+    assert isinstance(result, list)
+    assert all(item in candidates for item in result)
+    assert len(result) >= 1  # fallback guarantees at least 1
 
 
 @pytest.mark.asyncio
-async def test_mab_reward_updates_arm(tmp_settings):
-    mab = ThompsonSamplingMAB(tmp_settings)
-    initial_alpha = mab.arms["cli_cleaner"].alpha
-    await mab.reward("cli_cleaner", 70.0)
-    assert mab.arms["cli_cleaner"].alpha > initial_alpha
+async def test_select_layers_fallback_on_empty_candidates(agent):
+    """Empty candidates should return empty list (not crash)."""
+    result = await agent.select_layers([], {})
+    assert result == []
 
 
 @pytest.mark.asyncio
-async def test_mab_persists_and_loads(tmp_settings):
-    mab1 = ThompsonSamplingMAB(tmp_settings)
-    await mab1.reward("dedup", 80.0)
-    saved_alpha = mab1.arms["dedup"].alpha
-
-    mab2 = ThompsonSamplingMAB(tmp_settings)
-    assert mab2.arms["dedup"].alpha == pytest.approx(saved_alpha, abs=0.01)
+async def test_select_layers_unknown_candidates_ignored(agent):
+    """Candidates not in agent.models should still be handled by fallback."""
+    result = await agent.select_layers(["unknown_layer"], {})
+    # Fallback: return all candidates when nothing selected
+    assert result == ["unknown_layer"]
 
 
-def test_mab_arm_stats(tmp_settings):
-    mab = ThompsonSamplingMAB(tmp_settings)
-    stats = mab.arm_stats()
-    assert "cli_cleaner" in stats
-    assert "mean" in stats["cli_cleaner"]
-    assert 0.0 <= stats["cli_cleaner"]["mean"] <= 1.0
+@pytest.mark.asyncio
+async def test_reward_updates_model(agent):
+    """reward() should update mu for the specified layers."""
+    ctx = [{"role": "user", "content": "fix the bug"}]
+    mu_before = agent.models["llmlingua"]["mu"].copy()
+    await agent.reward("test message", ctx, ["llmlingua"], savings=0.4)
+    mu_after = agent.models["llmlingua"]["mu"]
+    # mu should have changed after a significant reward
+    assert not np.allclose(mu_before, mu_after)
+
+
+@pytest.mark.asyncio
+async def test_reward_skipped_on_small_savings(agent):
+    """reward() should be a no-op when savings < 0.01."""
+    ctx = []
+    mu_before = agent.models["rag"]["mu"].copy()
+    await agent.reward("msg", ctx, ["rag"], savings=0.005)
+    assert np.allclose(mu_before, agent.models["rag"]["mu"])

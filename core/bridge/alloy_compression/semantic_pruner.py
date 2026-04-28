@@ -41,8 +41,9 @@ class SyntacticSurprisePruner:
             # 2. Preserve high-surprise or structural markers
             is_surprising = (
                 entropy_score > 0.6 or
-                stripped.startswith(("#", "```", "def ", "class ")) or
-                any(marker in stripped for marker in critical_markers)
+                stripped.startswith(("```", "def ", "class ")) or
+                any(marker in stripped for marker in critical_markers) or
+                (stripped.startswith("#") and any(marker in stripped for marker in critical_markers))
             )
 
             if is_surprising:

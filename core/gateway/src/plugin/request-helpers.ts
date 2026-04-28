@@ -10,7 +10,7 @@ import type { MessageContent, MessagePart } from "./types";
 
 const log = createLogger("request-helpers");
 
-const ALLOY_PREVIEW_LINK = "https://goo.gle/enable-preview-features"; // TODO: Update to Alloy link if available
+const ALLOY_PREVIEW_LINK = "https://docs.alloy.dev/preview-features";
 
 export { cleanJSONSchemaForAlloy } from "./transform/json-schema-cleaner";
 

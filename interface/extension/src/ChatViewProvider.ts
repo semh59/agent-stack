@@ -2,21 +2,21 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
-import { SequentialPipeline } from "../../src/orchestration/sequential-pipeline";
-import { AlloyGatewayClient } from "../../src/orchestration/gateway-client";
-import { AccountManager } from "../../src/plugin/accounts";
-import { loadConfig } from "../../src/plugin/config/loader";
-import { GOOGLE_GEMINI_PROVIDER_ID } from "../../src/constants";
+import { SequentialPipeline } from "../../../core/gateway/src/orchestration/sequential-pipeline";
+import { AlloyGatewayClient } from "../../../core/gateway/src/orchestration/gateway-client";
+import { AccountManager } from "../../../core/gateway/src/plugin/accounts";
+import { loadConfig } from "../../../core/gateway/src/plugin/config/loader";
+import { GOOGLE_GEMINI_PROVIDER_ID } from "../../../core/gateway/src/constants";
 import {
   buildWebviewHtml,
   resolveWebviewAssets,
   WebviewBootGate,
-} from "../../src/gateway/webview-bootstrap";
+} from "../../../core/gateway/src/gateway/webview-bootstrap";
 import { VSCodeTerminalExecutor } from "./VSCodeTerminalExecutor";
 import { VSCodeSharedMemory } from "./VSCodeSharedMemory";
 import { ToolExecutionEngine } from "./ToolExecutionEngine";
 import { UnifiedCostTracker } from "./TokenTracker";
-import { getAllModels } from "../../src/gateway/provider-types";
+import { getAllModels } from "../../../core/gateway/src/gateway/provider-types";
 /**
  * Cline-Parity Messaging Protocol
  *
