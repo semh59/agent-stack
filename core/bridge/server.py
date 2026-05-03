@@ -38,6 +38,13 @@ except ImportError as exc:
 
 import structlog
 
+# CRITICAL: stdout is the MCP JSON-RPC protocol channel in stdio mode.
+# Any output to stdout that is not valid JSON-RPC corrupts the stream.
+# Route ALL structlog output to stderr unconditionally.
+structlog.configure(
+    logger_factory=structlog.PrintLoggerFactory(file=sys.stderr),
+)
+
 from config import settings
 from pipeline.optimization_pipeline import OptimizationPipeline
 from metrics import start_metrics_server

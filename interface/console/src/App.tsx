@@ -9,6 +9,7 @@ import { AlloySettingsShell } from './pages/alloy/settings/AlloySettingsShell';
 import { AlloyChatShell } from './pages/alloy/AlloyChatShell';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { BuilderPage } from './pages/BuilderPage';
+import { MetroStatusView } from './pages/MetroStatusView';
 
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
@@ -83,6 +84,12 @@ function App() {
               <Route path="/settings" element={
                 <PageErrorBoundary pageName="Settings">
                   <AlloySettingsShell />
+                </PageErrorBoundary>
+              } />
+
+              <Route path="/metro" element={
+                <PageErrorBoundary pageName="Metro Watchdog">
+                  <MetroStatusView />
                 </PageErrorBoundary>
               } />
 

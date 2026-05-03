@@ -225,6 +225,7 @@ export function registerProjectsRoutes(
       if (idx === -1) return reply.status(404).send(apiError("Project not found", { code: "NOT_FOUND" }));
 
       const [removed] = projects.splice(idx, 1);
+      if (!removed) return reply.status(404).send(apiError("Project not found", { code: "NOT_FOUND" }));
       await writeIndex(projectRoot, projects);
 
       // Remove project directory

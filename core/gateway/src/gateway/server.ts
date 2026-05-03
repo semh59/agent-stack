@@ -53,6 +53,8 @@ import { registerPipelineRoutes } from "../api/routers/pipeline.router";
 import { registerAutonomyRoutes } from "../api/routers/autonomy.router";
 import { registerPrivacyRoutes } from "../api/routers/privacy.router";
 import { registerProjectsRoutes } from "../api/routers/projects.router";
+import { registerMetroRoutes } from "../api/routers/metro.router";
+import { MetroWatchdog } from "./metro-watchdog";
 import type { MissionModel } from "../models/mission.model";
 import type { AuthServer } from "./auth-server";
 
@@ -279,6 +281,7 @@ export class GatewayServer {
   private readonly startupRecovery: StartupRecoveryCoordinator;
   private readonly recoveryNotifier: RecoveryNotifier;
   private readonly autonomyEventSubscription: { dispose: () => void };
+  private metroWatchdog: MetroWatchdog | null = null;
 
   constructor(options: GatewayServerOptions) {
     this.options = options;
@@ -546,6 +549,22 @@ export class GatewayServer {
       }
       this.quotaStateReady = true;
 
+      // ── Start Metro Watchdog ──
+      const bridgeUrl = process.env.ALLOY_BRIDGE_URL ?? "http://127.0.0.1:9100";
+      const bridgeSecret = process.env.ALLOY_BRIDGE_SECRET ?? "";
+      if (bridgeSecret) {
+        this.metroWatchdog = new MetroWatchdog({
+          bridgeUrl,
+          bridgeSecret,
+          pollIntervalMs: 10_000,
+          downThreshold: 3,
+          degradedLatencyMs: 2_000,
+        });
+        this.metroWatchdog.start();
+      } else {
+        this.app.log.warn("[Gateway] Metro Watchdog disabled — ALLOY_BRIDGE_SECRET not set");
+      }
+
       // Handle graceful shutdown signals
       const shutdown = async (signal: string) => {
         this.app.log.info(`Received ${signal}, starting graceful shutdown...`);
@@ -686,6 +705,11 @@ export class GatewayServer {
       startupRecovery: this.startupRecovery,
       issueMissionWsTicket: (sessionId, reply, body) => issueMissionWsTicket(sessionId, reply, body as MissionWsTicketRequestBody | undefined),
     });
+
+    // ── Metro Watchdog Routes ──
+    registerMetroRoutes(this.app, {
+      getWatchdog: () => this.metroWatchdog,
+    });
   }
 
   public async stop(): Promise<void> {
@@ -705,6 +729,10 @@ export class GatewayServer {
     // 2. Dispose background tasks
     this.autonomyEventSubscription.dispose();
     this.budgetTracker.dispose();
+    if (this.metroWatchdog) {
+      this.metroWatchdog.stop();
+      this.metroWatchdog = null;
+    }
     if (this.activeAuthServer) {
       this.activeAuthServer.stop();
       this.activeAuthServer = null;

@@ -18,7 +18,7 @@ export { SequentialPipeline, PlanMode } from './src/orchestration/sequential-pip
 export { SharedMemory } from './src/orchestration/shared-memory';
 export { AGENTS, getAgentByRole, getAgentsByLayer, getNextAgent, getTotalEstimatedMinutes, validateAgentDefinitions } from './src/orchestration/agents';
 export type { AgentDefinition, AgentLayer, PreferredModel } from './src/orchestration/agents';
-export type { PipelineState, TimelineEntry } from './src/orchestration/shared-memory';
+export type { PipelineState } from './src/orchestration/shared-memory';
 export type { PipelineOptions, PipelineResult, AgentResult } from './src/orchestration/sequential-pipeline';
 
 // Phase 2: Skill Integration, Terminal, Self-Improving

@@ -1,16 +1,16 @@
-﻿export enum ModelTier {
-  OPUS        = ‘google/Alloy-claude-opus-4-6-thinking’,
-  SONNET      = ‘google/Alloy-claude-sonnet-4-6’,
-  GEMINI_PRO  = ‘google/Alloy-gemini-3-pro’,
-  GEMINI_FLASH = ‘google/Alloy-gemini-3-flash’,
+export enum ModelTier {
+  OPUS        = 'google/Alloy-claude-opus-4-6-thinking',
+  SONNET      = 'google/Alloy-claude-sonnet-4-6',
+  GEMINI_PRO  = 'google/Alloy-gemini-3-pro',
+  GEMINI_FLASH = 'google/Alloy-gemini-3-flash',
 }
 
-export type TaskType = ‘planning’ | ‘development’ | ‘operation’ | ‘qa’ | ‘research’ | ‘security’;
+export type TaskType = 'planning' | 'development' | 'operation' | 'qa' | 'research' | 'security';
 
 export interface BudgetContext {
   /** Remaining budget in USD. undefined = unlimited */
   remainingBudgetUsd?: number;
-  /** Token quota usage ratio 0–1. 0.9 = 90% consumed */
+  /** Token quota usage ratio 0-1. 0.9 = 90% consumed */
   quotaUsageRatio?: number;
 }
 
@@ -32,25 +32,25 @@ function applyBudgetConstraint(preferred: ModelTier, ctx: BudgetContext): ModelT
 /**
  * ModelSelector: balances Cost-Efficiency and Intelligence per task type.
  * - Opus (thinking): security audits, critical architectural decisions
- * - Sonnet: coding, refactoring, QA — best all-round
- * - Gemini Pro: wide context (1M tokens) — planning & research
- * - Gemini Flash: fast, cheap — ops, docs, repetitive tasks
+ * - Sonnet: coding, refactoring, QA -- best all-round
+ * - Gemini Pro: wide context (1M tokens) -- planning & research
+ * - Gemini Flash: fast, cheap -- ops, docs, repetitive tasks
  */
 export class ModelSelector {
   public selectModel(
     taskType: TaskType,
-    complexity: ‘low’ | ‘medium’ | ‘high’ = ‘medium’,
+    complexity: 'low' | 'medium' | 'high' = 'medium',
     budget: BudgetContext = {},
   ): ModelTier {
     let preferred: ModelTier;
 
-    if (taskType === ‘security’) {
+    if (taskType === 'security') {
       preferred = ModelTier.OPUS;
-    } else if (taskType === ‘planning’ || (taskType === ‘research’ && complexity === ‘high’)) {
+    } else if (taskType === 'planning' || (taskType === 'research' && complexity === 'high')) {
       preferred = ModelTier.GEMINI_PRO;
-    } else if (taskType === ‘development’ || taskType === ‘qa’) {
+    } else if (taskType === 'development' || taskType === 'qa') {
       preferred = ModelTier.SONNET;
-    } else if (taskType === ‘operation’ || complexity === ‘low’) {
+    } else if (taskType === 'operation' || complexity === 'low') {
       preferred = ModelTier.GEMINI_FLASH;
     } else {
       preferred = ModelTier.SONNET;
@@ -62,13 +62,13 @@ export class ModelSelector {
   public getModelReasoning(tier: ModelTier): string {
     switch (tier) {
       case ModelTier.OPUS:
-        return ‘Deep reasoning with thinking — for architectural decisions and security audits.’;
+        return 'Deep reasoning with thinking -- for architectural decisions and security audits.';
       case ModelTier.SONNET:
-        return ‘Balanced performance for coding, refactoring, and structural analysis.’;
+        return 'Balanced performance for coding, refactoring, and structural analysis.';
       case ModelTier.GEMINI_PRO:
-        return ‘Wide context window (1M tokens) for planning and research tasks.’;
+        return 'Wide context window (1M tokens) for planning and research tasks.';
       case ModelTier.GEMINI_FLASH:
-        return ‘Fast and cost-effective for documentation and repetitive tasks.’;
+        return 'Fast and cost-effective for documentation and repetitive tasks.';
     }
   }
 }

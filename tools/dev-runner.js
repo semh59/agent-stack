@@ -22,7 +22,7 @@ const root = path.resolve(__dirname, "..");
 
 // Simple .env loader
 import { readFileSync, existsSync as fsExistsSync } from "node:fs";
-const envPath = path.join(root, "apps", "gateway", ".env");
+const envPath = path.join(root, "core", "gateway", ".env");
 if (fsExistsSync(envPath)) {
   const envContent = readFileSync(envPath, "utf8");
   envContent.split("\n").forEach((line) => {
@@ -97,22 +97,22 @@ process.on("SIGTERM", () => shutdown(0));
 
 // ---- Bridge ----
 if (process.env.SKIP_BRIDGE !== "1") {
-  const bridgeDir = path.join(root, "apps", "bridge");
+  const bridgeDir = path.join(root, "core", "bridge");
   if (!existsSync(path.join(bridgeDir, "bridge.py"))) {
-    console.error(`[dev] bridge.py not found at ${bridgeDir}`);
-    process.exit(1);
+    console.error(`[dev] bridge.py not found at ${bridgeDir} — skipping bridge`);
+  } else {
+    launch("bridge", "cyan", PY, ["bridge.py", "--port", BRIDGE_PORT, "--host", "127.0.0.1"], {
+      cwd: bridgeDir,
+      env: { PYTHONPATH: bridgeDir },
+    });
   }
-  launch("bridge", "cyan", PY, ["bridge.py", "--port", BRIDGE_PORT, "--host", "127.0.0.1"], {
-    cwd: bridgeDir,
-    env: { PYTHONPATH: bridgeDir },
-  });
 }
 
 // ---- Gateway ----
 if (process.env.SKIP_GATEWAY !== "1") {
-  const agentDir = path.join(root, "apps", "gateway");
+  const agentDir = path.join(root, "core", "gateway");
   if (!existsSync(path.join(agentDir, "package.json"))) {
-    console.error(`[dev] gateway/package.json not found`);
+    console.error(`[dev] gateway/package.json not found at ${agentDir}`);
     process.exit(1);
   }
   launch("gateway", "green", "npx", ["tsx", "src/main.ts"], {
@@ -122,8 +122,7 @@ if (process.env.SKIP_GATEWAY !== "1") {
       ALLOY_GATEWAY_HOST: "127.0.0.1",
       ALLOY_BRIDGE_HOST: "127.0.0.1",
       ALLOY_BRIDGE_PORT: BRIDGE_PORT,
-      ALLOY_GATEWAY_TOKEN: process.env.ALLOY_GATEWAY_TOKEN || process.env.ALLOY_GATEWAY_TOKEN || "dev-local-token",
-      ALLOY_GATEWAY_TOKEN: process.env.ALLOY_GATEWAY_TOKEN || process.env.ALLOY_GATEWAY_TOKEN || "dev-local-token",
+      ALLOY_GATEWAY_TOKEN: process.env.ALLOY_GATEWAY_TOKEN || "dev-local-token",
       ALLOY_BRIDGE_SECRET: process.env.ALLOY_BRIDGE_SECRET || "dev-local-bridge-secret",
     },
   });

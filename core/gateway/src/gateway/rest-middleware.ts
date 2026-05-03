@@ -1,4 +1,4 @@
-﻿import crypto from "node:crypto";
+import crypto from "node:crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest, preHandlerHookHandler } from "fastify";
 import { apiError, isApiEnvelope, mapErrorToApi, normalizeApiEnvelope } from "./rest-response";
 import type { GatewayAuthManager } from "./gateway-auth-manager";
@@ -68,7 +68,7 @@ export function registerFormatWrapperMiddleware(app: FastifyInstance): void {
     if (statusCode >= 500) {
       request.log.error(error, `[Error Boundary] ${request.method} ${request.url}`);
     } else {
-      request.log.warn({ err: error.message }, `[Error Boundary] ${request.method} ${request.url}`);
+      request.log.warn({ err: error instanceof Error ? error.message : String(error) }, `[Error Boundary] ${request.method} ${request.url}`);
     }
 
     const mapped = mapErrorToApi(error);
