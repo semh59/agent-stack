@@ -1,4 +1,4 @@
-﻿import http.server
+import http.server
 import json
 import socketserver
 import sys
@@ -14,6 +14,17 @@ class StubBridgeHandler(http.server.BaseHTTPRequestHandler):
                 "status": "ok",
                 "service": "ai-stack-optimization-bridge",
                 "initialized": True
+            }).encode())
+        elif self.path == '/status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "status": "ok",
+                "service": "ai-stack-optimization-bridge",
+                "initialized": True,
+                "uptime_seconds": 42,
+                "version": "1.0.0-stub"
             }).encode())
         elif self.path == '/cache-stats':
             if not self._check_auth(): return

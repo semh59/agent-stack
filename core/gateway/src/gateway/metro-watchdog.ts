@@ -44,9 +44,6 @@ const MAX_ALERTS = 200;
 /** Maximum number of historical health records per line. */
 const MAX_HISTORY_PER_LINE = 200;
 
-/** Alert de-duplication window in milliseconds. */
-const ALERT_DEDUPE_WINDOW_MS = 60_000;
-
 /** HTTP request timeout for bridge health checks (ms). */
 const BRIDGE_CHECK_TIMEOUT_MS = 5_000;
 
@@ -220,6 +217,9 @@ export class MetroWatchdog {
 
   /** Per-line rolling health history, bounded by MAX_HISTORY_PER_LINE. */
   private readonly lineHistory: Record<MetroLineId, LineHealth[]>;
+
+  /** Most recently broadcast overall status (to avoid replay buffer spam). */
+  private lastBroadcastOverall: LineStatus | null = null;
 
   /** Most recently computed health snapshot. */
   private latestSnapshot: MetroHealthSnapshot | null = null;
@@ -550,9 +550,12 @@ export class MetroWatchdog {
       const latencyMs = Math.round(performance.now() - startTime);
 
       if (!response.ok) {
+        // 5xx = server error → down (triggers failure counter + critical alerts)
+        // 4xx = client error → degraded (auth/config issue, not a server outage)
+        const isServerError = response.status >= 500;
         return {
           lineId: 'rest_api',
-          status: 'degraded',
+          status: isServerError ? 'down' : 'degraded',
           latencyMs,
           lastCheck: now,
           message: `Bridge /status returned HTTP ${response.status} ${response.statusText}`,
@@ -662,7 +665,10 @@ export class MetroWatchdog {
 
     try {
       const buffer = GlobalEventBus.getReplayBuffer();
-      const uiLogEvents = buffer.filter((e) => e.type === 'ui:log');
+      // Filter out watchdog's own broadcast events to avoid false-positive activity detection
+      const uiLogEvents = buffer.filter(
+        (e) => e.type === 'ui:log' && (e as { source?: string }).source !== 'metro-watchdog',
+      );
       const lastUiEvent = uiLogEvents[uiLogEvents.length - 1];
 
       const hasRecentActivity = uiLogEvents.length > 0;
@@ -750,8 +756,8 @@ export class MetroWatchdog {
    * 2. **Warning**: Line is DEGRADED
    * 3. **Warning**: High latency (> degradedLatencyMs)
    *
-   * Alerts are de-duplicated per (lineId, severity) within a 60-second
-   * window to prevent alert storms.
+   * Alerts are de-duplicated per (lineId, severity) — only one active
+   * (unacknowledged) alert per pair is allowed to prevent alert storms.
    */
   private evaluateAlertRules(lines: Record<MetroLineId, LineHealth>): void {
     for (const [lineId, health] of Object.entries(lines) as [MetroLineId, LineHealth][]) {
@@ -789,8 +795,9 @@ export class MetroWatchdog {
   /**
    * Raises a new alert, subject to de-duplication.
    *
-   * De-duplication prevents creating the same alert for the same
-   * (lineId, severity) pair within ALERT_DEDUPE_WINDOW_MS milliseconds.
+   * De-duplication prevents creating a duplicate alert when there is already
+   * an active (unacknowledged) alert for the same (lineId, severity) pair.
+   * This prevents alert storms when a line stays down for extended periods.
    *
    * @param severity - Alert severity level.
    * @param lineId - The metro line that triggered the alert.
@@ -931,7 +938,9 @@ export class MetroWatchdog {
 
     if (statuses.some((s) => s === 'down')) return 'down';
     if (statuses.some((s) => s === 'degraded')) return 'degraded';
-    if (statuses.every((s) => s === 'healthy')) return 'healthy';
+    // 'unknown' is neutral — lines without a direct health endpoint don't affect overall status.
+    // If at least one line is healthy and none are down/degraded, overall is healthy.
+    if (statuses.some((s) => s === 'healthy')) return 'healthy';
     return 'unknown';
   }
 
@@ -993,6 +1002,15 @@ export class MetroWatchdog {
     overall: LineStatus,
     lines: Record<MetroLineId, LineHealth>,
   ): void {
+    // Only broadcast when status changes to avoid flooding the replay buffer.
+    // Replay buffer holds 50 events; at 10s intervals, constant "healthy"
+    // broadcasts would evict real agent error / circuit breaker events within
+    // ~8 minutes — rendering checkEventBus anomaly detection blind.
+    if (this.lastBroadcastOverall === overall) {
+      return;
+    }
+    this.lastBroadcastOverall = overall;
+
     const lineSummary = Object.entries(lines)
       .map(([key, health]) => `${key}=${health.status}`)
       .join(' | ');
