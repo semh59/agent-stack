@@ -23,6 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Install scan dependencies
+        run: |
+          cd core/gateway
+          npm install --no-audit --no-fund
       - name: Run secret scan
         run: |
           cd core/gateway
@@ -61,13 +65,6 @@ jobs:
         run: |
           python -m pytest -q -m "not integration"
 
-      # TODO: re-enable once scripts/smoke.sh is created
-      # - name: Smoke test (bridge end-to-end)
-      #   env:
-      #     APP_ENV: development
-      #   run: |
-      #     bash scripts/smoke.sh
-
   # ─────────────────────────────────────────────────────────────────────────
   # TypeScript: typecheck + targeted vitest subset
   # ─────────────────────────────────────────────────────────────────────────
@@ -84,11 +81,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: core/gateway/package-lock.json
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Typecheck
         run: npm run typecheck
@@ -151,7 +146,7 @@ jobs:
           docker compose -f infra/docker/docker-compose.unified.yml down -v
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Terraform: fmt + validate (IaC sanity)
+  # Terraform: fmt + validate per environment (IaC sanity)
   # ─────────────────────────────────────────────────────────────────────────
   terraform:
     name: Terraform validate
@@ -164,9 +159,15 @@ jobs:
       - name: fmt check
         working-directory: infra/terraform
         run: terraform fmt -check -recursive
-      - name: init (no backend)
-        working-directory: infra/terraform
+      - name: init staging (no backend)
+        working-directory: infra/terraform/envs/staging
         run: terraform init -backend=false
-      - name: validate
-        working-directory: infra/terraform
+      - name: validate staging
+        working-directory: infra/terraform/envs/staging
+        run: terraform validate
+      - name: init production (no backend)
+        working-directory: infra/terraform/envs/production
+        run: terraform init -backend=false
+      - name: validate production
+        working-directory: infra/terraform/envs/production
         run: terraform validate
