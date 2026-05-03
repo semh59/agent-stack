@@ -25,7 +25,7 @@ jobs:
           node-version: "20"
       - name: Run secret scan
         run: |
-          cd gateway
+          cd core/gateway
           npx ts-node --esm scripts/secret-scan.ts
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: bridge
+        working-directory: core/bridge
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: bridge/requirements*.txt
+          cache-dependency-path: core/bridge/requirements*.txt
 
       - name: Install dependencies
         run: |
@@ -61,12 +61,12 @@ jobs:
         run: |
           python -m pytest -q -m "not integration"
 
-      - name: Smoke test (bridge end-to-end)
-        env:
-          APP_ENV: development
-        run: |
-          cd ..
-          bash scripts/smoke.sh
+      # TODO: re-enable once scripts/smoke.sh is created
+      # - name: Smoke test (bridge end-to-end)
+      #   env:
+      #     APP_ENV: development
+      #   run: |
+      #     bash scripts/smoke.sh
 
   # ─────────────────────────────────────────────────────────────────────────
   # TypeScript: typecheck + targeted vitest subset
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: gateway
+        working-directory: core/gateway
     steps:
       - uses: actions/checkout@v4
 
@@ -85,7 +85,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: gateway/package-lock.json
+          cache-dependency-path: core/gateway/package-lock.json
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -114,7 +114,7 @@ jobs:
       - name: Build gateway image
         uses: docker/build-push-action@v5
         with:
-          context: ./gateway
+          context: ./core/gateway
           push: false
           tags: alloy-gateway:ci
           cache-from: type=gha,scope=gateway
@@ -123,7 +123,7 @@ jobs:
       - name: Build optimization-bridge image
         uses: docker/build-push-action@v5
         with:
-          context: ./bridge
+          context: ./core/bridge
           target: runtime
           push: false
           tags: alloy-bridge:ci
@@ -136,7 +136,7 @@ jobs:
           BRIDGE_SECRET: ci-bridge-secret
           APP_ENV: development
         run: |
-          docker compose -f docker-compose.unified.yml up -d gateway optimization-bridge
+          docker compose -f infra/docker/docker-compose.unified.yml up -d gateway optimization-bridge
           # Wait for gateway & bridge healthy (max 90s)
           for i in $(seq 1 30); do
             if docker inspect --format='{{.State.Health.Status}}' alloy-gateway 2>/dev/null | grep -q healthy \
@@ -147,8 +147,8 @@ jobs:
             sleep 3
           done
           docker ps
-          docker compose -f docker-compose.unified.yml logs --tail 50
-          docker compose -f docker-compose.unified.yml down -v
+          docker compose -f infra/docker/docker-compose.unified.yml logs --tail 50
+          docker compose -f infra/docker/docker-compose.unified.yml down -v
 
   # ─────────────────────────────────────────────────────────────────────────
   # Terraform: fmt + validate (IaC sanity)
@@ -162,11 +162,11 @@ jobs:
         with:
           terraform_version: "1.8.5"
       - name: fmt check
-        working-directory: terraform
+        working-directory: infra/terraform
         run: terraform fmt -check -recursive
       - name: init (no backend)
-        working-directory: terraform
+        working-directory: infra/terraform
         run: terraform init -backend=false
       - name: validate
-        working-directory: terraform
+        working-directory: infra/terraform
         run: terraform validate

@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ROOT = path.resolve(__dirname, "../..");
+const ROOT = path.resolve(__dirname, "../../..");
 const INCLUDE_DIRS = ["."];
 const EXCLUDE_DIRS = [
   "node_modules",
@@ -83,8 +83,7 @@ const SECRET_PATTERNS: Array<{ name: string; regex: RegExp }> = [
 // Self-allowlist — these files legitimately contain the regex patterns as
 // detection fixtures, not actual secrets.
 const ALLOWLIST = [
-  "AGENT/scripts/secret-scan.ts",
-  "AGENT/src/orchestration/GateEngine.ts",
+  "core/gateway/scripts/secret-scan.ts",
 ];
 
 async function walk(dir: string, output: string[]): Promise<void> {
