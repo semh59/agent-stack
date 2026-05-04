@@ -53,6 +53,11 @@ const EVENT_BUS_ERROR_THRESHOLD = 3;
 /** Maximum events to scan in replay buffer (performance guard). */
 const REPLAY_BUFFER_SCAN_LIMIT = 500;
 
+/** VS Code extension heartbeat timeout (ms). If the last non-watchdog UI log
+ *  event is older than this, the line is considered "degraded" rather than
+ *  "unknown", because it means the extension is not actively communicating. */
+const VSCODE_HEARTBEAT_TIMEOUT_MS = 60_000;
+
 // ════════════════════════════════════════════════════════════════════════
 // Types
 // ════════════════════════════════════════════════════════════════════════
@@ -126,6 +131,10 @@ export interface MetroWatchdogConfig {
   downThreshold: number;
   /** Latency threshold (ms) beyond which a line is "degraded". @default 2000 */
   degradedLatencyMs: number;
+  /** Optional callback that returns the current number of active SSE connections.
+   *  When provided, the WS/SSE line check uses this to detect when no clients
+   *  are subscribed (→ degraded). */
+  getSseConnectionCount?: () => number;
 }
 
 /** Internal metrics collected during operation. */
@@ -249,7 +258,7 @@ export class MetroWatchdog {
    * @throws {Error} If required configuration is missing or invalid.
    */
   constructor(config: Partial<MetroWatchdogConfig> & { bridgeUrl: string }) {
-    this.config = Object.freeze(validateConfig(config));
+    this.config = Object.freeze({ ...validateConfig(config), getSseConnectionCount: config.getSseConnectionCount });
 
     // Initialize per-line data structures
     const lineIds = Object.keys(LINE_REGISTRY) as MetroLineId[];
@@ -632,19 +641,38 @@ export class MetroWatchdog {
 
       const explicitlyUnavailable = bridgeData?.available === false;
 
+      // Direct measurement: check active SSE subscriber count
+      const sseCount = this.config.getSseConnectionCount?.() ?? -1; // -1 = not instrumented
+      const noSubscribers = sseCount === 0;
+
+      let status: LineStatus;
+      let message: string;
+
+      if (explicitlyUnavailable) {
+        status = 'degraded';
+        message = 'Bridge reports unavailable — streaming may be degraded';
+      } else if (noSubscribers) {
+        status = 'degraded';
+        message = 'Bridge reachable but no active SSE subscribers';
+      } else {
+        status = 'healthy';
+        message = sseCount >= 0
+          ? `Streaming channels operational (${sseCount} active subscriber${sseCount !== 1 ? 's' : ''})`
+          : 'Streaming channels operational (bridge reachable)';
+      }
+
       return {
         lineId: 'ws_sse',
-        status: explicitlyUnavailable ? 'degraded' : 'healthy',
+        status,
         latencyMs,
         lastCheck: now,
-        message: explicitlyUnavailable
-          ? 'Bridge reports unavailable — streaming may be degraded'
-          : 'Streaming channels operational (bridge reachable)',
+        message,
         details: {
           bridgeAvailable: !explicitlyUnavailable,
           bridgeLatencyMs: bridgeData?.latencyMs ?? latencyMs,
           bridgeHealthEventCount: bridgeHealthEvents.length,
           lastHealthEventTime: bridgeData ? now : null,
+          activeSseSubscribers: sseCount,
         },
       };
     } catch (error) {
@@ -679,18 +707,32 @@ export class MetroWatchdog {
         ? Math.round((Date.now() - new Date(lastEventTime).getTime()) / 1000)
         : null;
 
+      // Determine status based on heartbeat freshness
+      let status: LineStatus;
+      let message: string;
+
+      if (!hasRecentActivity || secondsSinceLastEvent === null) {
+        status = 'unknown';
+        message = 'No recent extension activity — status unknown';
+      } else if (secondsSinceLastEvent <= VSCODE_HEARTBEAT_TIMEOUT_MS / 1000) {
+        status = 'healthy';
+        message = `Extension active (last event ${secondsSinceLastEvent}s ago)`;
+      } else {
+        status = 'degraded';
+        message = `Extension stale — last activity ${secondsSinceLastEvent}s ago (threshold: ${VSCODE_HEARTBEAT_TIMEOUT_MS / 1000}s)`;
+      }
+
       return {
         lineId: 'vscode',
-        status: 'unknown',
+        status,
         latencyMs: 0,
         lastCheck: now,
-        message: hasRecentActivity
-          ? `Extension activity detected (${secondsSinceLastEvent}s ago)`
-          : 'No recent extension activity — status unknown',
+        message,
         details: {
           recentUiLogCount: uiLogEvents.length,
           lastUiEventTime: lastEventTime,
           secondsSinceLastEvent,
+          heartbeatThresholdSec: VSCODE_HEARTBEAT_TIMEOUT_MS / 1000,
         },
       };
     } catch (error) {
@@ -1017,13 +1059,16 @@ export class MetroWatchdog {
 
     const logLevel = overall === 'healthy' ? 'info' : overall === 'degraded' ? 'warning' : 'error';
 
-    GlobalEventBus.emit({
-      type: 'ui:log',
-      id: Date.now(),
-      time: new Date().toISOString(),
-      source: 'metro-watchdog',
-      text: `Metro health: ${overall} │ ${lineSummary}`,
-      level: logLevel,
-    });
+    GlobalEventBus.emit(
+      {
+        type: 'ui:log',
+        id: Date.now(),
+        time: new Date().toISOString(),
+        source: 'metro-watchdog',
+        text: `Metro health: ${overall} │ ${lineSummary}`,
+        level: logLevel,
+      },
+      { noReplay: true },
+    );
   }
 }

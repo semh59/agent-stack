@@ -19,6 +19,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { apiResponse, apiError } from "../../gateway/rest-response";
 import type { MetroWatchdog, MetroLineId } from "../../gateway/metro-watchdog";
+import { GlobalEventBus } from "../../gateway/event-bus";
 
 // ════════════════════════════════════════════════════════════════════════
 // Constants
@@ -145,8 +146,9 @@ const activeSseConnections = new Map<number, SseConnection>();
 
 /**
  * Returns the current number of active SSE connections.
+ * Exported so the MetroWatchdog can use it for direct WS/SSE health measurement.
  */
-function getSseConnectionCount(): number {
+export function getSseConnectionCount(): number {
   return activeSseConnections.size;
 }
 
@@ -278,6 +280,33 @@ export function registerMetroRoutes(app: FastifyInstance, deps: MetroRouterDeps)
         count: history.length,
         history,
       }));
+    },
+  );
+
+  // ─── POST /api/metro/ui-event — Extension UI event forwarding ──
+  app.post<{ Body: { type?: string; source?: string; action?: string; [key: string]: unknown } }>(
+    "/api/metro/ui-event",
+    async (request, reply) => {
+      const body = request.body;
+      if (!body || typeof body.type !== "string") {
+        return reply.status(400).send(
+          apiError("Missing required field: type", { code: "INVALID_UI_EVENT" }),
+        );
+      }
+
+      const event = {
+        type: body.type,
+        id: Date.now(),
+        time: new Date().toISOString(),
+        source: body.source ?? "vscode-extension",
+        action: body.action,
+        ...body,
+      };
+
+      // Emit to GlobalEventBus so MetroWatchdog's VS Code line can detect it via replayBuffer
+      GlobalEventBus.emit(event as any);
+
+      return reply.send(apiResponse({ received: true, eventType: body.type }));
     },
   );
 

@@ -243,6 +243,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       for (let i = 0; i < 8; i++) {
         candidates.push(path.join(dir, ".env"));
         candidates.push(path.join(dir, "gateway", ".env"));
+        candidates.push(path.join(dir, "core", "gateway", ".env"));
         const parent = path.dirname(dir);
         if (parent === dir) break;
         dir = parent;
@@ -253,7 +254,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         const r = wf.uri.fsPath;
         candidates.push(path.join(r, ".env"));
         candidates.push(path.join(r, "gateway", ".env"));
+        candidates.push(path.join(r, "core", "gateway", ".env"));
         candidates.push(path.join(r, "..", "gateway", ".env"));
+        candidates.push(path.join(r, "..", "core", "gateway", ".env"));
       }
 
       for (const envPath of candidates) {
@@ -309,11 +312,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
           break;
         case "sendMessage":
           if (data.value) {
+            this._emitUiEvent("send_message");
             await this._handleUserMessage(data.value);
           }
           break;
         case "approveAction":
           if (data.actionId) {
+            this._emitUiEvent("approve_action", { actionId: data.actionId });
             const pending = this._pendingApprovals.get(data.actionId);
             if (pending) {
               clearTimeout(pending.timer);
@@ -359,6 +364,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
           }
           break;
         case "addAccount":
+          this._emitUiEvent("add_account_click");
           await this._handleAddAccount();
           break;
         case "removeAccount":
@@ -385,6 +391,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
           }
           break;
         case "startAutonomy":
+          this._emitUiEvent("start_autonomy");
           await this._handleStartAutonomy(data.payload);
           break;
         case "pauseAutonomy":
@@ -781,6 +788,30 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     return candidate ?? DEFAULT_GATEWAY_WS_BASE;
   }
 
+  /**
+   * Emits a UI event to the gateway's Metro Watchdog system so the VS Code
+   * metro line tracks extension activity (heartbeat).
+   * Fire-and-forget: never blocks or throws on failure.
+   */
+  private _emitUiEvent(action: string, extra?: Record<string, unknown>): void {
+    const token = this._gatewayAuthToken;
+    if (!token) return; // silently skip if no token
+    const baseUrl = this._resolveGatewayHttpBase();
+    fetch(`${baseUrl}/api/metro/ui-event`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        type: "ui:log",
+        source: "vscode-extension",
+        action,
+        ...extra,
+      }),
+    }).catch(() => { /* ignore — best effort */ });
+  }
+
   private async _handleAddAccount(): Promise<void> {
     // Re-try token discovery at call time (workspace may have loaded after constructor)
     if (!this._gatewayAuthToken) {
@@ -800,6 +831,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       const response = await fetch("http://127.0.0.1:51122/api/auth/login", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(15_000), // 15s timeout — gateway must respond
       });
 
       if (!response.ok) {

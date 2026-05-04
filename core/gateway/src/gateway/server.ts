@@ -53,7 +53,7 @@ import { registerPipelineRoutes } from "../api/routers/pipeline.router";
 import { registerAutonomyRoutes } from "../api/routers/autonomy.router";
 import { registerPrivacyRoutes } from "../api/routers/privacy.router";
 import { registerProjectsRoutes } from "../api/routers/projects.router";
-import { registerMetroRoutes } from "../api/routers/metro.router";
+import { registerMetroRoutes, getSseConnectionCount } from "../api/routers/metro.router";
 import { MetroWatchdog } from "./metro-watchdog";
 import type { MissionModel } from "../models/mission.model";
 import type { AuthServer } from "./auth-server";
@@ -559,6 +559,7 @@ export class GatewayServer {
           pollIntervalMs: 10_000,
           downThreshold: 3,
           degradedLatencyMs: 2_000,
+          getSseConnectionCount,
         });
         this.metroWatchdog.start();
       } else {

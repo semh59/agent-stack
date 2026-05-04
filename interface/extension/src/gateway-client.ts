@@ -38,6 +38,18 @@ export class GatewayClient {
     return this.post<{ url?: string }>('/api/accounts/add', { provider });
   }
 
+  /**
+   * Sends a UI event to the gateway's Metro Watchdog system.
+   * This allows the extension to report user actions so the VS Code metro line
+   * shows "healthy" instead of "unknown".
+   */
+  async sendUiEvent(event: { type: string; action?: string; source?: string; [key: string]: unknown }): Promise<{ received: boolean }> {
+    return this.post<{ received: boolean }>('/api/metro/ui-event', {
+      source: 'vscode-extension',
+      ...event,
+    });
+  }
+
   private get<T>(path: string): Promise<T> {
     return this.request<T>('GET', path, null);
   }

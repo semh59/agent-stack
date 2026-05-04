@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Unified Event Bus for Alloy AI Platform
  * 
  * Typed event system replacing raw WebSocket JSON messages.
@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import { AIProvider } from './provider-types';
 
-// â”€â”€â”€ Typed Event Payloads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Typed Event Payloads ──────────────────────────────────────────────
 
 export interface TokenUsage {
   promptTokens: number;
@@ -41,7 +41,18 @@ export type AlloyEvent =
   | { type: "model:routed"; agentId: string; modelId: string; tier: string; reasoning: string }
   | { type: "ui:log"; id: number; time: string; source: string; text: string; level: "info"|"success"|"error"|"warning" };
 
-// â”€â”€â”€ Backpressure Ring Buffer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Emit Options ──────────────────────────────────────────────────────
+
+/** Options controlling event emission behavior. */
+export interface EmitOptions {
+  /** If true, the event is broadcast to listeners but NOT stored in the
+   *  replay buffer. Useful for high-frequency status updates that would
+   *  otherwise evict more valuable diagnostic events (e.g. agent errors,
+   *  circuit-breaker state changes). */
+  noReplay?: boolean;
+}
+
+// ─── Backpressure Ring Buffer ──────────────────────────────────────────
 
 export interface EventBusConfig {
   maxReplaySize: number;
@@ -66,11 +77,13 @@ export class AlloyEventBus {
   }
 
   /** Emit a typed event to all listeners */
-  public emit(event: AlloyEvent): void {
-    // 1. Add to replay buffer
-    this.replayBuffer.push(event);
-    if (this.replayBuffer.length > this.config.maxReplaySize) {
-      this.replayBuffer.shift();
+  public emit(event: AlloyEvent, options?: EmitOptions): void {
+    // 1. Add to replay buffer (unless noReplay is set)
+    if (!options?.noReplay) {
+      this.replayBuffer.push(event);
+      if (this.replayBuffer.length > this.config.maxReplaySize) {
+        this.replayBuffer.shift();
+      }
     }
 
     // 2. Broadcast
