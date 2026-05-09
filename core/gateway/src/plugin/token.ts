@@ -1,4 +1,4 @@
-﻿import { ALLOY_CLIENT_ID, ALLOY_CLIENT_SECRET } from "../constants";
+import { ALLOY_CLIENT_ID, getAlloyClientSecret } from "../constants";
 import { formatRefreshParts, parseRefreshParts, calculateTokenExpiry } from "./auth";
 import { clearCachedAuth, storeCachedAuth } from "./cache";
 import { createLogger } from "./logger";
@@ -114,7 +114,7 @@ export async function refreshAccessToken(
           grant_type: "refresh_token",
           refresh_token: parts.refreshToken!,
           client_id: ALLOY_CLIENT_ID,
-          client_secret: ALLOY_CLIENT_SECRET,
+          client_secret: getAlloyClientSecret(),
         }),
       });
 

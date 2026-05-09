@@ -2,7 +2,7 @@ import { randomBytes, createHash } from "node:crypto";
 
 import {
   ALLOY_CLIENT_ID,
-  ALLOY_CLIENT_SECRET,
+  getAlloyClientSecret,
   ALLOY_REDIRECT_URI,
   ALLOY_SCOPES,
   ALLOY_ENDPOINT_FALLBACKS,
@@ -329,7 +329,7 @@ export async function exchangeGoogleGemini(
       redirect_uri: ALLOY_REDIRECT_URI,
       code_verifier: verifier,
     };
-    bodyParams.client_secret = ALLOY_CLIENT_SECRET;
+    bodyParams.client_secret = getAlloyClientSecret();
 
     const requestParams = new URLSearchParams(bodyParams);
     console.log('[OAuth] Token Exchange Request:', {
@@ -337,8 +337,8 @@ export async function exchangeGoogleGemini(
       method: "POST",
       bodyKeys: Array.from(requestParams.keys()),
       clientId: ALLOY_CLIENT_ID.slice(0, 20) + "...",
-      clientSecretProvided: !!ALLOY_CLIENT_SECRET,
-      clientSecretLength: ALLOY_CLIENT_SECRET.length,
+      clientSecretProvided: !!getAlloyClientSecret(),
+      clientSecretLength: getAlloyClientSecret().length,
     });
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {

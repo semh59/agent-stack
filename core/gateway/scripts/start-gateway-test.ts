@@ -15,14 +15,14 @@ function loadEnvironment(): void {
       const envContent = fs.readFileSync(envPath, 'utf8');
       
       const secretMatch = envContent.match(/ALLOY_BRIDGE_SECRET=['"]?([^'"\n\r]+)['"]?/);
-      if (secretMatch && secretMatch[1]) process.env.ALLOY_BRIDGE_SECRET = secretMatch[1].trim();
+      if (secretMatch) process.env.ALLOY_BRIDGE_SECRET = secretMatch[1];
       
       const clientSecretMatch = envContent.match(/ALLOY_CLIENT_SECRET=['"]?([^'"\n\r]+)['"]?/);
-      if (clientSecretMatch && clientSecretMatch[1]) process.env.ALLOY_CLIENT_SECRET = clientSecretMatch[1].trim();
+      if (clientSecretMatch) process.env.ALLOY_CLIENT_SECRET = clientSecretMatch[1];
 
       const tokenMatch = envContent.match(/(?:ALLOY|SOVEREIGN)_GATEWAY_TOKEN=['"]?([^'"\n\r]+)['"]?/);
-      if (tokenMatch && tokenMatch[1] && !process.env.ALLOY_GATEWAY_TOKEN) {
-          process.env.ALLOY_GATEWAY_TOKEN = tokenMatch[1].trim();
+      if (tokenMatch && !process.env.ALLOY_GATEWAY_TOKEN) {
+          process.env.ALLOY_GATEWAY_TOKEN = tokenMatch[1];
       }
     }
   } catch { /* ignore */ }
@@ -50,7 +50,7 @@ async function main() {
   }
 
   const server = new GatewayServer({
-    port: 51122,
+    port: 51124,
     projectRoot,
     host: '127.0.0.1',
     authToken,

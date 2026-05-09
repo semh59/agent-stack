@@ -6,8 +6,10 @@ export const ALLOY_CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.a
 /**
  * Client secret issued for the Alloy OAuth application.
  */
-// K5 FIX: Prefer env variable, fallback kept for installed-app OAuth compatibility
-export const ALLOY_CLIENT_SECRET = process.env.ALLOY_CLIENT_SECRET ?? "";
+// K5 FIX: Prefer env variable, fallback kept for installed-app OAuth compatibility.
+// Using a getter to ensure we pick up process.env even if set after module load.
+export const getAlloyClientSecret = () => process.env.ALLOY_CLIENT_SECRET ?? "";
+export const ALLOY_CLIENT_SECRET = getAlloyClientSecret(); // For backwards compatibility, but use getter for safety
 
 /**
  * Scopes required for Alloy integrations.
