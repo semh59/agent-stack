@@ -138,3 +138,7 @@ class DistillationBuffer:
         except Exception as e:
             logger.error("distillation_export_failed", error=str(e))
         return count
+
+    async def close(self) -> None:
+        """Closes any background resources (currently no-op but required for test compatibility)."""
+        pass

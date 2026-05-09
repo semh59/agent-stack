@@ -35,8 +35,8 @@ export async function sendChatMessage(
 ): Promise<ChatResponse> {
   if (onChunk) {
     // Note: fetchJson doesn't support streaming easily, use raw fetch for SSE
-    const GATEWAY_BASE_URL = import.meta.env.VITE_GATEWAY_URL ?? "http://127.0.0.1:51122";
-    const token = localStorage.getItem("gateway_auth_token") ?? import.meta.env.VITE_GATEWAY_TOKEN;
+    const GATEWAY_BASE_URL = (import.meta as any).env?.VITE_GATEWAY_URL ?? "";
+    const token = localStorage.getItem("gateway_auth_token") ?? (import.meta as any).env?.VITE_GATEWAY_TOKEN ?? "guest_token";
     
     const response = await fetch(`${GATEWAY_BASE_URL}/api/chat`, {
       method: "POST",
@@ -98,19 +98,19 @@ export async function sendChatMessage(
     body: JSON.stringify({ message, conversationId, model, stream: false }),
   });
   
-  if (res.errors) throw new Error(res.errors[0].message);
+  if (res.errors && res.errors.length > 0) throw new Error(res.errors[0].message);
   return res.data;
 }
 
 export async function fetchConversations(): Promise<Conversation[]> {
   const res = await fetchJson<Conversation[]>("/api/chat/conversations");
-  if (res.errors) throw new Error(res.errors[0].message);
+  if (res.errors && res.errors.length > 0) throw new Error(res.errors[0].message);
   return res.data;
 }
 
 export async function fetchChatHistory(id: string): Promise<ChatMessage[]> {
   const res = await fetchJson<{ role: "user" | "model" | "system"; content: string }[]>(`/api/chat/conversations/${id}`);
-  if (res.errors) throw new Error(res.errors[0].message);
+  if (res.errors && res.errors.length > 0) throw new Error(res.errors[0].message);
   const data = res.data as { role: "user" | "model" | "system"; content: string }[];
   return data.map((m) => ({
     role: m.role,
@@ -124,6 +124,6 @@ export async function createConversation(title: string, mode: string): Promise<{
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, mode }),
   });
-  if (res.errors) throw new Error(res.errors[0].message);
-  return res.data;
+  if (res.errors && res.errors.length > 0) throw new Error(res.errors[0].message);
+  return res.data as { id: string };
 }

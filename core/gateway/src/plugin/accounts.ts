@@ -334,10 +334,20 @@ export class AccountManager {
   private currentAccountIndexByFamily: Record<ModelFamily, number> = {
     claude: -1,
     gemini: -1,
+    sambanova: -1,
+    groq: -1,
+    together: -1,
+    fireworks: -1,
+    ollama: -1,
   };
   private sessionOffsetApplied: Record<ModelFamily, boolean> = {
     claude: false,
     gemini: false,
+    sambanova: false,
+    groq: false,
+    together: false,
+    fireworks: false,
+    ollama: false,
   };
   private lastToastAccountIndex = -1;
   private lastToastTime = 0;
@@ -419,6 +429,26 @@ export class AccountManager {
           stored.activeIndexByFamily?.gemini,
           defaultIndex
         ) % this.accounts.length;
+        this.currentAccountIndexByFamily.sambanova = clampNonNegativeInt(
+          stored.activeIndexByFamily?.sambanova,
+          defaultIndex
+        ) % this.accounts.length;
+        this.currentAccountIndexByFamily.groq = clampNonNegativeInt(
+          stored.activeIndexByFamily?.groq,
+          defaultIndex
+        ) % this.accounts.length;
+        this.currentAccountIndexByFamily.together = clampNonNegativeInt(
+          stored.activeIndexByFamily?.together,
+          defaultIndex
+        ) % this.accounts.length;
+        this.currentAccountIndexByFamily.fireworks = clampNonNegativeInt(
+          stored.activeIndexByFamily?.fireworks,
+          defaultIndex
+        ) % this.accounts.length;
+        this.currentAccountIndexByFamily.ollama = clampNonNegativeInt(
+          stored.activeIndexByFamily?.ollama,
+          defaultIndex
+        ) % this.accounts.length;
       }
 
       return;
@@ -446,6 +476,11 @@ export class AccountManager {
         // Update indices to include the new account
         this.currentAccountIndexByFamily.claude = Math.min(this.currentAccountIndexByFamily.claude, this.accounts.length - 1);
         this.currentAccountIndexByFamily.gemini = Math.min(this.currentAccountIndexByFamily.gemini, this.accounts.length - 1);
+        this.currentAccountIndexByFamily.sambanova = Math.min(this.currentAccountIndexByFamily.sambanova, this.accounts.length - 1);
+        this.currentAccountIndexByFamily.groq = Math.min(this.currentAccountIndexByFamily.groq, this.accounts.length - 1);
+        this.currentAccountIndexByFamily.together = Math.min(this.currentAccountIndexByFamily.together, this.accounts.length - 1);
+        this.currentAccountIndexByFamily.fireworks = Math.min(this.currentAccountIndexByFamily.fireworks, this.accounts.length - 1);
+        this.currentAccountIndexByFamily.ollama = Math.min(this.currentAccountIndexByFamily.ollama, this.accounts.length - 1);
       }
     }
 
@@ -470,6 +505,11 @@ export class AccountManager {
         this.cursor = 0;
         this.currentAccountIndexByFamily.claude = 0;
         this.currentAccountIndexByFamily.gemini = 0;
+        this.currentAccountIndexByFamily.sambanova = 0;
+        this.currentAccountIndexByFamily.groq = 0;
+        this.currentAccountIndexByFamily.together = 0;
+        this.currentAccountIndexByFamily.fireworks = 0;
+        this.currentAccountIndexByFamily.ollama = 0;
       }
     }
   }
@@ -512,6 +552,11 @@ export class AccountManager {
     } else {
       this.currentAccountIndexByFamily.claude = index;
       this.currentAccountIndexByFamily.gemini = index;
+      this.currentAccountIndexByFamily.sambanova = index;
+      this.currentAccountIndexByFamily.groq = index;
+      this.currentAccountIndexByFamily.together = index;
+      this.currentAccountIndexByFamily.fireworks = index;
+      this.currentAccountIndexByFamily.ollama = index;
     }
     this.cursor = index;
     return true;

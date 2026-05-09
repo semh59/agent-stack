@@ -34,16 +34,51 @@ export function registerSystemRoutes(
 
   app.get("/api/models", async (_request, reply) => {
     try {
-      // Standard high-quality list as requested by user
-      const resultModels = [
-        { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "Google", status: "active" },
-        { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", provider: "Google", status: "active" },
-        { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", status: "active" },
-        { id: "claude-3-opus", name: "Claude 3 Opus", provider: "Anthropic", status: "active" },
-        { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)", provider: "Google", status: "active" },
-        { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)", provider: "Google", status: "active" }
-      ];
-      return apiResponse(resultModels);
+      const accountManager = getAccountManager();
+      const models = new Map<string, { id: string; name: string; provider: string; status: string }>();
+
+      // 1. Standard Google/Anthropic models (always available if configured)
+      models.set("gemini-1.5-pro", { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "Google", status: "active" });
+      models.set("gemini-1.5-flash", { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", provider: "Google", status: "active" });
+      models.set("claude-3-5-sonnet", { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", status: "active" });
+
+      if (accountManager) {
+        const pool = accountManager.getAccountsSnapshot();
+        
+        // 2. Discover models from pool (Generic providers)
+        for (const acc of pool) {
+          const anyAcc = acc as any; // Bypass strict type check for dynamic properties
+          
+          // Families like 'ollama', 'sambanova', 'groq' often have 'models' array in parts or cachedQuota
+          const providerStr = anyAcc.provider || (anyAcc.parts?.refreshToken?.includes('ollama') ? 'ollama' : null);
+          const isOllamaProvider = providerStr === 'ollama' || providerStr === 'Ollama';
+          
+          if (anyAcc.models && Array.isArray(anyAcc.models)) {
+            for (const modelId of anyAcc.models) {
+              const finalId = (isOllamaProvider && !modelId.startsWith("ollama/")) ? `ollama/${modelId}` : modelId;
+              if (!models.has(finalId)) {
+                models.set(finalId, {
+                  id: finalId,
+                  name: modelId.split('/').pop()?.replace(/:/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || modelId,
+                  provider: providerStr ? (providerStr.charAt(0).toUpperCase() + providerStr.slice(1)) : "Other",
+                  status: "active"
+                });
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Fallback: If no Ollama models found but Ollama is connected, add some standard ones
+      // This is a bridge-side check in a real app, here we check ENV
+      if (process.env.OLLAMA_HOST || process.env.LOCAL_LLM) {
+         if (!Array.from(models.values()).some(m => m.provider === "Ollama")) {
+            models.set("ollama/llama3", { id: "ollama/llama3", name: "Llama 3 (Ollama)", provider: "Ollama", status: "active" });
+            models.set("ollama/mistral", { id: "ollama/mistral", name: "Mistral (Ollama)", provider: "Ollama", status: "active" });
+         }
+      }
+
+      return apiResponse(Array.from(models.values()));
     } catch (err) {
       app.log.error(err, "[Gateway] Failed to fetch models");
       return reply.status(500).send(apiError("Failed to fetch models", { code: "INTERNAL_ERROR" }));

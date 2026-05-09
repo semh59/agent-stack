@@ -31,29 +31,37 @@
   --shadow-alloy-md:      0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-alloy-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
   --shadow-alloy-focus:   0 0 0 3px rgba(37, 99, 235, 0.25);
+  --shadow-alloy-glow:    0 0 20px rgba(37, 99, 235, 0.15);
+
+  --glass-bg:             rgba(255, 255, 255, 0.7);
+  --glass-border:         rgba(255, 255, 255, 0.4);
 }
 
 [data-theme="dark"] {
-  --color-alloy-bg:             #0f172a;
-  --color-alloy-surface:        #1e293b;
-  --color-alloy-surface-hover:  #293548;
+  --color-alloy-bg:             #020617;
+  --color-alloy-surface:        #0f172a;
+  --color-alloy-surface-hover:  #1e293b;
   --color-alloy-surface-active: #1e3a5f;
 
-  --color-alloy-border:         #334155;
-  --color-alloy-border-bright:  #475569;
+  --color-alloy-border:         #1e293b;
+  --color-alloy-border-bright:  #334155;
 
-  --color-alloy-accent:         #60a5fa;
-  --color-alloy-accent-hover:   #93c5fd;
-  --color-alloy-accent-dim:     rgba(96, 165, 250, 0.12);
-  --color-alloy-accent-ring:    rgba(96, 165, 250, 0.3);
+  --color-alloy-accent:         #3b82f6;
+  --color-alloy-accent-hover:   #60a5fa;
+  --color-alloy-accent-dim:     rgba(59, 130, 246, 0.1);
+  --color-alloy-accent-ring:    rgba(59, 130, 246, 0.4);
 
-  --color-alloy-text:           #f1f5f9;
+  --color-alloy-text:           #f8fafc;
   --color-alloy-text-sec:       #94a3b8;
-  --color-alloy-text-dim:       #64748b;
+  --color-alloy-text-dim:       #475569;
 
-  --shadow-alloy-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-alloy-md:      0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-alloy-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-alloy-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-alloy-md:      0 4px 6px -1px rgba(0, 0, 0, 0.6);
+  --shadow-alloy-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.8);
+  --shadow-alloy-glow:    0 0 30px rgba(59, 130, 246, 0.25);
+
+  --glass-bg:             rgba(15, 23, 42, 0.7);
+  --glass-border:         rgba(255, 255, 255, 0.05);
 }
 
 @layer base {

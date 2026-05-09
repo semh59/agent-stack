@@ -47,8 +47,17 @@ const MAX_HISTORY_PER_LINE = 200;
 /** HTTP request timeout for bridge health checks (ms). */
 const BRIDGE_CHECK_TIMEOUT_MS = 5_000;
 
-/** Error threshold for event-bus anomaly detection. */
-const EVENT_BUS_ERROR_THRESHOLD = 3;
+/** Default error threshold for event-bus anomaly detection. */
+const DEFAULT_EVENT_BUS_ERROR_THRESHOLD = 3;
+
+/** Number of consecutive MCP not-initialized cycles before escalating to "down". */
+const MCP_NOT_INITIALIZED_DOWN_THRESHOLD = 5;
+
+/** Maximum number of retry attempts for bridge HTTP checks. */
+const BRIDGE_CHECK_RETRIES = 2;
+
+/** Delay between bridge check retries (ms). */
+const BRIDGE_CHECK_RETRY_DELAY_MS = 1_000;
 
 /** Maximum events to scan in replay buffer (performance guard). */
 const REPLAY_BUFFER_SCAN_LIMIT = 500;
@@ -135,6 +144,8 @@ export interface MetroWatchdogConfig {
    *  When provided, the WS/SSE line check uses this to detect when no clients
    *  are subscribed (→ degraded). */
   getSseConnectionCount?: () => number;
+  /** Error count threshold for event-bus anomaly detection. @default 3 */
+  eventBusErrorThreshold?: number;
 }
 
 /** Internal metrics collected during operation. */
@@ -224,6 +235,9 @@ export class MetroWatchdog {
   /** Per-line consecutive failure counter for down detection. */
   private readonly consecutiveFailures: Record<MetroLineId, number>;
 
+  /** Consecutive cycles where MCP bridge reported not-initialized. */
+  private consecutiveMcpNotInitialized = 0;
+
   /** Per-line rolling health history, bounded by MAX_HISTORY_PER_LINE. */
   private readonly lineHistory: Record<MetroLineId, LineHealth[]>;
 
@@ -258,7 +272,11 @@ export class MetroWatchdog {
    * @throws {Error} If required configuration is missing or invalid.
    */
   constructor(config: Partial<MetroWatchdogConfig> & { bridgeUrl: string }) {
-    this.config = Object.freeze({ ...validateConfig(config), getSseConnectionCount: config.getSseConnectionCount });
+    this.config = Object.freeze({
+      ...validateConfig(config),
+      getSseConnectionCount: config.getSseConnectionCount,
+      eventBusErrorThreshold: config.eventBusErrorThreshold,
+    });
 
     // Initialize per-line data structures
     const lineIds = Object.keys(LINE_REGISTRY) as MetroLineId[];
@@ -515,7 +533,8 @@ export class MetroWatchdog {
       const hasCircuitOpen = recentEvents.some((e) => e.type === 'circuit:open');
       const hasDeadLetters = recentEvents.some((e) => e.type === 'bridge:dead_letter');
 
-      const hasAnomaly = errorCount > EVENT_BUS_ERROR_THRESHOLD || hasCircuitOpen || hasDeadLetters;
+      const threshold = this.config.eventBusErrorThreshold ?? DEFAULT_EVENT_BUS_ERROR_THRESHOLD;
+      const hasAnomaly = errorCount > threshold || hasCircuitOpen || hasDeadLetters;
       const status: LineStatus = hasAnomaly ? 'degraded' : 'healthy';
 
       return {
@@ -544,14 +563,14 @@ export class MetroWatchdog {
    * Checks REST API health by calling the bridge's /status endpoint.
    *
    * Measures HTTP round-trip latency and inspects the response body
-   * for unhealthy component indicators.
+   * for unhealthy component indicators. Uses retry logic for resilience.
    */
   private async checkRestApi(): Promise<LineHealth> {
     const now = new Date().toISOString();
     const startTime = performance.now();
 
     try {
-      const response = await fetch(`${this.config.bridgeUrl}/status`, {
+      const response = await this.fetchWithRetry(`${this.config.bridgeUrl}/status`, {
         headers: { 'X-Bridge-Secret': this.config.bridgeSecret },
         signal: AbortSignal.timeout(BRIDGE_CHECK_TIMEOUT_MS),
       });
@@ -613,7 +632,7 @@ export class MetroWatchdog {
 
     try {
       // First: verify bridge is reachable (required for WS/SSE to function)
-      const response = await fetch(`${this.config.bridgeUrl}/health`, {
+      const response = await this.fetchWithRetry(`${this.config.bridgeUrl}/health`, {
         signal: AbortSignal.timeout(BRIDGE_CHECK_TIMEOUT_MS),
       });
 
@@ -651,14 +670,11 @@ export class MetroWatchdog {
       if (explicitlyUnavailable) {
         status = 'degraded';
         message = 'Bridge reports unavailable — streaming may be degraded';
-      } else if (noSubscribers) {
-        status = 'degraded';
-        message = 'Bridge reachable but no active SSE subscribers';
       } else {
         status = 'healthy';
-        message = sseCount >= 0
+        message = sseCount > 0
           ? `Streaming channels operational (${sseCount} active subscriber${sseCount !== 1 ? 's' : ''})`
-          : 'Streaming channels operational (bridge reachable)';
+          : 'Streaming channels operational (bridge reachable, idle)';
       }
 
       return {
@@ -703,17 +719,22 @@ export class MetroWatchdog {
 
       // Calculate time since last UI event (if any)
       const lastEventTime = (lastUiEvent as { time?: string } | undefined)?.time ?? null;
-      const secondsSinceLastEvent = lastEventTime
+      let secondsSinceLastEvent = lastEventTime
         ? Math.round((Date.now() - new Date(lastEventTime).getTime()) / 1000)
         : null;
+
+      // Guard against NaN from invalid timestamp parsing
+      if (secondsSinceLastEvent !== null && isNaN(secondsSinceLastEvent)) {
+        secondsSinceLastEvent = null;
+      }
 
       // Determine status based on heartbeat freshness
       let status: LineStatus;
       let message: string;
 
       if (!hasRecentActivity || secondsSinceLastEvent === null) {
-        status = 'unknown';
-        message = 'No recent extension activity — status unknown';
+        status = 'healthy';
+        message = 'Extension standby — no active VS Code session (nominal)';
       } else if (secondsSinceLastEvent <= VSCODE_HEARTBEAT_TIMEOUT_MS / 1000) {
         status = 'healthy';
         message = `Extension active (last event ${secondsSinceLastEvent}s ago)`;
@@ -750,13 +771,15 @@ export class MetroWatchdog {
     const startTime = performance.now();
 
     try {
-      const response = await fetch(`${this.config.bridgeUrl}/health`, {
+      const response = await this.fetchWithRetry(`${this.config.bridgeUrl}/health`, {
         signal: AbortSignal.timeout(BRIDGE_CHECK_TIMEOUT_MS),
       });
 
       const latencyMs = Math.round(performance.now() - startTime);
 
       if (!response.ok) {
+        // Reset MCP init counter on bridge unreachable
+        this.consecutiveMcpNotInitialized = 0;
         return {
           lineId: 'mcp',
           status: 'down',
@@ -770,15 +793,31 @@ export class MetroWatchdog {
       const body = await response.json() as { status?: string; initialized?: boolean };
       const isInitialized = body.initialized === true;
 
+      // Track consecutive not-initialized cycles for escalation
+      if (isInitialized) {
+        this.consecutiveMcpNotInitialized = 0;
+      } else {
+        this.consecutiveMcpNotInitialized++;
+      }
+
+      // Escalate to "down" if MCP stays not-initialized for too many cycles
+      const mcpStatus: LineStatus = isInitialized
+        ? 'healthy'
+        : this.consecutiveMcpNotInitialized >= MCP_NOT_INITIALIZED_DOWN_THRESHOLD
+          ? 'down'
+          : 'degraded';
+
       return {
         lineId: 'mcp',
-        status: isInitialized ? 'healthy' : 'degraded',
+        status: mcpStatus,
         latencyMs,
         lastCheck: now,
         message: isInitialized
           ? 'MCP server operational (bridge initialized)'
-          : 'MCP server starting (bridge not fully initialized)',
-        details: body,
+          : this.consecutiveMcpNotInitialized >= MCP_NOT_INITIALIZED_DOWN_THRESHOLD
+            ? `MCP server failed to initialize after ${this.consecutiveMcpNotInitialized} cycles`
+            : 'MCP server starting (bridge not fully initialized)',
+        details: { ...body, consecutiveNotInitialized: this.consecutiveMcpNotInitialized },
       };
     } catch (error) {
       const latencyMs = Math.round(performance.now() - startTime);
@@ -1022,6 +1061,26 @@ export class MetroWatchdog {
           : {}),
       },
     };
+  }
+
+  /**
+   * Fetch with retry — attempts the request up to BRIDGE_CHECK_RETRIES times
+   * before giving up. Adds a small delay between retries to allow transient
+   * network issues to resolve.
+   */
+  private async fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= BRIDGE_CHECK_RETRIES; attempt++) {
+      try {
+        return await fetch(url, init);
+      } catch (error) {
+        lastError = error;
+        if (attempt < BRIDGE_CHECK_RETRIES) {
+          await new Promise((resolve) => setTimeout(resolve, BRIDGE_CHECK_RETRY_DELAY_MS));
+        }
+      }
+    }
+    throw lastError;
   }
 
   /**

@@ -1,0 +1,130 @@
+{
+  "id": "aut_20260504175252_2b7b3b",
+  "objective": "Stop test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "stopped",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-05-04T17:52:52.743Z",
+  "updatedAt": "2026-05-04T17:52:52.744Z",
+  "cycleCount": 0,
+  "maxCycles": 10,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-4995d8d9",
+      "type": "analysis",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:52.743Z"
+    },
+    {
+      "id": "implementation-015e5e68",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:52.743Z"
+    },
+    {
+      "id": "refactor-94663676",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:52.743Z"
+    },
+    {
+      "id": "test-fix-9e71434e",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:52.743Z"
+    },
+    {
+      "id": "verification-a1c89368",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:52.743Z"
+    },
+    {
+      "id": "finalize-d6738568",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:52.743Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 10,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 10
+    },
+    "usage": {
+      "cyclesUsed": 0,
+      "durationMsUsed": 0,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [],
+  "timeline": [
+    {
+      "cycle": 0,
+      "state": "stopped",
+      "note": "User request",
+      "timestamp": "2026-05-04T17:52:52.744Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [],
+  "artifacts": {
+    "plan": "",
+    "changeSummary": "",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": "User request",
+  "lastProgressAt": "2026-05-04T17:52:52.744Z"
+}

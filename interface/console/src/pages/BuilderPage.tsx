@@ -10,6 +10,8 @@ import {
   ArrowLeft, Loader2, AlertCircle,
 } from "lucide-react";
 import { projectsApi, type ProjectMeta, type FileNode, type BuildEvent } from "../services/projects-api";
+import { ModelPicker } from "./alloy/components/ModelPicker";
+import clsx from "clsx";
 
 // ── Yardımcılar ────────────────────────────────────────────────────────────────
 
@@ -169,11 +171,12 @@ function PreviewPane({ projectId, selectedFile }: { projectId: string; selectedF
 
 // ── BuildChat ──────────────────────────────────────────────────────────────────
 
-function BuildChat({ projectId }: { projectId: string }) {
+function BuildChat({ projectId, onBuildDone }: { projectId: string; onBuildDone: () => void }) {
   const [messages, setMessages] = useState<ChatMsg[]>([
     { id: uid(), role: "status", content: "Alloy hazır. Ne inşa edelim?" },
   ]);
   const [input, setInput]       = useState("");
+  const [selectedModel, setSelectedModel] = useState<string | undefined>();
   const [streaming, setStreaming] = useState(false);
   const abortRef                 = useRef<AbortController | null>(null);
   const scrollRef                = useRef<HTMLDivElement>(null);
@@ -207,12 +210,13 @@ function BuildChat({ projectId }: { projectId: string }) {
           setMessages((prev) =>
             prev.map((m) => m.id === assistantId ? { ...m, content: evt.summary } : m)
           );
+          onBuildDone();
         } else if (evt.event === "error") {
           setMessages((prev) =>
             prev.map((m) => m.id === assistantId ? { ...m, role: "status", content: `⚠ ${evt.text}` } : m)
           );
         }
-      }, abortRef.current.signal);
+      }, abortRef.current.signal, selectedModel);
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         setMessages((prev) =>
@@ -234,14 +238,21 @@ function BuildChat({ projectId }: { projectId: string }) {
         {messages.map((m) => (
           <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
             {m.role === "status" ? (
-              <div className="text-[11px] text-[var(--color-alloy-text-dim)] italic px-2">{m.content}</div>
+              <div className="flex items-center gap-2 text-[11px] text-[var(--color-alloy-text-dim)] font-medium bg-[var(--color-alloy-surface-hover)]/30 px-3 py-1.5 rounded-full border border-[var(--color-alloy-border)]/50">
+                <div className="relative flex h-1.5 w-1.5">
+                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-alloy-accent)] opacity-75"></span>
+                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--color-alloy-accent)]"></span>
+                </div>
+                {m.content}
+              </div>
             ) : (
-              <div className={`max-w-[85%] rounded-xl px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap ${
+              <div className={clsx(
+                "max-w-[90%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed whitespace-pre-wrap shadow-sm transition-all duration-300",
                 m.role === "user"
-                  ? "bg-[var(--color-alloy-accent)] text-white"
-                  : "bg-[var(--color-alloy-surface-hover)] text-[var(--color-alloy-text)]"
-              }`}>
-                {m.content || <span className="opacity-40">…</span>}
+                  ? "bg-gradient-to-br from-[var(--color-alloy-accent)] to-[#818cf8] text-white shadow-[#6366f1]/20"
+                  : "bg-[var(--color-alloy-surface-hover)] text-[var(--color-alloy-text)] border border-[var(--color-alloy-border)]"
+              )}>
+                {m.content || <span className="opacity-40 animate-pulse">Kodlarınızı hazırlıyorum...</span>}
               </div>
             )}
           </div>
@@ -256,30 +267,39 @@ function BuildChat({ projectId }: { projectId: string }) {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 border-t border-[var(--color-alloy-border)] p-3">
-        <div className="flex items-end gap-2 rounded-xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] px-3 py-2">
+      <div className="shrink-0 border-t border-[var(--color-alloy-border)] p-4 bg-[var(--color-alloy-surface)]/50 backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-2">
+           <ModelPicker value={selectedModel} onChange={setSelectedModel} />
+           <div className="h-px flex-1 bg-gradient-to-r from-[var(--color-alloy-border)] to-transparent" />
+        </div>
+        <div className="flex items-end gap-2 rounded-2xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] px-4 py-3 focus-within:border-[var(--color-alloy-accent)] focus-within:ring-2 focus-within:ring-[var(--color-alloy-accent-dim)] transition-all duration-200">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }}
-            placeholder={streaming ? "Yanıt bekleniyor…" : "Ne yapalım? (@dosya ile dosya ekle)"}
+            placeholder={streaming ? "Yanıt bekleniyor…" : "Uygulamanıza yeni bir özellik ekleyin..."}
             disabled={streaming}
             rows={1}
-            className="flex-1 resize-none bg-transparent text-[13px] text-[var(--color-alloy-text)] placeholder:text-[var(--color-alloy-text-dim)] outline-none min-h-[24px] max-h-[120px]"
+            className="flex-1 resize-none bg-transparent text-[13px] text-[var(--color-alloy-text)] placeholder:text-[var(--color-alloy-text-dim)] outline-none min-h-[24px] max-h-[160px]"
             style={{ height: "auto" }}
             onInput={(e) => {
               const el = e.currentTarget;
               el.style.height = "auto";
-              el.style.height = Math.min(el.scrollHeight, 120) + "px";
+              el.style.height = Math.min(el.scrollHeight, 160) + "px";
             }}
           />
           {streaming ? (
-            <button type="button" onClick={stop} className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors">
-              <Square size={12} />
+            <button type="button" onClick={stop} className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200">
+              <Square size={14} fill="currentColor" />
             </button>
           ) : (
-            <button type="button" onClick={() => void send()} disabled={!input.trim()} className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-alloy-accent)] text-white hover:opacity-90 transition-opacity disabled:opacity-30">
-              <Send size={12} />
+            <button 
+              type="button" 
+              onClick={() => void send()} 
+              disabled={!input.trim()} 
+              className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-alloy-accent)] text-white hover:shadow-lg hover:shadow-[var(--color-alloy-accent-dim)] transition-all duration-200 disabled:opacity-20"
+            >
+              <Send size={14} />
             </button>
           )}
         </div>
@@ -369,7 +389,10 @@ export function BuilderPage() {
           <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-alloy-text-dim)] border-b border-[var(--color-alloy-border)]">
             Alloy Builder
           </div>
-          <BuildChat projectId={id} />
+          <BuildChat 
+            projectId={id} 
+            onBuildDone={() => setRefreshKey(k => k + 1)}
+          />
         </div>
 
         {/* Sağ: Önizleme */}

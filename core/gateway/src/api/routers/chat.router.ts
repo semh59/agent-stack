@@ -29,8 +29,8 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
   // 1. List conversations
   app.get("/api/chat/conversations", async (request, reply) => {
      const activeAccount = tokenStore.getActiveToken();
-     if (!activeAccount) return reply.status(401).send(apiError("Unauthorized", { code: "UNAUTHORIZED" }));
-     const list = await chatRepository.listConversations(activeAccount.email || "");
+     const email = activeAccount?.email || "guest@local";
+     const list = await chatRepository.listConversations(email);
      return apiResponse(list);
   });
 
@@ -43,14 +43,14 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
   // 3. Create conversation
   app.post<{ Body: { title: string, mode?: string } }>("/api/chat/conversations", async (request, reply) => {
      const activeAccount = tokenStore.getActiveToken();
-     if (!activeAccount) return reply.status(401).send(apiError("Unauthorized", { code: "UNAUTHORIZED" }));
+     const email = activeAccount?.email || "guest@local";
      
      const id = `conv_${Date.now()}`;
      await chatRepository.createConversation({
         id,
         title: request.body.title || "New Chat",
         mode: request.body.mode || "code",
-        ownerAccount: activeAccount.email || "",
+        ownerAccount: email,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
      });
@@ -68,11 +68,12 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
       }
 
       const accountManager = getAccountManager();
-      const accessToken = await tokenStore.getValidAccessToken();
-      const activeAccount = tokenStore.getActiveToken();
+      const activeAccount = tokenStore.getActiveToken() || { email: "guest@local" };
+      const rawToken = await tokenStore.getValidAccessToken();
+      const accessToken = rawToken || "guest_token";
 
-      if (!accessToken || !accountManager || !activeAccount) {
-        return reply.status(401).send(apiError("Active account or token session not found.", { code: "UNAUTHORIZED" }));
+      if (!accountManager) {
+        return reply.status(500).send(apiError("Account manager not initialized.", { code: "INTERNAL_ERROR" }));
       }
 
       const client = AlloyGatewayClient.fromToken(accessToken, activeAccount.email, accountManager);
@@ -95,15 +96,45 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
 
       // If streaming is requested, we use the streamGenerateContent endpoint
       if (stream) {
-         const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:streamGenerateContent?alt=sse`;
-         const res = await client.fetch(url, {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }),
-         });
+         let res: Response;
+         let isOllama = selectedModel.startsWith("ollama/");
+
+         if (isOllama) {
+            const ollamaHost = process.env.OLLAMA_HOST || "http://127.0.0.1:11434";
+            const actualModel = selectedModel.replace("ollama/", "");
+            const ollamaMessages = contents.map(c => ({
+               role: c.role === "model" ? "assistant" : (c.role || "user"),
+               content: c.parts[0]?.text || ""
+            }));
+
+            res = await fetch(`${ollamaHost}/v1/chat/completions`, {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({
+                  model: actualModel,
+                  messages: ollamaMessages,
+                  stream: true,
+                  temperature: 0.7
+               })
+            });
+         } else {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:streamGenerateContent?alt=sse`;
+            res = await client.fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }),
+            });
+         }
 
          if (!res.ok) {
-           return reply.status(res.status).send(apiError(`LLM Stream Error: ${res.status}`, { code: "SERVICE_UNAVAILABLE" }));
+           const errText = await res.text().catch(() => "Unknown Ollama Error");
+           console.error(`[Ollama Error] ${res.status}: ${errText}`);
+           return reply.status(res.status).send(apiError(`Ollama Error: ${res.status} - ${errText.slice(0, 100)}`, { code: "SERVICE_UNAVAILABLE" }));
+         }
+
+         if (!res.body) {
+           console.error(`[Ollama Error] Response body is null`);
+           return reply.status(500).send(apiError("Ollama response body is empty", { code: "INTERNAL_ERROR" }));
          }
 
          reply.raw.setHeader("Content-Type", "text/event-stream");
@@ -179,32 +210,73 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
       }
 
       // Non-streaming fallback
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent`;
+      let res: Response;
+      let replyText = "";
+      let isOllama = selectedModel.startsWith("ollama/");
+      
+      let tokensInput = 0;
+      let tokensOutput = 0;
+      let totalTokens = 0;
+
       try {
-        const res = await client.fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }),
-        });
+         if (isOllama) {
+            const ollamaHost = process.env.OLLAMA_HOST || "http://127.0.0.1:11434";
+            const actualModel = selectedModel.replace("ollama/", "");
+            const ollamaMessages = contents.map(c => ({
+               role: c.role === "model" ? "assistant" : (c.role || "user"),
+               content: c.parts[0]?.text || ""
+            }));
 
-        if (!res.ok) {
-          const errBody = await res.text().catch(() => "Unknown error");
-          return reply.status(res.status).send(apiError(`LLM Error: ${errBody}`, { code: "SERVICE_UNAVAILABLE" }));
-        }
+            res = await fetch(`${ollamaHost}/v1/chat/completions`, {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({
+                  model: actualModel,
+                  messages: ollamaMessages,
+                  stream: false,
+                  temperature: 0.7
+               })
+            });
 
-        const data = await res.json() as {
-          candidates?: { content?: { parts?: { text?: string }[] } }[];
-          usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number };
-        };
-        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+            if (!res.ok) {
+               const errBody = await res.text().catch(() => "Unknown error");
+               return reply.status(res.status).send(apiError(`LLM Error: ${errBody}`, { code: "SERVICE_UNAVAILABLE" }));
+            }
+
+            const data = await res.json() as any;
+            replyText = data.choices?.[0]?.message?.content ?? "";
+            
+            tokensInput = data.usage?.prompt_tokens ?? 0;
+            tokensOutput = data.usage?.completion_tokens ?? 0;
+            totalTokens = data.usage?.total_tokens ?? 0;
+         } else {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent`;
+            res = await client.fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }),
+            });
+
+            if (!res.ok) {
+              const errBody = await res.text().catch(() => "Unknown error");
+              return reply.status(res.status).send(apiError(`LLM Error: ${errBody}`, { code: "SERVICE_UNAVAILABLE" }));
+            }
+
+            const data = await res.json() as any;
+            replyText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+            
+            tokensInput = data.usageMetadata?.promptTokenCount ?? 0;
+            tokensOutput = data.usageMetadata?.candidatesTokenCount ?? 0;
+            totalTokens = data.usageMetadata?.totalTokenCount ?? 0;
+         }
 
         await chatRepository.saveMessage({
            conversationId,
            role: "model",
            content: replyText,
            model: selectedModel,
-           tokensInput: data.usageMetadata?.promptTokenCount,
-           tokensOutput: data.usageMetadata?.candidatesTokenCount,
+           tokensInput,
+           tokensOutput,
            createdAt: new Date().toISOString()
         });
 
@@ -212,9 +284,9 @@ export function registerChatRoutes(app: FastifyInstance, dependencies: ChatRoute
           text: replyText,
           model: selectedModel,
           usage: {
-            prompt: data.usageMetadata?.promptTokenCount ?? 0,
-            completion: data.usageMetadata?.candidatesTokenCount ?? 0,
-            total: data.usageMetadata?.totalTokenCount ?? 0
+            prompt: tokensInput,
+            completion: tokensOutput,
+            total: totalTokens
           }
         });
       } catch (err) {

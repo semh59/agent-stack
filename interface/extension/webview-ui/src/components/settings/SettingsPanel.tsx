@@ -78,7 +78,7 @@ export function SettingsPanel({ postMessage }: Props) {
   const handleSave = useCallback(() => {
     if (!anthropicKey && !gatewayUrl) return;
     try {
-      postMessage({ type: "saveSettings", value: JSON.stringify({ anthropicKey, gatewayUrl }) });
+      postMessage({ type: "saveSettings", payload: { anthropicKey, gatewayUrl } });
       setSaved(true);
       setSaveError("");
       setTimeout(() => setSaved(false), 2000);

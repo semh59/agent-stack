@@ -133,8 +133,8 @@ export const LINE_ORDER: readonly MetroLineId[] = [
  * Falls back to port 3000 if no port is detected.
  */
 function resolveGatewayBase(): string {
-  const port = window.location.port || '3000';
-  return `${window.location.protocol}//${window.location.hostname}:${port}`;
+  // Always use the Gateway service port (51122) instead of the UI port
+  return `${window.location.protocol}//${window.location.hostname}:51122`;
 }
 
 /** Cached gateway base URL (computed once on module load). */

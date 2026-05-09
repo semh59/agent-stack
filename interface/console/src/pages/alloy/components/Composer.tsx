@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2, Square } from "lucide-react";
 import clsx from "clsx";
-import { useAlloyStore } from "../../../../store/alloyStore";
+import { useAlloyStore } from "../../../store/alloyStore";
 import { ModelPicker } from "./ModelPicker";
 
 const MAX_ROWS = 8;
@@ -61,10 +61,11 @@ export function Composer() {
 
         {/* Compose box */}
         <div className={clsx(
-          "relative flex flex-col rounded-xl border bg-[var(--color-alloy-bg)] transition-shadow",
+          "relative flex flex-col rounded-2xl border transition-all duration-500",
+          "bg-[var(--color-alloy-bg)]/80 backdrop-blur-md",
           isGenerating
-            ? "border-[var(--color-alloy-accent)] shadow-[var(--shadow-alloy-focus)]"
-            : "border-[var(--color-alloy-border)] focus-within:border-[var(--color-alloy-accent)] focus-within:shadow-[var(--shadow-alloy-focus)]",
+            ? "border-[var(--color-alloy-accent)] shadow-[var(--shadow-alloy-glow)]"
+            : "border-[var(--color-alloy-border)] focus-within:border-[var(--color-alloy-accent)] focus-within:shadow-[var(--shadow-alloy-glow)]",
         )}>
           <textarea
             ref={textareaRef}

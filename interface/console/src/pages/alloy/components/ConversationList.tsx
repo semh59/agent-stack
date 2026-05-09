@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { MessageSquare, Plus, Trash2, SquarePen } from "lucide-react";
-import { useAlloyStore } from "../../../../store/alloyStore";
+import { useAlloyStore } from "../../../store/alloyStore";
 
 function timeAgo(date: Date): string {
   const diff = Date.now() - date.getTime();

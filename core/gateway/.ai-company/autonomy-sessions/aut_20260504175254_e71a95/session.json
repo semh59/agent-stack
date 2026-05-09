@@ -1,0 +1,384 @@
+{
+  "id": "aut_20260504175254_e71a95",
+  "objective": "Recovery test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "done",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-05-04T17:52:54.443Z",
+  "updatedAt": "2026-05-04T17:52:54.633Z",
+  "cycleCount": 5,
+  "maxCycles": 10,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-426a8cc2",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 2,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:54.491Z"
+    },
+    {
+      "id": "implementation-c297e03a",
+      "type": "implementation",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:54.510Z"
+    },
+    {
+      "id": "refactor-07f7c52f",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:54.443Z"
+    },
+    {
+      "id": "test-fix-5591af18",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:54.443Z"
+    },
+    {
+      "id": "verification-87098019",
+      "type": "verification",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:54.529Z"
+    },
+    {
+      "id": "finalize-dcd743c0",
+      "type": "finalize",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:54.558Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 10,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 10
+    },
+    "usage": {
+      "cyclesUsed": 5,
+      "durationMsUsed": 115,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-05-04T17:52:54.449Z"
+    },
+    {
+      "selectedModel": "gpt-4o-2024-05-13",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "RATE_LIMIT",
+      "switched": true,
+      "timestamp": "2026-05-04T17:52:54.471Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gpt-4o-2024-05-13",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-05-04T17:52:54.495Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": false,
+      "timestamp": "2026-05-04T17:52:54.515Z"
+    },
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": false,
+      "timestamp": "2026-05-04T17:52:54.535Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-05-04T17:52:54.444Z",
+      "taskId": "analysis-426a8cc2"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-05-04T17:52:54.450Z",
+      "taskId": "analysis-426a8cc2"
+    },
+    {
+      "cycle": 1,
+      "state": "retry",
+      "note": "Rate limit exceeded 429",
+      "timestamp": "2026-05-04T17:52:54.462Z",
+      "taskId": "analysis-426a8cc2"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-05-04T17:52:54.467Z",
+      "taskId": "analysis-426a8cc2"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-05-04T17:52:54.471Z",
+      "taskId": "analysis-426a8cc2"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-05-04T17:52:54.487Z",
+      "taskId": "analysis-426a8cc2"
+    },
+    {
+      "cycle": 3,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-05-04T17:52:54.491Z",
+      "taskId": "implementation-c297e03a"
+    },
+    {
+      "cycle": 3,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-05-04T17:52:54.495Z",
+      "taskId": "implementation-c297e03a"
+    },
+    {
+      "cycle": 3,
+      "state": "verify",
+      "note": "Bypassing quality gates for implementation (No files changed)",
+      "timestamp": "2026-05-04T17:52:54.506Z",
+      "taskId": "implementation-c297e03a"
+    },
+    {
+      "cycle": 4,
+      "state": "plan",
+      "note": "Planning verification task",
+      "timestamp": "2026-05-04T17:52:54.510Z",
+      "taskId": "verification-87098019"
+    },
+    {
+      "cycle": 4,
+      "state": "execute",
+      "note": "Executing verification",
+      "timestamp": "2026-05-04T17:52:54.516Z",
+      "taskId": "verification-87098019"
+    },
+    {
+      "cycle": 4,
+      "state": "verify",
+      "note": "Bypassing quality gates for verification (No files changed)",
+      "timestamp": "2026-05-04T17:52:54.526Z",
+      "taskId": "verification-87098019"
+    },
+    {
+      "cycle": 5,
+      "state": "plan",
+      "note": "Planning finalize task",
+      "timestamp": "2026-05-04T17:52:54.529Z",
+      "taskId": "finalize-dcd743c0"
+    },
+    {
+      "cycle": 5,
+      "state": "execute",
+      "note": "Executing finalize",
+      "timestamp": "2026-05-04T17:52:54.535Z",
+      "taskId": "finalize-dcd743c0"
+    },
+    {
+      "cycle": 5,
+      "state": "verify",
+      "note": "Bypassing quality gates for finalize (No files changed)",
+      "timestamp": "2026-05-04T17:52:54.547Z",
+      "taskId": "finalize-dcd743c0"
+    },
+    {
+      "cycle": 5,
+      "state": "done",
+      "note": "Autonomy completed",
+      "timestamp": "2026-05-04T17:52:54.633Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260504175254_e71a95:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.455Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "failed",
+      "summary": "Rate limit exceeded 429",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.459Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:analysis:2",
+      "cycle": 2,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.475Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:analysis:2",
+      "cycle": 2,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "recovered",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.482Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:implementation:3",
+      "cycle": 3,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.497Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:implementation:3",
+      "cycle": 3,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "recovered",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.503Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:verification:4",
+      "cycle": 4,
+      "taskType": "verification",
+      "status": "started",
+      "summary": "Executing verification",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.519Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:verification:4",
+      "cycle": 4,
+      "taskType": "verification",
+      "status": "completed",
+      "summary": "recovered",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.522Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:finalize:5",
+      "cycle": 5,
+      "taskType": "finalize",
+      "status": "started",
+      "summary": "Executing finalize",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.539Z"
+    },
+    {
+      "operationId": "aut_20260504175254_e71a95:finalize:5",
+      "cycle": 5,
+      "taskType": "finalize",
+      "status": "completed",
+      "summary": "recovered",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:54.542Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: finalize\n## Current Model\ngemini-3-pro-high\n\n## Objective\nRecovery test\n\n## Gear\nfast\n",
+    "changeSummary": "recovered",
+    "nextActionReason": "Task finalize completed",
+    "gateResult": {
+      "passed": true,
+      "strictMode": true,
+      "blockingIssues": [],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [],
+      "commands": [],
+      "timestamp": "2026-05-04T17:52:54.558Z"
+    },
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-05-04T17:52:54.633Z"
+}

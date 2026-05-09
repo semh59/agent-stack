@@ -41,7 +41,7 @@ export function registerAuthRoutes(
 
         if (activeAuthServer) {
           app.log.info("[GatewayAuthRouter] Stopping previous AuthServer instance...");
-          activeAuthServer.stop();
+          await activeAuthServer.stop();
           activeAuthServer = null;
         }
 

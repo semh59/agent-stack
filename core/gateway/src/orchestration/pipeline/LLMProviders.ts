@@ -289,3 +289,65 @@ export class SpeculativeProvider implements ILLMProvider {
     return { output: text, tokenUsage };
   }
 }
+
+/**
+ * Ollama Provider Implementation (OpenAI Compatibility Layer)
+ */
+export class OllamaProvider implements ILLMProvider {
+  readonly name = "ollama";
+
+  constructor(private baseUrl: string = "http://127.0.0.1:11434") {}
+
+  async execute(
+    agent: AgentDefinition,
+    systemPrompt: string,
+    userPrompt: string,
+    model: string,
+    options: {
+      temperature: number;
+      maxOutputTokens: number;
+      timeoutMs: number;
+      fetchFn?: typeof fetch;
+    }
+  ): Promise<LLMProviderResult> {
+    const fetchFn = options.fetchFn ?? fetch;
+    // Strip prefixes like 'ollama/' if present for the actual API call
+    const cleanModel = model.startsWith("ollama/") ? model.slice(7) : model;
+    
+    const res = await fetchFn(`${this.baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: cleanModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: options.temperature,
+        max_tokens: options.maxOutputTokens,
+      }),
+      signal: AbortSignal.timeout(options.timeoutMs),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`Ollama API Error ${res.status}: ${body.slice(0, 500)}`);
+    }
+
+    const data = await res.json() as unknown as OpenAIResponse;
+    const choices = Array.isArray(data.choices) ? data.choices : [];
+    const firstChoice = choices[0];
+    const message = firstChoice?.message;
+    const text = typeof message?.content === "string" ? message.content : "";
+    
+    // Ollama might provide usage, but we fallback to 0
+    const usage = data.usage;
+    const tokenUsage: TokenUsage = {
+      promptTokens: typeof usage?.prompt_tokens === 'number' ? usage.prompt_tokens : 0,
+      completionTokens: typeof usage?.completion_tokens === 'number' ? usage.completion_tokens : 0,
+      totalTokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : 0,
+      estimatedCostUsd: 0, // Local is free!
+    };
+    return { output: text, tokenUsage };
+  }
+}

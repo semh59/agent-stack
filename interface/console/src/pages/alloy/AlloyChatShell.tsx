@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAlloyStore } from "../../../store/alloyStore";
+import { useAlloyStore } from "../../store/alloyStore";
 import { ConversationList } from "./components/ConversationList";
 import { MessageList } from "./components/MessageList";
 import { Composer } from "./components/Composer";

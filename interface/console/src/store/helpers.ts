@@ -197,12 +197,20 @@ export function normalizeAccounts(payload: unknown): GoogleAccount[] {
   if (!Array.isArray(payload)) return [];
   return payload
     .filter((item) => isRecord(item))
-    .map((item) => ({
-      email: toString(item.email),
-      expiresAt: typeof item.expiresAt === "number" ? item.expiresAt : 0,
-      isValid: Boolean(item.isValid),
-      status: typeof item.status === "string" ? (item.status as GoogleAccount["status"]) : "active",
-    }));
+    .map((item) => {
+      const rawProvider = toString(item.provider);
+      let provider: GoogleAccount["provider"] = "other";
+      if (rawProvider === "google") provider = "google";
+      else if (rawProvider === "anthropic") provider = "anthropic";
+
+      return {
+        email: toString(item.email),
+        expiresAt: typeof item.expiresAt === "number" ? item.expiresAt : 0,
+        isValid: Boolean(item.isValid),
+        provider,
+        status: typeof item.status === "string" ? (item.status as GoogleAccount["status"]) : "active",
+      };
+    });
 }
 
 export function normalizeModels(payload: unknown): ModelEntry[] {
@@ -429,6 +437,7 @@ export function withSelectedSessionDerived(
     autonomySession: effectiveSelected ? state.sessionsById?.[effectiveSelected] ?? null : null,
     autonomyTimeline: effectiveSelected ? state.timelineBySession?.[effectiveSelected] ?? [] : [],
     gateStatus: effectiveSelected ? state.gateBySession?.[effectiveSelected] ?? null : null,
-    activeDiff: null,
+    budgetStatus: effectiveSelected ? state.budgetBySession?.[effectiveSelected] ?? null : null,
+    activeDiff: effectiveSelected ? state.diffBySession?.[effectiveSelected] ?? [] : [],
   };
 }

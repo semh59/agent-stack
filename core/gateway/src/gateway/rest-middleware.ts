@@ -4,7 +4,7 @@ import { apiError, isApiEnvelope, mapErrorToApi, normalizeApiEnvelope } from "./
 import type { GatewayAuthManager } from "./gateway-auth-manager";
 
 export const RATE_LIMIT_WINDOW_MS = 60_000;
-export const RATE_LIMIT_MAX_REQUESTS = 100;
+export const RATE_LIMIT_MAX_REQUESTS = 500;
 
 export interface RestRateLimitOptions {
   windowMs?: number;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, ChevronUp, MessageSquare, Sparkles, User } from "lucide-react";
-import { useAlloyStore } from "../../../../store/alloyStore";
+import { useAlloyStore } from "../../../store/alloyStore";
 import { FormattedMessage } from "./message-format";
 
 function ThoughtBlock({ content }: { content: string }) {
@@ -93,14 +93,13 @@ export function MessageList() {
                 "prose max-w-none text-sm",
                 msg.role === "user" ? "prose-invert" : "prose-slate",
               )}>
-                <FormattedMessage
-                  content={
-                    msg.content.includes("Thought:")
-                      ? msg.content.split("Thought:")[1]?.split("\n\n").slice(1).join("\n\n") ?? msg.content
-                      : msg.content
-                  }
-                  role={msg.role}
-                />
+                  <FormattedMessage
+                    content={
+                      msg.content.includes("Thought:")
+                        ? msg.content.split("Thought:")[1]?.split("\n\n").slice(1).join("\n\n") ?? msg.content
+                        : msg.content
+                    }
+                  />
               </div>
             </div>
           </article>

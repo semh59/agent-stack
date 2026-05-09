@@ -6,6 +6,7 @@ import {
   fetchConversations, 
   sendChatMessage,
 } from "../../../services/chat-api";
+import { fetchModels, type ModelEntry } from "../../../services/system-api";
 
 export interface ChatMessage {
   id: string;
@@ -46,6 +47,9 @@ export interface AlloyChatSlice {
   sessionTokens: { input: number; output: number };
   sessionCostUsd: number;
   
+  models: ModelEntry[];
+  loadModels: () => Promise<void>;
+  
   loadConversations: () => Promise<void>;
   selectConversation: (id: string) => Promise<void>;
   startNewChat: (title?: string) => Promise<void>;
@@ -72,6 +76,16 @@ export const createAlloyChatSlice: StateCreator<
   pendingInterventions: [],
   sessionTokens: { input: 0, output: 0 },
   sessionCostUsd: 0,
+  models: [],
+
+  loadModels: async () => {
+    try {
+      const models = await fetchModels();
+      set({ models });
+    } catch {
+      // Fallback or silent fail
+    }
+  },
 
   loadConversations: async () => {
     try {
@@ -154,18 +168,17 @@ export const createAlloyChatSlice: StateCreator<
           return { messages: newMsgs };
         });
       });
-
+    } catch (err: unknown) {
+      set({
+        error: err instanceof Error ? err.message : "Gönderim hatalı",
+      });
+    } finally {
       set((state) => ({
         isGenerating: false,
         messages: state.messages.map((m) =>
           m.id === assistantMsg.id ? { ...m, isStreaming: false } : m
         ),
       }));
-    } catch (err: unknown) {
-      set({
-        isGenerating: false,
-        error: err instanceof Error ? err.message : "Gönderim hatalı",
-      });
     }
   },
 

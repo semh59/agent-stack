@@ -5,11 +5,11 @@
  * selection of `provider:model` slugs. Defaults to the routing "code" role so
  * the user can override it for one-off turns without touching settings.
  */
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { ChevronDown, Sparkles } from "lucide-react";
-import { useAlloyStore } from "../../../../store/alloyStore";
-import { getAtPath, useEffectiveSettings } from "../../settings/useEffectiveSettings";
+import { useAlloyStore } from "../../../store/alloyStore";
+import { getAtPath, useEffectiveSettings } from "../settings/useEffectiveSettings";
 
 export interface ModelPickerProps {
   value: string | undefined;
@@ -51,18 +51,49 @@ function collectCandidates(effective: Record<string, unknown>): Candidate[] {
 
 export function ModelPicker({ value, onChange }: ModelPickerProps) {
   const effective = useEffectiveSettings();
-  const { settings } = useAlloyStore();
+  const { settings, models, loadModels } = useAlloyStore();
   const [open, setOpen] = useState(false);
 
-  const candidates = useMemo(
-    () => collectCandidates(effective),
-    [effective],
-  );
+  useEffect(() => {
+    void loadModels();
+  }, [loadModels]);
+
+  const candidates = useMemo(() => {
+    // 1. Get models from Settings (static/config)
+    const settingsCandidates = collectCandidates(effective);
+    
+    // 2. Get models from Store (dynamic discovery)
+    const storeCandidates = models.map(m => ({
+      slug: m.id,
+      label: m.name,
+      provider: m.provider
+    }));
+
+    // 3. Merge and deduplicate by slug
+    const seen = new Set<string>();
+    const merged: Candidate[] = [];
+
+    // Prioritize store candidates (dynamic ones might have better names)
+    for (const c of [...storeCandidates, ...settingsCandidates]) {
+      if (!seen.has(c.slug)) {
+        seen.add(c.slug);
+        merged.push(c);
+      }
+    }
+
+    return merged;
+  }, [effective, models]);
 
   const defaultRole =
     getAtPath<string>(effective, "routing.roles.code", "") ?? "";
   const effective_slug = value ?? defaultRole ?? candidates[0]?.slug ?? "";
   const active = candidates.find((c) => c.slug === effective_slug);
+
+  useEffect(() => {
+    if (value === undefined && active) {
+      onChange(active.slug);
+    }
+  }, [value, active, onChange]);
 
   return (
     <div className="relative">
@@ -70,12 +101,12 @@ export function ModelPicker({ value, onChange }: ModelPickerProps) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={clsx(
-          "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-          "border-[var(--color-alloy-border)] bg-[var(--color-alloy-bg)] text-[var(--color-alloy-text)] hover:border-[var(--color-alloy-accent)]/40",
+          "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200",
+          "border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] text-[var(--color-alloy-text)] hover:border-[var(--color-alloy-accent)] hover:shadow-[var(--shadow-alloy-glow)]",
         )}
         disabled={!settings}
       >
-        <Sparkles size={12} className="text-[var(--color-alloy-accent)]" />
+        <Sparkles size={12} className="text-[var(--color-alloy-accent)] animate-pulse" />
         <span className="max-w-[180px] truncate">
           {active?.label ?? effective_slug ?? "Auto (routing)"}
         </span>
@@ -88,7 +119,7 @@ export function ModelPicker({ value, onChange }: ModelPickerProps) {
             className="fixed inset-0 z-20"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute bottom-full z-30 mb-2 max-h-[320px] w-[260px] overflow-y-auto rounded-xl border border-[var(--color-alloy-border)] bg-[var(--color-alloy-surface)] p-2 shadow-[0_20px_80px_-20px_rgba(0,0,0,0.8)]">
+          <div className="absolute bottom-full z-30 mb-2 max-h-[320px] w-[260px] overflow-y-auto rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-2 backdrop-blur-md shadow-[var(--shadow-alloy-lg)] shadow-black/20">
             <button
               type="button"
               onClick={() => {
@@ -98,12 +129,12 @@ export function ModelPicker({ value, onChange }: ModelPickerProps) {
               className={clsx(
                 "mb-1 w-full rounded-md px-3 py-2 text-left text-xs transition-colors",
                 !value
-                  ? "bg-[var(--color-alloy-accent)]/10 text-white"
-                  : "text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-border)] hover:text-white",
+                  ? "bg-[var(--color-alloy-accent)] text-white shadow-sm"
+                  : "text-[var(--color-alloy-text)] hover:bg-[var(--color-alloy-surface-hover)]",
               )}
             >
-              <span className="block font-medium">Auto (routing)</span>
-              <span className="block text-[10px] text-[var(--color-alloy-text-sec)]">
+              <span className="block font-semibold">Auto (routing)</span>
+              <span className="block text-[10px] opacity-70">
                 Let Alloy pick based on role + complexity
               </span>
             </button>
@@ -124,14 +155,17 @@ export function ModelPicker({ value, onChange }: ModelPickerProps) {
                     setOpen(false);
                   }}
                   className={clsx(
-                    "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-xs transition-colors",
+                    "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-xs transition-all duration-200",
                     c.slug === value
-                      ? "bg-[var(--color-alloy-accent)]/10 text-white"
-                      : "text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-border)] hover:text-white",
+                      ? "bg-[var(--color-alloy-accent)] text-white shadow-sm"
+                      : "text-[var(--color-alloy-text)] hover:bg-[var(--color-alloy-surface-hover)]",
                   )}
                 >
-                  <span className="truncate">{c.label}</span>
-                  <span className="ml-2 shrink-0 text-[10px] uppercase tracking-widest text-[var(--color-alloy-text-sec)]">
+                  <span className="truncate font-medium">{c.label}</span>
+                  <span className={clsx(
+                    "ml-2 shrink-0 text-[9px] uppercase tracking-widest font-black",
+                    c.slug === value ? "text-white/60" : "text-[var(--color-alloy-text-dim)]"
+                  )}>
                     {c.provider}
                   </span>
                 </button>

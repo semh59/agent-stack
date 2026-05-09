@@ -5,5 +5,3 @@ export { CodeBlock } from "./CodeBlock";
 export { ModelSelector } from "./ModelSelector";
 export { TokenBadge } from "./TokenBadge";
 export { FileOpCard } from "./FileOpCard";
-export { TokenBudgetBar } from "./TokenBudgetBar";
-export { ConnectionStatus } from "./ConnectionStatus";

@@ -70,6 +70,15 @@ export class SQLiteChatRepository {
   public async saveMessage(msg: ChatMessageEntity): Promise<void> {
      try {
        this.database.connection.transaction(() => {
+          // Ensure conversation exists (Foreign Key safety)
+          const exists = this.database.connection.prepare(`SELECT id FROM chat_conversations WHERE id = ?`).get(msg.conversationId);
+          if (!exists) {
+            this.database.connection
+              .prepare(`INSERT OR IGNORE INTO chat_conversations (id, title, mode, owner_account, created_at, updated_at) 
+                        VALUES (?, ?, ?, ?, ?, ?)`)
+              .run(msg.conversationId, "Auto-created chat", "code", "guest@local", new Date().toISOString(), new Date().toISOString());
+          }
+
           this.database.connection
             .prepare(
               `INSERT INTO chat_messages (id, conversation_id, role, content, tokens_input, tokens_output, model, created_at)

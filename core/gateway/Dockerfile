@@ -75,8 +75,10 @@ COPY                --chown=gateway:gateway scripts ./scripts
 # `npm prune --omit=dev` respects `--no-save` installs, so tsx stays.
 RUN npm prune --omit=dev --no-audit --no-fund
 
-RUN mkdir -p /data/.config /data/.local/share /app/.npm && chown -R gateway:gateway /data /app/.npm
-VOLUME ["/data"]
+# Ensure npm doesn't try to write to restricted /app/.npm at runtime
+ENV NPM_CONFIG_CACHE=/tmp/.npm
+
+RUN mkdir -p /data/.config /data/.local/share && chown -R gateway:gateway /data
 
 USER gateway
 

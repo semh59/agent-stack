@@ -90,7 +90,17 @@ export function DashboardView() {
                   </div>
                   
                   <div className="flex-1 min-h-0 bg-black/20 border border-white/5 rounded-2xl p-6 overflow-hidden relative overflow-y-auto custom-scrollbar">
-                     <TerminalTimeline />
+                     <TerminalTimeline 
+                       events={autonomyTimeline.map(evt => ({
+                         id: evt.id,
+                         level: (evt.type === 'error' || evt.type === 'failed') ? 'error' : 
+                                (evt.type === 'done' || evt.type === 'success') ? 'success' : 
+                                evt.type === 'system' ? 'system' : 'info',
+                         message: evt.message,
+                         timestamp: evt.timestamp,
+                         agent: evt.payload?.agent as string | undefined
+                       }))} 
+                     />
                   </div>
                </div>
 

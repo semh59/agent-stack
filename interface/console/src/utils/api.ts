@@ -12,8 +12,8 @@ const GATEWAY_WS_LOGS_URL =
 const TOKEN_STORAGE_KEY = "gateway_auth_token";
 
 function readToken(): string | null {
-  if (typeof window === "undefined") return import.meta.env.VITE_GATEWAY_TOKEN ?? null;
-  return localStorage.getItem(TOKEN_STORAGE_KEY) ?? import.meta.env.VITE_GATEWAY_TOKEN ?? null;
+  if (typeof window === "undefined") return import.meta.env.VITE_GATEWAY_TOKEN ?? "guest_token";
+  return localStorage.getItem(TOKEN_STORAGE_KEY) ?? import.meta.env.VITE_GATEWAY_TOKEN ?? "guest_token";
 }
 
 function authHeaders(token: string, init?: HeadersInit): Headers {

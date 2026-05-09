@@ -3,10 +3,10 @@
  * SSE streaming ham fetch ile; geri kalan fetchJson ile.
  */
 
-const BASE = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GATEWAY_URL ?? "http://127.0.0.1:51122";
+const BASE = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GATEWAY_URL ?? "";
 
 function token() {
-  try { return localStorage.getItem("gateway_auth_token") ?? ""; } catch { return ""; }
+  try { return localStorage.getItem("gateway_auth_token") ?? (import.meta as any).env?.VITE_GATEWAY_TOKEN ?? "guest_token"; } catch { return "guest_token"; }
 }
 
 function authHeaders(): Record<string, string> {
@@ -17,7 +17,8 @@ function authHeaders(): Record<string, string> {
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`, { headers: authHeaders() });
   if (!r.ok) throw new Error(`GET ${path} → ${r.status} ${r.statusText}`);
-  return r.json() as Promise<T>;
+  const json = await r.json() as any;
+  return (json.data ?? json) as T;
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
@@ -27,7 +28,8 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!r.ok) throw new Error(`POST ${path} → ${r.status} ${r.statusText}`);
-  return r.json() as Promise<T>;
+  const json = await r.json() as any;
+  return (json.data ?? json) as T;
 }
 
 async function del(path: string): Promise<void> {
@@ -101,11 +103,12 @@ export const projectsApi = {
     message: string,
     onEvent: (evt: BuildEvent) => void,
     signal?: AbortSignal,
+    model?: string,
   ): Promise<void> {
     const r = await fetch(`${BASE}/api/projects/${id}/message`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, model }),
       signal,
     });
 

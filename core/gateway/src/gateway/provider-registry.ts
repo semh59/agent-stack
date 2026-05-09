@@ -1,6 +1,7 @@
 import { AIProvider, type ProviderAdapter } from "./provider-types";
 import { GoogleGeminiProvider } from "./google-provider";
 import { ClaudeCodeProvider } from "./claude-provider";
+import { GenericKeyProvider } from "./generic-provider";
 
 const adapters = new Map<AIProvider, ProviderAdapter>();
 
@@ -10,6 +11,10 @@ const adapters = new Map<AIProvider, ProviderAdapter>();
 export function registerDefaultAdapters() {
   adapters.set(AIProvider.GOOGLE_GEMINI, new GoogleGeminiProvider());
   adapters.set(AIProvider.CLAUDE_CODE, new ClaudeCodeProvider());
+  adapters.set(AIProvider.SAMBANOVA, new GenericKeyProvider(AIProvider.SAMBANOVA));
+  adapters.set(AIProvider.GROQ, new GenericKeyProvider(AIProvider.GROQ));
+  adapters.set(AIProvider.TOGETHER, new GenericKeyProvider(AIProvider.TOGETHER));
+  adapters.set(AIProvider.FIREWORKS, new GenericKeyProvider(AIProvider.FIREWORKS));
 }
 
 /**
@@ -27,11 +32,24 @@ export function getProviderAdapter(provider: AIProvider): ProviderAdapter {
  * Get an adapter by name (string).
  */
 export function getProviderAdapterByName(name: string): ProviderAdapter {
-  if (name === "google" || name === "google_gemini") {
+  const n = name.toLowerCase();
+  if (n === "google" || n === "google_gemini") {
     return getProviderAdapter(AIProvider.GOOGLE_GEMINI);
   }
-  if (name === "claude" || name === "claude_code" || name === "anthropic") {
+  if (n === "claude" || n === "claude_code" || n === "anthropic") {
     return getProviderAdapter(AIProvider.CLAUDE_CODE);
+  }
+  if (n === "sambanova") {
+    return getProviderAdapter(AIProvider.SAMBANOVA);
+  }
+  if (n === "groq") {
+    return getProviderAdapter(AIProvider.GROQ);
+  }
+  if (n === "together") {
+    return getProviderAdapter(AIProvider.TOGETHER);
+  }
+  if (n === "fireworks") {
+    return getProviderAdapter(AIProvider.FIREWORKS);
   }
   throw new Error(`Unknown provider: ${name}`);
 }

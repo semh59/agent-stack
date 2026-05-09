@@ -37,10 +37,10 @@ export function registerPipelineRoutes(
     return apiResponse(progress);
   });
 
-  app.post<{ Body: { userTask: string; planMode?: string } }>(
+  app.post<{ Body: { userTask: string; planMode?: string; modelOverride?: string } }>(
     "/api/pipelines/start",
     async (request, reply) => {
-      const { userTask, planMode } = request.body ?? {};
+      const { userTask, planMode, modelOverride } = request.body ?? {};
 
       // Input validation
       if (
@@ -71,19 +71,18 @@ export function registerPipelineRoutes(
         }
       }
 
-      const token = tokenStore.getActiveToken();
-      if (!token) {
-        return reply.status(401).send(apiError("No active account", { code: "UNAUTHORIZED" }));
-      }
+      let token = tokenStore.getActiveToken();
+      let accessToken = token?.accessToken || "guest_token";
+      let email = token?.email || "guest@alloy.local";
 
       const accountManager = getAccountManager();
-      if (accountManager && token.email) {
+      if (accountManager && token?.email) {
           accountManager.switchToAccountByEmail(token.email);
       }
 
       const client = AlloyGatewayClient.fromToken(
-        token.accessToken,
-        token.email,
+        accessToken,
+        email,
         accountManager || undefined
       );
       
@@ -92,7 +91,10 @@ export function registerPipelineRoutes(
 
       // Start in background
       newPipeline
-        .start(userTask.trim(), { planMode: planMode as import("../../orchestration/sequential-pipeline").PlanMode })
+        .start(userTask.trim(), { 
+          planMode: planMode as import("../../orchestration/sequential-pipeline").PlanMode,
+          modelOverride: modelOverride 
+        })
         .catch((err) => {
           app.log.error(err, "[GatewayServer] Pipeline background error");
         });

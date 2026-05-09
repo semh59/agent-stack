@@ -49,7 +49,7 @@ export const useAppStore = create<AppState>()(
         ...createMissionSlice(...a),
         ...createWebSocketSlice(...a),
         ...createPipelineSlice(...a),
-      }),
+      } as AppState),
       {
         name: "alloy-app-store",
         version: CURRENT_STORE_VERSION,

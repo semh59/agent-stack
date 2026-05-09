@@ -35,7 +35,7 @@ const VALID_LINE_IDS: readonly string[] = [
 ];
 
 /** Maximum number of concurrent SSE connections. */
-const MAX_SSE_CONNECTIONS = 20;
+const MAX_SSE_CONNECTIONS = 50;
 
 /** Interval for SSE snapshot push (ms). */
 const SSE_PUSH_INTERVAL_MS = 5_000;

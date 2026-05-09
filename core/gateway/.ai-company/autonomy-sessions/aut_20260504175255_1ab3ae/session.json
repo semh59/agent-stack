@@ -1,0 +1,175 @@
+{
+  "id": "aut_20260504175255_1ab3ae",
+  "objective": "Interrupt test",
+  "account": "test@loji.next",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "stopped",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-05-04T17:52:55.265Z",
+  "updatedAt": "2026-05-04T17:52:55.483Z",
+  "cycleCount": 1,
+  "maxCycles": 5,
+  "maxDurationMs": 30000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-45961e3b",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:55.483Z"
+    },
+    {
+      "id": "implementation-4424118c",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:55.265Z"
+    },
+    {
+      "id": "refactor-6dc2e77a",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:55.265Z"
+    },
+    {
+      "id": "test-fix-524a7b19",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:55.265Z"
+    },
+    {
+      "id": "verification-bb5dda2e",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:55.265Z"
+    },
+    {
+      "id": "finalize-1dda57cd",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:52:55.265Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 30000,
+      "maxInputTokens": 1000,
+      "maxOutputTokens": 1000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 215,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-05-04T17:52:55.269Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-05-04T17:52:55.265Z",
+      "taskId": "analysis-45961e3b"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-05-04T17:52:55.269Z",
+      "taskId": "analysis-45961e3b"
+    },
+    {
+      "cycle": 1,
+      "state": "stopped",
+      "note": "Immediate stop",
+      "timestamp": "2026-05-04T17:52:55.483Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260504175255_1ab3ae:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:55.272Z"
+    },
+    {
+      "operationId": "aut_20260504175255_1ab3ae:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "ok",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:52:55.480Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: analysis\n## Current Model\ngemini-3-pro-high\n\n## Objective\nInterrupt test\n\n## Gear\nfast\n",
+    "changeSummary": "ok",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": "Immediate stop",
+  "lastProgressAt": "2026-05-04T17:52:55.483Z"
+}

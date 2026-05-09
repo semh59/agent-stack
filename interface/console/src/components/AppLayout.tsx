@@ -14,6 +14,8 @@ import {
   Wifi,
   WifiOff,
   Layout,
+  Activity,
+  User,
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "../store/appStore";
@@ -22,6 +24,7 @@ import { useAlloyStore } from "../store/alloyStore";
 const navItems = [
   { icon: Layout,        label: "Projeler", path: "/projects" },
   { icon: MessageSquare, label: "Chat",     path: "/chat" },
+  { icon: Activity,      label: "Watchdog", path: "/metro" },
   { icon: Zap,           label: "Gorevler", path: "/dashboard" },
   { icon: Clock,         label: "Gecmis",   path: "/pipeline/history" },
   { icon: Settings,      label: "Ayarlar",  path: "/settings" },
@@ -39,6 +42,7 @@ export function AppLayout() {
     toggleTheme,
     wsTransportState,
     retryAutonomyTransport,
+    addAccount,
   } = useAppStore(
     useShallow((s) => ({
       sidebarOpen:            s.sidebarOpen,
@@ -48,6 +52,7 @@ export function AppLayout() {
       toggleTheme:            s.toggleTheme,
       wsTransportState:       s.wsTransportState,
       retryAutonomyTransport: s.retryAutonomyTransport,
+      addAccount:             s.addAccount,
     }))
   );
 
@@ -70,7 +75,7 @@ export function AppLayout() {
     return unsub;
   }, []);
 
-  const wsOnline = wsTransportState === "connected" || wsTransportState === "open";
+  const wsOnline = wsTransportState === "healthy";
   const currentNav = navItems.find((n) => location.pathname.startsWith(n.path));
   const initials = activeAccount
     ? activeAccount.split("@")[0].slice(0, 2).toUpperCase()
@@ -159,16 +164,25 @@ export function AppLayout() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[12px] font-medium text-[var(--color-alloy-text)]">
-                  {activeAccount || "Bagli degil"}
+                  {activeAccount ? activeAccount : <span className="italic text-[var(--color-alloy-text-dim)]">Giris Yok</span>}
                 </p>
-                <div className="flex items-center gap-1">
-                  {wsOnline
-                    ? <Wifi size={10} className="text-[var(--color-alloy-success)]" />
-                    : <WifiOff size={10} className="text-[var(--color-alloy-error)]" />}
-                  <span className="text-[11px] text-[var(--color-alloy-text-dim)]">
-                    {wsOnline ? "Bagli" : "Baglanti yok"}
-                  </span>
-                </div>
+                {activeAccount ? (
+                  <div className="flex items-center gap-1">
+                    {wsOnline
+                      ? <Wifi size={10} className="text-[var(--color-alloy-success)]" />
+                      : <WifiOff size={10} className="text-[var(--color-alloy-error)]" />}
+                    <span className="text-[11px] text-[var(--color-alloy-text-dim)]">
+                      {wsOnline ? "Bagli" : "Baglanti yok"}
+                    </span>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => void addAccount("google")}
+                    className="flex items-center gap-1 text-[11px] font-bold text-[var(--color-alloy-accent)] hover:underline"
+                  >
+                    Google ile Bagla
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -190,7 +204,7 @@ export function AppLayout() {
             <span className="text-sm font-semibold text-[var(--color-alloy-text)]">
               {currentNav ? t(currentNav.label) : "Konsol"}
             </span>
-            {wsTransportState === "error" && (
+            {wsTransportState === "fatal" && (
               <button
                 onClick={retryAutonomyTransport}
                 className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"

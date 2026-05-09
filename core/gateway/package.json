@@ -58,6 +58,8 @@
         "agent:export-keys": "npx tsx scripts/manage-keys.ts export-keys",
         "agent:import-keys": "npx tsx scripts/manage-keys.ts import-keys",
         "gateway:start": "npx tsx scripts/start-gateway.ts",
+        "bridge:start": "python ../bridge/bridge.py --port 9100",
+        "bridge:stub": "python ../bridge/stub_bridge.py --port 9100",
         "gateway:token:generate": "npx tsx scripts/gateway-token.ts generate",
         "gateway:token:rotate": "npx tsx scripts/gateway-token.ts rotate",
         "verify:phase3": "npx tsx scripts/verify-phase3.ts",

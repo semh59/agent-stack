@@ -329,9 +329,17 @@ export async function exchangeGoogleGemini(
       redirect_uri: ALLOY_REDIRECT_URI,
       code_verifier: verifier,
     };
-    if (ALLOY_CLIENT_SECRET) {
-      bodyParams.client_secret = ALLOY_CLIENT_SECRET;
-    }
+    bodyParams.client_secret = ALLOY_CLIENT_SECRET;
+
+    const requestParams = new URLSearchParams(bodyParams);
+    console.log('[OAuth] Token Exchange Request:', {
+      url: "https://oauth2.googleapis.com/token",
+      method: "POST",
+      bodyKeys: Array.from(requestParams.keys()),
+      clientId: ALLOY_CLIENT_ID.slice(0, 20) + "...",
+      clientSecretProvided: !!ALLOY_CLIENT_SECRET,
+      clientSecretLength: ALLOY_CLIENT_SECRET.length,
+    });
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -342,11 +350,12 @@ export async function exchangeGoogleGemini(
         "User-Agent": GEMINI_CLI_HEADERS["User-Agent"],
         "X-Goog-Api-Client": GEMINI_CLI_HEADERS["X-Goog-Api-Client"],
       },
-      body: new URLSearchParams(bodyParams),
+      body: requestParams,
     });
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
+      console.error('[OAuth] Token Exchange Failed:', errorText);
       return { type: "failed", error: errorText };
     }
 

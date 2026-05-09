@@ -130,12 +130,17 @@ export function ensureGitignoreSync(configDir: string): void {
   }
 }
 
-export type ModelFamily = "claude" | "gemini";
+export type ModelFamily = "claude" | "gemini" | "sambanova" | "groq" | "together" | "fireworks" | "ollama";
 export type { HeaderStyle };
 
 export interface RateLimitState {
   claude?: number;
   gemini?: number;
+  sambanova?: number;
+  groq?: number;
+  together?: number;
+  fireworks?: number;
+  ollama?: number;
 }
 
 export interface RateLimitStateV3 {
@@ -207,10 +212,15 @@ export interface AccountStorageV3 {
   version: 3;
   accounts: AccountMetadataV3[];
   activeIndex: number;
-  activeIndexByFamily?: {
-    claude?: number;
-    gemini?: number;
-  };
+    activeIndexByFamily?: {
+      claude?: number;
+      gemini?: number;
+      sambanova?: number;
+      groq?: number;
+      together?: number;
+      fireworks?: number;
+      ollama?: number;
+    };
 }
 
 type AnyAccountStorage = AccountStorageV1 | AccountStorage | AccountStorageV3;

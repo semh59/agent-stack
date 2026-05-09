@@ -1,0 +1,373 @@
+{
+  "id": "aut_20260504175150_5ab9f1",
+  "objective": "failing gate test",
+  "account": "user@example.com",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "failed",
+  "reviewAfterPlan": false,
+  "currentModel": "gpt-4o-mini",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-05-04T17:51:50.850Z",
+  "updatedAt": "2026-05-04T17:51:50.925Z",
+  "cycleCount": 4,
+  "maxCycles": 10,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-f1ccab22",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:50.867Z"
+    },
+    {
+      "id": "implementation-d9ea5586",
+      "type": "implementation",
+      "status": "failed",
+      "attempts": 3,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:50.919Z",
+      "lastError": "FAIL"
+    },
+    {
+      "id": "refactor-64563721",
+      "type": "refactor",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:50.885Z"
+    },
+    {
+      "id": "test-fix-47299d8a",
+      "type": "test-fix",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:50.885Z"
+    },
+    {
+      "id": "verification-89296eb5",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:50.850Z"
+    },
+    {
+      "id": "finalize-a8624062",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:50.850Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 10,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 1
+    },
+    "usage": {
+      "cyclesUsed": 4,
+      "durationMsUsed": 66,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 3,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [
+    "src/dummy.ts"
+  ],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-05-04T17:51:50.854Z"
+    },
+    {
+      "selectedModel": "gemini-3-flash",
+      "previousModel": "gemini-3-pro-high",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "ROUTER_POLICY",
+      "switched": true,
+      "timestamp": "2026-05-04T17:51:50.871Z"
+    },
+    {
+      "selectedModel": "claude-3-haiku",
+      "previousModel": "gemini-3-flash",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "QUALITY_FAIL_RECOVERY",
+      "switched": true,
+      "timestamp": "2026-05-04T17:51:50.892Z"
+    },
+    {
+      "selectedModel": "gpt-4o-mini",
+      "previousModel": "claude-3-haiku",
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "QUALITY_FAIL_RECOVERY",
+      "switched": true,
+      "timestamp": "2026-05-04T17:51:50.910Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-05-04T17:51:50.851Z",
+      "taskId": "analysis-f1ccab22"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-05-04T17:51:50.854Z",
+      "taskId": "analysis-f1ccab22"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-05-04T17:51:50.863Z",
+      "taskId": "analysis-f1ccab22"
+    },
+    {
+      "cycle": 2,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-05-04T17:51:50.867Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 2,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-05-04T17:51:50.871Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 2,
+      "state": "verify",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-05-04T17:51:50.881Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 2,
+      "state": "retry",
+      "note": "Gate fail 1/3: FAIL",
+      "timestamp": "2026-05-04T17:51:50.885Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 3,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-05-04T17:51:50.888Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 3,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-05-04T17:51:50.892Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 3,
+      "state": "verify",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-05-04T17:51:50.900Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 3,
+      "state": "retry",
+      "note": "Gate fail 2/3: FAIL",
+      "timestamp": "2026-05-04T17:51:50.903Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 4,
+      "state": "plan",
+      "note": "Planning implementation task",
+      "timestamp": "2026-05-04T17:51:50.906Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 4,
+      "state": "execute",
+      "note": "Executing implementation",
+      "timestamp": "2026-05-04T17:51:50.910Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 4,
+      "state": "verify",
+      "note": "Running modular quality gates",
+      "timestamp": "2026-05-04T17:51:50.919Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 4,
+      "state": "retry",
+      "note": "Gate fail 3/3: FAIL",
+      "timestamp": "2026-05-04T17:51:50.922Z",
+      "taskId": "implementation-d9ea5586"
+    },
+    {
+      "cycle": 4,
+      "state": "failed",
+      "note": "Gate failed three consecutive cycles: FAIL",
+      "timestamp": "2026-05-04T17:51:50.925Z",
+      "taskId": null
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260504175150_5ab9f1:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:50.857Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "ran analysis",
+      "touchedFiles": [
+        "src/dummy.ts"
+      ],
+      "timestamp": "2026-05-04T17:51:50.859Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:50.875Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:implementation:2",
+      "cycle": 2,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "ran implementation",
+      "touchedFiles": [
+        "src/dummy.ts"
+      ],
+      "timestamp": "2026-05-04T17:51:50.878Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:implementation:3",
+      "cycle": 3,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:50.895Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:implementation:3",
+      "cycle": 3,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "ran implementation",
+      "touchedFiles": [
+        "src/dummy.ts"
+      ],
+      "timestamp": "2026-05-04T17:51:50.898Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:implementation:4",
+      "cycle": 4,
+      "taskType": "implementation",
+      "status": "started",
+      "summary": "Executing implementation",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:50.913Z"
+    },
+    {
+      "operationId": "aut_20260504175150_5ab9f1:implementation:4",
+      "cycle": 4,
+      "taskType": "implementation",
+      "status": "completed",
+      "summary": "ran implementation",
+      "touchedFiles": [
+        "src/dummy.ts"
+      ],
+      "timestamp": "2026-05-04T17:51:50.916Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: implementation\n## Current Model\ngpt-4o-mini\n\n## Objective\nfailing gate test\n\n## Gear\nfast\n",
+    "changeSummary": "ran implementation",
+    "nextActionReason": "Task analysis completed",
+    "gateResult": {
+      "passed": false,
+      "strictMode": true,
+      "blockingIssues": [
+        "FAIL"
+      ],
+      "auditSummary": {
+        "critical": 0,
+        "high": 0,
+        "moderate": 0,
+        "low": 0,
+        "total": 0
+      },
+      "impactedScopes": [
+        "root"
+      ],
+      "commands": [],
+      "timestamp": "2026-05-04T17:51:50.922Z"
+    },
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": "Gate failed three consecutive cycles: FAIL",
+  "stopReason": null,
+  "lastProgressAt": "2026-05-04T17:51:50.925Z"
+}

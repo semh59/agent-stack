@@ -1,0 +1,175 @@
+{
+  "id": "aut_20260504175107_bed02a",
+  "objective": "fail_test",
+  "account": "test",
+  "anchorModel": "gemini-3-pro-high",
+  "modelPolicy": "smart_multi",
+  "gitMode": "patch_only",
+  "startMode": "immediate",
+  "scope": {
+    "mode": "selected_only",
+    "paths": [
+      "src"
+    ]
+  },
+  "strictMode": true,
+  "state": "verify",
+  "reviewAfterPlan": false,
+  "currentModel": "gemini-3-pro-high",
+  "currentGear": "fast",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-05-04T17:51:07.323Z",
+  "updatedAt": "2026-05-04T17:51:07.374Z",
+  "cycleCount": 1,
+  "maxCycles": 5,
+  "maxDurationMs": 60000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-5beb0828",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.374Z"
+    },
+    {
+      "id": "implementation-6d74e384",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.323Z"
+    },
+    {
+      "id": "refactor-0eb20fba",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.323Z"
+    },
+    {
+      "id": "test-fix-b90b9e27",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.323Z"
+    },
+    {
+      "id": "verification-a59f0374",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.323Z"
+    },
+    {
+      "id": "finalize-ba232ef0",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.339Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 5,
+      "maxDurationMs": 60000,
+      "maxInputTokens": 100000,
+      "maxOutputTokens": 50000,
+      "maxTPM": 10000,
+      "maxRPD": 100,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 47,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "gemini-3-pro-high",
+      "previousModel": null,
+      "anchorModel": "gemini-3-pro-high",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-05-04T17:51:07.360Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-05-04T17:51:07.354Z",
+      "taskId": "analysis-5beb0828"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-05-04T17:51:07.360Z",
+      "taskId": "analysis-5beb0828"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-05-04T17:51:07.374Z",
+      "taskId": "analysis-5beb0828"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260504175107_bed02a:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:07.367Z"
+    },
+    {
+      "operationId": "aut_20260504175107_bed02a:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "Task analysis completed with default executor",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:07.370Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: analysis\n## Current Model\ngemini-3-pro-high\n\n## Objective\nfail_test\n\n## Gear\nfast\n",
+    "changeSummary": "Task analysis completed with default executor",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-05-04T17:51:07.374Z"
+}

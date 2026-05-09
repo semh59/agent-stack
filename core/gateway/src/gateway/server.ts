@@ -552,18 +552,17 @@ export class GatewayServer {
       // ── Start Metro Watchdog ──
       const bridgeUrl = process.env.ALLOY_BRIDGE_URL ?? "http://127.0.0.1:9100";
       const bridgeSecret = process.env.ALLOY_BRIDGE_SECRET ?? "";
-      if (bridgeSecret) {
-        this.metroWatchdog = new MetroWatchdog({
-          bridgeUrl,
-          bridgeSecret,
-          pollIntervalMs: 10_000,
-          downThreshold: 3,
-          degradedLatencyMs: 2_000,
-          getSseConnectionCount,
-        });
-        this.metroWatchdog.start();
-      } else {
-        this.app.log.warn("[Gateway] Metro Watchdog disabled — ALLOY_BRIDGE_SECRET not set");
+      this.metroWatchdog = new MetroWatchdog({
+        bridgeUrl,
+        bridgeSecret,
+        pollIntervalMs: 10_000,
+        downThreshold: 3,
+        degradedLatencyMs: 2_000,
+        getSseConnectionCount,
+      });
+      this.metroWatchdog.start();
+      if (!bridgeSecret) {
+        this.app.log.warn("[Gateway] Metro Watchdog: ALLOY_BRIDGE_SECRET not set, some bridge features may fail.");
       }
 
       // Handle graceful shutdown signals

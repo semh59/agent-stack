@@ -1,0 +1,170 @@
+{
+  "id": "aut_20260504175107_f82bd7",
+  "objective": "test",
+  "account": "test@domain.com",
+  "anchorModel": "claude-3-5-sonnet-20241022",
+  "modelPolicy": "cost-optimized",
+  "gitMode": "isolate",
+  "startMode": "immediate",
+  "scope": "project",
+  "strictMode": true,
+  "state": "verify",
+  "reviewAfterPlan": false,
+  "currentModel": "claude-3-5-sonnet-20241022",
+  "currentGear": "standard",
+  "reviewStatus": "none",
+  "reviewUpdatedAt": null,
+  "createdAt": "2026-05-04T17:51:07.313Z",
+  "updatedAt": "2026-05-04T17:51:07.373Z",
+  "cycleCount": 1,
+  "maxCycles": 12,
+  "maxDurationMs": 2700000,
+  "queuePosition": null,
+  "taskGraph": [
+    {
+      "id": "analysis-fe02f05b",
+      "type": "analysis",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.373Z"
+    },
+    {
+      "id": "implementation-68551b81",
+      "type": "implementation",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.315Z"
+    },
+    {
+      "id": "refactor-3e6996db",
+      "type": "refactor",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.315Z"
+    },
+    {
+      "id": "test-fix-1f068657",
+      "type": "test-fix",
+      "status": "skipped",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.315Z"
+    },
+    {
+      "id": "verification-8a30fa4a",
+      "type": "verification",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.315Z"
+    },
+    {
+      "id": "finalize-2402e6d4",
+      "type": "finalize",
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 3,
+      "updatedAt": "2026-05-04T17:51:07.315Z"
+    }
+  ],
+  "budgets": {
+    "limits": {
+      "maxCycles": 12,
+      "maxDurationMs": 2700000,
+      "maxInputTokens": 2000000,
+      "maxOutputTokens": 400000,
+      "maxTPM": 1000000,
+      "maxRPD": 5000,
+      "maxUsd": 0
+    },
+    "usage": {
+      "cyclesUsed": 1,
+      "durationMsUsed": 57,
+      "inputTokensUsed": 0,
+      "outputTokensUsed": 0,
+      "currentTPM": 0,
+      "requestsUsed": 0,
+      "usdUsed": 0,
+      "reservedTPM": 0,
+      "reservedRequests": 0,
+      "cachedInputTokensUsed": 0
+    },
+    "warning": false,
+    "warningReason": null,
+    "exceeded": false,
+    "exceedReason": null
+  },
+  "consecutiveGateFailures": 0,
+  "branchName": null,
+  "baseBranch": null,
+  "commitHash": null,
+  "touchedFiles": [],
+  "baselineDirtyFiles": [],
+  "modelHistory": [
+    {
+      "selectedModel": "claude-3-5-sonnet-20241022",
+      "previousModel": null,
+      "anchorModel": "claude-3-5-sonnet-20241022",
+      "reasonCode": "INITIAL",
+      "switched": false,
+      "timestamp": "2026-05-04T17:51:07.358Z"
+    }
+  ],
+  "timeline": [
+    {
+      "cycle": 1,
+      "state": "plan",
+      "note": "Planning analysis task",
+      "timestamp": "2026-05-04T17:51:07.354Z",
+      "taskId": "analysis-fe02f05b"
+    },
+    {
+      "cycle": 1,
+      "state": "execute",
+      "note": "Executing analysis",
+      "timestamp": "2026-05-04T17:51:07.359Z",
+      "taskId": "analysis-fe02f05b"
+    },
+    {
+      "cycle": 1,
+      "state": "verify",
+      "note": "Bypassing quality gates for analysis (No files changed)",
+      "timestamp": "2026-05-04T17:51:07.373Z",
+      "taskId": "analysis-fe02f05b"
+    }
+  ],
+  "opLog": [
+    {
+      "operationId": "aut_20260504175107_f82bd7:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "started",
+      "summary": "Executing analysis",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:07.367Z"
+    },
+    {
+      "operationId": "aut_20260504175107_f82bd7:analysis:1",
+      "cycle": 1,
+      "taskType": "analysis",
+      "status": "completed",
+      "summary": "Task analysis completed with default executor",
+      "touchedFiles": [],
+      "timestamp": "2026-05-04T17:51:07.370Z"
+    }
+  ],
+  "artifacts": {
+    "plan": "# Plan: analysis\n## Current Model\nclaude-3-5-sonnet-20241022\n\n## Objective\ntest\n\n## Gear\nstandard\n",
+    "changeSummary": "Task analysis completed with default executor",
+    "nextActionReason": "Initialized",
+    "gateResult": null,
+    "rawResponses": [],
+    "contextPack": ""
+  },
+  "error": null,
+  "stopReason": null,
+  "lastProgressAt": "2026-05-04T17:51:07.373Z"
+}

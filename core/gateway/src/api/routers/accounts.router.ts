@@ -31,6 +31,7 @@ export function registerAccountsRoutes(
           email: t.email ?? '',
           expiresAt: t.expiresAt,
           isValid: (t.expiresAt > now) || (!!t.refreshToken),
+          provider: t.provider === "claude_code" ? "anthropic" : "google",
         })),
         { page, limit, total, totalPages: Math.ceil(total / limit) },
       );

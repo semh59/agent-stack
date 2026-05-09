@@ -1,5 +1,5 @@
 import { RotateCcw } from "lucide-react";
-import { useAlloyStore } from "../../../../store/alloyStore";
+import { useAlloyStore } from "../../../store/alloyStore";
 
 export function CostFooter() {
   const { sessionTokens, sessionCostUsd, clearSessionCost } = useAlloyStore();

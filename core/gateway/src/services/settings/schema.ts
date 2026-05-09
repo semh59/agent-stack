@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Alloy settings schema.
  *
  * This is the single source of truth for every knob the console exposes.
@@ -59,6 +59,7 @@ const ollamaProvider = z.object({
   enabled: z.boolean().default(true),
   base_url: endpointString().default("http://127.0.0.1:11434"),
   default_model: z.string().default("qwen2.5:7b"),
+  models: z.array(z.string()).default([]),
   timeout_s: z.number().int().positive().max(600).default(60),
 });
 
@@ -103,6 +104,13 @@ const azureProvider = z.object({
   deployment: z.string().optional(),
 });
 
+const genericKeyProvider = z.object({
+  enabled: z.boolean().default(false),
+  api_key: secret().nullish(),
+  default_model: z.string().optional(),
+  models: z.array(z.string()).default([]),
+});
+
 export const providersSchema = z.object({
   ollama: ollamaProvider.default(ollamaProvider.parse({})),
   openrouter: openRouterProvider.default(openRouterProvider.parse({})),
@@ -111,6 +119,10 @@ export const providersSchema = z.object({
   google: googleProvider.default(googleProvider.parse({})),
   lmstudio: lmStudioProvider.default(lmStudioProvider.parse({})),
   azure: azureProvider.default(azureProvider.parse({})),
+  sambanova: genericKeyProvider.default(genericKeyProvider.parse({})),
+  groq: genericKeyProvider.default(genericKeyProvider.parse({})),
+  together: genericKeyProvider.default(genericKeyProvider.parse({})),
+  fireworks: genericKeyProvider.default(genericKeyProvider.parse({})),
 });
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -393,6 +405,10 @@ export const SECRET_PATHS = [
   "providers.anthropic.api_key",
   "providers.openai.api_key",
   "providers.azure.api_key",
+  "providers.sambanova.api_key",
+  "providers.groq.api_key",
+  "providers.together.api_key",
+  "providers.fireworks.api_key",
 ] as const;
 
 export type SecretPath = (typeof SECRET_PATHS)[number];

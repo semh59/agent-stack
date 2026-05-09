@@ -27,7 +27,7 @@ import {
 export { PlanMode };
 export type { AgentResult, PipelineResult };
 import { CircuitBreaker } from "./pipeline/CircuitBreaker";
-import { GeminiProvider, AnthropicProvider, OpenAIProvider, SpeculativeProvider } from "./pipeline/LLMProviders";
+import { GeminiProvider, AnthropicProvider, OpenAIProvider, SpeculativeProvider, OllamaProvider } from "./pipeline/LLMProviders";
 import type { ILLMProvider } from "./pipeline/ILLMProvider";
 import { AgentExecutor } from "./pipeline/AgentExecutor";
 import { DependencyGraph } from "./DependencyGraph";
@@ -159,6 +159,7 @@ export class SequentialPipeline {
     this.providers.set("anthropic", new AnthropicProvider());
     this.providers.set("openai", new OpenAIProvider());
     this.providers.set("speculative", new SpeculativeProvider(`http://${overrides.optimizer?.['config']?.bridgeHost ?? '127.0.0.1'}:9100`));
+    this.providers.set("ollama", new OllamaProvider());
     
     // Phase 4 Services
     this.timeline = new TimelineAggregator(projectRoot, this.sessionId);
@@ -585,6 +586,7 @@ export class SequentialPipeline {
   private detectProvider(model: string): string {
     const lower = model.toLowerCase();
     if (lower === 'speculative') return 'speculative';
+    if (lower.startsWith("ollama/") || lower.includes("gemma") || lower.includes("llama") || lower.includes("mistral")) return 'ollama';
     if (lower.includes('claude') || lower.includes('opus') || lower.includes('sonnet') || lower.includes('anthropic')) return 'anthropic';
     if (lower.includes('gpt') || lower.includes('o1') || lower.includes('o3') || lower.includes('openai')) return 'openai';
     return 'gemini'; // default: gemini

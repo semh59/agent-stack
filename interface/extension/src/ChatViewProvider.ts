@@ -746,18 +746,44 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
    * instead of { type: "accounts", accounts: [...] }
    */
   private _sendAccounts() {
-    if (this._accountManager) {
-      const snap = this._accountManager.getAccountsSnapshot();
-      this._postMessage({
-        type: "accounts",
-        payload: snap.map(acc => ({
-          email: acc.email ?? 'unknown',
-          expiresAt: acc.expires ?? 0,
-          isValid: acc.enabled !== false,
-          status: acc.enabled ? 'active' : 'error',
-        }))
+    const token = this._gatewayAuthToken;
+    const baseUrl = this._resolveGatewayHttpBase();
+
+    // Fetch accounts from gateway API (TokenStore) — the source of truth
+    fetch(`${baseUrl}/api/accounts`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      signal: AbortSignal.timeout(5_000),
+    })
+      .then(r => r.json())
+      .then((data: any) => {
+        const raw = Array.isArray(data?.data) ? data.data : [];
+        this._postMessage({
+          type: "accounts",
+          payload: raw.map((a: any) => ({
+            email: a.email ?? "unknown",
+            expiresAt: a.expiresAt ?? 0,
+            isValid: a.isValid ?? false,
+            status: a.isValid ? "active" : "error",
+            provider: a.provider ?? "google",
+          })),
+        });
+      })
+      .catch(() => {
+        // Fallback: try AccountManager if gateway is unreachable
+        if (this._accountManager) {
+          const snap = this._accountManager.getAccountsSnapshot();
+          this._postMessage({
+            type: "accounts",
+            payload: snap.map(acc => ({
+              email: acc.email ?? "unknown",
+              expiresAt: acc.expires ?? 0,
+              isValid: acc.enabled !== false,
+              status: acc.enabled ? "active" : "error",
+              provider: "google",
+            })),
+          });
+        }
       });
-    }
   }
 
   private _sendModels() {
@@ -872,19 +898,34 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async _handleRemoveAccount(payload: unknown): Promise<void> {
-    if (!this._accountManager) return;
     const email = typeof payload === "string" ? payload : "";
     if (!email) return;
 
-    const deleted = this._accountManager.removeAccountByEmail(email);
-    if (deleted) {
-      await this._accountManager.saveToDisk();
-      this._sendAccounts();
-      this._postMessage({ type: "system", value: `Account removed: ${email}` });
-      return;
-    }
+    const token = this._gatewayAuthToken;
+    const baseUrl = this._resolveGatewayHttpBase();
 
-    this._postMessage({ type: "error", value: `Account not found: ${email}` });
+    try {
+      // Use gateway API to remove account from TokenStore + AccountManager
+      const response = await fetch(
+        `${baseUrl}/api/accounts/${encodeURIComponent(email)}`,
+        {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          signal: AbortSignal.timeout(10_000),
+        },
+      );
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Remove failed (${response.status}): ${body}`);
+      }
+
+      this._sendAccounts();
+      this._postMessage({ type: "system", value: `Hesap silindi: ${email}` });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this._postMessage({ type: "error", value: `Hesap silinemedi: ${errorMessage}` });
+    }
   }
 
   private async _handleStartAutonomy(payload: unknown): Promise<void> {

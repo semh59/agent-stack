@@ -600,7 +600,22 @@ class OptimizationPipeline:
         except Exception:
             status["ollama"] = "unreachable"
 
-        status["openrouter"] = "configured" if self.settings.openrouter_api_key else "no_key"
+        status["openrouter"] = "configured" if self.settings.openrouter_api_key else "standby"
+        
+        # Check Google Gemini (if configured or enabled)
+        try:
+            # We just do a small network check or check if key is likely present in settings
+            # In multi-tenant environments, the key might be in the request, but local dev
+            # usually has a default key if any.
+            if hasattr(self.settings, "google_api_key") and self.settings.google_api_key:
+                status["google_gemini"] = "ok"
+            else:
+                # If managed by gateway tokens, bridge might not see the key here.
+                # We report "external_managed" to signify it's handled by Gateway.
+                status["google_gemini"] = "external_managed"
+        except Exception:
+            status["google_gemini"] = "unknown"
+
         status["exact_cache"] = "ok" if self.exact_cache else "unavailable"
         status["semantic_cache"] = "ok" if self.semantic_cache else "unavailable"
         status["rag"] = "ok" if self.rag_indexer else "unavailable"

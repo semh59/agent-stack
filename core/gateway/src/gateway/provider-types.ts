@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Provider Types â€” Unified interface for all AI providers.
  *
  * Both Google Alloy and Claude Code auth flows produce
@@ -11,6 +11,10 @@
 export const AIProvider = {
   GOOGLE_GEMINI: "google_gemini",
   CLAUDE_CODE: "claude_code",
+  SAMBANOVA: "sambanova",
+  GROQ: "groq",
+  TOGETHER: "together",
+  FIREWORKS: "fireworks",
 } as const;
 
 export type AIProvider = (typeof AIProvider)[keyof typeof AIProvider];
@@ -169,13 +173,46 @@ export const CLAUDE_CODE_MODELS: ProviderModel[] = [
   },
 ];
 
+export const SAMBANOVA_MODELS: ProviderModel[] = [
+  {
+    id: "sambanova/Meta-Llama-3.1-70B-Instruct",
+    name: "Llama 3.1 70B (SambaNova)",
+    provider: AIProvider.SAMBANOVA,
+    maxTokens: 64_000,
+    supportsStreaming: true,
+    supportsThinking: false,
+    costPer1kInput: 0.0,
+    costPer1kOutput: 0.0,
+    tier: "fast",
+  },
+];
+
+export const GROQ_MODELS: ProviderModel[] = [
+  {
+    id: "groq/llama-3.1-70b-versatile",
+    name: "Llama 3.1 70B (Groq)",
+    provider: AIProvider.GROQ,
+    maxTokens: 32_768,
+    supportsStreaming: true,
+    supportsThinking: false,
+    costPer1kInput: 0.0,
+    costPer1kOutput: 0.0,
+    tier: "fast",
+  },
+];
+
 /** Cached model list (hot path — called by ModelRouter on every route) */
 let _allModelsCache: ProviderModel[] | null = null;
 
 /** Get all models across all providers (memoized). Call invalidateModelCache() after dynamic changes. */
 export function getAllModels(): ProviderModel[] {
   if (!_allModelsCache) {
-    _allModelsCache = [...GOOGLE_GEMINI_MODELS, ...CLAUDE_CODE_MODELS];
+    _allModelsCache = [
+      ...GOOGLE_GEMINI_MODELS,
+      ...CLAUDE_CODE_MODELS,
+      ...SAMBANOVA_MODELS,
+      ...GROQ_MODELS,
+    ];
   }
   return _allModelsCache;
 }
@@ -189,6 +226,8 @@ export function invalidateModelCache(): void {
 export function getModelsByProvider(provider: AIProvider): ProviderModel[] {
   if (provider === AIProvider.GOOGLE_GEMINI) return [...GOOGLE_GEMINI_MODELS];
   if (provider === AIProvider.CLAUDE_CODE) return [...CLAUDE_CODE_MODELS];
+  if (provider === AIProvider.SAMBANOVA) return [...SAMBANOVA_MODELS];
+  if (provider === AIProvider.GROQ) return [...GROQ_MODELS];
   return [];
 }
 

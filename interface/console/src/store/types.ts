@@ -2,6 +2,7 @@ export interface GoogleAccount {
   email: string;
   expiresAt: number;
   isValid: boolean;
+  provider?: "google" | "anthropic" | "other";
   status?: "active" | "warning" | "error" | "expired";
 }
 

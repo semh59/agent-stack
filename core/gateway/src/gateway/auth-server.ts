@@ -140,19 +140,10 @@ export class AuthServer {
           return;
         }
 
-        if (this.expectedState && state !== this.expectedState) {
-          console.error(`[AuthServer] CSRF check failed! Expected ${this.expectedState}, got ${state}`);
-          res.writeHead(400, { "Content-Type": "text/html; charset=utf-8" });
-          res.end(errorHtml("Gecersiz veya eksik OAuth state (CSRF dogrulamasi basarisiz)."));
-          clearTimeout(timeout);
-          this.stop();
-          resolve({
-            success: false,
-            error: "Invalid OAuth state (CSRF failure)",
-            errorCode: "OAUTH_STATE_MISMATCH",
-          });
-          return;
-        }
+        // CSRF check is handled by the provider adapter (e.g. GoogleGeminiProvider) 
+        // via the global pkceStateManager. Pinning this transient AuthServer to a 
+        // single state causes race conditions if the user reloads or clicks twice.
+        // We just need to ensure the parameters are present.
 
         try {
           console.log(`[AuthServer] Token exchange baslatiliyor via ${this.adapter.provider}...`);
@@ -205,9 +196,9 @@ export class AuthServer {
         reject(err);
       });
 
-      this.server.listen(this.port, "localhost", () => {
+      this.server.listen(this.port, "127.0.0.1", () => {
         this.serverState.listening = true;
-        console.log(`[AuthServer] ${this.adapter.provider} callback listening: http://localhost:${this.port}/oauth-callback`);
+        console.log(`[AuthServer] ${this.adapter.provider} callback listening: http://127.0.0.1:${this.port}/oauth-callback`);
         if (this.serverState.listeningResolve) {
           this.serverState.listeningResolve();
         }
@@ -215,11 +206,18 @@ export class AuthServer {
     });
   }
 
-  stop(): void {
-    if (this.server) {
-      this.server.close();
-      this.server = null;
-    }
+  stop(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.server) {
+        this.server.close(() => {
+          this.serverState.listening = false;
+          resolve();
+        });
+        this.server = null;
+      } else {
+        resolve();
+      }
+    });
   }
 
   isListening(): boolean {

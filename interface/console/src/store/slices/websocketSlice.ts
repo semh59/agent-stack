@@ -229,7 +229,7 @@ function applySnapshotPayload(
   snapshotMetaBySession[sessionId] = normalizeSnapshotMeta(payload.snapshotMeta);
 
   const queue = normalizeQueue(payload.queue);
-  const sessionOrder = [sessionId, ...state.sessionOrder.filter((id) => id !== sessionId)];
+  const sessionOrder = [sessionId, ...state.sessionOrder.filter((id: string) => id !== sessionId)];
   const selectedId = state.activeSessionId ?? state.autonomySessionId ?? sessionId;
   const derived = withSelectedSessionDerived(
     {
@@ -686,7 +686,7 @@ function handleQueueEvent(payload: Record<string, unknown>, set: (fn: (state: Ap
         sessionsById[item.sessionId],
       );
     }
-    const sessionOrder = [...new Set([...queue.map((item) => item.sessionId), ...state.sessionOrder])];
+    const sessionOrder = [...new Set([...queue.map((item: any) => item.sessionId), ...state.sessionOrder])];
     const selectedId = state.activeSessionId ?? state.autonomySessionId ?? queue[0]?.sessionId ?? null;
     const derived = withSelectedSessionDerived({ ...state, sessionsById, sessionOrder, queue }, selectedId);
 
