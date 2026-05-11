@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { ChatMessage } from "@/store/chatStore";
+import { CodeBlock } from "@alloy/ui-core";
 
 interface Props { message: ChatMessage; }
 
@@ -76,12 +77,7 @@ function parseMarkdown(raw: string): React.ReactNode[] {
       const code = m ? m[2].trimEnd() : part.slice(3, -3);
       const lang = m ? m[1] : "";
       blocks.push(
-        <div key={pi} style={{ margin:"6px 0", borderRadius:6, overflow:"hidden", border:"1px solid var(--a-border)", background:"var(--a-bg3)" }}>
-          {lang && (
-            <div style={{ padding:"3px 10px", fontSize:10, color:"var(--a-text3)", borderBottom:"1px solid var(--a-border)", fontFamily:"monospace" }}>{lang}</div>
-          )}
-          <pre style={{ margin:0, padding:"10px", fontSize:12, fontFamily:"var(--vscode-editor-font-family, monospace)", overflowX:"auto", lineHeight:1.5, color:"var(--a-text)" }}>{code}</pre>
-        </div>
+        <CodeBlock key={pi} code={code} language={lang} />
       );
       return;
     }

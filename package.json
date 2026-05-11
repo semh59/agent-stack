@@ -6,7 +6,9 @@
   "workspaces": [
     "core/gateway",
     "interface/console",
-    "interface/extension"
+    "interface/extension",
+    "interface/extension/webview-ui",
+    "interface/ui-core"
   ],
   "scripts": {
     "test": "npm run test:ts && npm run test:py",

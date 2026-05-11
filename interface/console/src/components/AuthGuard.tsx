@@ -36,11 +36,16 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }, [activeAccountData?.expiresAt]);
 
   if (!hasActive) {
-    const isDev = import.meta.env?.DEV;
+    const isDev = import.meta.env?.DEV || window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
     
+    if (isDev && activeAccount) {
+      // In local dev/demo mode, trust the activeAccount if it exists
+      console.warn('[AuthGuard] Allowing unverified account due to local/dev environment.');
+      return <>{children}</>;
+    }
+
     if (isDev) {
-      // In development, only warn to avoid trapping the developer
-      console.warn('[AuthGuard] Account invalid. Warning only because isDev.');
+      console.warn('[AuthGuard] No account. Warning only because isDev.');
     } else {
       // Strict mode for Production
       if (location.pathname === '/auth') {

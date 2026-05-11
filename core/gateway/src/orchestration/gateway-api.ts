@@ -19,7 +19,6 @@ const MOCK_LATENCY_HEADER = "x-alloy-mock-latency-ms";
 
 export class AlloyAPI {
   // Static state for rate limiting and failure tracking
-  // These are now initialized inline to avoid TypeScript initialization issues
   private static rateLimitStateByAccountQuota = new Map<string, unknown>();
   private static failureStateCountByEmail = new Map<string, number>();
 
@@ -60,11 +59,10 @@ export class AlloyAPI {
       const response = await this.nativeFetch(input, requestInit);
 
       if (response.ok) {
-        const am = this.accountManager as Record<string, unknown> | null | undefined;
+        const am = this.accountManager as any;
         if (am?.markAccountUsed) {
-           const getCurrentForFamily = am.getCurrentAccountForFamily as ((f: string) => Record<string, unknown> | null) | undefined;
-           const active = getCurrentForFamily?.(family);
-           if (active) (am.markAccountUsed as (idx: unknown) => void)(active.index);
+           const active = am.getCurrentAccountForFamily?.(family);
+           if (active) am.markAccountUsed(active.index);
         }
         return response;
       }
@@ -78,12 +76,11 @@ export class AlloyAPI {
         const reason = parseRateLimitReason(bodyInfo.reason, bodyInfo.message, response.status);
 
         // Strategy: Rotation over same-account retry
-        const am = this.accountManager as Record<string, unknown> | null | undefined;
+        const am = this.accountManager as any;
         if (am?.getCurrentOrNextForFamily) {
-          const getCurrentForFamily = am.getCurrentAccountForFamily as ((f: string) => Record<string, unknown> | null) | undefined;
-          const current = getCurrentForFamily ? getCurrentForFamily(family) : null;
+          const current = am.getCurrentAccountForFamily ? am.getCurrentAccountForFamily(family) : null;
           if (current) {
-            (am.markRateLimited as (a: unknown, ms: number, f: string, s: string, m: string | null) => void)(
+            am.markRateLimited(
               current,
               retryAfterMs ?? DEFAULT_RATE_LIMIT_COOLDOWN_MS,
               family,
@@ -92,8 +89,7 @@ export class AlloyAPI {
             );
           }
 
-          const getCurrentOrNext = am.getCurrentOrNextForFamily as (f: string, m: string | null, s: string, h: string) => Record<string, unknown> | null;
-          const next = getCurrentOrNext(family, model, "round-robin", headerStyle);
+          const next = am.getCurrentOrNextForFamily(family, model, "round-robin", headerStyle);
           const nextAccessToken = getAccountAccessToken(next);
           const currentIndex = current ? (current.index as number | undefined) : undefined;
           const nextIndex = next ? (next.index as number | undefined) : undefined;

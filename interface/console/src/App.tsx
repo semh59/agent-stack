@@ -20,6 +20,14 @@ import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { readGatewayToken } from './store/helpers';
 
+import { EnvironmentProvider, TransportProvider } from '@alloy/ui-core';
+
+const consoleAdapter = {
+  get: async (endpoint: string) => fetch(endpoint).then(r => r.json()),
+  post: async (endpoint: string, data: any) => fetch(endpoint, { method: 'POST', body: JSON.stringify(data) }).then(r => r.json()),
+  subscribe: () => { return () => {} }
+};
+
 function App() {
   const setGatewayToken = useAppStore(state => state.setGatewayToken);
 
@@ -31,74 +39,78 @@ function App() {
   return (
     <GlobalErrorBoundary>
       <ToastProvider>
-        <HashRouter>
-          <Routes>
-            <Route path="/auth" element={<AuthPage />} />
+        <EnvironmentProvider forcedEnv="console">
+          <TransportProvider adapter={consoleAdapter}>
+            <HashRouter>
+              <Routes>
+                <Route path="/auth" element={<AuthPage />} />
 
-            <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
-              <Route path="/" element={<Navigate to="/projects" replace />} />
+                <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
+                  <Route path="/" element={<Navigate to="/projects" replace />} />
 
-              <Route path="/projects" element={
-                <PageErrorBoundary pageName="Projects">
-                  <ProjectsPage />
-                </PageErrorBoundary>
-              } />
-              <Route path="/project/:id" element={
-                <PageErrorBoundary pageName="Builder">
-                  <BuilderPage />
-                </PageErrorBoundary>
-              } />
+                  <Route path="/projects" element={
+                    <PageErrorBoundary pageName="Projects">
+                      <ProjectsPage />
+                    </PageErrorBoundary>
+                  } />
+                  <Route path="/project/:id" element={
+                    <PageErrorBoundary pageName="Builder">
+                      <BuilderPage />
+                    </PageErrorBoundary>
+                  } />
 
-              <Route path="/chat" element={
-                <PageErrorBoundary pageName="Chat">
-                  <AlloyChatShell />
-                </PageErrorBoundary>
-              } />
-              <Route path="/dashboard" element={
-                <PageErrorBoundary pageName="Dashboard">
-                  <DashboardView />
-                </PageErrorBoundary>
-              } />
+                  <Route path="/chat" element={
+                    <PageErrorBoundary pageName="Chat">
+                      <AlloyChatShell />
+                    </PageErrorBoundary>
+                  } />
+                  <Route path="/dashboard" element={
+                    <PageErrorBoundary pageName="Dashboard">
+                      <DashboardView />
+                    </PageErrorBoundary>
+                  } />
 
-              <Route path="/pipeline/history" element={
-                <PageErrorBoundary pageName="Pipeline History">
-                  <PipelineHistoryView />
-                </PageErrorBoundary>
-              } />
-              <Route path="/pipeline/:id" element={
-                <PageErrorBoundary pageName="Active Pipeline">
-                  <ActivePipelineView />
-                </PageErrorBoundary>
-              } />
-              <Route path="/pipeline/:id/plan" element={
-                <PageErrorBoundary pageName="Plan Approval">
-                  <PlanApprovalView />
-                </PageErrorBoundary>
-              } />
-              <Route path="/pipeline/active" element={
-                <PageErrorBoundary pageName="Active Pipeline">
-                  <ActivePipelineView />
-                </PageErrorBoundary>
-              } />
+                  <Route path="/pipeline/history" element={
+                    <PageErrorBoundary pageName="Pipeline History">
+                      <PipelineHistoryView />
+                    </PageErrorBoundary>
+                  } />
+                  <Route path="/pipeline/:id" element={
+                    <PageErrorBoundary pageName="Active Pipeline">
+                      <ActivePipelineView />
+                    </PageErrorBoundary>
+                  } />
+                  <Route path="/pipeline/:id/plan" element={
+                    <PageErrorBoundary pageName="Plan Approval">
+                      <PlanApprovalView />
+                    </PageErrorBoundary>
+                  } />
+                  <Route path="/pipeline/active" element={
+                    <PageErrorBoundary pageName="Active Pipeline">
+                      <ActivePipelineView />
+                    </PageErrorBoundary>
+                  } />
 
-              <Route path="/settings" element={
-                <PageErrorBoundary pageName="Settings">
-                  <AlloySettingsShell />
-                </PageErrorBoundary>
-              } />
+                  <Route path="/settings" element={
+                    <PageErrorBoundary pageName="Settings">
+                      <AlloySettingsShell />
+                    </PageErrorBoundary>
+                  } />
 
-              <Route path="/metro" element={
-                <PageErrorBoundary pageName="Metro Watchdog">
-                  <MetroStatusView />
-                </PageErrorBoundary>
-              } />
+                  <Route path="/metro" element={
+                    <PageErrorBoundary pageName="Metro Watchdog">
+                      <MetroStatusView />
+                    </PageErrorBoundary>
+                  } />
 
-              <Route path="/mission" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/accounts" element={<Navigate to="/settings" replace />} />
-              <Route path="*" element={<Navigate to="/projects" replace />} />
-            </Route>
-          </Routes>
-        </HashRouter>
+                  <Route path="/mission" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/accounts" element={<Navigate to="/settings" replace />} />
+                  <Route path="*" element={<Navigate to="/projects" replace />} />
+                </Route>
+              </Routes>
+            </HashRouter>
+          </TransportProvider>
+        </EnvironmentProvider>
       </ToastProvider>
     </GlobalErrorBoundary>
   );

@@ -273,7 +273,7 @@ async function fetchProjectID(accessToken: string): Promise<string> {
         continue;
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
       if (typeof data.cloudaicompanionProject === "string" && data.cloudaicompanionProject) {
         return data.cloudaicompanionProject;
       }

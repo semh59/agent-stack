@@ -1,0 +1,136 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DependencyGraph = void 0;
+const agents_1 = require("./agents");
+/**
+ * DependencyGraph: Manages agent relationships and calculates parallel execution levels.
+ * Uses topological sorting (Kahn's Algorithm variant) for efficient scheduling.
+ */
+class DependencyGraph {
+    nodes = new Map();
+    constructor(agents = agents_1.AGENTS) {
+        this.buildGraph(agents);
+    }
+    /**
+     * Build the graph based on inputFiles and explicit backtrackTargets.
+     * Time Complexity: O(Agents * Files)
+     */
+    buildGraph(agents) {
+        // 1. Create mapping of output file -> producing agent role
+        const fileToAgent = new Map();
+        for (const agent of agents) {
+            for (const file of agent.outputFiles) {
+                fileToAgent.set(file, agent.role);
+            }
+        }
+        // 2. Initialize nodes
+        for (const agent of agents) {
+            this.nodes.set(agent.role, {
+                agent,
+                dependencies: [],
+                dependents: [],
+            });
+        }
+        // 3. Resolve dependencies
+        for (const agent of agents) {
+            const node = this.nodes.get(agent.role);
+            const deps = new Set();
+            // File-based dependencies
+            for (const file of agent.inputFiles) {
+                const producer = fileToAgent.get(file);
+                if (producer && producer !== agent.role) {
+                    deps.add(producer);
+                }
+            }
+            // Explicit role-based ordering (if order is strictly enforced)
+            // For legacy compatibility, we might assume agents with lower order are potential dependencies
+            // but for "High Performance", we only care about ACTUAL functional dependencies (files).
+            // Add dependencies to node
+            node.dependencies = Array.from(deps);
+            // Link dependents
+            for (const depRole of deps) {
+                const depNode = this.nodes.get(depRole);
+                if (depNode) {
+                    depNode.dependents.push(agent.role);
+                }
+            }
+        }
+    }
+    /**
+     * Get Parallel Levels using Kahn's Algorithm variant.
+     * Nodes at the same level have no dependencies between them and can run in parallel.
+     * Time Complexity: O(V + E)
+     */
+    getParallelLevels() {
+        const levels = [];
+        const inDegrees = new Map();
+        const nodeQueue = [];
+        // Initialize in-degrees
+        for (const [role, node] of this.nodes) {
+            inDegrees.set(role, node.dependencies.length);
+            if (node.dependencies.length === 0) {
+                nodeQueue.push(role);
+            }
+        }
+        let currentLevel = 0;
+        while (nodeQueue.length > 0) {
+            const currentLevelAgents = [];
+            const batchSize = nodeQueue.length;
+            // Process all nodes currently in queue (all have in-degree 0)
+            for (let i = 0; i < batchSize; i++) {
+                const role = nodeQueue.shift();
+                const node = this.nodes.get(role);
+                currentLevelAgents.push(node.agent);
+                // Reduce in-degree of dependents
+                for (const dependentRole of node.dependents) {
+                    const currentInDegree = inDegrees.get(dependentRole) - 1;
+                    inDegrees.set(dependentRole, currentInDegree);
+                    if (currentInDegree === 0) {
+                        nodeQueue.push(dependentRole);
+                    }
+                }
+            }
+            if (currentLevelAgents.length > 0) {
+                levels.push({
+                    level: currentLevel++,
+                    agents: currentLevelAgents.sort((a, b) => a.order - b.order),
+                });
+            }
+        }
+        // Cycle detection check
+        const totalProcessed = levels.reduce((sum, lvl) => sum + lvl.agents.length, 0);
+        if (totalProcessed !== this.nodes.size) {
+            throw new Error(`Circular dependency detected in Agent Graph! Processed ${totalProcessed} of ${this.nodes.size} nodes.`);
+        }
+        return levels;
+    }
+    /**
+     * Get all dependency roles for a specific agent.
+     */
+    getDependencies(role) {
+        return this.nodes.get(role)?.dependencies ?? [];
+    }
+    /**
+     * Get all agent roles that depend on this one.
+     */
+    getDependents(role) {
+        return this.nodes.get(role)?.dependents ?? [];
+    }
+    /**
+     * Check if agent A depends on agent B (directly or indirectly).
+     */
+    dependsOn(a, b) {
+        const node = this.nodes.get(a);
+        if (!node)
+            return false;
+        if (node.dependencies.includes(b))
+            return true;
+        for (const dep of node.dependencies) {
+            if (this.dependsOn(dep, b))
+                return true;
+        }
+        return false;
+    }
+}
+exports.DependencyGraph = DependencyGraph;
+//# sourceMappingURL=DependencyGraph.js.map

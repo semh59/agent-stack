@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { ChatShell }    from "@/components/chat/ChatShell";
 import { AccountPanel } from "@/components/accounts/AccountPanel";
 import { SettingsPanel } from "@/components/settings/SettingsPanel";
@@ -7,6 +7,7 @@ import { useChatStore, type AccountInfo } from "@/store/chatStore";
 import { usePipelineStore } from "@/store/pipelineStore";
 import type { IncomingMessage } from "@/lib/vscode";
 import { uid } from "@/lib/utils";
+import { EnvironmentProvider, TransportProvider } from "@alloy/ui-core";
 
 const S = {
   root: {
@@ -163,6 +164,14 @@ export default function App() {
 
   const { postMessage } = useVSCodeApi(handleMessage);
 
+  const vscodeAdapter = useMemo(() => ({
+    get: async () => {},
+    post: async (endpoint: string, data: any) => {
+      postMessage({ type: endpoint as any, ...data });
+    },
+    subscribe: () => { return () => {} }
+  }), [postMessage]);
+
   useEffect(() => {
     postMessage({ type: "getAccounts" });
     postMessage({ type: "getModels" });
@@ -184,19 +193,23 @@ export default function App() {
   const hasAlert = accounts.some((a) => a.status === "error") || !!accountError;
 
   return (
-    <div style={S.root}>
-      <div style={S.tabs}>
-        <button type="button" style={tab(activeView === "chat")} onClick={() => setActiveView("chat")}>Chat</button>
-        <button type="button" style={tab(activeView === "accounts")} onClick={() => setActiveView("accounts")}>
-          Hesaplar{hasAlert ? " ●" : ""}
-        </button>
-        <button type="button" style={tab(activeView === "settings")} onClick={() => setActiveView("settings")}>Ayarlar</button>
-      </div>
-      <div style={S.content}>
-        {activeView === "chat"     && <ChatShell onSend={handleSend} onStop={handleStop} onApprove={handleApprove} onReject={handleReject} onClear={handleClear} onRequestFiles={handleRequestFiles} />}
-        {activeView === "accounts" && <AccountPanel postMessage={postMessage} />}
-        {activeView === "settings" && <SettingsPanel postMessage={postMessage} />}
-      </div>
-    </div>
+    <EnvironmentProvider forcedEnv="vscode">
+      <TransportProvider adapter={vscodeAdapter}>
+        <div style={S.root}>
+          <div style={S.tabs}>
+            <button type="button" style={tab(activeView === "chat")} onClick={() => setActiveView("chat")}>Chat</button>
+            <button type="button" style={tab(activeView === "accounts")} onClick={() => setActiveView("accounts")}>
+              Hesaplar{hasAlert ? " ●" : ""}
+            </button>
+            <button type="button" style={tab(activeView === "settings")} onClick={() => setActiveView("settings")}>Ayarlar</button>
+          </div>
+          <div style={S.content}>
+            {activeView === "chat"     && <ChatShell onSend={handleSend} onStop={handleStop} onApprove={handleApprove} onReject={handleReject} onClear={handleClear} onRequestFiles={handleRequestFiles} />}
+            {activeView === "accounts" && <AccountPanel postMessage={postMessage} />}
+            {activeView === "settings" && <SettingsPanel postMessage={postMessage} />}
+          </div>
+        </div>
+      </TransportProvider>
+    </EnvironmentProvider>
   );
 }

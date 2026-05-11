@@ -3,42 +3,7 @@
  * Handles code blocks, inline code, bold, and plain text.
  */
 
-import { useState } from "react";
-import { Copy, Check } from "lucide-react";
-
-interface CodeBlockProps {
-  code: string;
-  lang?: string;
-}
-
-function CodeBlock({ code, lang }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    void navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  return (
-    <div className="my-2 rounded-xl overflow-hidden border border-[var(--color-alloy-border)]">
-      <div className="flex items-center justify-between bg-[var(--color-alloy-surface-hover)] px-3 py-1.5">
-        <span className="text-[11px] font-mono text-[var(--color-alloy-text-dim)]">{lang || "code"}</span>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="flex items-center gap-1 rounded px-2 py-0.5 text-[11px] text-[var(--color-alloy-text-sec)] hover:bg-[var(--color-alloy-surface)] transition-colors"
-        >
-          {copied ? <Check size={11} className="text-[var(--color-alloy-success)]" /> : <Copy size={11} />}
-          {copied ? "Kopyalandi" : "Kopyala"}
-        </button>
-      </div>
-      <pre className="overflow-x-auto bg-[var(--color-alloy-bg)] p-4 text-[12px] font-mono text-[var(--color-alloy-text)] leading-relaxed">
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}
+import { CodeBlock } from "@alloy/ui-core";
 
 interface Segment {
   type: "text" | "code" | "codeblock";
@@ -105,7 +70,7 @@ export function FormattedMessage({ content, className = "" }: FormattedMessagePr
     <div className={`text-[13px] leading-relaxed ${className}`}>
       {segments.map((seg, i) => {
         if (seg.type === "codeblock") {
-          return <CodeBlock key={i} code={seg.content} lang={seg.lang} />;
+          return <CodeBlock key={i} code={seg.content} language={seg.lang} />;
         }
         if (seg.type === "code") {
           return (

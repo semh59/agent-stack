@@ -1,4 +1,4 @@
-﻿import { type AlloyGatewayConfig } from "../plugin/config";
+import { type AlloyGatewayConfig } from "../plugin/config";
 import { AccountManager } from "../plugin/accounts";
 import { formatRefreshParts } from "../plugin/auth";
 import type { OAuthAuthDetails } from "../plugin/types";
@@ -104,26 +104,23 @@ function resolveManagedAccount(
   email: string,
   accessToken: string,
 ): { access?: string; accessToken?: string; expires?: number; parts?: { refreshToken: string; projectId?: string; managedProjectId?: string } } | null {
-  const dynamicManager = manager as Record<string, unknown>;
-  const getCurrentForFamily = dynamicManager.getCurrentAccountForFamily as ((family: string) => unknown) | undefined;
-  const byFamily = getCurrentForFamily?.("gemini") ?? getCurrentForFamily?.("claude");
+  const dynamicManager = manager as any;
+  const byFamily = dynamicManager.getCurrentAccountForFamily?.("gemini") ?? dynamicManager.getCurrentAccountForFamily?.("claude");
   if (byFamily) {
-    return byFamily as ReturnType<typeof resolveManagedAccount>;
+    return byFamily;
   }
 
-  const getSnapshots = dynamicManager.getAccountsSnapshot as (() => unknown) | undefined;
-  const snapshots = getSnapshots?.();
+  const snapshots = dynamicManager.getAccountsSnapshot?.();
   if (Array.isArray(snapshots)) {
-    const byEmail = snapshots.find((account: unknown) => (account as { email?: string }).email === email);
+    const byEmail = snapshots.find((account: any) => account.email === email);
     if (byEmail) {
-      return byEmail as ReturnType<typeof resolveManagedAccount>;
+      return byEmail;
     }
   }
 
-  const getActive = dynamicManager.getActiveAccount as (() => unknown) | undefined;
-  const active = getActive?.();
+  const active = dynamicManager.getActiveAccount?.();
   if (active) {
-    return active as ReturnType<typeof resolveManagedAccount>;
+    return active;
   }
 
   return {

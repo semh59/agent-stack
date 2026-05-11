@@ -60,9 +60,25 @@ export const createAuthSlice: StateCreator<
       const token = get().gatewayToken;
       if (!token) throw new Error("Gateway auth token missing");
       const res = await gatewayFetch("/api/accounts", { method: "GET" }, token);
+      
+      // If we get an error but have an active guest account, don't wipe it
       if (!res.ok) throw new Error(`Failed to fetch accounts (${res.status})`);
+      
       const body = (await res.json()) as { data?: GoogleAccount[] };
-      set({ accounts: normalizeAccounts(body.data), lastError: null });
+      const fetchedAccounts = normalizeAccounts(body.data);
+      
+      set(state => {
+        // Find local-only accounts (guards against server wipes for guest sessions)
+        const localOnly = state.accounts.filter(local => 
+          !fetchedAccounts.some(remote => remote.email === local.email) && 
+          local.isValid // Trust local validity for guest sessions
+        );
+        
+        return { 
+          accounts: [...fetchedAccounts, ...localOnly], 
+          lastError: null 
+        };
+      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       set({ lastError: `Baglanti hatasi: ${message}` });

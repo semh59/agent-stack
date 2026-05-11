@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-primary: var(--vscode-editor-background, #0b0e14);
+  --color-surface-secondary: var(--vscode-sideBar-background, #12151b);
+  --color-surface-tertiary: var(--vscode-editorWidget-background, #1a1e27);
+  --color-text-primary: var(--vscode-editor-foreground, #f8f8f2);
+  --color-text-secondary: var(--vscode-descriptionForeground, #a1a6b4);
+  
+  --color-accent-primary: var(--vscode-button-background, #1d4ed8);
+  --color-accent-hover: var(--vscode-button-hoverBackground, #1e40af);
+  
+  --color-border-primary: var(--vscode-widget-border, #2a2f3a);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    font-family: var(--vscode-font-family, system-ui, sans-serif);
+  }
+}
